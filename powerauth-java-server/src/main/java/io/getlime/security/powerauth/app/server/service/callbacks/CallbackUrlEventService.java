@@ -25,20 +25,23 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacks
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEventConfiguration;
+import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Map;
@@ -60,26 +63,31 @@ public class CallbackUrlEventService {
     /**
      * States of callback events that are eligible for being processed.
      */
-    private static final Set<CallbackUrlEventStatus> EVENT_STATES_TO_BE_PROCESSED = EnumSet.of(CallbackUrlEventStatus.PENDING, CallbackUrlEventStatus.FAILED);
+    private static final Set<CallbackUrlEventStatus> EVENT_STATES_TO_BE_PROCESSED = EnumSet.of(
+            CallbackUrlEventStatus.INSTANT,
+            CallbackUrlEventStatus.PENDING,
+            CallbackUrlEventStatus.FAILED
+    );
 
-    private CallbackUrlEventRepository callbackUrlEventRepository;
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final CallbackUrlEventResponseHandler callbackUrlEventResponseHandler;
 
     // Store REST clients in cache with their callback ID as a key
     private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
     private final Object restClientCacheLock = new Object();
 
     /**
-     * Dispatch a pending Callback URL Event.
-     * @param callbackUrlEventEntity Callback URL Event to dispatch.
+     * Dispatch a Callback URL Event.
+     * @param callbackUrlEvent Callback URL Event to dispatch.
      */
-    @Transactional
-    public void dispatchPendingCallbackUrlEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        callbackUrlEventRepository.findPendingByIdWithTryLock(callbackUrlEventEntity.getId())
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void dispatchInstantCallbackUrlEvent(final CallbackUrlEvent callbackUrlEvent) {
+        callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
                 .ifPresentOrElse(
                         this::dispatchEvent,
-                        () -> logger.debug("Published CallbackUrlEvent {} is no longer waiting to be processed.", callbackUrlEventEntity.getId())
+                        () -> { throw new IllegalStateException("Callback Url Event cannot be dispatched, because it was not found in database: callbackUrlEventEntityId=" + callbackUrlEvent.callbackUrlEventEntityId()); }
                 );
     }
 
@@ -95,14 +103,11 @@ public class CallbackUrlEventService {
 
     /**
      * Dispatch Callback URL Events in pending state.
-     * <p>
-     * This method acts as a safety net to ensure that any events which were not received by the Callback URL Event
-     * listener are processed and dispatched.
      */
     @Transactional
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
-        callbackUrlEventRepository.findPendingWithLock(pageRequest)
+        callbackUrlEventRepository.findPending(pageRequest)
                 .forEach(this::dispatchEvent);
     }
 
@@ -111,7 +116,7 @@ public class CallbackUrlEventService {
      */
     @Transactional
     public void deleteCallbackUrlEventsAfterRetentionPeriod() {
-        callbackUrlEventRepository.deleteAllAfterRetentionPeriod(LocalDateTime.now());
+        callbackUrlEventRepository.deleteCompletedAfterRetentionPeriod(LocalDateTime.now());
     }
 
     /**
@@ -119,35 +124,58 @@ public class CallbackUrlEventService {
      * @param callbackUrlEventEntity Event to dispatch.
      */
     private void dispatchEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
+
+        if (!maxAttemptsPositive(callbackUrlEventEntity)) {
+            logger.info("Callback URL Event {} has not positive max number of attempts.", callbackUrlEventEntity.getId());
+            final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+            callbackUrlEventResponseHandler.handleSuccess(callbackUrlEvent);
+            return;
+        }
+
         if (!shouldBeProcessed(callbackUrlEventEntity)) {
             logger.debug("Callback URL Event {} should not be processed, state={}", callbackUrlEventEntity.getId(), callbackUrlEventEntity.getStatus());
             return;
         }
 
-        markAsProcessing(callbackUrlEventEntity);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
+        callbackUrlEventEntity.setTimestampNextCall(null);
+        callbackUrlEventEntity.setTimestampLastCall(LocalDateTime.now());
+        callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
+        callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+        TransactionUtils.executeAfterTransactionCommits(
+                () -> postCallback(callbackUrlEvent)
+        );
+    }
+
+    /**
+     * Send Callback URL Event as a non-blocking POST request.
+     * @param callbackUrlEvent Event to post.
+     */
+    public void postCallback(final CallbackUrlEvent callbackUrlEvent) {
+
         try {
-            final Consumer<ResponseEntity<String>> onSuccess = response -> handleCallbackSuccess(callbackUrlEventEntity);
-            final Consumer<Throwable> onError = error -> handleCallbackFailure(callbackUrlEventEntity, error);
+            final Consumer<ResponseEntity<String>> onSuccess = response -> callbackUrlEventResponseHandler.handleSuccess(callbackUrlEvent);
+            final Consumer<Throwable> onError = error -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, error);
             final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
 
-            final RestClient restClient = getRestClient(callbackUrlEntity);
-
+            final RestClient restClient = getRestClient(callbackUrlEvent.callbackUrlEventConfiguration());
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Idempotency-Key", callbackUrlEventEntity.getId());
+            headers.add("Idempotency-Key", callbackUrlEvent.callbackUrlEventEntityId());
 
-            restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(),
-                    callbackUrlEventEntity.getCallbackData(),
+            restClient.postNonBlocking(callbackUrlEvent.callbackUrlEventConfiguration().callbackUrl(),
+                    callbackUrlEvent.callbackData(),
                     new LinkedMultiValueMap<>(),
                     headers,
                     responseType,
                     onSuccess,
                     onError);
 
-            logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEventEntity.getId());
+            logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEvent.callbackUrlEventEntityId());
+
         } catch (RestClientException e) {
-            handleCallbackFailure(callbackUrlEventEntity, e);
+            callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, e);
         }
     }
 
@@ -156,97 +184,35 @@ public class CallbackUrlEventService {
      * @param callbackUrlEventEntity Callback URL Event to check.
      * @return True if the Callback URL Event should be processed, false otherwise.
      */
-    private static boolean shouldBeProcessed(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        return EVENT_STATES_TO_BE_PROCESSED.contains(callbackUrlEventEntity.getStatus());
+    private boolean shouldBeProcessed(final CallbackUrlEventEntity callbackUrlEventEntity) {
+        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
+        return EVENT_STATES_TO_BE_PROCESSED.contains(callbackUrlEventEntity.getStatus())
+                && callbackUrlEventEntity.getAttempts() < maxAttempts;
     }
 
     /**
-     * Handle successful Callback URL Event attempt.
-     * @param callbackUrlEventEntity Callback URL Event successfully delivered.
+     * Check if a Callback URL Event is configured to be dispatched at least once.
+     * @param callbackUrlEventEntity Callback URL Event to check.
+     * @return True if the Callback URL Event should be dispatched at least once, false otherwise.
      */
-    private void handleCallbackSuccess(CallbackUrlEventEntity callbackUrlEventEntity) {
-        logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId());
-
-        final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
-        callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
-
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
-        callbackUrlEventRepository.save(callbackUrlEventEntity);
+    private boolean maxAttemptsPositive(final CallbackUrlEventEntity callbackUrlEventEntity) {
+        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
+        return maxAttempts > 0;
     }
 
     /**
-     * Handle failure of callback attempt.
-     * @param callbackUrlEventEntity Failed Callback URL Event.
-     * @param error Exception describing the cause of failure.
+     * Get a REST Client using which a Callback URL Event will be dispatched.
+     * @param callbackUrlEventConfiguration Configuration of the Callback.
+     * @return REST Client.
+     * @throws RestClientException In case the REST Client initialization fails.
      */
-    private void handleCallbackFailure(final CallbackUrlEventEntity callbackUrlEventEntity, final Throwable error) {
-        logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
-
-        final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
-        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
-        final int attemptsMade = callbackUrlEventEntity.getAttempts();
-
-        if (attemptsMade < maxAttempts) {
-            final long initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoffMilliseconds());
-            final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoffMilliseconds());
-            callbackUrlEventEntity.setTimestampNextCall(callbackUrlEventEntity.getTimestampLastCall().plus(backoffPeriod));
-        } else {
-            final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
-            callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
-        }
-
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
-        callbackUrlEventRepository.save(callbackUrlEventEntity);
-    }
-
-    /**
-     * Set a Callback URL Event as currently being processed.
-     * @param callbackUrlEventEntity The Callback URL Event to set as currently being processed.
-     */
-    private void markAsProcessing(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
-        callbackUrlEventEntity.setTimestampNextCall(null);
-        callbackUrlEventEntity.setTimestampLastCall(LocalDateTime.now());
-        callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
-        callbackUrlEventRepository.save(callbackUrlEventEntity);
-    }
-
-    /**
-     * Calculate back off period for next retry attempt using exponential backoff strategy.
-     * @param attempts Number of already made attempts.
-     * @param initialBackoff Initial backoff.
-     * @return Duration between last and next attempt.
-     */
-     private static Duration calculateExponentialBackoffPeriod(final int attempts, final long initialBackoff, final double multiplier, final long maxBackoffMilliseconds) {
-        if (attempts < 0) {
-            throw new IllegalArgumentException("Attempts must be non-negative.");
-        }
-
-        if (initialBackoff < 0) {
-            throw new IllegalArgumentException("Initial backoff must be non-negative.");
-        }
-
-        if (attempts == 0) {
-            return Duration.ZERO;
-        }
-
-        final long backoff = (long) (initialBackoff * Math.pow(multiplier, attempts - 1));
-        return Duration.ofMillis(Math.min(backoff, maxBackoffMilliseconds));
-    }
-
-    /**
-     * Get a rest client for a callback url entity.
-     * @param callbackUrlEntity Callback url entity.
-     * @return Rest client.
-     * @throws RestClientException Thrown when rest client initialization fails.
-     */
-    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+    private RestClient getRestClient(final CallbackUrlEventConfiguration callbackUrlEventConfiguration) throws RestClientException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEventConfiguration);
         synchronized (restClientCacheLock) {
             final RestClient restClient = restClientCache.get(cacheKey);
             if (restClient == null) {
                 logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                return createRestClientAndStoreInCache(callbackUrlEntity);
+                return createRestClientAndStoreInCache(callbackUrlEventConfiguration);
             } else {
                 logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
                 return restClient;
@@ -255,41 +221,41 @@ public class CallbackUrlEventService {
     }
 
     /**
-     * Get a key for the REST client cache from a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
+     * Get a key of the REST Client Cache for a Callback URL Configuration.
+     * @param callbackUrlEventConfiguration Configuration of the Callback.
      * @return Cache key.
      */
-    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
-        return callbackUrlEntity.getId();
+    private static String getRestClientCacheKey(final CallbackUrlEventConfiguration callbackUrlEventConfiguration) {
+        return callbackUrlEventConfiguration.callbackUrlEntityId();
     }
 
     /**
-     * Create a new REST client and store it in cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
+     * Create a new REST Client for a Callback URL Configuration and store it in a cache.
+     * @param callbackUrlEventConfiguration Configuration of the Callback.
      * @return Rest client.
      */
-    private RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient = initializeRestClient(callbackUrlEntity);
+    private RestClient createRestClientAndStoreInCache(final CallbackUrlEventConfiguration callbackUrlEventConfiguration) throws RestClientException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEventConfiguration);
+        final RestClient restClient = initializeRestClient(callbackUrlEventConfiguration);
         restClientCache.put(cacheKey, restClient);
         return restClient;
     }
 
     /**
-     * Evict an instance from REST client cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
+     * Evict an instance of a REST Client for a Callback URL Configuration from cache.
+     * @param callbackUrlEventConfiguration Configuration of the Callback.
      */
-    public void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
+    public void evictRestClientFromCache(final CallbackUrlEventConfiguration callbackUrlEventConfiguration) {
         synchronized (restClientCacheLock) {
-            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
+            restClientCache.remove(getRestClientCacheKey(callbackUrlEventConfiguration));
         }
     }
 
     /**
-     * Initialize Rest client instance and configure it based on client configuration.
-     * @param callbackUrlEntity Callback URL entity.
+     * Initialize REST Client instance and configure it based on a Callback URL Configuration.
+     * @param callbackUrlEventConfiguration Configuration of the Callback.
      */
-    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+    private RestClient initializeRestClient(final CallbackUrlEventConfiguration callbackUrlEventConfiguration) throws RestClientException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder();
         if (powerAuthServiceConfiguration.getHttpConnectionTimeout() != null) {
             builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
@@ -306,7 +272,7 @@ public class CallbackUrlEventService {
                 proxyBuilder.username(powerAuthServiceConfiguration.getHttpProxyUsername()).password(powerAuthServiceConfiguration.getHttpProxyPassword());
             }
         }
-        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
+        final CallbackUrlAuthenticationEntity authentication = callbackUrlEventConfiguration.authentication();
         final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();

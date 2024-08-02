@@ -25,9 +25,31 @@ package io.getlime.security.powerauth.app.server.database.model.enumeration;
  */
 public enum CallbackUrlEventStatus {
 
+    /**
+     * Status of a Callback URL Event that is currently being dispatched.
+     */
     PROCESSING,
+
+    /**
+     * Status of a newly created Callback URL Event that is waiting to be
+     * processed by the Executor.
+     */
+    INSTANT,
+
+    /**
+     * Status of a newly created Callback URL Event that is waiting to be
+     * processed by the scheduled task.
+     */
     PENDING,
+
+    /**
+     * State of a Callback URL Event that failed during previous processing.
+     */
     FAILED,
+
+    /**
+     * Final state of a Callback Event that was successfully delivered.
+     */
     COMPLETED
 
 }

@@ -42,7 +42,6 @@ public class AsyncConfiguration {
         executor.setCorePoolSize(powerAuthCallbacksConfiguration.getThreadPoolCoreSize());
         executor.setQueueCapacity(powerAuthCallbacksConfiguration.getThreadPoolQueueCapacity());
         executor.setMaxPoolSize(powerAuthCallbacksConfiguration.getThreadPoolMaxSize());
-        executor.setRejectedExecutionHandler((r, e) -> logger.debug("A Callback URL Event was rejected by the ThreadPoolTaskExecutor."));
         executor.initialize();
         return executor;
     }

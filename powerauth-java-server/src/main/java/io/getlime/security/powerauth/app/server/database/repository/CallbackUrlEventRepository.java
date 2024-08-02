@@ -19,21 +19,15 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 import java.util.stream.Stream;
-
-import static org.hibernate.cfg.AvailableSettings.JAKARTA_LOCK_TIMEOUT;
 
 /**
  * Repository for Callback URL Events.
@@ -43,20 +37,6 @@ import static org.hibernate.cfg.AvailableSettings.JAKARTA_LOCK_TIMEOUT;
 @Repository
 public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEventEntity, String> {
 
-    /**
-     * Lock timeout option to skip locked rows instead of waiting for exclusive lock.
-     */
-    String SKIP_LOCKED = "-2";
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(value = {@QueryHint(name = JAKARTA_LOCK_TIMEOUT, value = SKIP_LOCKED)})
-    @Query("""
-            SELECT c FROM CallbackUrlEventEntity c
-            WHERE c.id = :id
-            AND c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING
-            """)
-    Optional<CallbackUrlEventEntity> findPendingByIdWithTryLock(String id);
-
     @Query("""
             SELECT c FROM CallbackUrlEventEntity c
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.FAILED
@@ -64,14 +44,12 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
             """)
     Stream<CallbackUrlEventEntity> findScheduledForRetry(LocalDateTime timestamp, Pageable pageable);
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints(value = {@QueryHint(name = JAKARTA_LOCK_TIMEOUT, value = SKIP_LOCKED)})
     @Query("""
             SELECT c FROM CallbackUrlEventEntity c
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING
             ORDER BY c.timestampCreated DESC
             """)
-    Stream<CallbackUrlEventEntity> findPendingWithLock(Pageable pageable);
+    List<CallbackUrlEventEntity> findPending(Pageable pageable);
 
     @Modifying
     @Query("""
@@ -79,6 +57,14 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.COMPLETED
             AND c.timestampDeleteAfter < :timestamp
             """)
-    void deleteAllAfterRetentionPeriod(LocalDateTime timestamp);
+    void deleteCompletedAfterRetentionPeriod(LocalDateTime timestamp);
+
+    @Modifying
+    @Query("""
+            UPDATE CallbackUrlEventEntity c
+            SET c.status = :status
+            WHERE c.id = :id
+            """)
+    void updateStatusById(String id, CallbackUrlEventStatus status);
 
 }
