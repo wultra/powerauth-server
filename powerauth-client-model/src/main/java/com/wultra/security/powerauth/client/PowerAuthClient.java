@@ -2159,7 +2159,7 @@ public interface PowerAuthClient {
      * @return Create application configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException;
+    CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<Object> values) throws PowerAuthClientException;
 
     /**
      * Remove an application configuration record.

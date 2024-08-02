@@ -58,26 +58,7 @@ public class ApplicationConfigEntity implements Serializable {
 
     @Column(name = "config_values", columnDefinition = "CLOB")
     @Convert(converter = ListToJsonConverter.class)
-    private List<String> values = new ArrayList<>();
-
-    /**
-     * No-arg constructor.
-     */
-    public ApplicationConfigEntity() {
-    }
-
-    /**
-     * Constructor for a new application configuration.
-     *
-     * @param application Application entity.
-     * @param key         Configuration key.
-     * @param values       Configuration values.
-     */
-    public ApplicationConfigEntity(ApplicationEntity application, String key, List<String> values) {
-        this.application = application;
-        this.key = key;
-        this.values = values;
-    }
+    private List<Object> values = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

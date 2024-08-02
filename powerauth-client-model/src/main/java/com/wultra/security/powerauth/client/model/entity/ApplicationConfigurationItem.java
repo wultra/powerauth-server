@@ -31,6 +31,6 @@ import java.util.List;
 public class ApplicationConfigurationItem {
 
     private String key;
-    private List<String> values = new ArrayList<>();
+    private List<Object> values = new ArrayList<>();
 
 }

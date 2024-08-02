@@ -1491,7 +1491,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException {
+    public CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<Object> values) throws PowerAuthClientException {
         final CreateApplicationConfigRequest request = new CreateApplicationConfigRequest();
         request.setApplicationId(applicationId);
         request.setKey(key);
