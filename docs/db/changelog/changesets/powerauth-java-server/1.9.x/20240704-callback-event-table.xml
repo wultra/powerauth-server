@@ -4,7 +4,7 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                    https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="pa_application_callback_event" />
@@ -32,7 +32,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="2" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_application_callback" columnName="max_attempts" />
@@ -44,7 +44,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="3" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_application_callback" columnName="initial_backoff" />
@@ -56,7 +56,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="4" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_application_callback" columnName="retention_period" />
@@ -68,7 +68,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="5" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="5" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists indexName="pa_application_callback_event_status_idx"/>
@@ -80,7 +80,7 @@
         </createIndex>
     </changeSet>
 
-    <changeSet id="6" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+    <changeSet id="6" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists indexName="pa_application_callback_event_timestamp_delete_after_idx"/>
