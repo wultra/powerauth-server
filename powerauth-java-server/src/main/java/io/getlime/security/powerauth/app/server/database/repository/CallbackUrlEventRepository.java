@@ -27,7 +27,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Repository for Callback URL Events.
@@ -42,7 +41,7 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.FAILED
             AND c.timestampNextCall < :timestamp
             """)
-    Stream<CallbackUrlEventEntity> findScheduledForRetry(LocalDateTime timestamp, Pageable pageable);
+    List<CallbackUrlEventEntity> findScheduledForRetry(LocalDateTime timestamp, Pageable pageable);
 
     @Query("""
             SELECT c FROM CallbackUrlEventEntity c
