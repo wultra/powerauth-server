@@ -16,4 +16,4 @@ For manual changes use SQL scripts:
 
 ### Add encryption_mode Column
 
-A new column `encryption_mode` has been added to the `pa_application_config` table to enable encryption of config values.
+A new column `encryption_mode` has been added to the `pa_application_config` table to enable encryption of configuration values.
