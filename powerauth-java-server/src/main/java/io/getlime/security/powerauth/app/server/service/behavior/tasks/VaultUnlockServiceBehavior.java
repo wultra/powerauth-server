@@ -145,6 +145,7 @@ public class VaultUnlockServiceBehavior {
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),

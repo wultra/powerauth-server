@@ -198,7 +198,14 @@ public class EciesEncryptionBehavior {
             );
             // Calculate secrets for the external encryptor
             final EncryptorSecrets encryptorSecrets = encryptor.calculateSecretsForExternalEncryptor(
-                    new EncryptedRequest(request.getEphemeralPublicKey(), null, null, request.getNonce(), request.getTimestamp())
+                    new EncryptedRequest(
+                            request.getTemporaryKeyId(),
+                            request.getEphemeralPublicKey(),
+                            null,
+                            null,
+                            request.getNonce(),
+                            request.getTimestamp()
+                    )
             );
             if (encryptorSecrets instanceof ServerEncryptorSecrets encryptorSecretsV3) {
                 // ECIES V3.0, V3.1, V3.2
@@ -311,7 +318,14 @@ public class EciesEncryptionBehavior {
             );
             // Calculate secrets for the external encryptor. The request object may not contain encrypted data and mac.
             final EncryptorSecrets encryptorSecrets = encryptor.calculateSecretsForExternalEncryptor(
-                    new EncryptedRequest(ephemeralPublicKey, null, null, nonce, timestamp)
+                    new EncryptedRequest(
+                            temporaryKeyId,
+                            ephemeralPublicKey,
+                            null,
+                            null,
+                            nonce,
+                            timestamp
+                    )
             );
             if (encryptorSecrets instanceof ServerEncryptorSecrets encryptorSecretsV3) {
                 // ECIES V3.0, V3.1, V3.2

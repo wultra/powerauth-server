@@ -1010,6 +1010,7 @@ public class ActivationServiceBehavior {
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -1261,6 +1262,7 @@ public class ActivationServiceBehavior {
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -1974,6 +1976,7 @@ public class ActivationServiceBehavior {
 
             // Prepare and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
