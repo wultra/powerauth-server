@@ -17,20 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.encryption;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-
-import javax.crypto.SecretKey;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Service;
-
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -43,6 +29,16 @@ import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 
 /**
  * Service for encryption and decryption database data.
@@ -62,6 +58,23 @@ public class EncryptionService {
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
+
+    /**
+     * Decrypt the given string.
+     *
+     * @param dataString String to decrypt.
+     * @param encryptionMode Encryption mode.
+     * @param secretKeyDerivationInput Values used for derivation of secret key.
+     * @return Decrypted value.
+     * @see #decrypt(byte[], EncryptionMode, List) if you want to encrypt binary data.
+     * @throws GenericServiceException In case decryption fails.
+     */
+    public String decrypt(final String dataString, final EncryptionMode encryptionMode, final List<String> secretKeyDerivationInput) throws GenericServiceException {
+        final byte[] dataBytes = convert(dataString, encryptionMode);
+        final byte[] decrypted = decrypt(dataBytes, encryptionMode, secretKeyDerivationInput);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
     /**
      * Decrypt the given data.
      *
@@ -69,6 +82,7 @@ public class EncryptionService {
      * @param encryptionMode Encryption mode.
      * @param secretKeyDerivationInput Values used for derivation of secret key.
      * @return Decrypted value.
+     * @see #decrypt(String, EncryptionMode, List) if you want to encrypt string data.
      * @throws GenericServiceException In case decryption fails.
      */
     public byte[] decrypt(final byte[] data, final EncryptionMode encryptionMode, final List<String> secretKeyDerivationInput) throws GenericServiceException {
@@ -128,19 +142,35 @@ public class EncryptionService {
     }
 
     /**
+     * Encrypt the given string.
+     *
+     * @param data String to encrypt.
+     * @param secretKeyDerivations Values used for derivation of secret key.
+     * @return Encryptable composite data.
+     * @see #encrypt(byte[], List) if you want to encrypt binary data.
+     * @throws GenericServiceException Thrown when encryption fails.
+     */
+    public EncryptableString encrypt(final String data, final List<String> secretKeyDerivations) throws GenericServiceException {
+        final byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        final EncryptableData result = encrypt(dataBytes, secretKeyDerivations);
+        return new EncryptableString(result.encryptionMode(), convert(result));
+    }
+
+    /**
      * Encrypt the given data.
      *
      * @param data Data to encrypt.
      * @param secretKeyDerivations Values used for derivation of secret key.
      * @return Encryptable composite data.
+     * @see #encrypt(String, List) if you want to encrypt binary data.
      * @throws GenericServiceException Thrown when encryption fails.
      */
-    public Encryptable encrypt(final byte[] data, final List<String> secretKeyDerivations) throws GenericServiceException {
+    public EncryptableData encrypt(final byte[] data, final List<String> secretKeyDerivations) throws GenericServiceException {
         final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the value
         if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new EncryptableRecord(EncryptionMode.NO_ENCRYPTION, data);
+            return new EncryptableData(EncryptionMode.NO_ENCRYPTION, data);
         }
 
         try {
@@ -162,7 +192,7 @@ public class EncryptionService {
             baos.write(encrypted);
             final byte[] encryptedData = baos.toByteArray();
 
-            return new EncryptableRecord(EncryptionMode.AES_HMAC, encryptedData);
+            return new EncryptableData(EncryptionMode.AES_HMAC, encryptedData);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -195,39 +225,19 @@ public class EncryptionService {
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
     }
 
-    private record EncryptableRecord(EncryptionMode encryptionMode, byte[] encryptedData) implements Encryptable {
-        @Override
-        public EncryptionMode getEncryptionMode() {
-            return encryptionMode;
+    private static byte[] convert(final String source, final EncryptionMode encryptionMode) {
+        if (encryptionMode == EncryptionMode.NO_ENCRYPTION) {
+            return source.getBytes(StandardCharsets.UTF_8);
+        } else {
+            return Base64.getDecoder().decode(source);
         }
+    }
 
-        @Override
-        public byte[] getEncryptedData() {
-            return encryptedData;
-        }
-
-        @Override
-        public String toString() {
-            return "EncryptableRecord{" +
-                "encryptionMode=" + encryptionMode +
-                ", encryptedDataLength=" + ArrayUtils.getLength(encryptedData) +
-                '}';
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof final EncryptableRecord that)) {
-                return false;
-            }
-            return Objects.deepEquals(encryptedData, that.encryptedData) && encryptionMode == that.encryptionMode;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(encryptionMode, Arrays.hashCode(encryptedData));
+    private static String convert(final EncryptableData source) {
+        if (source.encryptionMode() == EncryptionMode.NO_ENCRYPTION) {
+            return new String(source.encryptedData(), StandardCharsets.UTF_8);
+        } else {
+            return Base64.getEncoder().encodeToString(source.encryptedData());
         }
     }
 

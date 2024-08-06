@@ -58,12 +58,13 @@ Stores configurations for the applications stored in `pa_application` table.
 
 #### Columns
 
-| Name           | Type         | Info                            | Note                                                                                                                            |
-|----------------|--------------|---------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| id             | BIGINT(20)   | primary key, autoincrement      | Unique application configuration identifier.                                                                                    |
-| application_id | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                                                                                         |
-| config_key     | VARCHAR(255) | index                           | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, `fido2_root_ca_certs`, or `oauth2_providers` |
-| config_values  | TEXT         | -                               | Configuration values serialized in JSON format.                                                                                 |
+| Name             | Type         | Info                               | Note                                                                                                                            |
+|------------------|--------------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| id               | BIGINT(20)   | primary key, autoincrement         | Unique application configuration identifier.                                                                                    |
+| application_id   | BIGINT(20)   | foreign key: pa\_application.id    | Related application ID.                                                                                                         |
+| config_key       | VARCHAR(255) | index                              | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, `fido2_root_ca_certs`, or `oauth2_providers` |
+| config_values    | TEXT         | -                                  | Configuration values serialized in JSON format.                                                                                 |
+| encryption_mode  | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL   | Encryption of config values: `NO_ENCRYPTION` means plaintext, `AES_HMAC` for AES encryption with HMAC-based index.              |
 <!-- end -->
 
 <!-- begin database table pa_activation -->

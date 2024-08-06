@@ -20,27 +20,12 @@ package io.getlime.security.powerauth.app.server.service.encryption;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 /**
- * A generic wrapper for encryption, keeping both the mode and the data.
+ * A wrapper for String encryption, keeping both the mode and the data.
  *
+ * @param encryptionMode Encryption mode. Determine format of {@link #encryptedData()}.
+ * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionMode()}.
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public interface Encryptable {
+public record EncryptableString(EncryptionMode encryptionMode, String encryptedData) {
 
-    /**
-     * Return encryption mode.
-     * <p>
-     * Determine format of {@link #getEncryptedData()}.
-     *
-     * @return encryption mode
-     */
-    EncryptionMode getEncryptionMode();
-
-    /**
-     * Return the data.
-     * <p>
-     * May be plain or encrypted. Depends on {@link #getEncryptionMode()}.
-     *
-     * @return encrypted or plain data
-     */
-    byte[] getEncryptedData();
 }

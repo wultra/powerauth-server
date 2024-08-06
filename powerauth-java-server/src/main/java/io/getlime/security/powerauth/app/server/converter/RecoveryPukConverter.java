@@ -17,19 +17,15 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.service.encryption.Encryptable;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Converter for recovery PUK which handles record encryption and decryption in case it is configured.
@@ -56,9 +52,7 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException In case recovery PUK hash decryption fails.
      */
     public String fromDBValue(final RecoveryPuk recoveryPuk, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        final byte[] data = convert(recoveryPuk);
-        final byte[] decrypted = encryptionService.decrypt(data, recoveryPuk.encryptionMode(), createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
-        return convert(decrypted);
+        return encryptionService.decrypt(recoveryPuk.pukHash(), recoveryPuk.encryptionMode(), createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
     }
 
     /**
@@ -75,33 +69,8 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public RecoveryPuk toDBValue(final String pukHash, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        final byte[] data = convert(pukHash);
-        final Encryptable encryptable = encryptionService.encrypt(data, createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
-        return new RecoveryPuk(encryptable.getEncryptionMode(), convert(encryptable));
-    }
-
-    private static byte[] convert(final RecoveryPuk source) {
-        if (source.encryptionMode() == EncryptionMode.NO_ENCRYPTION) {
-            return source.pukHash().getBytes(StandardCharsets.UTF_8);
-        } else {
-            return Base64.getDecoder().decode(source.pukHash());
-        }
-    }
-
-    private static byte[] convert(final String source) {
-        return source.getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static String convert(final Encryptable source) {
-        if (source.getEncryptionMode() == EncryptionMode.NO_ENCRYPTION) {
-            return convert(source.getEncryptedData());
-        } else {
-            return Base64.getEncoder().encodeToString(source.getEncryptedData());
-        }
-    }
-
-    private static String convert(final byte[] source) {
-        return new String(source, StandardCharsets.UTF_8);
+        final EncryptableString encryptable = encryptionService.encrypt(pukHash, createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
+        return new RecoveryPuk(encryptable.encryptionMode(), encryptable.encryptedData());
     }
 
     private static List<String> createSecretKeyDerivationInput(final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) {
