@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
 
@@ -51,6 +52,11 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
 @Service
 @Slf4j
 public class ApplicationConfigServiceBehavior {
+
+    private static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
+
+    private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
+            CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS, CONFIG_KEY_OAUTH2_PROVIDERS);
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
@@ -192,14 +198,12 @@ public class ApplicationConfigServiceBehavior {
      */
     private void validateConfigKey(String key) throws GenericServiceException {
         if (key == null) {
-            logger.warn("Missing configuration key in FIDO2 request");
+            logger.warn("Missing configuration key in request");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(key)
-                && !CONFIG_KEY_ALLOWED_AAGUIDS.equals(key)
-                && !CONFIG_KEY_ROOT_CA_CERTS.equals(key)) {
-            logger.warn("Unknown configuration key in FIDO2 request: {}", key);
+        if (!ALLOWED_CONFIGURATION_KEYS.contains(key)) {
+            logger.warn("Unknown configuration key in request: {}", key);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
