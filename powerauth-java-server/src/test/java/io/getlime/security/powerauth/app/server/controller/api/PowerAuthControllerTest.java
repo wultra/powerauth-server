@@ -1003,7 +1003,7 @@ class PowerAuthControllerTest {
 
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
@@ -1020,7 +1020,7 @@ class PowerAuthControllerTest {
         final byte[] sharedInfo2Base = Base64.getDecoder().decode(decryptorResponse.getSharedInfo2());
         final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ServerEncryptorSecrets(secretKey, sharedInfo2Base)
         );
         final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
@@ -1339,7 +1339,7 @@ class PowerAuthControllerTest {
 
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
 

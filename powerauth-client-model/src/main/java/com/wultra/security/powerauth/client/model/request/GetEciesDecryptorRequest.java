@@ -31,6 +31,7 @@ public class GetEciesDecryptorRequest {
 
     private String activationId;
     private String applicationKey;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     @ToString.Exclude
     private String nonce;

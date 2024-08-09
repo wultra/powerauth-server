@@ -1362,11 +1362,12 @@ public interface PowerAuthClient {
      * @param nonce              ECIES nonce.
      * @param protocolVersion    Crypto protocol version.
      * @param timestamp          Unix timestamp in milliseconds for ECIES.
+     * @param temporaryKeyId     Temporary Key ID.
      * @return ECIES decryptor parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
+                                                String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -2209,5 +2210,25 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException;
+
+    /**
+     * Fetch a new temporary public key.
+     * @param request Requested public key parameters.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Requested public key.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Remove a temporary public key.
+     * @param id ID of the temporary public key to remove.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Response with removal result.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
 }

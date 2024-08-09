@@ -32,6 +32,7 @@ public class PrepareActivationRequest {
     private String activationCode;
     private String applicationKey;
     private boolean generateRecoveryCodes;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;

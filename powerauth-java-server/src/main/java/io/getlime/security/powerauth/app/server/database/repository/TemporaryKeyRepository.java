@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,28 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.request;
+package io.getlime.security.powerauth.app.server.database.repository;
 
-import lombok.Data;
-import lombok.ToString;
+import io.getlime.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
-/**
- * Model class representing request for confirming recovery code request.
- *
- * @author Petr Dvorak, petr@wultra.com
- */
-@Data
-public class ConfirmRecoveryCodeRequest {
+import java.util.Date;
 
-    private String activationId;
-    private String applicationKey;
-    private String temporaryKeyId;
-    private String ephemeralPublicKey;
-    private String encryptedData;
-    private String mac;
-    @ToString.Exclude
-    private String nonce;
-    private Long timestamp;
-    private String protocolVersion;
+@Repository
+public interface TemporaryKeyRepository extends CrudRepository<TemporaryKeyEntity, String> {
+
+    @Modifying
+    @Query("DELETE FROM TemporaryKeyEntity tke WHERE tke.timestampExpires < :timestampExpires")
+    int deleteExpiredKeys(Date timestampExpires);
 
 }
