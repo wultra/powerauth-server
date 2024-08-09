@@ -23,7 +23,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
  * Compound value of recovery PUK. PUK hash can be stored encrypted or decrypted based on key encryption mode.
  *
  * @param encryptionMode Key encryption mode.
- * @param pukHash        PUK hash, encrypted if speciefied by key encryption mode.
+ * @param pukHash        PUK hash, encrypted if specified by key encryption mode.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public record RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {

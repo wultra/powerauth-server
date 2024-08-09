@@ -23,16 +23,16 @@ import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import io.getlime.security.powerauth.app.server.service.persistence.ApplicationConfigService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +47,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ROOT_CA_CERTS;
@@ -58,20 +59,14 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;
     private final ActivationQueryService activationQueryService;
-    private final ApplicationConfigRepository applicationConfigRepository;
+    private final ApplicationConfigService applicationConfigService;
     private final Fido2CertificateValidator certificateValidator;
-
-    public PowerAuthCryptographyService(ActivationRepository activationRepository, ActivationQueryService activationQueryService, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
-        this.activationRepository = activationRepository;
-        this.activationQueryService = activationQueryService;
-        this.applicationConfigRepository = applicationConfigRepository;
-        this.certificateValidator = certificateValidator;
-    }
 
     public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
         if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
@@ -250,23 +245,24 @@ public class PowerAuthCryptographyService implements CryptographyService {
      * @throws CertificateException In case any certificate is invalid.
      */
     private List<X509Certificate> getRootCaCerts(String applicationId) throws CertificateException {
-        final List<X509Certificate> rootCaCerts = new ArrayList<>();
-        final Optional<ApplicationConfigEntity> appConfigOptional = applicationConfigRepository.findByApplicationIdAndKey(applicationId, CONFIG_KEY_ROOT_CA_CERTS);
-        if (appConfigOptional.isPresent()) {
-            final List<String> certs = appConfigOptional.get().getValues();
-            final CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-            certs.forEach(certPem -> {
-                final ByteArrayInputStream is = new ByteArrayInputStream(certPem.getBytes(StandardCharsets.UTF_8));
-                try {
-                    final X509Certificate rootCert = (X509Certificate) certFactory.generateCertificate(is);
-                    rootCaCerts.add(rootCert);
-                } catch (CertificateException e) {
-                    logger.debug(e.getMessage(), e);
-                    logger.warn("Invalid certificate configured, error: {}", e.getMessage());
-                }
-            });
-        }
-        return rootCaCerts;
+        final CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        return applicationConfigService.findByApplicationIdAndKey(applicationId, CONFIG_KEY_ROOT_CA_CERTS)
+                .map(applicationConfig ->
+                        applicationConfig.values().stream()
+                                .filter(String.class::isInstance)
+                                .map(String.class::cast)
+                                .map(certPem -> {
+                                    try (final ByteArrayInputStream is = new ByteArrayInputStream(certPem.getBytes(StandardCharsets.UTF_8))) {
+                                        return (X509Certificate) certFactory.generateCertificate(is);
+                                    } catch (Exception e) {
+                                        logger.debug(e.getMessage(), e);
+                                        logger.warn("Invalid certificate configured, error: {}", e.getMessage());
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .toList())
+                .orElse(new ArrayList<>());
     }
 
     /**

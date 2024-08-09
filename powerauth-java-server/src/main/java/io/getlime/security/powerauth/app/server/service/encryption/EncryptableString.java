@@ -15,33 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package io.getlime.security.powerauth.app.server.service.encryption;
 
-package com.wultra.security.powerauth.client.model.request;
-
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 /**
- * Model class representing request for adding an application configuration.
+ * A wrapper for String encryption, keeping both the mode and the data.
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @param encryptionMode Encryption mode. Determine format of {@link #encryptedData()}.
+ * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionMode()}.
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class CreateApplicationConfigRequest {
-
-    @NotBlank
-    private String applicationId;
-
-    @NotBlank
-    private String key;
-
-    private List<Object> values = new ArrayList<>();
+public record EncryptableString(EncryptionMode encryptionMode, String encryptedData) {
 
 }

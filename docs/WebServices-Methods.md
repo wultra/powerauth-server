@@ -371,7 +371,7 @@ REST endpoint: `POST /rest/v3/application/config/detail`
 
 The `ApplicationConfigurationItem` record contains following parameters: 
   - `String key` - configuration key name
-  - `List<String> values` - configuration values 
+  - `List<Object> values` - configuration values 
 
 ### Method 'createApplicationConfig'
 
@@ -383,26 +383,27 @@ REST endpoint: `POST /rest/v3/application/config/create`
 
 `CreateApplicationConfigRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values serialized as JSON array |
+| Type           | Name            | Description                                               |
+|----------------|-----------------|-----------------------------------------------------------|
+| `String`       | `applicationId` | An identifier of an application                           |
+| `String`       | `key`           | Application configuration key name                        |
+| `List<Object>` | `values`        | Application configuration values serialized as JSON array |
 
 Following configuration keys are accepted:
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
 - `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
 - `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
+- `oauth2_providers` - Configuration of OAuth 2.0 providers.
 
 #### Response
 
 `CreateApplicationConfigResponse`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values |
+| Type           | Name            | Description                        |
+|----------------|-----------------|------------------------------------|
+| `String`       | `applicationId` | An identifier of an application    |
+| `String`       | `key`           | Application configuration key name |
+| `List<Object>` | `values`        | Application configuration values   |
 
 ### Method 'removeApplicationConfig'
 
