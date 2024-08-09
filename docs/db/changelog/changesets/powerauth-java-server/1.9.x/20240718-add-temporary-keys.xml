@@ -35,7 +35,7 @@
             <column name="application_key" type="varchar(32)">
                 <constraints nullable="false" />
             </column>
-            <column name="activation_id" type="varchar(37)" defaultValue="0" />
+            <column name="activation_id" type="varchar(37)"/>
             <column name="private_key_encryption" type="integer" defaultValue="0">
                 <constraints nullable="false" />
             </column>
