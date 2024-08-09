@@ -131,9 +131,15 @@ public class TemporaryKeyBehavior {
 
         // Built and return the response claims
         try {
-            final HashMap<String, Object> claims = buildClaims(responseClaims);
+            final Date currentTimestamp = new Date();
+            final HashMap<String, Object> additionalClaims = buildAdditionalClaims(responseClaims);
             final Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) temporaryKeyResult.publicKey, (ECPrivateKey) temporaryKeyResult.privateKey);
-            final String jwtResponse = JWT.create().withPayload(claims).sign(algorithm);
+            final String jwtResponse = JWT.create()
+                    .withSubject(responseClaims.getKeyId())
+                    .withExpiresAt(responseClaims.getExpiration())
+                    .withIssuedAt(currentTimestamp)
+                    .withPayload(additionalClaims)
+                    .sign(algorithm);
 
             final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
             response.setJwt(jwtResponse);
@@ -319,7 +325,7 @@ public class TemporaryKeyBehavior {
         return result;
     }
 
-    private HashMap<String, Object> buildClaims(TemporaryPublicKeyResponseClaims source) {
+    private HashMap<String, Object> buildAdditionalClaims(TemporaryPublicKeyResponseClaims source) {
         final HashMap<String, Object> claims = new HashMap<>();
         if (source.getAppKey() != null) {
             claims.put("appKey", source.getAppKey());
@@ -328,11 +334,9 @@ public class TemporaryKeyBehavior {
             claims.put("activationId", source.getActivationId());
         }
         claims.put("challenge", source.getChallenge());
-        claims.put("keyId", source.getKeyId());
         if (source.getPublicKey() != null) {
             claims.put("publicKey", Base64.getEncoder().encodeToString(source.getPublicKey()));
         }
-        claims.put("expiration", source.getExpiration().getTime());
         return claims;
     }
 
