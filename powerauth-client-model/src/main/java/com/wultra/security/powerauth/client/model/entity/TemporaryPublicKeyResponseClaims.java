@@ -36,7 +36,7 @@ public class TemporaryPublicKeyResponseClaims {
     @ToString.Exclude
     private String challenge;
     private String keyId;
-    private byte[] publicKey;
+    private String publicKey;
     private Date expiration;
 
 }

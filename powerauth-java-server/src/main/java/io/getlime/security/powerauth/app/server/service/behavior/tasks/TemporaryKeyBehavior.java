@@ -307,30 +307,47 @@ public class TemporaryKeyBehavior {
          }
     }
 
-    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims) throws CryptoProviderException, InvalidKeyException {
+    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims) throws CryptoProviderException, InvalidKeyException, GenericServiceException {
 
         // Generate a temporary key pair
         final KeyPair temporaryKeyPair = keyGenerator.generateKeyPair();
 
+        // Prepare the parameters key pair
+        final String keyId = UUID.randomUUID().toString();
+        final String applicationKey = requestClaims.getApplicationKey();
+        final String activationId = requestClaims.getActivationId();
+        final String challenge = requestClaims.getChallenge();
+        final byte[] privateKeyBytes = keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate());
+        final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic()));
+        final Date expirationDate = Date.from(Instant.now().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds()));
+
+        // Prepare encrypted temporary private key, if encryption is enabled
+        final ServerPrivateKey temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(
+                privateKeyBytes,
+                keyId,
+                applicationKey,
+                activationId
+        );
+
         // Prepare and store the entity
         final TemporaryKeyEntity temporaryKeyEntity = new TemporaryKeyEntity();
-        temporaryKeyEntity.setId(UUID.randomUUID().toString());
-        temporaryKeyEntity.setAppKey(requestClaims.getApplicationKey());
-        temporaryKeyEntity.setActivationId(requestClaims.getActivationId());
-        temporaryKeyEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
-        temporaryKeyEntity.setPrivateKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate())));
-        temporaryKeyEntity.setPublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic())));
-        temporaryKeyEntity.setTimestampExpires(Date.from(Instant.now().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds())));
+        temporaryKeyEntity.setId(keyId);
+        temporaryKeyEntity.setAppKey(applicationKey);
+        temporaryKeyEntity.setActivationId(activationId);
+        temporaryKeyEntity.setPrivateKeyEncryption(temporaryPrivateKey.encryptionMode());
+        temporaryKeyEntity.setPrivateKeyBase64(temporaryPrivateKey.serverPrivateKeyBase64());
+        temporaryKeyEntity.setPublicKeyBase64(temporaryPublicKeyBase64);
+        temporaryKeyEntity.setTimestampExpires(expirationDate);
         final TemporaryKeyEntity savedEntity = temporaryKeyRepository.save(temporaryKeyEntity);
 
         // Prepare and return the result
         final TemporaryPublicKeyResponseClaims result = new TemporaryPublicKeyResponseClaims();
-        result.setApplicationKey(requestClaims.getApplicationKey());
-        result.setActivationId(requestClaims.getActivationId());
-        result.setChallenge(requestClaims.getChallenge());
+        result.setApplicationKey(savedEntity.getAppKey());
+        result.setActivationId(savedEntity.getActivationId());
         result.setKeyId(savedEntity.getId());
-        result.setPublicKey(Base64.getDecoder().decode(savedEntity.getPublicKeyBase64()));
+        result.setPublicKey(savedEntity.getPublicKeyBase64());
         result.setExpiration(savedEntity.getTimestampExpires());
+        result.setChallenge(challenge);
         return result;
     }
 
@@ -344,7 +361,7 @@ public class TemporaryKeyBehavior {
         }
         claims.put("challenge", source.getChallenge());
         if (source.getPublicKey() != null) {
-            claims.put("publicKey", Base64.getEncoder().encodeToString(source.getPublicKey()));
+            claims.put("publicKey", source.getPublicKey());
         }
         claims.put("iat_ms", currentTimestamp.getTime());
         claims.put("exp_ms", source.getExpiration().getTime());
