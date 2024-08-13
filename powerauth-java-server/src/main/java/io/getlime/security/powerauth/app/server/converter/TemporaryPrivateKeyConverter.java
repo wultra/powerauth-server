@@ -17,28 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableData;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Converter for temporary private key which handles key encryption and decryption in case it is configured.
@@ -47,21 +35,10 @@ import java.util.Base64;
  */
 @Component
 @Slf4j
+@AllArgsConstructor
 public class TemporaryPrivateKeyConverter {
 
-    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final LocalizationProvider localizationProvider;
-
-    // Utility classes for crypto
-    private final KeyGenerator keyGenerator = new KeyGenerator();
-    private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    @Autowired
-    public TemporaryPrivateKeyConverter(PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.localizationProvider = localizationProvider;
-    }
+    private final EncryptionService encryptionService;
 
     /**
      * Convert server private key from composite database value to Base64-encoded string value.
@@ -75,77 +52,9 @@ public class TemporaryPrivateKeyConverter {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public String fromDBValue(ServerPrivateKey serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final String serverPrivateKeyBase64 = serverPrivateKey.serverPrivateKeyBase64();
-        final EncryptionMode encryptionMode = serverPrivateKey.encryptionMode();
-        if (encryptionMode == null) {
-            logger.error("Missing key encryption mode");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
-        }
-
-        switch (encryptionMode) {
-            case NO_ENCRYPTION -> {
-                return serverPrivateKeyBase64;
-            }
-            case AES_HMAC -> {
-                final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
-
-                // In case master DB encryption key does not exist, do not encrypt the server private key
-                if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-                    logger.error("Missing master DB encryption key");
-                    // Rollback is not required, error occurs before writing to database
-                    throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
-                }
-
-                try {
-                    // Convert master DB encryption key
-                    final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
-
-                    // Derive secret key from master DB encryption key, userId and activationId
-                    final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, keyId, appKey, activationId);
-
-                    // Base64-decode server private key
-                    final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-
-                    // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
-                    if (serverPrivateKeyBytes.length < 16) {
-                        logger.error("Invalid encrypted private key format - the byte array is too short");
-                        // Rollback is not required, error occurs before writing to database
-                        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-                    }
-
-                    // IV is present in first 16 bytes
-                    final byte[] iv = Arrays.copyOfRange(serverPrivateKeyBytes, 0, 16);
-
-                    // Encrypted serverPrivateKey is present after IV
-                    final byte[] encryptedServerPrivateKey = Arrays.copyOfRange(serverPrivateKeyBytes, 16, serverPrivateKeyBytes.length);
-
-                    // Decrypt serverPrivateKey
-                    final byte[] decryptedServerPrivateKey = aesEncryptionUtils.decrypt(encryptedServerPrivateKey, iv, secretKey);
-
-                    // Base64-encode decrypted serverPrivateKey
-                    return Base64.getEncoder().encodeToString(decryptedServerPrivateKey);
-
-                } catch (InvalidKeyException ex) {
-                    logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-                } catch (GenericCryptoException ex) {
-                    logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                } catch (CryptoProviderException ex) {
-                    logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-                }
-            }
-            default -> {
-                logger.error("Unknown key encryption mode: {}", encryptionMode.getValue());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
-            }
-        }
+        final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createSecretKeyDerivationInput(keyId, appKey, activationId));
+        return convert(decrypted);
     }
 
     /**
@@ -161,75 +70,20 @@ public class TemporaryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(byte[] serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
-
-        // In case master DB encryption key does not exist, do not encrypt the server private key
-        if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new ServerPrivateKey(EncryptionMode.NO_ENCRYPTION, Base64.getEncoder().encodeToString(serverPrivateKey));
-        }
-
-        try {
-            // Convert master DB encryption key
-            final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
-
-            // Derive secret key from master DB encryption key, userId and activationId
-            final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, keyId, appKey, activationId);
-
-            // Generate random IV
-            final byte[] iv = keyGenerator.generateRandomBytes(16);
-
-            // Encrypt serverPrivateKey using secretKey with generated IV
-            final byte[] encrypted = aesEncryptionUtils.encrypt(serverPrivateKey, iv, secretKey);
-
-            // Generate output bytes as encrypted + IV
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(iv);
-            baos.write(encrypted);
-            final byte[] record = baos.toByteArray();
-
-            // Base64-encode output and create ServerPrivateKey instance
-            final String encryptedKeyBase64 = Base64.getEncoder().encodeToString(record);
-
-            // Return encrypted record including encryption mode
-            return new ServerPrivateKey(EncryptionMode.AES_HMAC, encryptedKeyBase64);
-
-        } catch (InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (IOException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, serialization is executed before database is used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
-        }
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(keyId, appKey, activationId));
+        return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
-    /**
-     * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
-     * <br/>
-     * See: <a href="https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md">...</a>
-     *
-     * @param masterDbEncryptionKey Master DB encryption key.
-     * @param userId User ID.
-     * @param activationId Activation ID.
-     * @return Derived secret key.
-     * @throws GenericCryptoException In case key derivation fails.
-     */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String keyId, String userId, String activationId) throws GenericCryptoException, CryptoProviderException {
-        // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
-        final byte[] index = (keyId + "&" + userId + "&" + activationId).getBytes(StandardCharsets.UTF_8);
-
-        // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
-        return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
+    private static String convert(final byte[] source) {
+        return Base64.getEncoder().encodeToString(source);
     }
 
+    private static byte[] convert(final String source) {
+        return Base64.getDecoder().decode(source);
+    }
+
+    private static List<String> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
+        return List.of(keyId, appKey, activationId);
+    }
 
 }
