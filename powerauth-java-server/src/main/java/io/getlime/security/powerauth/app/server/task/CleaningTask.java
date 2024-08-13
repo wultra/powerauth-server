@@ -84,7 +84,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.temporaryKeyCleanup:5000} * 0.8)}")
     public void expireTemporaryKeys() {
         LockAssert.assertLocked();
-        logger.debug("expireTemporaryKeys");
+        logger.debug("Calling scheduled expiration of temporary keys");
         temporaryKeyBehavior.expireTemporaryKeys();
     }
 

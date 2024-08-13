@@ -170,8 +170,10 @@ public class EciesEncryptionBehavior {
 
             final String temporaryKeyId = request.getTemporaryKeyId();
             final PrivateKey privateKey;
-            if (temporaryKeyId == null) {
-
+            if (temporaryKeyId != null) {
+                // Get the temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, request.getApplicationKey(), request.getActivationId());
+            } else {
                 // Get master private key
                 final ApplicationEntity application = applicationVersion.getApplication();
                 final String applicationId = application.getId();
@@ -184,10 +186,6 @@ public class EciesEncryptionBehavior {
 
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
                 privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
-            } else {
-
-                // Get the temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, request.getApplicationKey(), request.getActivationId());
             }
 
             // Build encryptor to derive shared info

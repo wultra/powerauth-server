@@ -33,6 +33,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller managing the endpoints related to temporary keys.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @RestController("temporaryKeyController")
 @RequestMapping("/rest/v3/keystore")
 @Tag(name = "PowerAuth ECIES Temporary Key Controller (V3)")

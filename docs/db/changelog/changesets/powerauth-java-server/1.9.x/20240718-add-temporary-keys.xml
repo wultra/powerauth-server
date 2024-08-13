@@ -33,9 +33,11 @@
                 <constraints primaryKey="true" />
             </column>
             <column name="application_key" type="varchar(32)">
-                <constraints nullable="false" />
+                <constraints nullable="false" foreignKeyName="pa_temporary_key_app_version_fk" referencedTableName="pa_application_version" referencedColumnNames="application_key"/>
             </column>
-            <column name="activation_id" type="varchar(37)"/>
+            <column name="activation_id" type="varchar(37)">
+                <constraints nullable="true" foreignKeyName="pa_temporary_key_activation_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id"/>
+            </column>
             <column name="private_key_encryption" type="integer" defaultValue="0">
                 <constraints nullable="false" />
             </column>
@@ -49,6 +51,18 @@
                 <constraints nullable="false" />
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.9.x/20240718-add-temporary-keys.xml" author="Petr Dvorak">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_temporary_key" indexName="pa_temporary_key_ts_key_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_temporary_key(timestamp_expires)</comment>
+        <createIndex tableName="pa_temporary_key" indexName="pa_temporary_key_ts_key_idx">
+            <column name="timestamp_expires" />
+        </createIndex>
     </changeSet>
 
 

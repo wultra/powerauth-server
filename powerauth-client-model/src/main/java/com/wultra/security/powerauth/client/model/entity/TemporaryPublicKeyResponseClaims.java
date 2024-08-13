@@ -23,10 +23,15 @@ import lombok.ToString;
 
 import java.util.Date;
 
+/**
+ * Class for holding the temporary key response claims.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Data
 public class TemporaryPublicKeyResponseClaims {
 
-    private String appKey;
+    private String applicationKey;
     private String activationId;
     @ToString.Exclude
     private String challenge;

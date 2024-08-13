@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicK
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTemporaryPublicKeyResponse;
 import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.TemporaryPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -68,6 +69,11 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Behavior class implementing the temporary key request related processes.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Service
 @Slf4j
 public class TemporaryKeyBehavior {
@@ -78,6 +84,8 @@ public class TemporaryKeyBehavior {
         private PrivateKey privateKey;
         private PublicKey publicKey;
     }
+
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     private final LocalizationProvider localizationProvider;
     private final ApplicationVersionRepository applicationVersionRepository;
@@ -92,7 +100,8 @@ public class TemporaryKeyBehavior {
     private final PowerAuthServerKeyFactory keyFactory = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public TemporaryKeyBehavior(LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, ActivationRepository activationRepository, MasterKeyPairRepository masterKeyPairRepository, TemporaryKeyRepository temporaryKeyRepository, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    public TemporaryKeyBehavior(PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, ActivationRepository activationRepository, MasterKeyPairRepository masterKeyPairRepository, TemporaryKeyRepository temporaryKeyRepository, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.localizationProvider = localizationProvider;
         this.applicationVersionRepository = applicationVersionRepository;
         this.activationRepository = activationRepository;
@@ -112,7 +121,7 @@ public class TemporaryKeyBehavior {
         // Validate claims
         final String error = validateDecodedClaims(requestClaims);
         if (error != null) {
-            throw new GenericServiceException("INVALID_TEMPORARY_KEY_REQUEST", error);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Obtain verifier secret and check JWT signature
@@ -123,7 +132,7 @@ public class TemporaryKeyBehavior {
             verifier.verify(decodedJWT);
         } catch (JWTVerificationException ex){
             logger.debug("JWT token verification failed: {}", ex.getMessage(), ex);
-            throw new GenericServiceException("INVALID_TEMPORARY_KEY_REQUEST", "Invalid temporary key request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Generate new key and store it
@@ -225,22 +234,22 @@ public class TemporaryKeyBehavior {
 
     private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(DecodedJWT source) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
         final TemporaryPublicKeyRequestClaims destination = new TemporaryPublicKeyRequestClaims();
-        destination.setAppKey(source.getClaim("appKey").asString());
+        destination.setApplicationKey(source.getClaim("applicationKey").asString());
         destination.setActivationId(source.getClaim("activationId").asString());
         destination.setChallenge(source.getClaim("challenge").asString());
         return destination;
     }
 
     private String validateDecodedClaims(TemporaryPublicKeyRequestClaims requestClaims) {
-        if (requestClaims.getAppKey() == null && requestClaims.getActivationId() == null) {
+        if (requestClaims.getApplicationKey() == null && requestClaims.getActivationId() == null) {
             return "Either app key or activation ID must be specified.";
         }
         return null;
     }
 
     private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
-        if (requestClaims.getAppKey() != null) {
-            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(requestClaims.getAppKey());
+        if (requestClaims.getApplicationKey() != null) {
+            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(requestClaims.getApplicationKey());
             if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
                 throw new IllegalArgumentException("App version with provided app key not found.");
             }
@@ -306,17 +315,17 @@ public class TemporaryKeyBehavior {
         // Prepare and store the entity
         final TemporaryKeyEntity temporaryKeyEntity = new TemporaryKeyEntity();
         temporaryKeyEntity.setId(UUID.randomUUID().toString());
-        temporaryKeyEntity.setAppKey(requestClaims.getAppKey());
+        temporaryKeyEntity.setAppKey(requestClaims.getApplicationKey());
         temporaryKeyEntity.setActivationId(requestClaims.getActivationId());
         temporaryKeyEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
         temporaryKeyEntity.setPrivateKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate())));
         temporaryKeyEntity.setPublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic())));
-        temporaryKeyEntity.setTimestampExpires(Date.from(Instant.now().plusSeconds(60)));
+        temporaryKeyEntity.setTimestampExpires(Date.from(Instant.now().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds())));
         final TemporaryKeyEntity savedEntity = temporaryKeyRepository.save(temporaryKeyEntity);
 
         // Prepare and return the result
         final TemporaryPublicKeyResponseClaims result = new TemporaryPublicKeyResponseClaims();
-        result.setAppKey(requestClaims.getAppKey());
+        result.setApplicationKey(requestClaims.getApplicationKey());
         result.setActivationId(requestClaims.getActivationId());
         result.setChallenge(requestClaims.getChallenge());
         result.setKeyId(savedEntity.getId());
@@ -327,8 +336,8 @@ public class TemporaryKeyBehavior {
 
     private HashMap<String, Object> buildAdditionalClaims(TemporaryPublicKeyResponseClaims source, Date currentTimestamp) {
         final HashMap<String, Object> claims = new HashMap<>();
-        if (source.getAppKey() != null) {
-            claims.put("appKey", source.getAppKey());
+        if (source.getApplicationKey() != null) {
+            claims.put("applicationKey", source.getApplicationKey());
         }
         if (source.getActivationId() != null) {
             claims.put("activationId", source.getActivationId());

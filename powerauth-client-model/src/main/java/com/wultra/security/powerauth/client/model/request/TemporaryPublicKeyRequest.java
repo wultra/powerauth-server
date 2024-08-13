@@ -20,6 +20,11 @@ package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
 
+/**
+ * Request class for JWT encoded temporary key request.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Data
 public class TemporaryPublicKeyRequest {
 

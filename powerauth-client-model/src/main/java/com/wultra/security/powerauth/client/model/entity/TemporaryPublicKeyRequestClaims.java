@@ -21,10 +21,15 @@ package com.wultra.security.powerauth.client.model.entity;
 import lombok.Data;
 import lombok.ToString;
 
+/**
+ * Class used for holding the request claims.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Data
 public class TemporaryPublicKeyRequestClaims {
 
-    private String appKey;
+    private String applicationKey;
     private String activationId;
     @ToString.Exclude
     private String challenge;

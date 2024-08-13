@@ -271,6 +271,13 @@ public class PowerAuthServiceConfiguration {
     private int expireOperationsLimit;
 
     /**
+     *
+     */
+    @Value("${powerauth.service.temporaryKey.validity:300000}")
+    @DurationMin(millis = 0)
+    private int temporaryKeyValidityMilliseconds;
+
+    /**
      * Prepare and configure object mapper.
      * @return Object mapper.
      */

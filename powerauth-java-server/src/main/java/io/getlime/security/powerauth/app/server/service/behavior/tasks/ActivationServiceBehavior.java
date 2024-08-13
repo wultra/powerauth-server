@@ -1061,7 +1061,10 @@ public class ActivationServiceBehavior {
             }
 
             final PrivateKey privateKey;
-            if (temporaryKeyId == null) {
+            if (temporaryKeyId != null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            } else {
                 // Get master server private key
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
                 if (masterKeyPairEntity == null) {
@@ -1072,9 +1075,6 @@ public class ActivationServiceBehavior {
 
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
                 privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
-            } else {
-                // Get temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
             }
 
             // Get server encryptor
@@ -1339,7 +1339,10 @@ public class ActivationServiceBehavior {
             }
 
             final PrivateKey privateKey;
-            if (temporaryKeyId == null) {
+            if (temporaryKeyId != null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId);
+            } else {
                 // Get master server private key
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
                 if (masterKeyPairEntity == null) {
@@ -1349,8 +1352,6 @@ public class ActivationServiceBehavior {
                 }
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
                 privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
-            } else {
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId);
             }
 
             // Get server encryptor
@@ -2034,6 +2035,9 @@ public class ActivationServiceBehavior {
 
             final PrivateKey privateKey;
             if (temporaryKeyId == null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            } else {
                 // Get master server private key
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
                 if (masterKeyPairEntity == null) {
@@ -2043,9 +2047,6 @@ public class ActivationServiceBehavior {
                 }
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
                 privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
-            } else {
-                // Get temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
             }
 
             // Get server encryptor

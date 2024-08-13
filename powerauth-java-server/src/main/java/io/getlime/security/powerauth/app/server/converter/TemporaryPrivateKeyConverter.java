@@ -41,9 +41,9 @@ import java.util.Arrays;
 import java.util.Base64;
 
 /**
- * Converter for server private key which handles key encryption and decryption in case it is configured.
+ * Converter for temporary private key which handles key encryption and decryption in case it is configured.
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Component
 @Slf4j

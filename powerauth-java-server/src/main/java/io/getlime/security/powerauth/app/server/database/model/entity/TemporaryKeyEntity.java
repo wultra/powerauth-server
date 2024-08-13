@@ -26,7 +26,13 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
+/**
+ * Entity representing a temporary key pair.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Entity
 @Table(name = "pa_temporary_key")
 @Getter
@@ -40,13 +46,13 @@ public class TemporaryKeyEntity implements Serializable {
      * Key identifier.
      */
     @Id
-    @Column(name = "id", updatable = false, length = 37)
+    @Column(name = "id", nullable = false, updatable = false, length = 37)
     private String id;
 
     /**
      * App key identifier.
      */
-    @Column(name = "application_key", updatable = false)
+    @Column(name = "application_key", nullable = false, updatable = false)
     private String appKey;
 
     /**
@@ -58,20 +64,20 @@ public class TemporaryKeyEntity implements Serializable {
     /**
      * Key encryption.
      */
-    @Column(name = "private_key_encryption")
+    @Column(name = "private_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode privateKeyEncryption;
 
     /**
      * Temporary private key.
      */
-    @Column(name = "private_key_base64")
+    @Column(name = "private_key_base64", nullable = false)
     private String privateKeyBase64;
 
     /**
      * Temporary public key.
      */
-    @Column(name = "public_key_base64")
+    @Column(name = "public_key_base64", nullable = false)
     private String publicKeyBase64;
 
     /**
@@ -80,4 +86,19 @@ public class TemporaryKeyEntity implements Serializable {
     @Column(name = "timestamp_expires", nullable = false)
     private Date timestampExpires;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TemporaryKeyEntity that = (TemporaryKeyEntity) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(appKey, that.appKey)
+                && Objects.equals(activationId, that.activationId)
+                && Objects.equals(publicKeyBase64, that.publicKeyBase64);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, appKey, activationId, publicKeyBase64);
+    }
 }
