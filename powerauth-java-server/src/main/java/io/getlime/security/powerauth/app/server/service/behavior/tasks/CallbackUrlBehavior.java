@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
@@ -40,7 +41,6 @@ import io.getlime.security.powerauth.app.server.service.encryption.EncryptableSt
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -71,6 +71,7 @@ public class CallbackUrlBehavior {
     private final ApplicationRepository applicationRepository;
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final CallbackUrlEventQueueService callbackUrlEventQueueService;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
     private LocalizationProvider localizationProvider;
     private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
     private final CallbackUrlRestClientManager callbackUrlRestClientManager;
@@ -447,6 +448,11 @@ public class CallbackUrlBehavior {
      * @throws GenericServiceException Thrown when callback configuration is wrong.
      */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException, GenericServiceException {
+        if (!isMaxAttemptsPositive(callbackUrlEntity)) {
+            logger.info("Callback URL is configured with non-positive max attempts: callbackUrlId={}", callbackUrlEntity.getId());
+            return;
+        }
+
         final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
         callbackUrlEventEntity.setId(UUID.randomUUID().toString());
         callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
@@ -454,7 +460,7 @@ public class CallbackUrlBehavior {
         callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
         callbackUrlEventEntity.setTimestampNextCall(LocalDateTime.now());
         callbackUrlEventEntity.setAttempts(0);
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.INSTANT);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
 
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
@@ -475,6 +481,16 @@ public class CallbackUrlBehavior {
             logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.callbackUrlEventEntityId());
             callbackUrlEventQueueService.enqueueToDatabase(callbackUrlEvent);
         }
+    }
+
+    /**
+     * Check if a Callback URL is configured to be dispatched at least once.
+     * @param callbackUrlEntity Callback URL to check.
+     * @return True if the Callback URL should be dispatched at least once, false otherwise.
+     */
+    private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
+        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
+        return maxAttempts > 0;
     }
 
 }

@@ -61,7 +61,7 @@ public class CallbackUrlEventResponseHandler {
 
         final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
         callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
-
+        callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
     }
@@ -77,6 +77,8 @@ public class CallbackUrlEventResponseHandler {
                 .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failure handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
 
         logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
+
+        callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
 
         final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
         final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());

@@ -91,16 +91,6 @@ public class CleaningTask {
         temporaryKeyBehavior.expireTemporaryKeys();
     }
 
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.retryFailedCallbackUrlEvents:3000}")
-    @SchedulerLock(
-            name = "retryFailedCallbackUrlEvents",
-            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.retryFailedCallbackUrlEvents:3000} * 0.8)}")
-    public void retryFailedCallbackUrlEvents() {
-        LockAssert.assertLocked();
-        logger.debug("retryFailedCallbackUrlEvents");
-        callbackUrlEventService.dispatchFailedCallbackUrlEvents();
-    }
-
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvents:3000}")
     @SchedulerLock(
             name = "dispatchPendingCallbackUrlEvents",

@@ -32,12 +32,6 @@ public enum CallbackUrlEventStatus {
 
     /**
      * Status of a newly created Callback URL Event that is waiting to be
-     * processed by the Executor.
-     */
-    INSTANT,
-
-    /**
-     * Status of a newly created Callback URL Event that is waiting to be
      * processed by the scheduled task.
      */
     PENDING,

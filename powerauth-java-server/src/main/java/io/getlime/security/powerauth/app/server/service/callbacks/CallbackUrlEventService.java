@@ -59,7 +59,6 @@ public class CallbackUrlEventService {
      * States of callback events that are eligible for being processed.
      */
     private static final Set<CallbackUrlEventStatus> EVENT_STATES_TO_BE_PROCESSED = EnumSet.of(
-            CallbackUrlEventStatus.INSTANT,
             CallbackUrlEventStatus.PENDING
     );
 
@@ -73,13 +72,8 @@ public class CallbackUrlEventService {
      * Dispatch a Callback URL Event.
      * @param callbackUrlEvent Callback URL Event to dispatch.
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void dispatchInstantCallbackUrlEvent(final CallbackUrlEvent callbackUrlEvent) {
-        callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                .ifPresentOrElse(
-                        this::dispatchEvent,
-                        () -> { throw new IllegalStateException("Callback Url Event cannot be dispatched, because it was not found in database: callbackUrlEventEntityId=" + callbackUrlEvent.callbackUrlEventEntityId()); }
-                );
+        postCallback(callbackUrlEvent);
     }
 
     /**
