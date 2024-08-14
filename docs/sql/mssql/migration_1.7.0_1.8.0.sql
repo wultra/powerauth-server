@@ -17,4 +17,3 @@ GO
 -- Add status_reason column to pa_operation table.
 ALTER TABLE pa_operation ADD status_reason varchar(32);
 GO
-

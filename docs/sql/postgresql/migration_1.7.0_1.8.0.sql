@@ -13,4 +13,3 @@ ALTER TABLE pa_fido2_authenticator ADD transports VARCHAR(255);
 -- Changeset powerauth-java-server/1.8.x/20240529-add-status-reason.xml::1::Lubos Racansky
 -- Add status_reason column to pa_operation table.
 ALTER TABLE pa_operation ADD status_reason VARCHAR(32);
-
