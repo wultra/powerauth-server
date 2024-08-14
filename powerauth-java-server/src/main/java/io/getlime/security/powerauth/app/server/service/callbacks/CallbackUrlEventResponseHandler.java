@@ -45,8 +45,8 @@ import java.util.Objects;
 @Slf4j
 public class CallbackUrlEventResponseHandler {
 
-    final CallbackUrlEventRepository callbackUrlEventRepository;
-    private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
      * Handle successful Callback URL Event attempt.
