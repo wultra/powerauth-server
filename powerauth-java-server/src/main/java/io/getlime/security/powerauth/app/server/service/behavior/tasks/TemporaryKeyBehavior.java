@@ -114,6 +114,10 @@ public class TemporaryKeyBehavior {
     @Transactional
     public TemporaryPublicKeyResponse requestTemporaryKey(TemporaryPublicKeyRequest request) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, GenericCryptoException, InvalidKeyException {
 
+        if (request == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         // Get claims from JWT
         final DecodedJWT decodedJWT = JWT.decode(request.getJwt());
         final TemporaryPublicKeyRequestClaims requestClaims = buildTemporaryKeyClaims(decodedJWT);
@@ -121,6 +125,7 @@ public class TemporaryKeyBehavior {
         // Validate claims
         final String error = validateDecodedClaims(requestClaims);
         if (error != null) {
+            logger.warn("Error occurred while decoding JWT claims: {}", error);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
@@ -248,8 +253,9 @@ public class TemporaryKeyBehavior {
     }
 
     private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
-        if (requestClaims.getApplicationKey() != null) {
-            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(requestClaims.getApplicationKey());
+        final String applicationKey = requestClaims.getApplicationKey();
+        if (applicationKey != null) {
+            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
                 throw new IllegalArgumentException("App version with provided app key not found.");
             }
@@ -294,10 +300,13 @@ public class TemporaryKeyBehavior {
                 final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
                 final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
                 final SecretKey transportKey = keyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-                final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
+
+                final byte[] applicationSecretKeyBytes = Base64.getDecoder().decode(applicationSecret);
+                final SecretKey secretKey = keyGenerator.deriveSecretKeyHmac(transportKey, applicationSecretKeyBytes);
+                final byte[] secretKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(secretKey);
 
                 final TemporaryKeyResult result = new TemporaryKeyResult();
-                result.setSecretKeyBytes(transportKeyBytes);
+                result.setSecretKeyBytes(secretKeyBytes);
                 result.setPrivateKey(serverPrivateKey);
                 result.setPublicKey(serverPublicKey);
                 return result;
