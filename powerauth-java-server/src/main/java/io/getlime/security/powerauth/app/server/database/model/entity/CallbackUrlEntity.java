@@ -105,10 +105,11 @@ public class CallbackUrlEntity implements Serializable {
     private Integer maxAttempts;
 
     /**
-     * Initial backoff before the next send attempt in milliseconds.
+     * Initial backoff before the next send attempt.
      */
     @Column(name = "initial_backoff")
-    private Long initialBackoff;
+    @Convert(converter = DurationConverter.class)
+    private Duration initialBackoff;
 
     /**
      * Duration for which is the callback event stored.

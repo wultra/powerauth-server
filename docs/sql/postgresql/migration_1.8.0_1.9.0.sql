@@ -28,7 +28,7 @@ ALTER TABLE pa_application_callback ADD max_attempts INTEGER;
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::3::Jan Pesek
 -- Add initial_backoff column to pa_application_callback table.
-ALTER TABLE pa_application_callback ADD initial_backoff INTEGER;
+ALTER TABLE pa_application_callback ADD initial_backoff VARCHAR(64);
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::4::Jan Pesek
 -- Add retention_period column to pa_application_callback table.

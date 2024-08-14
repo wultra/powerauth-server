@@ -82,8 +82,8 @@ public class CallbackUrlEventResponseHandler {
         final int attemptsMade = callbackUrlEventEntity.getAttempts();
 
         if (attemptsMade < maxAttempts) {
-            final long initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoffMilliseconds());
-            final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoffMilliseconds());
+            final Duration initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff());
+            final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoff());
             final LocalDateTime timestampLastCall = Objects.requireNonNullElse(callbackUrlEventEntity.getTimestampLastCall(), LocalDateTime.now());
             callbackUrlEventEntity.setTimestampNextCall(timestampLastCall.plus(backoffPeriod));
         } else {
@@ -101,12 +101,12 @@ public class CallbackUrlEventResponseHandler {
      * @param initialBackoff Initial backoff.
      * @return Duration between last and next attempt.
      */
-    private static Duration calculateExponentialBackoffPeriod(final int attempts, final long initialBackoff, final double multiplier, final long maxBackoffMilliseconds) {
+    private static Duration calculateExponentialBackoffPeriod(final int attempts, final Duration initialBackoff, final double multiplier, final Duration maxBackoff) {
         if (attempts < 0) {
             throw new IllegalArgumentException("Attempts must be non-negative.");
         }
 
-        if (initialBackoff < 0) {
+        if (initialBackoff.isNegative()) {
             throw new IllegalArgumentException("Initial backoff must be non-negative.");
         }
 
@@ -114,8 +114,8 @@ public class CallbackUrlEventResponseHandler {
             return Duration.ZERO;
         }
 
-        final long backoff = (long) (initialBackoff * Math.pow(multiplier, attempts - 1));
-        return Duration.ofMillis(Math.min(backoff, maxBackoffMilliseconds));
+        final long backoffMillis = (long) (initialBackoff.toMillis() * Math.pow(multiplier, attempts - 1));
+        return Duration.ofMillis(Math.min(backoffMillis, maxBackoff.toMillis()));
     }
 
 }

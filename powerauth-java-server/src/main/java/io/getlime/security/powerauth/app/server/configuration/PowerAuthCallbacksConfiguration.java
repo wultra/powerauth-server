@@ -48,7 +48,7 @@ public class PowerAuthCallbacksConfiguration {
     /**
      * Default initial backoff between attempts in case the corresponding Callback URL does not define any.
      */
-    private long defaultInitialBackoffMilliseconds = 2_000;
+    private Duration defaultInitialBackoff = Duration.ofSeconds(2);
 
     /**
      * Maximum number of failed Callback URL Events that will be dispatched again in a single scheduled job run.
@@ -63,7 +63,7 @@ public class PowerAuthCallbacksConfiguration {
     /**
      * Maximum possible backoff period between successive attempts.
      */
-    private long maxBackoffMilliseconds = 32_000;
+    private Duration maxBackoff = Duration.ofSeconds(32);
 
     /**
      * Multiplier used to calculate the backoff period.

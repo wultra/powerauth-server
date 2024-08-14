@@ -34,7 +34,7 @@ GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::3::Jan Pesek
 -- Add initial_backoff column to pa_application_callback table.
-ALTER TABLE pa_application_callback ADD initial_backoff int;
+ALTER TABLE pa_application_callback ADD initial_backoff varchar(64);
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::4::Jan Pesek

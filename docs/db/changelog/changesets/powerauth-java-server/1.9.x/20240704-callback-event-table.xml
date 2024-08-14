@@ -56,7 +56,7 @@
         </preConditions>
         <comment>Add initial_backoff column to pa_application_callback table.</comment>
         <addColumn tableName="pa_application_callback">
-            <column name="initial_backoff" type="integer" />
+            <column name="initial_backoff" type="varchar(64)" />
         </addColumn>
     </changeSet>
 
