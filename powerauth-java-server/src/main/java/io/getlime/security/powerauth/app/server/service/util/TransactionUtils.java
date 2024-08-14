@@ -29,7 +29,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class TransactionUtils {
+public final class TransactionUtils {
 
     /**
      * Execute task after current transaction commits.
