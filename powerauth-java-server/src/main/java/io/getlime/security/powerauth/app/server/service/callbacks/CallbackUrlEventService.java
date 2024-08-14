@@ -133,9 +133,9 @@ public class CallbackUrlEventService {
         callbackUrlEventEntity.setTimestampNextCall(null);
         callbackUrlEventEntity.setTimestampLastCall(LocalDateTime.now());
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
-        callbackUrlEventRepository.save(callbackUrlEventEntity);
+        final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
         TransactionUtils.executeAfterTransactionCommitsOrElse(
                 () -> postCallback(callbackUrlEvent),
                 () -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, new RuntimeException("Transaction failure during dispatching the Callback URL Event."))
