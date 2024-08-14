@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -102,13 +103,8 @@ public class CallbackUrlEventResponseHandler {
      * @return Duration between last and next attempt.
      */
     private static Duration calculateExponentialBackoffPeriod(final int attempts, final Duration initialBackoff, final double multiplier, final Duration maxBackoff) {
-        if (attempts < 0) {
-            throw new IllegalArgumentException("Attempts must be non-negative.");
-        }
-
-        if (initialBackoff.isNegative()) {
-            throw new IllegalArgumentException("Initial backoff must be non-negative.");
-        }
+         Assert.isTrue(attempts >= 0, "Attempts must be non-negative.");
+         Assert.isTrue(!initialBackoff.isNegative(), "Initial backoff must be non-negative.");
 
         if (attempts == 0) {
             return Duration.ZERO;
