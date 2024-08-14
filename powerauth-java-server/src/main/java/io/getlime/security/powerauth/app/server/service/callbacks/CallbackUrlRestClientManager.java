@@ -111,7 +111,7 @@ public class CallbackUrlRestClientManager {
         if (powerAuthServiceConfiguration.getHttpMaxIdleTime() != null) {
             builder.maxIdleTime(powerAuthServiceConfiguration.getHttpMaxIdleTime());
         }
-        if (powerAuthServiceConfiguration.getHttpProxyEnabled()) {
+        if (Boolean.TRUE.equals(powerAuthServiceConfiguration.getHttpProxyEnabled())) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(powerAuthServiceConfiguration.getHttpProxyHost()).port(powerAuthServiceConfiguration.getHttpProxyPort());
             if (powerAuthServiceConfiguration.getHttpProxyUsername() != null) {
                 proxyBuilder.username(powerAuthServiceConfiguration.getHttpProxyUsername()).password(powerAuthServiceConfiguration.getHttpProxyPassword());
