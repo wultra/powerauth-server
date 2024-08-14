@@ -1386,19 +1386,38 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 | `String`       | `name` | Callback URL name, for visual identification. |
 | `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
-The `attributes` list can contain following values:
-- `activationId`
+When creating a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
+
 - `userId`
 - `activationName`
 - `deviceInfo`
 - `platform`
+- `protocol`
 - `activationFlags`
 - `activationStatus`
 - `blockedReason`
 - `applicationId`
+
+When creating a callback URL of type `OPERATION_STATUS_CHANGE`, following `attributes` can be used:
+
+- `userId`
+- `applications`
+- `operationType`
+- `parameters`
+- `additionalData`
+- `activationFlag`
+- `status`
+- `data`
+- `failureCount`
+- `maxFailureCount`
+- `signatureType`
+- `externalId`
+- `timestampCreated`
+- `timestampExpires`
+- `timestampFinalized`
 
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
@@ -1447,22 +1466,43 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 
 | Type           | Name | Description |
 |----------------|------|-------------|
+| `String`       | `id` | Callback URL identifier (UUID4). |
 | `String`       | `applicationId` | Associated application ID. |
+| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
 | `String`       | `name` | Callback URL name, for visual identification. |
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
-The `attributes` list can contain following values:
-- `activationId`
+When configuring a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
+
 - `userId`
 - `activationName`
 - `deviceInfo`
 - `platform`
+- `protocol`
 - `activationFlags`
 - `activationStatus`
 - `blockedReason`
 - `applicationId`
+
+When configuring a callback URL of type `OPERATION_STATUS_CHANGE`, following `attributes` can be used:
+
+- `userId`
+- `applications`
+- `operationType`
+- `parameters`
+- `additionalData`
+- `activationFlag`
+- `status`
+- `data`
+- `failureCount`
+- `maxFailureCount`
+- `signatureType`
+- `externalId`
+- `timestampCreated`
+- `timestampExpires`
+- `timestampFinalized`
 
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
@@ -1547,7 +1587,7 @@ REST endpoint: `POST /rest/v3/application/callback/remove`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `id` | ID of an callback URL to be removed. |
+| `String` | `id` | ID of the callback URL to be removed. |
 
 #### Response
 
@@ -1555,8 +1595,8 @@ REST endpoint: `POST /rest/v3/application/callback/remove`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `id` | ID of an callback URL to be removed. |
-| `Boolean` | `removed` | Flag specifying if a callback URL was removed or not. |
+| `String` | `id` | ID of the callback URL. |
+| `Boolean` | `removed` | Flag specifying if the callback URL was removed or not. |
 
 ## End-To-End Encryption
 
