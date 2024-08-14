@@ -24,7 +24,7 @@ ALTER TABLE pa_activation ADD commit_phase int CONSTRAINT DF_pa_activation_commi
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::1::Jan Pesek
 -- Create a new table pa_callback_event
-CREATE TABLE pa_application_callback_event (id varchar(36) NOT NULL, application_callback_id varchar(37) NOT NULL, callback_data varchar (max) NOT NULL, status varchar(32) NOT NULL, timestamp_created datetime2(6) CONSTRAINT DF_pa_application_callback_event_timestamp_created DEFAULT GETDATE(), timestamp_last_call datetime2(6), timestamp_next_call datetime2(6), timestamp_delete_after datetime2(6), attempts int CONSTRAINT DF_pa_application_callback_event_attempts DEFAULT 0, CONSTRAINT PK_PA_APPLICATION_CALLBACK_EVENT PRIMARY KEY (id), CONSTRAINT pa_application_callback_id_fk FOREIGN KEY (application_callback_id) REFERENCES pa_application_callback(id));
+CREATE TABLE pa_application_callback_event (id varchar(36) NOT NULL, application_callback_id varchar(37) NOT NULL, callback_data varchar (max) NOT NULL, status varchar(32) NOT NULL, timestamp_created datetime2(6) CONSTRAINT DF_pa_application_callback_event_timestamp_created DEFAULT GETDATE() NOT NULL, timestamp_last_call datetime2(6), timestamp_next_call datetime2(6), timestamp_delete_after datetime2(6), attempts int CONSTRAINT DF_pa_application_callback_event_attempts DEFAULT 0 NOT NULL, CONSTRAINT PK_PA_APPLICATION_CALLBACK_EVENT PRIMARY KEY (id), CONSTRAINT pa_application_callback_id_fk FOREIGN KEY (application_callback_id) REFERENCES pa_application_callback(id));
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::2::Jan Pesek

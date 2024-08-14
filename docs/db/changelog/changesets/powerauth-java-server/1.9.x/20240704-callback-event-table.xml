@@ -13,7 +13,7 @@
         <comment>Create a new table pa_callback_event</comment>
         <createTable tableName="pa_application_callback_event">
             <column name="id" type="varchar(36)">
-                <constraints primaryKey="true" nullable="false" />
+                <constraints primaryKey="true" />
             </column>
             <column name="application_callback_id" type="varchar(37)">
                 <constraints nullable="false" foreignKeyName="pa_application_callback_id_fk" referencedTableName="pa_application_callback" referencedColumnNames="id" />
@@ -24,11 +24,15 @@
             <column name="status" type="varchar(32)" >
                 <constraints nullable="false" />
             </column>
-            <column name="timestamp_created" type="timestamp(6)" defaultValueComputed="${now}" />
+            <column name="timestamp_created" type="timestamp(6)" defaultValueComputed="${now}">
+                <constraints nullable="false" />
+            </column>
             <column name="timestamp_last_call" type="timestamp(6)" />
             <column name="timestamp_next_call" type="timestamp(6)" />
             <column name="timestamp_delete_after" type="timestamp(6)" />
-            <column name="attempts" type="integer" defaultValueNumeric="0" />
+            <column name="attempts" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
         </createTable>
     </changeSet>
 
