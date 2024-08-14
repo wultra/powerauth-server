@@ -60,8 +60,7 @@ public class CallbackUrlEventService {
      */
     private static final Set<CallbackUrlEventStatus> EVENT_STATES_TO_BE_PROCESSED = EnumSet.of(
             CallbackUrlEventStatus.INSTANT,
-            CallbackUrlEventStatus.PENDING,
-            CallbackUrlEventStatus.FAILED
+            CallbackUrlEventStatus.PENDING
     );
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
@@ -84,22 +83,12 @@ public class CallbackUrlEventService {
     }
 
     /**
-     * Dispatch again Callback URL Events, that previously failed and are eligible for another attempt.
-     */
-    @Transactional
-    public void dispatchFailedCallbackUrlEvents() {
-        final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getFailedCallbackUrlEventsRetryLimit());
-        callbackUrlEventRepository.findScheduledForRetry(LocalDateTime.now(), pageRequest)
-                .forEach(this::dispatchEvent);
-    }
-
-    /**
      * Dispatch Callback URL Events in pending state.
      */
     @Transactional
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
-        callbackUrlEventRepository.findPending(pageRequest)
+        callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
                 .forEach(this::dispatchEvent);
     }
 

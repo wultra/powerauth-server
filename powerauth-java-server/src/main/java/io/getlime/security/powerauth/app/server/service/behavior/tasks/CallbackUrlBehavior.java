@@ -452,6 +452,7 @@ public class CallbackUrlBehavior {
         callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
         callbackUrlEventEntity.setCallbackData(callbackData);
         callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
+        callbackUrlEventEntity.setTimestampNextCall(LocalDateTime.now());
         callbackUrlEventEntity.setAttempts(0);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.INSTANT);
         callbackUrlEventRepository.save(callbackUrlEventEntity);

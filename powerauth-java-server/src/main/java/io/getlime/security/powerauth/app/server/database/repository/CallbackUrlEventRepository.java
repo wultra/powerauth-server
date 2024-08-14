@@ -38,17 +38,11 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
 
     @Query("""
             SELECT c FROM CallbackUrlEventEntity c
-            WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.FAILED
-            AND c.timestampNextCall < :timestamp
-            """)
-    List<CallbackUrlEventEntity> findScheduledForRetry(LocalDateTime timestamp, Pageable pageable);
-
-    @Query("""
-            SELECT c FROM CallbackUrlEventEntity c
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING
-            ORDER BY c.timestampCreated DESC
+            AND c.timestampNextCall < :timestamp
+            ORDER BY c.timestampNextCall DESC
             """)
-    List<CallbackUrlEventEntity> findPending(Pageable pageable);
+    List<CallbackUrlEventEntity> findPending(LocalDateTime timestamp, Pageable pageable);
 
     @Modifying
     @Query("""

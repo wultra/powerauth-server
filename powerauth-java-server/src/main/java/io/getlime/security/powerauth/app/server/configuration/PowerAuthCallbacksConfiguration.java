@@ -51,11 +51,6 @@ public class PowerAuthCallbacksConfiguration {
     private Duration defaultInitialBackoff = Duration.ofSeconds(2);
 
     /**
-     * Maximum number of failed Callback URL Events that will be dispatched again in a single scheduled job run.
-     */
-    private int failedCallbackUrlEventsRetryLimit = 100;
-
-    /**
      * Maximum number of long pending Callback URL Events that will be dispatched in a single scheduled job run.
      */
     private int pendingCallbackUrlEventsDispatchLimit = 100;
