@@ -18,16 +18,15 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEventRunnable;
 import io.getlime.security.powerauth.app.server.task.CleaningTask;
+import jakarta.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
 /**
@@ -41,8 +40,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class CallbackUrlEventQueueService {
 
     private CallbackUrlEventService callbackUrlEventService;
-    private CallbackUrlEventRepository callbackUrlEventRepository;
-    private Executor callbackUrlEventsThreadPoolExecutor;
+    private ThreadPoolTaskExecutor callbackUrlEventsThreadPoolExecutor;
 
     /**
      * Submit Callback URL Event to be dispatched by a task executor as soon as possible.
@@ -50,17 +48,34 @@ public class CallbackUrlEventQueueService {
      * @throws RejectedExecutionException In case the Callback URL Event could not be submitted.
      */
     public void submitToExecutor(final CallbackUrlEvent callbackUrlEvent) throws RejectedExecutionException {
-        callbackUrlEventsThreadPoolExecutor.execute(
-                () -> callbackUrlEventService.dispatchInstantCallbackUrlEvent(callbackUrlEvent));
+        final CallbackUrlEventRunnable runnable = CallbackUrlEventRunnable.builder()
+                .dispatchAction(() -> callbackUrlEventService.dispatchInstantCallbackUrlEvent(callbackUrlEvent))
+                .cancelAction(() -> callbackUrlEventService.moveCallbackUrlEventToPending(callbackUrlEvent))
+                .build();
+
+        callbackUrlEventsThreadPoolExecutor.execute(runnable);
     }
 
     /**
      * Enqueue a Callback URL Event to database to be dispatched by {@link CleaningTask#dispatchPendingCallbackUrlEvents()}.
      * @param callbackUrlEvent Callback URL Event to enqueue.
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void enqueueToDatabase(final CallbackUrlEvent callbackUrlEvent) {
-        callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.callbackUrlEventEntityId());
+        callbackUrlEventService.moveCallbackUrlEventToPending(callbackUrlEvent);
+    }
+
+    /**
+     * Move all Callback URL Events from the Executor's queue to the database queue on graceful shutdown.
+     */
+    @PreDestroy
+    public void clearExecutorQueue() {
+        logger.info("Moving Callback URL Events from executor's queue to PENDING state.");
+        callbackUrlEventsThreadPoolExecutor.getThreadPoolExecutor().shutdownNow()
+                .forEach(runnable -> {
+                    if (runnable instanceof CallbackUrlEventRunnable callbackUrlEventAction) {
+                        callbackUrlEventAction.cancel();
+                    }
+                });
     }
 
 }

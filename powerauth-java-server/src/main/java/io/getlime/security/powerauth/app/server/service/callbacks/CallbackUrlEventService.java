@@ -35,6 +35,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -67,6 +68,11 @@ public class CallbackUrlEventService {
      */
     public void dispatchInstantCallbackUrlEvent(final CallbackUrlEvent callbackUrlEvent) {
         postCallback(callbackUrlEvent);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void moveCallbackUrlEventToPending(final CallbackUrlEvent callbackUrlEvent) {
+        callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.callbackUrlEventEntityId());
     }
 
     /**
