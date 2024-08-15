@@ -12,7 +12,7 @@
         </preConditions>
         <comment>Create a new table pa_callback_event</comment>
         <createTable tableName="pa_application_callback_event">
-            <column name="id" type="varchar(36)">
+            <column name="id" type="bigint">
                 <constraints primaryKey="true" />
             </column>
             <column name="application_callback_id" type="varchar(37)">
@@ -31,6 +31,9 @@
             <column name="timestamp_next_call" type="timestamp(6)" />
             <column name="timestamp_delete_after" type="timestamp(6)" />
             <column name="attempts" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="idempotency_key" type="varchar(36)" >
                 <constraints nullable="false" />
             </column>
         </createTable>
@@ -94,6 +97,16 @@
         <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_timestamp_delete_after_idx">
             <column name="timestamp_delete_after" />
         </createIndex>
+    </changeSet>
+
+    <changeSet id="7" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_application_callback_event_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_application_callback_event_seq</comment>
+        <createSequence sequenceName="pa_application_callback_event_seq" startValue="1" incrementBy="50" cacheSize="20"/>
     </changeSet>
 
 </databaseChangeLog>

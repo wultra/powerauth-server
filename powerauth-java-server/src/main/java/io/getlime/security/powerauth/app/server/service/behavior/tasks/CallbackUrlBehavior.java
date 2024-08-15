@@ -456,16 +456,16 @@ public class CallbackUrlBehavior {
         final LocalDateTime timestampNow = LocalDateTime.now();
 
         final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
-        callbackUrlEventEntity.setId(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
         callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
         callbackUrlEventEntity.setCallbackData(callbackData);
         callbackUrlEventEntity.setTimestampCreated(timestampNow);
         callbackUrlEventEntity.setTimestampLastCall(timestampNow);
         callbackUrlEventEntity.setAttempts(0);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
-        callbackUrlEventRepository.save(callbackUrlEventEntity);
+        final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
         );

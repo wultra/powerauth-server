@@ -140,7 +140,7 @@ public class CallbackUrlEventService {
 
             final RestClient restClient = callbackUrlRestClientManager.getRestClient(callbackUrlEvent);
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Idempotency-Key", callbackUrlEvent.callbackUrlEventEntityId());
+            headers.add("Idempotency-Key", callbackUrlEvent.idempotencyKey());
 
             restClient.postNonBlocking(callbackUrlEvent.callbackUrl(),
                     callbackUrlEvent.callbackData(),

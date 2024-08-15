@@ -29,9 +29,10 @@ import java.util.Map;
  */
 @Builder
 public record CallbackUrlEvent(
-        String callbackUrlEventEntityId,
+        Long callbackUrlEventEntityId,
         Map<String, Object> callbackData,
         String callbackUrl,
         String restClientCacheKey,
-        CallbackUrlEventStatus status
+        CallbackUrlEventStatus status,
+        String idempotencyKey
 ) { }

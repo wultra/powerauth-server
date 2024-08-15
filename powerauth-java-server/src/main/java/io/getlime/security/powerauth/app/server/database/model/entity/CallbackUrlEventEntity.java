@@ -45,8 +45,10 @@ public class CallbackUrlEventEntity implements Serializable {
     private static final long serialVersionUID = 3438887028420848470L;
 
     @Id
-    @Column(name = "id", length = 36)
-    private String id;
+    @SequenceGenerator(name = "pa_application_callback_event", sequenceName = "pa_application_callback_event_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_callback_event")
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_callback_id", referencedColumnName = "id", nullable = false, updatable = false)
@@ -75,18 +77,21 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "attempts", nullable = false)
     private int attempts;
 
+    @Column(name = "idempotency_key", nullable = false)
+    private String idempotencyKey;
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
 
         final CallbackUrlEventEntity that = (CallbackUrlEventEntity) o;
-        return id.equals(that.id);
+        return idempotencyKey.equals(that.idempotencyKey);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(idempotencyKey);
     }
 
 }

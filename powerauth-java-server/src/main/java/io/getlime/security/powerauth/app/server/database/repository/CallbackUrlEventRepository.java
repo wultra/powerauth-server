@@ -19,7 +19,6 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
@@ -34,7 +33,7 @@ import java.util.List;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Repository
-public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEventEntity, String> {
+public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEventEntity, Long> {
 
     @Query("""
             SELECT c FROM CallbackUrlEventEntity c
@@ -59,7 +58,7 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
                 c.timestampNextCall = c.timestampLastCall
             WHERE c.id = :id
             """)
-    void updateEventToPendingState(String id);
+    void updateEventToPendingState(Long id);
 
     @Modifying
     @Query("""
