@@ -48,7 +48,7 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "id", length = 36)
     private String id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_callback_id", referencedColumnName = "id", nullable = false, updatable = false)
     private CallbackUrlEntity callbackUrlEntity;
 
@@ -88,5 +88,5 @@ public class CallbackUrlEventEntity implements Serializable {
     public int hashCode() {
         return Objects.hash(id);
     }
-    
+
 }
