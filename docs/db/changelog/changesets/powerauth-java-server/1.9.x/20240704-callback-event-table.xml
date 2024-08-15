@@ -78,11 +78,11 @@
     <changeSet id="5" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_application_callback_event_status_idx"/>
+                <indexExists indexName="pa_app_cb_event_status_idx"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_application_callback_event(status).</comment>
-        <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_status_idx">
+        <createIndex tableName="pa_application_callback_event" indexName="pa_app_cb_event_status_idx">
             <column name="status" />
         </createIndex>
     </changeSet>
@@ -90,11 +90,11 @@
     <changeSet id="6" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_application_callback_event_timestamp_delete_after_idx"/>
+                <indexExists indexName="pa_app_cb_event_ts_del_idx"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_application_callback_event(timestamp_delete_after).</comment>
-        <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_timestamp_delete_after_idx">
+        <createIndex tableName="pa_application_callback_event" indexName="pa_app_cb_event_ts_del_idx">
             <column name="timestamp_delete_after" />
         </createIndex>
     </changeSet>
@@ -102,11 +102,11 @@
     <changeSet id="7" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
-                <sequenceExists sequenceName="pa_application_callback_event_seq"/>
+                <sequenceExists sequenceName="pa_app_callback_event_seq"/>
             </not>
         </preConditions>
-        <comment>Create a new sequence pa_application_callback_event_seq</comment>
-        <createSequence sequenceName="pa_application_callback_event_seq" startValue="1" incrementBy="50" cacheSize="20"/>
+        <comment>Create a new sequence pa_app_callback_event_seq</comment>
+        <createSequence sequenceName="pa_app_callback_event_seq" startValue="1" incrementBy="50" cacheSize="20"/>
     </changeSet>
 
 </databaseChangeLog>

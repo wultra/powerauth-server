@@ -45,7 +45,7 @@ public class CallbackUrlEventEntity implements Serializable {
     private static final long serialVersionUID = 3438887028420848470L;
 
     @Id
-    @SequenceGenerator(name = "pa_application_callback_event", sequenceName = "pa_application_callback_event_seq", allocationSize = 50)
+    @SequenceGenerator(name = "pa_application_callback_event", sequenceName = "pa_app_callback_event_seq", allocationSize = 50)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_callback_event")
     @Column(name = "id")
     private Long id;

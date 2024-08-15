@@ -44,15 +44,15 @@ GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::5::Jan Pesek
 -- Create a new index on pa_application_callback_event(status).
-CREATE NONCLUSTERED INDEX pa_application_callback_event_status_idx ON pa_application_callback_event(status);
+CREATE NONCLUSTERED INDEX pa_app_cb_event_status_idx ON pa_application_callback_event(status);
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::6::Jan Pesek
 -- Create a new index on pa_application_callback_event(timestamp_delete_after).
-CREATE NONCLUSTERED INDEX pa_application_callback_event_timestamp_delete_after_idx ON pa_application_callback_event(timestamp_delete_after);
+CREATE NONCLUSTERED INDEX pa_app_cb_event_ts_del_idx ON pa_application_callback_event(timestamp_delete_after);
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::7::Jan Pesek
--- Create a new sequence pa_application_callback_event_seq
-CREATE SEQUENCE pa_application_callback_event_seq START WITH 1 INCREMENT BY 50;
+-- Create a new sequence pa_app_callback_event_seq
+CREATE SEQUENCE pa_app_callback_event_seq START WITH 1 INCREMENT BY 50;
 GO
