@@ -210,13 +210,13 @@ public class PowerAuthServiceConfiguration {
      * HTTP connection timeout.
      */
     @Value("${powerauth.service.http.connection.timeout}")
-    private Duration httpConnectionTimeout;
+    private Duration httpConnectionTimeout = Duration.ofSeconds(5);
 
     /**
      * HTTP response timeout.
      */
     @Value("${powerauth.service.http.response.timeout}")
-    private Duration httpResponseTimeout;
+    private Duration httpResponseTimeout = Duration.ofSeconds(60);
 
     /**
      * HTTP connection max idle time.

@@ -18,7 +18,6 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import io.getlime.security.powerauth.app.server.task.CleaningTask;
@@ -61,11 +60,7 @@ public class CallbackUrlEventQueueService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void enqueueToDatabase(final CallbackUrlEvent callbackUrlEvent) {
-        callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                .ifPresentOrElse(
-                        savedEntity -> callbackUrlEventRepository.updateStatusById(savedEntity.getId(), CallbackUrlEventStatus.PENDING),
-                        () -> { throw new IllegalStateException("Callback Url Event was not found in database when enqueueing: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()); }
-                );
+        callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.callbackUrlEventEntityId());
     }
 
 }

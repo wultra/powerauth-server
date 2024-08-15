@@ -55,9 +55,20 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
     @Modifying
     @Query("""
             UPDATE CallbackUrlEventEntity c
-            SET c.status = :status
+            SET c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING,
+                c.timestampNextCall = c.timestampLastCall
             WHERE c.id = :id
             """)
-    void updateStatusById(String id, CallbackUrlEventStatus status);
+    void updateEventToPendingState(String id);
+
+    @Modifying
+    @Query("""
+            UPDATE CallbackUrlEventEntity c
+            SET c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING,
+                c.timestampNextCall = c.timestampLastCall
+            WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PROCESSING
+            AND c.timestampLastCall < :timestamp
+            """)
+    int updateStaleEventsToPendingState(LocalDateTime timestamp);
 
 }

@@ -88,6 +88,7 @@ Discuss its configuration with the [Spring Boot documentation](https://docs.spri
 | `powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds` | `3600000`       | Number of milliseconds to look back in the past when looking for abandoned activations.                                                     |
 | `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`         | Time delay in milliseconds between two consecutive tasks that delete expired unique values.                                                 |
 | `powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvents`          | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send pending callback events that could not be dispatched immediately. |
+| `powerauth.service.scheduled.job.rerunStaleCallbackUrlEvents`               | `3000`          | Time delay in milliseconds between two consecutive tasks that rerun stale callback events that got stuck during their processing.           |
 | `powerauth.service.scheduled.job.callbackUrlEventsCleanupCron`              | `0 0 0 */1 * *` | Cron schedule triggering a task to clean callback events after their retention period has expired.                                          |
 | `powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction`           | `3600000`       | Duration in milliseconds for which the internal cache holds details of FIDO2 Authenticator models.                                          |
 
@@ -104,6 +105,11 @@ callback is passed to a configurable thread pool executor for dispatch. Even if 
 callback will eventually be dispatched. Keep in mind that dispatching a callback involves database operations.
 Imbalanced settings of the thread pool size and database connection pool size can lead to system disruptions.
 
+Callback events are periodically monitored to detect any stale callback events that might have become stuck during
+processing due to rare circumstances. When a callback event exceeds the defined `forceRerunPeriod` without completion,
+it is automatically rerun. By default, this period is calculated as the sum of the HTTP connection timeout, the HTTP
+response timeout, and an additional ten-second delay.
+
 | Property                                                            | Default | Note                                                                                             |
 |---------------------------------------------------------------------|---------|--------------------------------------------------------------------------------------------------|
 | `powerauth.service.callbacks.defaultMaxAttempts`                    | `1`     | Default maximum number of dispatch attempts for a callback event.                                |
@@ -115,6 +121,7 @@ Imbalanced settings of the thread pool size and database connection pool size ca
 | `powerauth.service.callbacks.threadPoolCoreSize`                    | `1`     | Number of core threads in the thread pool used by the executor.                                  |
 | `powerauth.service.callbacks.threadPoolMaxSize`                     | `2`     | Maximum number of threads in the thread pool used by the executor.                               |
 | `powerauth.service.callbacks.threadPoolQueueCapacity`               | `1000`  | Queue capacity of the thread pool used by the executor.                                          |
+| `powerauth.service.callbacks.forceRerunPeriod`                      |         | Time period after which a callback event is considered stale and should be rerun.                |
 
 The backoff period after the `N-th` attempt is calculated as follows:
 

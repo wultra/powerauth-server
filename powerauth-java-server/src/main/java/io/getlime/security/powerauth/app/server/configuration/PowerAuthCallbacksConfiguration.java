@@ -80,4 +80,9 @@ public class PowerAuthCallbacksConfiguration {
      */
     private int threadPoolQueueCapacity = 1000;
 
+    /**
+     * Period after which a Callback URL Event is considered stale and should be dispatched again.
+     */
+    private Duration forceRerunPeriod;
+
 }

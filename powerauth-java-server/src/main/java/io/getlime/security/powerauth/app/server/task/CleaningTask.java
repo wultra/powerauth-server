@@ -109,4 +109,14 @@ public class CleaningTask {
         callbackUrlEventService.deleteCallbackUrlEventsAfterRetentionPeriod();
     }
 
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.rerunStaleCallbackUrlEvents:3000}")
+    @SchedulerLock(
+            name = "rerunStaleCallbackUrlEvents",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.rerunStaleCallbackUrlEvents:3000} * 0.8)}")
+    public void rerunStaleCallbackUrlEvents() {
+        LockAssert.assertLocked();
+        logger.debug("rerunStaleCallbackUrlEvents");
+        callbackUrlEventService.resetStaleCallbackUrlEvents();
+    }
+
 }

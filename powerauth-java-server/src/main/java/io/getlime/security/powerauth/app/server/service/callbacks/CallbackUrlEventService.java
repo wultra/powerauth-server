@@ -21,6 +21,7 @@ package io.getlime.security.powerauth.app.server.service.callbacks;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
@@ -38,7 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -52,10 +55,11 @@ import java.util.function.Consumer;
 public class CallbackUrlEventService {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
     private final CallbackUrlEventResponseHandler callbackUrlEventResponseHandler;
     private final CallbackUrlRestClientManager callbackUrlRestClientManager;
 
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
      * Dispatch a Callback URL Event.
@@ -81,6 +85,20 @@ public class CallbackUrlEventService {
     @Transactional
     public void deleteCallbackUrlEventsAfterRetentionPeriod() {
         callbackUrlEventRepository.deleteCompletedAfterRetentionPeriod(LocalDateTime.now());
+    }
+
+    /**
+     * Reset stale Callback URL Events in PROCESSING state by setting them to PENDING state.
+     * <p>
+     * This should be applied only to those Callback URL Events, that got stuck in PROCESSING
+     * state and won't be dispatched without this action. Otherwise, there is a risk of posting
+     * a Callback URL Event more than once.
+     */
+    @Transactional
+    public void resetStaleCallbackUrlEvents() {
+        final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
+        final int numberOfAffectedEvents = callbackUrlEventRepository.updateStaleEventsToPendingState(LocalDateTime.now().minus(forceRerunPeriod));
+        logger.debug("Number of stale Callback URL Events moved to PENDING state: {}", numberOfAffectedEvents);
     }
 
     /**
@@ -130,6 +148,18 @@ public class CallbackUrlEventService {
         } catch (RestClientException | GenericServiceException e) {
             callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, e);
         }
+    }
+
+    /**
+     * Get default force rerun period, after which is a Callback URL Event in PROCESSING state considered stale.
+     * @return Default force rerun period.
+     */
+    private Duration defaultForceRerunPeriod() {
+        // This is an arbitrary value, representing allowed delay before trying establishing remote connection.
+        final Duration allowedProcessingDelay = Duration.ofSeconds(10);
+        return powerAuthServiceConfiguration.getHttpConnectionTimeout()
+                .plus(powerAuthServiceConfiguration.getHttpResponseTimeout())
+                .plus(allowedProcessingDelay);
     }
 
 }

@@ -453,12 +453,14 @@ public class CallbackUrlBehavior {
             return;
         }
 
+        final LocalDateTime timestampNow = LocalDateTime.now();
+
         final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
         callbackUrlEventEntity.setId(UUID.randomUUID().toString());
         callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
         callbackUrlEventEntity.setCallbackData(callbackData);
-        callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
-        callbackUrlEventEntity.setTimestampNextCall(LocalDateTime.now());
+        callbackUrlEventEntity.setTimestampCreated(timestampNow);
+        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
         callbackUrlEventEntity.setAttempts(0);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
