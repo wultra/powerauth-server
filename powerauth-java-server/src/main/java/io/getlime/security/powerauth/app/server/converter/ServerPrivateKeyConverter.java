@@ -52,7 +52,7 @@ public class ServerPrivateKeyConverter {
      */
     public String fromDBValue(final ServerPrivateKey serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createSecretKeyDerivationInput(userId, activationId));
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), () -> createSecretKeyDerivationInput(userId, activationId));
         return convert(decrypted);
     }
 
@@ -68,7 +68,7 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(userId, activationId));
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, () -> createSecretKeyDerivationInput(userId, activationId));
         return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 

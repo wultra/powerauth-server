@@ -53,7 +53,7 @@ public class TemporaryPrivateKeyConverter {
      */
     public String fromDBValue(ServerPrivateKey serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
         final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createSecretKeyDerivationInput(keyId, appKey, activationId));
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), () -> createSecretKeyDerivationInput(keyId, appKey, activationId));
         return convert(decrypted);
     }
 
@@ -70,7 +70,7 @@ public class TemporaryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(byte[] serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(keyId, appKey, activationId));
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, () -> createSecretKeyDerivationInput(keyId, appKey, activationId));
         return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
@@ -83,7 +83,11 @@ public class TemporaryPrivateKeyConverter {
     }
 
     private static List<String> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
-        return List.of(keyId, appKey, activationId);
+        if (activationId != null) {
+            return List.of(keyId, appKey, activationId);
+        } else {
+            return List.of(keyId, appKey);
+        }
     }
 
 }

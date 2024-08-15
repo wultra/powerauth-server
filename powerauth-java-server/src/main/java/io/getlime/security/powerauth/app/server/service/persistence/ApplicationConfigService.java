@@ -84,7 +84,7 @@ public class ApplicationConfigService {
         entity.setKey(source.key());
 
         final String value = listToJsonConverter.convertToDatabaseColumn(source.values());
-        final EncryptableString encryptable = encryptionService.encrypt(value, secretKeyDerivationInput(entity));
+        final EncryptableString encryptable = encryptionService.encrypt(value, () -> secretKeyDerivationInput(entity));
         entity.setValues(encryptable.encryptedData());
         entity.setEncryptionMode(encryptable.encryptionMode());
 
@@ -93,7 +93,7 @@ public class ApplicationConfigService {
 
     private ApplicationConfig convert(ApplicationConfigEntity source) {
         try {
-            final String decrypted = encryptionService.decrypt(source.getValues(), source.getEncryptionMode(), secretKeyDerivationInput(source));
+            final String decrypted = encryptionService.decrypt(source.getValues(), source.getEncryptionMode(), () -> secretKeyDerivationInput(source));
             final List<Object> values = listToJsonConverter.convertToEntityAttribute(decrypted);
             return new ApplicationConfig(source.getRid(), source.getApplication(), source.getKey(), values);
         } catch (GenericServiceException e) {

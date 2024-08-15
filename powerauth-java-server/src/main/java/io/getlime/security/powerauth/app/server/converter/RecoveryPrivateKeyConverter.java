@@ -51,7 +51,7 @@ public class RecoveryPrivateKeyConverter {
      */
     public String fromDBValue(final RecoveryPrivateKey recoveryPrivateKey, long applicationRid) throws GenericServiceException {
         final byte[] data = convert(recoveryPrivateKey.recoveryPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, recoveryPrivateKey.encryptionMode(), createSecretKeyDerivationInput(applicationRid));
+        final byte[] decrypted = encryptionService.decrypt(data, recoveryPrivateKey.encryptionMode(), () -> createSecretKeyDerivationInput(applicationRid));
         return convert(decrypted);
     }
 
@@ -66,7 +66,7 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when recovery postcard private key encryption fails.
      */
     public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, createSecretKeyDerivationInput(applicationRid));
+        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, () -> createSecretKeyDerivationInput(applicationRid));
         return new RecoveryPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 

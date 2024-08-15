@@ -52,7 +52,7 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException In case recovery PUK hash decryption fails.
      */
     public String fromDBValue(final RecoveryPuk recoveryPuk, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        return encryptionService.decrypt(recoveryPuk.pukHash(), recoveryPuk.encryptionMode(), createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
+        return encryptionService.decrypt(recoveryPuk.pukHash(), recoveryPuk.encryptionMode(), () -> createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
     }
 
     /**
@@ -69,7 +69,7 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public RecoveryPuk toDBValue(final String pukHash, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        final EncryptableString encryptable = encryptionService.encrypt(pukHash, createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
+        final EncryptableString encryptable = encryptionService.encrypt(pukHash, () -> createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
         return new RecoveryPuk(encryptable.encryptionMode(), encryptable.encryptedData());
     }
 
