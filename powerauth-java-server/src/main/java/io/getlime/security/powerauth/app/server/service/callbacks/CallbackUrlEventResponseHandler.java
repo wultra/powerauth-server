@@ -61,6 +61,7 @@ public class CallbackUrlEventResponseHandler {
 
         final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
         callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
+        callbackUrlEventEntity.setTimestampNextCall(null);
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
@@ -94,6 +95,7 @@ public class CallbackUrlEventResponseHandler {
             logger.debug("Maximum number of attempts reached for callbackEventId={}", callbackUrlEventEntity.getId());
             final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
             callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
+            callbackUrlEventEntity.setTimestampNextCall(null);
             callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
         }
 
