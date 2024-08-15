@@ -66,7 +66,6 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -238,7 +237,7 @@ public class TemporaryKeyBehavior {
 
     // Private methods
 
-    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(DecodedJWT source) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
+    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(DecodedJWT source) {
         final TemporaryPublicKeyRequestClaims destination = new TemporaryPublicKeyRequestClaims();
         destination.setApplicationKey(source.getClaim("applicationKey").asString());
         destination.setActivationId(source.getClaim("activationId").asString());
@@ -317,7 +316,7 @@ public class TemporaryKeyBehavior {
          }
     }
 
-    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp) throws CryptoProviderException, InvalidKeyException, GenericServiceException {
+    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp) throws CryptoProviderException, GenericServiceException {
 
         // Generate a temporary key pair
         final KeyPair temporaryKeyPair = keyGenerator.generateKeyPair();
