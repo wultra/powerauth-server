@@ -140,12 +140,13 @@ public class TemporaryKeyBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
+        final Date currentTimestamp = new Date();
+
         // Generate new key and store it
-        final TemporaryPublicKeyResponseClaims responseClaims = generateAndStoreNewKey(requestClaims);
+        final TemporaryPublicKeyResponseClaims responseClaims = generateAndStoreNewKey(requestClaims, currentTimestamp);
 
         // Built and return the response claims
         try {
-            final Date currentTimestamp = new Date();
             final HashMap<String, Object> additionalClaims = buildAdditionalClaims(responseClaims, currentTimestamp);
             final Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) temporaryKeyResult.publicKey, (ECPrivateKey) temporaryKeyResult.privateKey);
             final String jwtResponse = JWT.create()
@@ -316,7 +317,7 @@ public class TemporaryKeyBehavior {
          }
     }
 
-    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims) throws CryptoProviderException, InvalidKeyException, GenericServiceException {
+    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp) throws CryptoProviderException, InvalidKeyException, GenericServiceException {
 
         // Generate a temporary key pair
         final KeyPair temporaryKeyPair = keyGenerator.generateKeyPair();
@@ -328,7 +329,7 @@ public class TemporaryKeyBehavior {
         final String challenge = requestClaims.getChallenge();
         final byte[] privateKeyBytes = keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate());
         final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic()));
-        final Date expirationDate = Date.from(Instant.now().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds().toMillis()));
+        final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds().toMillis()));
 
         // Prepare encrypted temporary private key, if encryption is enabled
         final ServerPrivateKey temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(
