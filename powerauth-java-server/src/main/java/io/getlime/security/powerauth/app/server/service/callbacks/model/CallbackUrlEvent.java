@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks.model;
 
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import lombok.Builder;
 
 import java.util.Map;
@@ -31,5 +32,6 @@ public record CallbackUrlEvent(
         String callbackUrlEventEntityId,
         Map<String, Object> callbackData,
         String callbackUrl,
-        String restClientCacheKey
+        String restClientCacheKey,
+        CallbackUrlEventStatus status
 ) { }

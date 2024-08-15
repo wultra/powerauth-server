@@ -35,6 +35,7 @@ public class CallbackUrlConvertor {
                 .callbackData(callbackUrlEventEntity.getCallbackData())
                 .callbackUrl(callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl())
                 .restClientCacheKey(callbackUrlEventEntity.getCallbackUrlEntity().getId())
+                .status(callbackUrlEventEntity.getStatus())
                 .build();
     }
 

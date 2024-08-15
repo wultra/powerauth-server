@@ -34,15 +34,11 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -54,13 +50,6 @@ import java.util.function.Consumer;
 @Slf4j
 @AllArgsConstructor
 public class CallbackUrlEventService {
-
-    /**
-     * States of callback events that are eligible for being processed.
-     */
-    private static final Set<CallbackUrlEventStatus> EVENT_STATES_TO_BE_PROCESSED = EnumSet.of(
-            CallbackUrlEventStatus.PENDING
-    );
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
@@ -83,7 +72,7 @@ public class CallbackUrlEventService {
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
         callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
-                .forEach(this::dispatchEvent);
+                .forEach(this::dispatchPendingCallbackUrlEvent);
     }
 
     /**
@@ -98,30 +87,15 @@ public class CallbackUrlEventService {
      * Dispatch Callback URL Event.
      * @param callbackUrlEventEntity Event to dispatch.
      */
-    private void dispatchEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
-
-        if (!maxAttemptsPositive(callbackUrlEventEntity)) {
-            logger.info("Callback URL Event {} has not positive max number of attempts.", callbackUrlEventEntity.getId());
-            final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
-            callbackUrlEventResponseHandler.handleSuccess(callbackUrlEvent);
-            return;
-        }
-
-        if (!shouldBeProcessed(callbackUrlEventEntity)) {
-            logger.debug("Callback URL Event {} should not be processed, state={}", callbackUrlEventEntity.getId(), callbackUrlEventEntity.getStatus());
-            return;
-        }
-
+    private void dispatchPendingCallbackUrlEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
         callbackUrlEventEntity.setTimestampNextCall(null);
         callbackUrlEventEntity.setTimestampLastCall(LocalDateTime.now());
-        callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
-        TransactionUtils.executeAfterTransactionCommitsOrElse(
-                () -> postCallback(callbackUrlEvent),
-                () -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, new RuntimeException("Transaction failure during dispatching the Callback URL Event."))
+        TransactionUtils.executeAfterTransactionCommits(
+                () -> postCallback(callbackUrlEvent)
         );
     }
 
@@ -130,6 +104,11 @@ public class CallbackUrlEventService {
      * @param callbackUrlEvent Event to post.
      */
     public void postCallback(final CallbackUrlEvent callbackUrlEvent) {
+        if (callbackUrlEvent.status() != CallbackUrlEventStatus.PROCESSING) {
+            logger.debug("Callback URL Event is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.callbackUrlEventEntityId());
+            return;
+        }
+
         try {
             final Consumer<ResponseEntity<String>> onSuccess = response -> callbackUrlEventResponseHandler.handleSuccess(callbackUrlEvent);
             final Consumer<Throwable> onError = error -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, error);
@@ -151,27 +130,6 @@ public class CallbackUrlEventService {
         } catch (RestClientException | GenericServiceException e) {
             callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, e);
         }
-    }
-
-    /**
-     * Check if a Callback URL Event should be processed.
-     * @param callbackUrlEventEntity Callback URL Event to check.
-     * @return True if the Callback URL Event should be processed, false otherwise.
-     */
-    private boolean shouldBeProcessed(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
-        return EVENT_STATES_TO_BE_PROCESSED.contains(callbackUrlEventEntity.getStatus())
-                && callbackUrlEventEntity.getAttempts() < maxAttempts;
-    }
-
-    /**
-     * Check if a Callback URL Event is configured to be dispatched at least once.
-     * @param callbackUrlEventEntity Callback URL Event to check.
-     * @return True if the Callback URL Event should be dispatched at least once, false otherwise.
-     */
-    private boolean maxAttemptsPositive(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
-        return maxAttempts > 0;
     }
 
 }
