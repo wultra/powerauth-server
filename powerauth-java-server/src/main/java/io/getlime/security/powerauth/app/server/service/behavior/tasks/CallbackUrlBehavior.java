@@ -453,19 +453,8 @@ public class CallbackUrlBehavior {
             return;
         }
 
-        final LocalDateTime timestampNow = LocalDateTime.now();
-
-        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
-        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
-        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
-        callbackUrlEventEntity.setCallbackData(callbackData);
-        callbackUrlEventEntity.setTimestampCreated(timestampNow);
-        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
-        callbackUrlEventEntity.setAttempts(0);
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
-        final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
-
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
+        final CallbackUrlEventEntity callbackUrlEventEntity = createAndSaveCallbackUrlEventEntity(callbackUrlEntity, callbackData);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
         );
@@ -493,6 +482,26 @@ public class CallbackUrlBehavior {
     private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
         final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
         return maxAttempts > 0;
+    }
+
+    /**
+     * Create and save a new {@link CallbackUrlEventEntity}.
+     * @param callbackUrlEntity Existing CallbackUrlEntity with the Callback URL configuration.
+     * @param callbackData Data to be sent with the Callback URL.
+     * @return Saved {@link CallbackUrlEventEntity}.
+     */
+    private CallbackUrlEventEntity createAndSaveCallbackUrlEventEntity(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
+        final LocalDateTime timestampNow = LocalDateTime.now();
+
+        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
+        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackData(callbackData);
+        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setTimestampCreated(timestampNow);
+        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
+        callbackUrlEventEntity.setAttempts(0);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
+        return callbackUrlEventRepository.save(callbackUrlEventEntity);
     }
 
 }
