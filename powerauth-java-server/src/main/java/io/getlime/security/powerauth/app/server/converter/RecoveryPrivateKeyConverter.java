@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for recovery postcard private key which handles key encryption and decryption in case it is configured.
@@ -51,7 +52,7 @@ public class RecoveryPrivateKeyConverter {
      */
     public String fromDBValue(final RecoveryPrivateKey recoveryPrivateKey, long applicationRid) throws GenericServiceException {
         final byte[] data = convert(recoveryPrivateKey.recoveryPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, recoveryPrivateKey.encryptionMode(), createSecretKeyDerivationInput(applicationRid));
+        final byte[] decrypted = encryptionService.decrypt(data, recoveryPrivateKey.encryptionMode(), createEncryptionKeyProvider(applicationRid));
         return convert(decrypted);
     }
 
@@ -66,7 +67,7 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when recovery postcard private key encryption fails.
      */
     public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, createSecretKeyDerivationInput(applicationRid));
+        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, createEncryptionKeyProvider(applicationRid));
         return new RecoveryPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
@@ -78,8 +79,8 @@ public class RecoveryPrivateKeyConverter {
         return Base64.getDecoder().decode(source);
     }
 
-    private static List<String> createSecretKeyDerivationInput(final long applicationRid) {
-        return List.of(String.valueOf(applicationRid));
+    private static Supplier<List<String>> createEncryptionKeyProvider(final long applicationRid) {
+        return () -> List.of(String.valueOf(applicationRid));
     }
 
 }
