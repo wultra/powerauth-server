@@ -25,9 +25,25 @@ credential list or exclude credential list during WebAuthn ceremonies, serving a
 provide transport hints when registering a new credential. The format of the column is a list of authenticator transport
 values supported by the WebAuthn protocol, serialized as a JSON array.
 
-
 ### Add status_reason Column
 
 A new column `status_reason` has been added to the `pa_operation` table.
 It provides optional details why the status changed.
 The value should be sent in the form of a computer-readable code, not a free-form text.
+
+### MSSQL Server Snapshot Isolation
+
+In case you use PowerAuth server with Microsoft SQL server, enable the SNAPSHOT isolation to avoid deadlocks.
+
+You can enable the SNAPSHOT isolation mode using following query:
+
+```sql
+ALTER DATABASE [powerauth_database] SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE [powerauth_database] SET READ_COMMITTED_SNAPSHOT ON;
+```
+
+The SNAPSHOT transaction isolation level is enforced automatically by PowerAuth server when database sessions are started using following query:
+
+```sql
+SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+```
