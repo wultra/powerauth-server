@@ -114,7 +114,7 @@ response timeout, and an additional ten-second delay.
 |---------------------------------------------------------------------|---------|--------------------------------------------------------------------------------------------------|
 | `powerauth.service.callbacks.defaultMaxAttempts`                    | `1`     | Default maximum number of dispatch attempts for a callback event.                                |
 | `powerauth.service.callbacks.defaultRetentionPeriod`                | `30d`   | Default retention period of a callback event before deleting its record from the database table. |
-| `powerauth.service.callbacks.defaultInitialBackoff`                 | `2s`    | Default initial backoff between successive attempts of dispatching a callback event.             |
+| `powerauth.service.callbacks.defaultInitialBackoff`                 | `2s`    | Default initial backoff after an unsuccessful attempt to dispatch a callback event.              |
 | `powerauth.service.callbacks.maxBackoff`                            | `32s`   | The maximum allowable backoff period between successive attempts to dispatch a callback event.   |
 | `powerauth.service.callbacks.backoffMultiplier`                     | `1.5`   | The multiplier used to calculate the backoff period.                                             |
 | `powerauth.service.callbacks.pendingCallbackUrlEventsDispatchLimit` | `100`   | Maximum number of pending callback events that will be dispatched in a single scheduled job run. |

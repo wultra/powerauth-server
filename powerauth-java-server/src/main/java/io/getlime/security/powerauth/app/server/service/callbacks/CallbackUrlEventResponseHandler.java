@@ -88,11 +88,10 @@ public class CallbackUrlEventResponseHandler {
         if (attemptsMade < maxAttempts) {
             final Duration initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff());
             final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoff());
-            final LocalDateTime timestampLastCall = Objects.requireNonNullElse(callbackUrlEventEntity.getTimestampLastCall(), LocalDateTime.now());
-            callbackUrlEventEntity.setTimestampNextCall(timestampLastCall.plus(backoffPeriod));
+            callbackUrlEventEntity.setTimestampNextCall(LocalDateTime.now().plus(backoffPeriod));
             callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PENDING);
         } else {
-            logger.debug("Maximum number of attempts reached for callbackEventId={}", callbackUrlEventEntity.getId());
+            logger.debug("Maximum number of attempts reached for callbackUrlEventId={}", callbackUrlEventEntity.getId());
             final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
             callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
             callbackUrlEventEntity.setTimestampNextCall(null);

@@ -70,6 +70,10 @@ public class CallbackUrlEventService {
         postCallback(callbackUrlEvent);
     }
 
+    /**
+     * Move a Callback URL Event to the PENDING state.
+     * @param callbackUrlEvent Callback URL Event to set as PENDING.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void moveCallbackUrlEventToPending(final CallbackUrlEvent callbackUrlEvent) {
         callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.callbackUrlEventEntityId());
@@ -127,7 +131,7 @@ public class CallbackUrlEventService {
      * Send Callback URL Event as a non-blocking POST request.
      * @param callbackUrlEvent Event to post.
      */
-    public void postCallback(final CallbackUrlEvent callbackUrlEvent) {
+    private void postCallback(final CallbackUrlEvent callbackUrlEvent) {
         if (callbackUrlEvent.status() != CallbackUrlEventStatus.PROCESSING) {
             logger.debug("Callback URL Event is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.callbackUrlEventEntityId());
             return;
