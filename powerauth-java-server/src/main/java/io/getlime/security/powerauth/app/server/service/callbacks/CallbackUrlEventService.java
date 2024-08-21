@@ -29,6 +29,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -170,6 +171,16 @@ public class CallbackUrlEventService {
         return powerAuthServiceConfiguration.getHttpConnectionTimeout()
                 .plus(powerAuthServiceConfiguration.getHttpResponseTimeout())
                 .plus(allowedProcessingDelay);
+    }
+
+    @PostConstruct
+    private void validateForceRerunSetting() {
+        final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
+        final Duration httpConnectionTimeoutSum = powerAuthServiceConfiguration.getHttpResponseTimeout()
+                .plus(powerAuthServiceConfiguration.getHttpConnectionTimeout());
+        if (forceRerunPeriod.compareTo(httpConnectionTimeoutSum) <= 0) {
+            logger.warn("The force rerun period for Callback URL Events should be longer than the sum of HTTP connection timeout and HTTP response timeout.");
+        }
     }
 
 }
