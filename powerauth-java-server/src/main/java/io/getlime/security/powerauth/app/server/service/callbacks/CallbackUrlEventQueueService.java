@@ -68,7 +68,7 @@ public class CallbackUrlEventQueueService {
      * Move all Callback URL Events from the Executor's queue to the database queue on graceful shutdown.
      */
     @PreDestroy
-    public void clearExecutorQueue() {
+    private void clearExecutorQueue() {
         logger.info("Moving Callback URL Events from executor's queue to PENDING state.");
         callbackUrlEventsThreadPoolExecutor.getThreadPoolExecutor().shutdownNow()
                 .forEach(runnable -> {
