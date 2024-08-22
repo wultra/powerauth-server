@@ -102,20 +102,15 @@ public class CallbackUrlRestClientManager {
      */
     private RestClient initializeRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (powerAuthServiceConfiguration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
-        }
-        if (powerAuthServiceConfiguration.getHttpResponseTimeout() != null) {
-            builder.responseTimeout(powerAuthServiceConfiguration.getHttpResponseTimeout());
-        }
-        if (powerAuthServiceConfiguration.getHttpMaxIdleTime() != null) {
-            builder.maxIdleTime(powerAuthServiceConfiguration.getHttpMaxIdleTime());
-        }
+        builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
+        builder.responseTimeout(powerAuthServiceConfiguration.getHttpResponseTimeout());
+        builder.maxIdleTime(powerAuthServiceConfiguration.getHttpMaxIdleTime());
         if (Boolean.TRUE.equals(powerAuthServiceConfiguration.getHttpProxyEnabled())) {
-            final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(powerAuthServiceConfiguration.getHttpProxyHost()).port(powerAuthServiceConfiguration.getHttpProxyPort());
-            if (powerAuthServiceConfiguration.getHttpProxyUsername() != null) {
-                proxyBuilder.username(powerAuthServiceConfiguration.getHttpProxyUsername()).password(powerAuthServiceConfiguration.getHttpProxyPassword());
-            }
+            builder.proxy()
+                    .host(powerAuthServiceConfiguration.getHttpProxyHost())
+                    .port(powerAuthServiceConfiguration.getHttpProxyPort())
+                    .username(powerAuthServiceConfiguration.getHttpProxyUsername())
+                    .password(powerAuthServiceConfiguration.getHttpProxyPassword());
         }
         final CallbackUrlAuthentication authentication = callbackUrlAuthenticationCryptor.decrypt(callbackUrlEntity);
         final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
