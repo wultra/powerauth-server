@@ -2039,7 +2039,7 @@ public class ActivationServiceBehavior {
             }
 
             final PrivateKey privateKey;
-            if (temporaryKeyId == null) {
+            if (temporaryKeyId != null) {
                 // Get temporary private key
                 privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
             } else {
