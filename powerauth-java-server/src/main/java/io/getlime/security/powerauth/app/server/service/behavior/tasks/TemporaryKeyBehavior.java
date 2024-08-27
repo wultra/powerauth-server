@@ -18,12 +18,12 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.client.model.entity.TemporaryPublicKeyRequestClaims;
 import com.wultra.security.powerauth.client.model.entity.TemporaryPublicKeyResponseClaims;
 import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicKeyRequest;
@@ -47,6 +47,7 @@ import io.getlime.security.powerauth.app.server.database.repository.TemporaryKey
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.util.jwt.MACVerifier16B;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -63,9 +64,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -118,50 +118,52 @@ public class TemporaryKeyBehavior {
         }
 
         // Get claims from JWT
-        final DecodedJWT decodedJWT = JWT.decode(request.getJwt());
-        final TemporaryPublicKeyRequestClaims requestClaims = buildTemporaryKeyClaims(decodedJWT);
-
-        // Validate claims
-        final String error = validateDecodedClaims(requestClaims);
-        if (error != null) {
-            logger.warn("Error occurred while decoding JWT claims: {}", error);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-
-        // Obtain verifier secret and check JWT signature
-        final TemporaryKeyResult temporaryKeyResult = obtainTemporaryKeyResult(requestClaims);
         try {
-            final Algorithm algorithm = Algorithm.HMAC256(temporaryKeyResult.getSecretKeyBytes());
-            final JWTVerifier verifier = JWT.require(algorithm).build();
-            verifier.verify(decodedJWT);
-        } catch (JWTVerificationException ex){
-            logger.debug("JWT token verification failed: {}", ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+            final SignedJWT decodedJWT = SignedJWT.parse(request.getJwt());
+            final TemporaryPublicKeyRequestClaims requestClaims = buildTemporaryKeyClaims(decodedJWT);
 
-        final Date currentTimestamp = new Date();
+            // Validate claims
+            final String error = validateDecodedClaims(requestClaims);
+            if (error != null) {
+                logger.warn("Error occurred while decoding JWT claims: {}", error);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-        // Generate new key and store it
-        final TemporaryPublicKeyResponseClaims responseClaims = generateAndStoreNewKey(requestClaims, currentTimestamp);
+            // Obtain verifier secret and check JWT signature
+            final TemporaryKeyResult temporaryKeyResult = obtainTemporaryKeyResult(requestClaims);
+            final MACVerifier16B verifier = new MACVerifier16B(temporaryKeyResult.getSecretKeyBytes());
+            boolean verified = decodedJWT.verify(verifier);
+            if (!verified) {
+                logger.debug("JWT token verification failed.");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-        // Built and return the response claims
-        try {
-            final HashMap<String, Object> additionalClaims = buildAdditionalClaims(responseClaims, currentTimestamp);
-            final Algorithm algorithm = Algorithm.ECDSA256((ECPublicKey) temporaryKeyResult.publicKey, (ECPrivateKey) temporaryKeyResult.privateKey);
-            final String jwtResponse = JWT.create()
-                    .withSubject(responseClaims.getKeyId())
-                    .withExpiresAt(responseClaims.getExpiration())
-                    .withIssuedAt(currentTimestamp)
-                    .withPayload(additionalClaims)
-                    .sign(algorithm);
+            final Date currentTimestamp = new Date();
+
+            // Generate new key and store it
+            final TemporaryPublicKeyResponseClaims responseClaims = generateAndStoreNewKey(requestClaims, currentTimestamp);
+
+            // Built and return the response claims
+
+            final JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).type(JOSEObjectType.JWT).build();
+            final JWTClaimsSet claimsSet = buildClaims(responseClaims, currentTimestamp);
+
+            final ECDSASigner signer = new ECDSASigner(temporaryKeyResult.privateKey, Curve.P_256);
+
+            final SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+            signedJWT.sign(signer);
 
             final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
-            response.setJwt(jwtResponse);
+            response.setJwt(signedJWT.serialize());
             return response;
-        } catch (JWTCreationException ex){
-            logger.debug("JWT token signature failed: {}", ex.getMessage(), ex);
-            throw new GenericServiceException("INVALID_TEMPORARY_KEY_RESPONSE", "Unable to produce a valid temporary key response");
+        } catch (JOSEException ex){
+            logger.debug("JWT token verification failed: {}", ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        } catch (ParseException ex) {
+            logger.debug("JWT token parsing failed: {}", ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+
     }
 
     @Transactional
@@ -237,11 +239,12 @@ public class TemporaryKeyBehavior {
 
     // Private methods
 
-    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(DecodedJWT source) {
+    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(SignedJWT source) throws ParseException {
+        final JWTClaimsSet jwtClaimsSet = source.getJWTClaimsSet();
         final TemporaryPublicKeyRequestClaims destination = new TemporaryPublicKeyRequestClaims();
-        destination.setApplicationKey(source.getClaim("applicationKey").asString());
-        destination.setActivationId(source.getClaim("activationId").asString());
-        destination.setChallenge(source.getClaim("challenge").asString());
+        destination.setApplicationKey(jwtClaimsSet.getStringClaim("applicationKey"));
+        destination.setActivationId(jwtClaimsSet.getStringClaim("activationId"));
+        destination.setChallenge(jwtClaimsSet.getStringClaim("challenge"));
         return destination;
     }
 
@@ -257,7 +260,7 @@ public class TemporaryKeyBehavior {
         if (applicationKey != null) {
             final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
-                throw new IllegalArgumentException("App version with provided app key not found.");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
             final String applicationSecret = applicationVersionEntity.getApplicationSecret();
             if (requestClaims.getActivationId() == null) {
@@ -280,11 +283,11 @@ public class TemporaryKeyBehavior {
 
                 final Optional<ActivationRecordEntity> activationWithoutLock = activationRepository.findActivationWithoutLock(requestClaims.getActivationId());
                 if (activationWithoutLock.isEmpty()) {
-                    throw new IllegalArgumentException("Activation ID not found.");
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
                 final ActivationRecordEntity activation = activationWithoutLock.get();
                 if (activation.getActivationStatus() != ActivationStatus.ACTIVE || !appId.equals(activation.getApplication().getId())) {
-                    throw new IllegalArgumentException("Activation ID not found.");
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
 
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
@@ -312,7 +315,7 @@ public class TemporaryKeyBehavior {
                 return result;
             }
          } else {
-            throw new IllegalArgumentException("App key must be specified.");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
          }
     }
 
@@ -360,21 +363,18 @@ public class TemporaryKeyBehavior {
         return result;
     }
 
-    private HashMap<String, Object> buildAdditionalClaims(TemporaryPublicKeyResponseClaims source, Date currentTimestamp) {
-        final HashMap<String, Object> claims = new HashMap<>();
-        if (source.getApplicationKey() != null) {
-            claims.put("applicationKey", source.getApplicationKey());
-        }
-        if (source.getActivationId() != null) {
-            claims.put("activationId", source.getActivationId());
-        }
-        claims.put("challenge", source.getChallenge());
-        if (source.getPublicKey() != null) {
-            claims.put("publicKey", source.getPublicKey());
-        }
-        claims.put("iat_ms", currentTimestamp.getTime());
-        claims.put("exp_ms", source.getExpiration().getTime());
-        return claims;
+    private JWTClaimsSet buildClaims(TemporaryPublicKeyResponseClaims source, Date currentTimestamp) {
+        return new JWTClaimsSet.Builder()
+                .subject(source.getKeyId())
+                .expirationTime(source.getExpiration())
+                .issueTime(currentTimestamp)
+                .claim("applicationKey", source.getApplicationKey())
+                .claim("activationId", source.getActivationId())
+                .claim("challenge", source.getChallenge())
+                .claim("publicKey", source.getPublicKey())
+                .claim("iat_ms", currentTimestamp.getTime())
+                .claim("exp_ms", source.getExpiration().getTime())
+                .build();
     }
 
 }
