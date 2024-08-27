@@ -26,6 +26,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 
+/**
+ * Repository for working with temporary key pairs.
+ *
+ * @author Petr Dvořák, petr@wultra.com
+ */
 @Repository
 public interface TemporaryKeyRepository extends CrudRepository<TemporaryKeyEntity, String> {
 
