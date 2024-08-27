@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -211,7 +210,7 @@ public class TemporaryKeyBehavior {
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
         final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        return keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBytes));
+        return keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
     }
 
     /**

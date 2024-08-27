@@ -154,6 +154,11 @@ public class ActivationServiceBehavior {
     }
 
     @Autowired
+    public void setTemporaryKeyBehavior(TemporaryKeyBehavior temporaryKeyBehavior) {
+        this.temporaryKeyBehavior = temporaryKeyBehavior;
+    }
+
+    @Autowired
     public void setLocalizationProvider(LocalizationProvider localizationProvider) {
         this.localizationProvider = localizationProvider;
     }
