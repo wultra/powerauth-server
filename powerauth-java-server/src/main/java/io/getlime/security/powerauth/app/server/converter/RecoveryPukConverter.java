@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for recovery PUK which handles record encryption and decryption in case it is configured.
@@ -52,7 +53,7 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException In case recovery PUK hash decryption fails.
      */
     public String fromDBValue(final RecoveryPuk recoveryPuk, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        return encryptionService.decrypt(recoveryPuk.pukHash(), recoveryPuk.encryptionMode(), createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
+        return encryptionService.decrypt(recoveryPuk.pukHash(), recoveryPuk.encryptionMode(), createEncryptionKeyProvider(applicationRid, userId, recoveryCode, pukIndex));
     }
 
     /**
@@ -69,12 +70,12 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public RecoveryPuk toDBValue(final String pukHash, final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) throws GenericServiceException {
-        final EncryptableString encryptable = encryptionService.encrypt(pukHash, createSecretKeyDerivationInput(applicationRid, userId, recoveryCode, pukIndex));
+        final EncryptableString encryptable = encryptionService.encrypt(pukHash, createEncryptionKeyProvider(applicationRid, userId, recoveryCode, pukIndex));
         return new RecoveryPuk(encryptable.encryptionMode(), encryptable.encryptedData());
     }
 
-    private static List<String> createSecretKeyDerivationInput(final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) {
-        return List.of(String.valueOf(applicationRid), userId, recoveryCode, String.valueOf(pukIndex));
+    private static Supplier<List<String>> createEncryptionKeyProvider(final long applicationRid, final String userId, final String recoveryCode, final long pukIndex) {
+        return () -> List.of(String.valueOf(applicationRid), userId, recoveryCode, String.valueOf(pukIndex));
     }
 
 }
