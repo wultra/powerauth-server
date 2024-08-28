@@ -96,7 +96,7 @@
         <swagger-annotations-jakarta.version>2.2.22</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.14.0</shedlock.version>
+        <shedlock.version>5.15.0</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.12.0</commons-text.version>
@@ -105,7 +105,7 @@
         <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.25.0.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.25.1.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>

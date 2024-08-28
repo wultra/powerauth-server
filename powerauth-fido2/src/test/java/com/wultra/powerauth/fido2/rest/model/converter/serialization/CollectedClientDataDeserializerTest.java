@@ -43,4 +43,18 @@ class CollectedClientDataDeserializerTest {
         assertFalse(result.isCrossOrigin());
     }
 
+    @Test
+    void testDeserialize_specialSymbolsInChallenge() throws Exception {
+        final CollectedClientData result = CollectedClientDataDeserializer.deserialize("eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTnpCaE9UY3labUV0TWpBd1lTMDBOVEZpTFdFM1lUY3RObVZqTVRNM01qTXdNV05oSmtFeEtrRXlNVU5hU3lwSmRHVjRkREhGdm14MUlIUmxlSFIxZHNTYjhKLU5sQSIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MyIsImNyb3NzT3JpZ2luIjpmYWxzZX0=");
+
+        assertEquals("""
+                {"type":"webauthn.get","challenge":"NzBhOTcyZmEtMjAwYS00NTFiLWE3YTctNmVjMTM3MjMwMWNhJkExKkEyMUNaSypJdGV4dDHFvmx1IHRleHR1dsSb8J-NlA","origin":"http://localhost:8083","crossOrigin":false}
+                """.strip(), result.getEncoded());
+        assertEquals("webauthn.get", result.getType());
+        assertEquals("70a972fa-200a-451b-a7a7-6ec1372301ca&A1*A21CZK*Itext1žlu textuvě\uD83C\uDF54", result.getChallenge());
+        assertEquals("http://localhost:8083", result.getOrigin());
+        assertNull(result.getTopOrigin());
+        assertFalse(result.isCrossOrigin());
+    }
+
 }

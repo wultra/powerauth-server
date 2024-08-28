@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
@@ -52,7 +53,7 @@ public class ServerPrivateKeyConverter {
      */
     public String fromDBValue(final ServerPrivateKey serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), () -> createSecretKeyDerivationInput(userId, activationId));
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
         return convert(decrypted);
     }
 
@@ -68,7 +69,7 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, () -> createSecretKeyDerivationInput(userId, activationId));
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createEncryptionKeyProvider(userId, activationId));
         return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
@@ -80,8 +81,8 @@ public class ServerPrivateKeyConverter {
         return Base64.getDecoder().decode(source);
     }
 
-    private static List<String> createSecretKeyDerivationInput(final String userId, final String activationId) {
-        return List.of(userId, activationId);
+    private static Supplier<List<String>> createEncryptionKeyProvider(final String userId, final String activationId) {
+        return () -> List.of(userId, activationId);
     }
 
 }

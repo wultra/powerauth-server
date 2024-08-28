@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for temporary private key which handles key encryption and decryption in case it is configured.
@@ -53,7 +54,7 @@ public class TemporaryPrivateKeyConverter {
      */
     public String fromDBValue(ServerPrivateKey serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
         final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), () -> createSecretKeyDerivationInput(keyId, appKey, activationId));
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createSecretKeyDerivationInput(keyId, appKey, activationId));
         return convert(decrypted);
     }
 
@@ -70,7 +71,7 @@ public class TemporaryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(byte[] serverPrivateKey, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, () -> createSecretKeyDerivationInput(keyId, appKey, activationId));
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(keyId, appKey, activationId));
         return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
@@ -82,11 +83,11 @@ public class TemporaryPrivateKeyConverter {
         return Base64.getDecoder().decode(source);
     }
 
-    private static List<String> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
+    private static Supplier<List<String>> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
         if (activationId != null) {
-            return List.of(keyId, appKey, activationId);
+            return () -> List.of(keyId, appKey, activationId);
         } else {
-            return List.of(keyId, appKey);
+            return () -> List.of(keyId, appKey);
         }
     }
 

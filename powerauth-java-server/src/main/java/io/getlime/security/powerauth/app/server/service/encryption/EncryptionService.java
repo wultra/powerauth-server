@@ -39,6 +39,7 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Service for encryption and decryption database data.
@@ -59,27 +60,16 @@ public class EncryptionService {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     /**
-     * Interface that allows providing key components used for DB record encryption.
-     */
-    public interface EncryptionKeyProvider {
-        /**
-         * Provide key components for DB record encryption.
-         * @return Key components.
-         */
-        List<String> provideKeyComponents();
-    }
-
-    /**
      * Decrypt the given string.
      *
      * @param dataString String to decrypt.
      * @param encryptionMode Encryption mode.
      * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Decrypted value.
-     * @see #decrypt(byte[], EncryptionMode, EncryptionKeyProvider) if you want to encrypt binary data.
+     * @see #decrypt(byte[], EncryptionMode, Supplier) if you want to encrypt binary data.
      * @throws GenericServiceException In case decryption fails.
      */
-    public String decrypt(final String dataString, final EncryptionMode encryptionMode, final EncryptionKeyProvider encryptionKeyProvider) throws GenericServiceException {
+    public String decrypt(final String dataString, final EncryptionMode encryptionMode, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
         final byte[] dataBytes = convert(dataString, encryptionMode);
         final byte[] decrypted = decrypt(dataBytes, encryptionMode, encryptionKeyProvider);
         return new String(decrypted, StandardCharsets.UTF_8);
@@ -92,10 +82,10 @@ public class EncryptionService {
      * @param encryptionMode Encryption mode.
      * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Decrypted value.
-     * @see #decrypt(String, EncryptionMode, EncryptionKeyProvider) if you want to encrypt string data.
+     * @see #decrypt(String, EncryptionMode, Supplier) if you want to encrypt string data.
      * @throws GenericServiceException In case decryption fails.
      */
-    public byte[] decrypt(final byte[] data, final EncryptionMode encryptionMode, final EncryptionKeyProvider encryptionKeyProvider) throws GenericServiceException {
+    public byte[] decrypt(final byte[] data, final EncryptionMode encryptionMode, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
             throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
@@ -118,7 +108,7 @@ public class EncryptionService {
                     final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
-                    final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider.provideKeyComponents());
+                    final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (data.length < 16) {
@@ -157,10 +147,10 @@ public class EncryptionService {
      * @param data String to encrypt.
      * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Encryptable composite data.
-     * @see #encrypt(byte[], EncryptionKeyProvider) if you want to encrypt binary data.
+     * @see #encrypt(byte[], Supplier) if you want to encrypt binary data.
      * @throws GenericServiceException Thrown when encryption fails.
      */
-    public EncryptableString encrypt(final String data, final EncryptionKeyProvider encryptionKeyProvider) throws GenericServiceException {
+    public EncryptableString encrypt(final String data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
         final byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
         final EncryptableData result = encrypt(dataBytes, encryptionKeyProvider);
         return new EncryptableString(result.encryptionMode(), convert(result));
@@ -172,10 +162,10 @@ public class EncryptionService {
      * @param data Data to encrypt.
      * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Encryptable composite data.
-     * @see #encrypt(String, EncryptionKeyProvider) if you want to encrypt binary data.
+     * @see #encrypt(String, Supplier) if you want to encrypt binary data.
      * @throws GenericServiceException Thrown when encryption fails.
      */
-    public EncryptableData encrypt(final byte[] data, final EncryptionKeyProvider encryptionKeyProvider) throws GenericServiceException {
+    public EncryptableData encrypt(final byte[] data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
         final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the value
@@ -188,7 +178,7 @@ public class EncryptionService {
             final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
-            final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider.provideKeyComponents());
+            final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider);
 
             // Generate random IV
             final byte[] iv = keyGenerator.generateRandomBytes(16);
@@ -222,14 +212,14 @@ public class EncryptionService {
      * Derive secret key from master DB encryption key and the given derivations.
      *
      * @param masterDbEncryptionKey Master DB encryption key.
-     * @param secretKeyDerivations Values used for derivation of secret key.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Derived secret key.
      * @throws GenericCryptoException In case key derivation fails.
      * @see <a href="https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md">Encrypting Records in Database</a>
      */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, final List<String> secretKeyDerivations) throws GenericCryptoException, CryptoProviderException {
+    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, final Supplier<List<String>> encryptionKeyProvider) throws GenericCryptoException, CryptoProviderException {
         // Use concatenated value bytes as index for KDF_INTERNAL
-        final byte[] index = String.join("&", secretKeyDerivations).getBytes(StandardCharsets.UTF_8);
+        final byte[] index = String.join("&", encryptionKeyProvider.get()).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);

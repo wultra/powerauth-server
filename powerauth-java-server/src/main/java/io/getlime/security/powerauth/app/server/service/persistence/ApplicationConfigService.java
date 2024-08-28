@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Service for application configuration.
@@ -84,7 +85,7 @@ public class ApplicationConfigService {
         entity.setKey(source.key());
 
         final String value = listToJsonConverter.convertToDatabaseColumn(source.values());
-        final EncryptableString encryptable = encryptionService.encrypt(value, () -> secretKeyDerivationInput(entity));
+        final EncryptableString encryptable = encryptionService.encrypt(value, createEncryptionKeyProvider(entity));
         entity.setValues(encryptable.encryptedData());
         entity.setEncryptionMode(encryptable.encryptionMode());
 
@@ -93,7 +94,7 @@ public class ApplicationConfigService {
 
     private ApplicationConfig convert(ApplicationConfigEntity source) {
         try {
-            final String decrypted = encryptionService.decrypt(source.getValues(), source.getEncryptionMode(), () -> secretKeyDerivationInput(source));
+            final String decrypted = encryptionService.decrypt(source.getValues(), source.getEncryptionMode(), createEncryptionKeyProvider(source));
             final List<Object> values = listToJsonConverter.convertToEntityAttribute(decrypted);
             return new ApplicationConfig(source.getRid(), source.getApplication(), source.getKey(), values);
         } catch (GenericServiceException e) {
@@ -102,8 +103,8 @@ public class ApplicationConfigService {
         }
     }
 
-    private static List<String> secretKeyDerivationInput(final ApplicationConfigEntity source) {
-        return List.of(source.getApplication().getId());
+    private static Supplier<List<String>> createEncryptionKeyProvider(final ApplicationConfigEntity source) {
+        return () -> List.of(source.getApplication().getId());
     }
 
     /**
