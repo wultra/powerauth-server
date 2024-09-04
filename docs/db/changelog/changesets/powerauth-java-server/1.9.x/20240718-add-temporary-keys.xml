@@ -33,10 +33,10 @@
                 <constraints primaryKey="true" />
             </column>
             <column name="application_key" type="varchar(32)">
-                <constraints nullable="false" foreignKeyName="pa_temporary_key_app_version_fk" referencedTableName="pa_application_version" referencedColumnNames="application_key"/>
+                <constraints nullable="false" foreignKeyName="pa_temporary_key_application_key_fk" referencedTableName="pa_application_version" referencedColumnNames="application_key"/>
             </column>
             <column name="activation_id" type="varchar(37)">
-                <constraints nullable="true" foreignKeyName="pa_temporary_key_activation_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id"/>
+                <constraints nullable="true" foreignKeyName="pa_temporary_activation_id_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id"/>
             </column>
             <column name="private_key_encryption" type="integer" defaultValue="0">
                 <constraints nullable="false" />

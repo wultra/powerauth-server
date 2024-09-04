@@ -13,7 +13,19 @@ For manual changes use SQL scripts:
 - [Oracle script](./sql/oracle/migration_1.8.0_1.9.0.sql)
 - [MSSQL script](./sql/mssql/migration_1.8.0_1.9.0.sql)
 
+### Added pa_temporary_key Table
+
+To facilitate a new feature of temporary keys, we added a new `pa_temporary_key` table to store the key pairs.
 
 ### Add encryption_mode Column
 
 A new column `encryption_mode` has been added to the `pa_application_config` table to enable encryption of configuration values.
+
+## REST API Changes
+
+### Added Services for Temporary Keys
+
+The API now publishes new endpoints related to the temporary key management:
+
+- `POST /rest/v3/keystore/create` - Creates a new temporary key pair
+- `POST /rest/v3/keystore/remove` - Removes a temporary key pair
