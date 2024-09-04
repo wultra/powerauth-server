@@ -294,7 +294,7 @@ class ActivationServiceBehaviorTest {
 
         final ClientEncryptor clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, applicationKey, null),
+                new EncryptorParameters(version, applicationKey, null, null),
                 new ClientEncryptorSecrets(masterPublicKey, applicationSecret));
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
 
@@ -384,7 +384,7 @@ class ActivationServiceBehaviorTest {
         // Encrypt payload
         final ClientEncryptor clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, applicationKey, null),
+                new EncryptorParameters(version, applicationKey, null, null),
                 new ClientEncryptorSecrets(masterPublicKey, applicationSecret));
         return clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
     }

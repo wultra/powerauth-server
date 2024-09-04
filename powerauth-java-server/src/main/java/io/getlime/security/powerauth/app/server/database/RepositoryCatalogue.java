@@ -47,6 +47,8 @@ public class RepositoryCatalogue {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
+    private final TemporaryKeyRepository temporaryKeyRepository;
+
     private final TokenRepository tokenRepository;
 
     private final RecoveryCodeRepository recoveryCodeRepository;
@@ -62,7 +64,7 @@ public class RepositoryCatalogue {
             ApplicationConfigRepository applicationConfigRepository, CallbackUrlRepository callbackUrlRepository,
             IntegrationRepository integrationRepository,
             MasterKeyPairRepository masterKeyPairRepository,
-            SignatureAuditRepository signatureAuditRepository,
+            SignatureAuditRepository signatureAuditRepository, TemporaryKeyRepository temporaryKeyRepository,
             TokenRepository tokenRepository,
             RecoveryCodeRepository recoveryCodeRepository,
             RecoveryConfigRepository recoveryConfigRepository) {
@@ -76,6 +78,7 @@ public class RepositoryCatalogue {
         this.integrationRepository = integrationRepository;
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.signatureAuditRepository = signatureAuditRepository;
+        this.temporaryKeyRepository = temporaryKeyRepository;
         this.tokenRepository = tokenRepository;
         this.recoveryCodeRepository = recoveryCodeRepository;
         this.recoveryConfigRepository = recoveryConfigRepository;
@@ -117,6 +120,10 @@ public class RepositoryCatalogue {
 
     public SignatureAuditRepository getSignatureAuditRepository() {
         return signatureAuditRepository;
+    }
+
+    public TemporaryKeyRepository getTemporaryKeyRepository() {
+        return temporaryKeyRepository;
     }
 
     public TokenRepository getTokenRepository() {

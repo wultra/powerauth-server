@@ -89,6 +89,7 @@ public class TokenBehavior {
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -104,7 +105,7 @@ public class TokenBehavior {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, TemporaryKeyBehavior temporaryKeyBehavior, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.activationQueryService = activationQueryService;
@@ -112,6 +113,7 @@ public class TokenBehavior {
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
         this.activationValidator = activationValidator;
+        this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.objectMapper = objectMapper;
     }
 
@@ -140,15 +142,17 @@ public class TokenBehavior {
             final String applicationKey = request.getApplicationKey();
             final String version = request.getProtocolVersion();
             final SignatureType signatureType = request.getSignatureType();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
                     request.getNonce(),
                     request.getTimestamp()
             );
-            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, keyConvertor);
+            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, temporaryKeyId, keyConvertor);
             final CreateTokenResponse response = new CreateTokenResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
@@ -318,7 +322,7 @@ public class TokenBehavior {
      * @throws GenericServiceException In case a business error occurs.
      */
     private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
-                                          String signatureType, String version, KeyConvertor keyConversion) throws GenericServiceException {
+                                          String signatureType, String version, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -359,11 +363,14 @@ public class TokenBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
+            // Get temporary or server key, depending on availability
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CREATE_TOKEN,
-                    new EncryptorParameters(version, applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(version, applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
             serverEncryptor.decryptRequest(encryptedRequest);

@@ -997,7 +997,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                       String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
+                                                       String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException {
         final GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1005,6 +1005,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setNonce(nonce);
         request.setProtocolVersion(protocolVersion);
         request.setTimestamp(timestamp);
+        request.setTemporaryKeyId(temporaryKeyId);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1532,6 +1533,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
         final GetApplicationConfigRequest request = new GetApplicationConfigRequest();
         request.setApplicationId(applicationId);
         return getApplicationConfig(request);
+    }
+
+    @Override
+    public TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/keystore/create", request, queryParams, httpHeaders, TemporaryPublicKeyResponse.class);
+    }
+
+    @Override
+    public RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        final RemoveTemporaryPublicKeyRequest request = new RemoveTemporaryPublicKeyRequest();
+        request.setId(id);
+        return callV3RestApi("/keystore/remove", request, queryParams, httpHeaders, RemoveTemporaryPublicKeyResponse.class);
     }
 
 }

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2024 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.9.x/20240718-add-temporary-keys.xml" author="Petr Dvorak">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_temporary_key"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_temporary_key</comment>
+        <createTable tableName="pa_temporary_key">
+            <column name="id" type="varchar(37)">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="application_key" type="varchar(32)">
+                <constraints nullable="false" foreignKeyName="pa_temporary_key_application_key_fk" referencedTableName="pa_application_version" referencedColumnNames="application_key"/>
+            </column>
+            <column name="activation_id" type="varchar(37)">
+                <constraints nullable="true" foreignKeyName="pa_temporary_activation_id_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id"/>
+            </column>
+            <column name="private_key_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="private_key_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="public_key_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="timestamp_expires" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.9.x/20240718-add-temporary-keys.xml" author="Petr Dvorak">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_temporary_key" indexName="pa_temporary_key_ts_key_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_temporary_key(timestamp_expires)</comment>
+        <createIndex tableName="pa_temporary_key" indexName="pa_temporary_key_ts_key_idx">
+            <column name="timestamp_expires" />
+        </createIndex>
+    </changeSet>
+
+
+</databaseChangeLog>

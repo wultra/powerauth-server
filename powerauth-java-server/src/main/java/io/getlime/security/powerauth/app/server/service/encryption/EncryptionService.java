@@ -59,7 +59,6 @@ public class EncryptionService {
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
-
     /**
      * Decrypt the given string.
      *

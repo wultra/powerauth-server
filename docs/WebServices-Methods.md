@@ -101,6 +101,9 @@ The following `v3` methods are published using the service:
     - [getTemplateDetail](#method-gettemplatedetail)
     - [updateOperationTemplate](#method-updateoperationtemplate)
     - [removeOperationTemplate](#method-removeoperationtemplate)
+- Temporary Keys
+    - [createTemporaryKey](#method-createtemporarykey)
+    - [removeTemporaryKey](#method-removetemporarykey)
 
 
 ## System status
@@ -2678,6 +2681,74 @@ REST endpoint: `POST /rest/v3/operation/template/remove`
 #### Response
 
 _empty response_
+
+## Temporary Keys
+
+### Method 'createTemporaryKey'
+
+Create temporary key pair.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/keystore/create`
+
+`TemporaryPublicKeyRequest`
+
+| Type                  | Name                      | Description                                                                  |
+|-----------------------|---------------------------|------------------------------------------------------------------------------|
+| `String`              | `jwt`                     | Signed JWT payload (HS256) with `TemporaryPublicKeyRequestClaims` structure. |
+
+`TemporaryPublicKeyRequestClaims`
+
+| Type     | Name             | Description      |
+|----------|------------------|------------------|
+| `String` | `applicationKey` | Application key  |
+| `String` | `activationId`   | Activation ID    |
+| `String` | `challenge`      | Random challenge |
+
+#### Response
+
+`TemporaryPublicKeyResponse`
+
+| Type                  | Name                      | Description                                                                   |
+|-----------------------|---------------------------|-------------------------------------------------------------------------------|
+| `String`              | `jwt`                     | Signed JWT payload (ES256) with `TemporaryPublicKeyResponseClaims` structure. |
+
+`TemporaryPublicKeyResponseClaims`
+
+| Type     | Name             | Description                    |
+|----------|------------------|--------------------------------|
+| `String` | `applicationKey` | Application key                |
+| `String` | `activationId`   | Activation ID                  |
+| `String` | `challenge`      | Random challenge               |
+| `String` | `keyId`          | Unique key pair ID             |
+| `String` | `publicKey`      | Public key (encoded as Base64) |
+| `Date`   | `expiration`     | Expiration timestamp.          |
+
+
+### Method 'removeTemporaryKey'
+
+Remove temporary key pair.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/keystore/remove`
+
+`RemoveTemporaryPublicKeyRequest`
+
+| Type     | Name | Description               |
+|----------|------|---------------------------|
+| `String` | `id` | Key pair ID to be removed |
+
+
+#### Response
+
+`RemoveTemporaryPublicKeyResponse`
+
+| Type      | Name      | Description                                 |
+|-----------|-----------|---------------------------------------------|
+| `String`  | `id`      | Key pair ID to be removed                   |
+| `boolean` | `removed` | Boolean indicating if the value was removed |
 
 ## Used enums
 

@@ -85,15 +85,19 @@ public class UpgradeServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     @Autowired
     public UpgradeServiceBehavior(
-            final RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
+            final RepositoryCatalogue repositoryCatalogue,
+            final ActivationQueryService activationQueryService,
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
             final ReplayVerificationService replayVerificationService,
-            ActivationContextValidator activationValidator, final ObjectMapper objectMapper,
-            final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+            final ActivationContextValidator activationValidator,
+            final ObjectMapper objectMapper,
+            final ActivationHistoryServiceBehavior activationHistoryServiceBehavior,
+            final TemporaryKeyBehavior temporaryKeyBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
         this.activationQueryService = activationQueryService;
@@ -103,6 +107,7 @@ public class UpgradeServiceBehavior {
         this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
+        this.temporaryKeyBehavior = temporaryKeyBehavior;
     }
 
     /**
@@ -117,6 +122,7 @@ public class UpgradeServiceBehavior {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             if (activationId == null || applicationKey == null) {
                 logger.warn("Invalid request parameters in method startUpgrade");
@@ -126,6 +132,7 @@ public class UpgradeServiceBehavior {
 
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -188,11 +195,14 @@ public class UpgradeServiceBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
+            // Get temporary or server key, depending on availability
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.UPGRADE,
-                    new EncryptorParameters(protocolVersion, applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.

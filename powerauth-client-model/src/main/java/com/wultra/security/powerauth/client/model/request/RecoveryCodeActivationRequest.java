@@ -35,6 +35,7 @@ public class RecoveryCodeActivationRequest {
     private String puk;
     private String applicationKey;
     private Long maxFailureCount;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;

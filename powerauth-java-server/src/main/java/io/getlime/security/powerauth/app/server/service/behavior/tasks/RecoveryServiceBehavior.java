@@ -90,9 +90,10 @@ public class RecoveryServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final RepositoryCatalogue repositoryCatalogue;
     private final ActivationQueryService activationQueryService;
+    private final ReplayVerificationService replayVerificationService;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
-    private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
 
     // Business logic implementation classes
@@ -112,12 +113,13 @@ public class RecoveryServiceBehavior {
     @Autowired
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
-                                   ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
+                                   TemporaryKeyBehavior temporaryKeyBehavior, ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
                                    ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.activationQueryService = activationQueryService;
+        this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
@@ -306,6 +308,7 @@ public class RecoveryServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             if (activationId == null || applicationKey == null) {
                 logger.warn("Invalid request parameters in method confirmRecoveryCode");
@@ -325,6 +328,7 @@ public class RecoveryServiceBehavior {
 
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -376,11 +380,13 @@ public class RecoveryServiceBehavior {
                         request.getProtocolVersion());
             }
 
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server decryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CONFIRM_RECOVERY_CODE,
-                    new EncryptorParameters(request.getProtocolVersion(), applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(request.getProtocolVersion(), applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Decrypt request data
             final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
