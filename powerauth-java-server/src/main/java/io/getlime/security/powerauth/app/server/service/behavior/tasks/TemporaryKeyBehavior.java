@@ -330,7 +330,7 @@ public class TemporaryKeyBehavior {
         final String challenge = requestClaims.getChallenge();
         final byte[] privateKeyBytes = keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate());
         final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic()));
-        final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidityMilliseconds().toMillis()));
+        final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidity().toMillis()));
 
         // Prepare encrypted temporary private key, if encryption is enabled
         final ServerPrivateKey temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(

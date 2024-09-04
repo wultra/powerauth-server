@@ -83,7 +83,7 @@ public abstract class MACProvider16B extends BaseJWSProvider {
     }
 
     static {
-        Set<JWSAlgorithm> algs = new LinkedHashSet();
+        final Set<JWSAlgorithm> algs = new LinkedHashSet<>();
         algs.add(JWSAlgorithm.HS256);
         algs.add(JWSAlgorithm.HS384);
         algs.add(JWSAlgorithm.HS512);

@@ -20,6 +20,11 @@ package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
 
+/**
+ * Model class representing response of removing temporary key.
+ *
+ * @author Petr Dvorak, petr@wultra.com
+ */
 @Data
 public class RemoveTemporaryPublicKeyResponse {
 
