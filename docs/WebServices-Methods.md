@@ -1440,6 +1440,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
+  },
+  "oauth2": {
+    "enabled": false,
+    "clientId": "[OAuth2 client ID]",
+    "clientSecret": "[OAuth2 client secret]",
+    "tokenUri": "[OAuth2 token URI]",
+    "scope": "[OAuth2 scope]"
   }
 }
 ```
@@ -1525,6 +1532,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
+  },
+  "oauth2": {
+    "enabled": false,
+    "clientId": "[OAuth2 client ID]",
+    "clientSecret": "[OAuth2 client secret]",
+    "tokenUri": "[OAuth2 token URI]",
+    "scope": "[OAuth2 scope]"
   }
 }
 ```

@@ -190,12 +190,12 @@ public class ApplicationController {
                     for (String attribute: callback.getAttributes()) {
                         model.put("attr_" + attribute, true);
                     }
-                    HttpAuthenticationPublic httpAuthentication = callback.getAuthentication();
+                    final HttpAuthenticationPublic httpAuthentication = callback.getAuthentication();
                     if (httpAuthentication != null) {
-                        if (httpAuthentication.getCertificate() == null) {
+                        final HttpAuthenticationPublic.Certificate certificateAuth = httpAuthentication.getCertificate();
+                        if (certificateAuth == null) {
                             model.put("auth_certificateEnabled", false);
                         } else {
-                            HttpAuthenticationPublic.Certificate certificateAuth = httpAuthentication.getCertificate();
                             model.put("auth_certificateEnabled", certificateAuth.isEnabled());
                             model.put("auth_useCustomKeyStore", certificateAuth.isUseCustomKeyStore());
                             model.put("auth_keyStoreLocation", certificateAuth.getKeyStoreLocation());
@@ -206,13 +206,25 @@ public class ApplicationController {
                             model.put("auth_trustStoreLocation", certificateAuth.getTrustStoreLocation());
                             model.put("auth_trustStorePasswordSet", certificateAuth.isTrustStorePasswordSet());
                         }
-                        if (httpAuthentication.getHttpBasic() == null) {
+
+                        final HttpAuthenticationPublic.HttpBasic httpBasicAuth = httpAuthentication.getHttpBasic();
+                        if (httpBasicAuth == null) {
                             model.put("auth_httpBasicEnabled", false);
                         } else {
-                            HttpAuthenticationPublic.HttpBasic httpBasicAuth = httpAuthentication.getHttpBasic();
                             model.put("auth_httpBasicEnabled", httpBasicAuth.isEnabled());
                             model.put("auth_httpBasicUsername", httpBasicAuth.getUsername());
                             model.put("auth_httpBasicPasswordSet", httpBasicAuth.isPasswordSet());
+                        }
+
+                        final HttpAuthenticationPublic.OAuth2 oAuth2 = httpAuthentication.getOAuth2();
+                        if (oAuth2 == null) {
+                            model.put("auth_oAuth2Enabled", false);
+                        } else {
+                            model.put("auth_oAuth2Enabled", oAuth2.isEnabled());
+                            model.put("auth_oAuth2ClientId", oAuth2.getClientId());
+                            model.put("auth_oAuth2ClientSecretSet", oAuth2.isClientSecretSet());
+                            model.put("auth_oAuth2Scope", oAuth2.getScope());
+                            model.put("auth_oAuth2TokenUri", oAuth2.getTokenUri());
                         }
                     }
                     return "callbackUpdate";
@@ -453,6 +465,19 @@ public class ApplicationController {
                 !StringUtils.hasText(allParams.get("auth_httpBasicUsername"))) {
             error = "Invalid HTTP Basic authentication configuration";
         }
+        if ("on".equals(allParams.get("auth_useOAuth2"))) {
+            if (!StringUtils.hasText(allParams.get("auth_oAuth2ClientId"))
+                    || !StringUtils.hasText(allParams.get("auth_oAuth2ClientSecret"))
+                    || !StringUtils.hasText(allParams.get("auth_oAuth2TokenUri"))) {
+                error = "Invalid OAuth2 configuration";
+            } else {
+                try {
+                    new URL(allParams.get("auth_oAuth2TokenUri"));
+                } catch (MalformedURLException ex) {
+                    error = "Invalid OAuth2 token endpoint format";
+                }
+            }
+        }
         return error;
     }
 
@@ -562,9 +587,9 @@ public class ApplicationController {
      * @return HTTP authentication.
      */
     private HttpAuthenticationPrivate prepareHttpAuthentication(Map<String, String> allParams) {
-        HttpAuthenticationPrivate httpAuthentication = new HttpAuthenticationPrivate();
+        final HttpAuthenticationPrivate httpAuthentication = new HttpAuthenticationPrivate();
         if ("on".equals(allParams.get("auth_certificateEnabled"))) {
-            HttpAuthenticationPrivate.Certificate certificateAuth = new HttpAuthenticationPrivate.Certificate();
+            final HttpAuthenticationPrivate.Certificate certificateAuth = new HttpAuthenticationPrivate.Certificate();
             certificateAuth.setEnabled(true);
             certificateAuth.setUseCustomKeyStore("on".equals(allParams.get("auth_useCustomKeyStore")));
             certificateAuth.setKeyStoreLocation(allParams.get("auth_keyStoreLocation"));
@@ -583,13 +608,24 @@ public class ApplicationController {
             httpAuthentication.setCertificate(certificateAuth);
         }
         if ("on".equals(allParams.get("auth_httpBasicEnabled"))) {
-            HttpAuthenticationPrivate.HttpBasic httpBasicAuth = new HttpAuthenticationPrivate.HttpBasic();
+            final HttpAuthenticationPrivate.HttpBasic httpBasicAuth = new HttpAuthenticationPrivate.HttpBasic();
             httpBasicAuth.setEnabled(true);
             httpBasicAuth.setUsername(allParams.get("auth_httpBasicUsername"));
             if ("true".equals(allParams.get("auth_httpBasicPasswordChanged"))) {
                 httpBasicAuth.setPassword(allParams.get("auth_httpBasicPassword"));
             }
             httpAuthentication.setHttpBasic(httpBasicAuth);
+        }
+        if ("on".equals(allParams.get("auth_oAuth2Enabled"))) {
+            final HttpAuthenticationPrivate.OAuth2 oAuth2 = new HttpAuthenticationPrivate.OAuth2();
+            oAuth2.setEnabled(true);
+            oAuth2.setClientId(allParams.get("auth_oAuth2ClientId"));
+            if ("true".equals(allParams.get("auth_oAuth2ClientSecretChanged"))) {
+                oAuth2.setClientSecret(allParams.get("auth_oAuth2ClientSecret"));
+            }
+            oAuth2.setTokenUri(allParams.get("auth_oAuth2TokenUri"));
+            oAuth2.setScope(allParams.get("auth_oAuth2Scope"));
+            httpAuthentication.setOAuth2(oAuth2);
         }
         return httpAuthentication;
     }
