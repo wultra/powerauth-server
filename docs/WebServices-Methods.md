@@ -942,12 +942,12 @@ REST endpoint: `POST /rest/v3/signature/ecdsa/verify`
 
 `VerifyECDSASignatureRequest`
 
-| Type                   | Name              | Description                                      |
-|------------------------|-------------------|--------------------------------------------------|
-| `String`               | `activationId`    | An identifier of an activation                   |
-| `String`               | `data`            | Base64 encoded data for the signature            |
-| `String`               | `signature`       | Base64 encoded ECDSA signature                   |
-| `ECDSASignatureFormat` | `signatureFormat` | Format of the ECDSA signature (`DER` or `JOSE`). |
+| Type                   | Name              | Description                                               |
+|------------------------|-------------------|-----------------------------------------------------------|
+| `String`               | `activationId`    | An identifier of an activation                            |
+| `String`               | `data`            | Base64 encoded data for the signature                     |
+| `String`               | `signature`       | Base64 encoded ECDSA signature                            |
+| `ECDSASignatureFormat` | `signatureFormat` | Format of the ECDSA signature: `DER` (default) or `JOSE`. |
 
 #### Response
 

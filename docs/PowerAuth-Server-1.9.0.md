@@ -32,4 +32,4 @@ The API now publishes new endpoints related to the temporary key management:
 
 ### ECDSA Signature Verification in JOSE Format
 
-The method `POST /rest/v3/signature/ecdsa/verify` now supports validation of ECDSA signature in JOSE format, thanks to added `signatureFormat` request attribute (`DER` or `JOSE` values).
+The method `POST /rest/v3/signature/ecdsa/verify` now supports validation of ECDSA signature in JOSE format, thanks to added `signatureFormat` request attribute (`DER` as a default value, or `JOSE`).
