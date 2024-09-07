@@ -22,6 +22,7 @@ import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
@@ -43,7 +44,9 @@ import org.springframework.util.MultiValueMap;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -107,9 +110,39 @@ public class CallbackUrlEventService {
      */
     @Transactional
     public void resetStaleCallbackUrlEvents() {
-        final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
-        final int numberOfAffectedEvents = callbackUrlEventRepository.updateStaleEventsToPendingState(LocalDateTime.now().minus(forceRerunPeriod));
+        final int numberOfAffectedEvents = callbackUrlEventRepository.updateStaleEventsToPendingState(LocalDateTime.now());
         logger.debug("Number of stale Callback URL Events moved to PENDING state: {}", numberOfAffectedEvents);
+    }
+
+    /**
+     * Create and save a new {@link CallbackUrlEventEntity}.
+     * @param callbackUrlEntity Existing CallbackUrlEntity with the Callback URL configuration.
+     * @param callbackData Data to be sent with the Callback URL.
+     * @return Saved {@link CallbackUrlEventEntity}.
+     */
+    public CallbackUrlEventEntity createAndSaveCallbackUrlEventEntity(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
+        final LocalDateTime timestampNow = LocalDateTime.now();
+        final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
+
+        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
+        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackData(callbackData);
+        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setTimestampCreated(timestampNow);
+        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
+        callbackUrlEventEntity.setTimestampRerunAfter(shouldBeSentAtMostOnce(callbackUrlEntity) ? null : timestampNow.plus(forceRerunPeriod));
+        callbackUrlEventEntity.setAttempts(0);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
+        return callbackUrlEventRepository.save(callbackUrlEventEntity);
+    }
+
+    /**
+     * Obtain maximum attempts to send a Callback URL Event.
+     * @param callbackUrlEntity The Callback URL Event configuration.
+     * @return Maximum number of attempts.
+     */
+    public int obtainMaxAttempts(final CallbackUrlEntity callbackUrlEntity) {
+        return Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
     }
 
     /**
@@ -117,9 +150,14 @@ public class CallbackUrlEventService {
      * @param callbackUrlEventEntity Event to dispatch.
      */
     private void dispatchPendingCallbackUrlEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
+        final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
+        final LocalDateTime timestampNow = LocalDateTime.now();
+        final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
+
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
         callbackUrlEventEntity.setTimestampNextCall(null);
-        callbackUrlEventEntity.setTimestampLastCall(LocalDateTime.now());
+        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
+        callbackUrlEventEntity.setTimestampRerunAfter(shouldBeSentAtMostOnce(callbackUrlEntity) ? null : timestampNow.plus(forceRerunPeriod));
         final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
@@ -173,12 +211,16 @@ public class CallbackUrlEventService {
                 .plus(allowedProcessingDelay);
     }
 
+    private boolean shouldBeSentAtMostOnce(final CallbackUrlEntity callbackUrlEntity) {
+        return obtainMaxAttempts(callbackUrlEntity) == 1;
+    }
+
     @PostConstruct
     private void validateForceRerunSetting() {
         final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
-        final Duration httpConnectionTimeoutSum = powerAuthServiceConfiguration.getHttpResponseTimeout()
+        final Duration httpTimeoutsSum = powerAuthServiceConfiguration.getHttpResponseTimeout()
                 .plus(powerAuthServiceConfiguration.getHttpConnectionTimeout());
-        if (forceRerunPeriod.compareTo(httpConnectionTimeoutSum) <= 0) {
+        if (forceRerunPeriod.compareTo(httpTimeoutsSum) <= 0) {
             logger.warn("The force rerun period for Callback URL Events should be longer than the sum of HTTP connection timeout and HTTP response timeout.");
         }
     }

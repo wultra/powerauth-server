@@ -74,6 +74,9 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "timestamp_delete_after")
     private LocalDateTime timestampDeleteAfter;
 
+    @Column(name = "timestamp_rerun_after")
+    private LocalDateTime timestampRerunAfter;
+
     @Column(name = "attempts", nullable = false)
     private int attempts;
 

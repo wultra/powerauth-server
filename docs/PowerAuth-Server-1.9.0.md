@@ -37,6 +37,7 @@ dispatched event. The table contains following columns:
 - `timestamp_last_call` - Timestamp of the last attempt to send the Callback URL Event.
 - `timestamp_next_call` - Timestamp of the next scheduled time to send the Callback URL Event.
 - `timestamp_delete_after` - Timestamp after which the Callback URL Event record should be deleted from the table.
+- `timestamp_rerun_after` - Timestamp after which the Callback URL Event record in processing state should be rerun.
 - `attempts` - Number of dispatch attempts made for the Callback URL Event.
 - `idempotency_key` - UUID used as the `Idempotency-Key`.
 

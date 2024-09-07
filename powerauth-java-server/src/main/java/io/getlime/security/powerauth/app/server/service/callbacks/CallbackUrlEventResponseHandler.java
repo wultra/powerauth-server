@@ -60,8 +60,9 @@ public class CallbackUrlEventResponseHandler {
         logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId());
 
         final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
-        callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
+        callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
         callbackUrlEventEntity.setTimestampNextCall(null);
+        callbackUrlEventEntity.setTimestampRerunAfter(null);
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
@@ -80,6 +81,7 @@ public class CallbackUrlEventResponseHandler {
         logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
 
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
+        callbackUrlEventEntity.setTimestampRerunAfter(null);
 
         final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
         final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
@@ -93,7 +95,7 @@ public class CallbackUrlEventResponseHandler {
         } else {
             logger.debug("Maximum number of attempts reached for callbackUrlEventId={}", callbackUrlEventEntity.getId());
             final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
-            callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
+            callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
             callbackUrlEventEntity.setTimestampNextCall(null);
             callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
         }

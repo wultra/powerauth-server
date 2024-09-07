@@ -30,6 +30,7 @@
             <column name="timestamp_last_call" type="timestamp(6)" />
             <column name="timestamp_next_call" type="timestamp(6)" />
             <column name="timestamp_delete_after" type="timestamp(6)" />
+            <column name="timestamp_rerun_after" type="timestamp(6)" />
             <column name="attempts" type="integer" defaultValueNumeric="0">
                 <constraints nullable="false" />
             </column>

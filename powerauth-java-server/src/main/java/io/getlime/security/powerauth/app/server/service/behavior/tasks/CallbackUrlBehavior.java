@@ -28,14 +28,12 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationCryptor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlRestClientManager;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
@@ -52,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
@@ -69,9 +66,8 @@ public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
-    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final CallbackUrlEventService callbackUrlEventService;
     private final CallbackUrlEventQueueService callbackUrlEventQueueService;
-    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
     private LocalizationProvider localizationProvider;
     private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
     private final CallbackUrlRestClientManager callbackUrlRestClientManager;
@@ -453,7 +449,7 @@ public class CallbackUrlBehavior {
             return;
         }
 
-        final CallbackUrlEventEntity callbackUrlEventEntity = createAndSaveCallbackUrlEventEntity(callbackUrlEntity, callbackData);
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveCallbackUrlEventEntity(callbackUrlEntity, callbackData);
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
@@ -480,28 +476,7 @@ public class CallbackUrlBehavior {
      * @return True if the Callback URL should be dispatched at least once, false otherwise.
      */
     private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
-        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
-        return maxAttempts > 0;
-    }
-
-    /**
-     * Create and save a new {@link CallbackUrlEventEntity}.
-     * @param callbackUrlEntity Existing CallbackUrlEntity with the Callback URL configuration.
-     * @param callbackData Data to be sent with the Callback URL.
-     * @return Saved {@link CallbackUrlEventEntity}.
-     */
-    private CallbackUrlEventEntity createAndSaveCallbackUrlEventEntity(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
-        final LocalDateTime timestampNow = LocalDateTime.now();
-
-        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
-        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
-        callbackUrlEventEntity.setCallbackData(callbackData);
-        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
-        callbackUrlEventEntity.setTimestampCreated(timestampNow);
-        callbackUrlEventEntity.setTimestampLastCall(timestampNow);
-        callbackUrlEventEntity.setAttempts(0);
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PROCESSING);
-        return callbackUrlEventRepository.save(callbackUrlEventEntity);
+        return callbackUrlEventService.obtainMaxAttempts(callbackUrlEntity) > 0;
     }
 
 }
