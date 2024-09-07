@@ -172,7 +172,7 @@ public class CallbackUrlEventService {
      */
     private void postCallback(final CallbackUrlEvent callbackUrlEvent) {
         if (callbackUrlEvent.status() != CallbackUrlEventStatus.PROCESSING) {
-            logger.debug("Callback URL Event is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.callbackUrlEventEntityId());
+            logger.warn("Callback URL Event to post is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.callbackUrlEventEntityId());
             return;
         }
 
