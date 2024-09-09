@@ -25,7 +25,9 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * Entity class for storing callback authentication credentials in database.
+ * Class for storing callback authentication credentials.
+ * <p>
+ * It is a model for a JSON string stored in a database column.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
