@@ -568,13 +568,13 @@ public class CallbackUrlBehavior {
 
         final CallbackUrlAuthentication.OAuth2 oAuth2Config = authentication.getOAuth2();
         if (oAuth2Config != null && oAuth2Config.isEnabled()) {
-            builder.filter(configureO2AuthExchangeFilter(oAuth2Config, callbackUrlEntity.getId()));
+            builder.filter(configureOAuth2ExchangeFilter(oAuth2Config, callbackUrlEntity.getId()));
         }
 
         return builder.build();
     }
 
-    private static ServerOAuth2AuthorizedClientExchangeFilterFunction configureO2AuthExchangeFilter(final CallbackUrlAuthentication.OAuth2 config, final String callbackId) {
+    private static ServerOAuth2AuthorizedClientExchangeFilterFunction configureOAuth2ExchangeFilter(final CallbackUrlAuthentication.OAuth2 config, final String callbackId) {
         logger.debug("Configuring OAuth2 for callback ID: {}", callbackId);
         final String registrationId = "callback OAuth2";
         final ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(registrationId)
