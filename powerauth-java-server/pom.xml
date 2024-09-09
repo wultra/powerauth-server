@@ -73,6 +73,16 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-client</artifactId>
+        </dependency>
+
         <!-- PowerAuth Dependencies -->
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -102,10 +112,6 @@
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-fido2</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-jose</artifactId>
         </dependency>
 
         <!-- Documentation -->

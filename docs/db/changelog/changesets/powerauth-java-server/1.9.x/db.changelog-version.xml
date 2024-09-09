@@ -6,5 +6,6 @@
 
     <include file="20240718-add-temporary-keys.xml" relativeToChangelogFile="true" />
     <include file="20240723-configuration-encryption.xml" relativeToChangelogFile="true" />
+    <include file="20240906-configuration-encryption.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

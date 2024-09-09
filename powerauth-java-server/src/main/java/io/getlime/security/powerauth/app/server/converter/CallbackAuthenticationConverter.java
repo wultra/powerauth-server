@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import java.io.IOException;
 @Converter
 @Component
 @Slf4j
-public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthenticationEntity, String> {
+public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthentication, String> {
 
     private final ObjectMapper objectMapper;
 
@@ -48,10 +48,10 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
     }
 
     @Override
-    public String convertToDatabaseColumn(CallbackUrlAuthenticationEntity authentication) {
+    public String convertToDatabaseColumn(CallbackUrlAuthentication authentication) {
         try {
             if (authentication == null) {
-                authentication = new CallbackUrlAuthenticationEntity();
+                authentication = new CallbackUrlAuthentication();
             }
             return objectMapper.writeValueAsString(authentication);
         } catch (JsonProcessingException ex) {
@@ -62,15 +62,15 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
     }
 
     @Override
-    public CallbackUrlAuthenticationEntity convertToEntityAttribute(String authentication) {
+    public CallbackUrlAuthentication convertToEntityAttribute(String authentication) {
         if (authentication == null) {
-            return new CallbackUrlAuthenticationEntity();
+            return new CallbackUrlAuthentication();
         }
         try {
-            return objectMapper.readValue(authentication, CallbackUrlAuthenticationEntity.class);
+            return objectMapper.readValue(authentication, CallbackUrlAuthentication.class);
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload", ex);
-            return new CallbackUrlAuthenticationEntity();
+            return new CallbackUrlAuthentication();
         }
 
     }

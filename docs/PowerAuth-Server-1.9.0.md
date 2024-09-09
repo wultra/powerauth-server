@@ -13,13 +13,17 @@ For manual changes use SQL scripts:
 - [Oracle script](./sql/oracle/migration_1.8.0_1.9.0.sql)
 - [MSSQL script](./sql/mssql/migration_1.8.0_1.9.0.sql)
 
+
 ### Added pa_temporary_key Table
 
 To facilitate a new feature of temporary keys, we added a new `pa_temporary_key` table to store the key pairs.
 
+
 ### Add encryption_mode Column
 
-A new column `encryption_mode` has been added to the `pa_application_config` table to enable encryption of configuration values.
+* A new column `encryption_mode` has been added to the `pa_application_config` table to enable encryption of configuration values.
+* A new column `encryption_mode` has been added to the `pa_application_callback` table to enable encryption of authentication values.
+
 
 ## REST API Changes
 

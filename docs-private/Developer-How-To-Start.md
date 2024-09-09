@@ -28,7 +28,7 @@ liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/
 To apply the changesets run this `update` command.
 
 ```shell
-liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --url=jdbc:postgresql://localhost:5432/powerauth-liquibase --username=powerauth update
+liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --url=jdbc:postgresql://localhost:5432/powerauth --username=powerauth update
 ```
 
 To generate SQL script run this command.

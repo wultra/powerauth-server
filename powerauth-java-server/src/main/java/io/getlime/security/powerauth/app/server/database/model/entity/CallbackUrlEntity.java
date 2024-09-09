@@ -18,9 +18,9 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
-import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -84,11 +84,17 @@ public class CallbackUrlEntity implements Serializable {
     private List<String> attributes;
 
     /**
-     * Callback request authentication.
+     * Callback request authentication. May be encrypted, configured by {@link #encryptionMode}.
      */
-    @Column(name = "authentication")
-    @Convert(converter = CallbackAuthenticationConverter.class)
-    private CallbackUrlAuthenticationEntity authentication;
+    @Column(name = "authentication", columnDefinition = "CLOB")
+    private String authentication = "{}";
+
+    /**
+     * Encryption mode of {@link #authentication}.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
+    private EncryptionMode encryptionMode;
 
     @Override
     public boolean equals(Object o) {
