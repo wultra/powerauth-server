@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import lombok.Data;
 import lombok.ToString;
 
@@ -38,7 +39,9 @@ public class GetActivationStatusResponse {
 
     private String activationId;
     private ActivationStatus activationStatus;
+    @Deprecated
     private ActivationOtpValidation activationOtpValidation;
+    private CommitPhase commitPhase;
     private String blockedReason;
     private String activationName;
     private String userId;

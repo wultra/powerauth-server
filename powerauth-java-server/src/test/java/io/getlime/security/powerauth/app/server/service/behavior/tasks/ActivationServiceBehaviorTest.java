@@ -18,9 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -272,6 +270,55 @@ class ActivationServiceBehaviorTest {
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
+    @Test
+    void testPrepareActivationWithCommitOnKeyExchange() throws Exception {
+
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        // Initiate activation of a user
+        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE);
+        final String activationId = initActivationResponse.getActivationId();
+
+        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+
+        // Generate public key for a client device
+        final String publicKey = generatePublicKey();
+
+        // Create request payload
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        requestL2.setDevicePublicKey(publicKey);
+        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+
+        // Prepare activation
+        final String activationCode = initActivationResponse.getActivationCode();
+        final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
+        final PrepareActivationRequest request = new PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setGenerateRecoveryCodes(false);
+        request.setProtocolVersion(version);
+        request.setApplicationKey(applicationKey);
+        request.setMac(encryptedRequest.getMac());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+        tested.prepareActivation(request);
+
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationId));
+    }
+
+    @Test
+    void testPrepareActivationInvalidCombinationOtpValidationCommitPhase() throws Exception {
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        // Test exception for invalid parameters
+        assertThrows(GenericServiceException.class, () -> {
+            initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT);
+        });
+    }
+
     private ActivationLayer2Response createActivationAndGetResponsePayload(GetApplicationDetailResponse applicationDetail) throws Exception {
 
         final String applicationId = applicationDetail.getApplicationId();
@@ -407,10 +454,16 @@ class ActivationServiceBehaviorTest {
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
+       return initActivation(applicationId, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE);
+    }
+
+    private InitActivationResponse initActivation(String applicationId, CommitPhase commitPhase, ActivationOtpValidation activationOtpValidation) throws Exception {
         final InitActivationRequest request = new InitActivationRequest();
         request.setProtocol(ActivationProtocol.POWERAUTH);
         request.setApplicationId(applicationId);
         request.setUserId(userId);
+        request.setCommitPhase(commitPhase);
+        request.setActivationOtpValidation(activationOtpValidation);
         return tested.initActivation(request);
     }
 

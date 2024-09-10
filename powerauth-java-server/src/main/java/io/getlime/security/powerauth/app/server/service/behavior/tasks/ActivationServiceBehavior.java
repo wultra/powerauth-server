@@ -25,10 +25,7 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.RecoveryPukConverter;
-import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
@@ -128,6 +125,7 @@ public class ActivationServiceBehavior {
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
+    private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
     private RecoveryPukConverter recoveryPukConverter;
 
@@ -575,6 +573,7 @@ public class ActivationServiceBehavior {
                     response.setUserId(activation.getUserId());
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
+                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
@@ -689,6 +688,7 @@ public class ActivationServiceBehavior {
                     response.setActivationId(activationId);
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
+                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
@@ -730,6 +730,7 @@ public class ActivationServiceBehavior {
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
                 response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
+                response.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
@@ -795,6 +796,7 @@ public class ActivationServiceBehavior {
             final String activationOtp = request.getActivationOtp();
             final List<String> flags = request.getFlags();
             com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
+            final com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase = request.getCommitPhase();
 
             if (userId == null || userId.isEmpty() || userId.length() > 255) {
                 logger.warn("Invalid request parameter userId in method initActivation");
@@ -841,16 +843,12 @@ public class ActivationServiceBehavior {
                 timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
             }
 
-            // Validate combination of activation OTP and OTP validation mode.
-            final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
             if (activationOtpValidation == null) {
                 activationOtpValidation = com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
             }
-            if ((activationOtpValidation == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && hasActivationOtp) ||
-                    (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !hasActivationOtp)) {
-                logger.warn("Activation OTP doesn't match its validation mode.");
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+
+            validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase);
+
             // Generate hash from activation OTP
             final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
 
@@ -915,6 +913,7 @@ public class ActivationServiceBehavior {
             activation.setActivationId(activationId);
             activation.setActivationCode(activationCode);
             activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
+            activation.setCommitPhase(activationCommitPhaseConverter.convertTo(commitPhase));
             activation.setActivationOtp(activationOtpHash);
             activation.setExternalId(null);
             activation.setActivationName(null);
@@ -982,6 +981,15 @@ public class ActivationServiceBehavior {
         }
     }
 
+    private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase) throws GenericServiceException {
+        // Validate combination of activation OTP and OTP validation mode.
+        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && commitPhase != null) {
+            logger.warn("Invalid combination of input parameters activationOtpValidation and commitPhase.");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
+    }
+
     private io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol convert(final ActivationProtocol source) {
         if (source == null) {
             return null;
@@ -1036,7 +1044,6 @@ public class ActivationServiceBehavior {
             // Get required repositories
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             // Find application by application key
@@ -1133,7 +1140,7 @@ public class ActivationServiceBehavior {
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
             // Validate activation OTP
-            validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+            validateActivationOtp(layer2Request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
@@ -1151,9 +1158,8 @@ public class ActivationServiceBehavior {
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
-            // If Activation OTP is available, then the status is set directly to "ACTIVE".
-            // We don't need to commit such activation afterwards.
-            final boolean isActive = layer2Request.getActivationOtp() != null;
+            // If Activation OTP is available or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
+            final boolean isActive = layer2Request.getActivationOtp() != null || activation.getCommitPhase() == io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
             final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Update the activation record
@@ -1285,7 +1291,6 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Get required repositories
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
 
@@ -1319,6 +1324,7 @@ public class ActivationServiceBehavior {
             initRequest.setTimestampActivationExpire(activationExpireTimestamp);
             initRequest.setActivationOtp(activationOtp);
             initRequest.setActivationOtpValidation(activationOtpValidation);
+            initRequest.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
             final InitActivationResponse initResponse = this.initActivation(initRequest);
             final String activationId = initResponse.getActivationId();
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
@@ -1534,7 +1540,15 @@ public class ActivationServiceBehavior {
             }
 
             // Validate activation OTP
-            validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
+            validateActivationOtp(activationOtp, activation, externalUserId);
+
+            // Check the commit phase
+            System.out.println("PHASE: " + activation.getCommitPhase());
+            if (activation.getCommitPhase() != io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
+                logger.info("Invalid commit phase during commit for activation ID: {}, commit phase: {}", activationId, activation.getCommitPhase());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
 
             // Change activation state to ACTIVE
             activation.setActivationStatus(ActivationStatus.ACTIVE);
@@ -1701,52 +1715,22 @@ public class ActivationServiceBehavior {
     /**
      * Validate activation OTP against value set in the activation's record.
      *
-     * @param currentStage      Determines in which step of the activation is this method called.
      * @param confirmationOtp   OTP value to be validated.
      * @param activation        Activation record.
      * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
      * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
      */
-    private void validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+    private void validateActivationOtp(String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
 
         final String activationId = activation.getActivationId();
-        final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
         final String expectedOtpHash = activation.getActivationOtp();
 
-        if (currentStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
-            // This should never happen.
-            logger.info("Internal error in activation OTP validation: {}", activationId);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        // Check whether activation OTP is specified.
+        if (!StringUtils.hasText(confirmationOtp)) {
+            return;
         }
 
-        // Check whether activation OTP validation is turned OFF. In this case, the confirmation OTP must not
-        // be provided.
-        if (expectedStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
-            if (confirmationOtp != null) {
-                logger.info("Activation OTP is not used, but is provided: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            return;
-        }
-        // Check whether this is validation in the different step of activation. If yes, then the confirmation
-        // OTP must not be provided.
-        if (expectedStage != currentStage) {
-            if (confirmationOtp != null) {
-                logger.info("Activation OTP is not expected, but is provided: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            return;
-        }
-        // We're in the right step, so the confirmation OTP must be provided.
-        if (confirmationOtp == null) {
-            logger.info("Activation OTP is expected, but is missing: {}", activationId);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-        }
-        // The final test only checks, whether hash is present in the database.
+        // Check whether hash is present in the database.
         if (expectedOtpHash == null) {
             logger.info("Activation OTP is missing in activation data: {}", activationId);
             // Rollback is not required, database is not used for writing yet.

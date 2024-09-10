@@ -162,7 +162,7 @@ public class ActivationController {
             model.put("protocol", activation.getProtocol());
             model.put("externalId", activation.getExternalId());
             model.put("activationFlags", activation.getActivationFlags());
-            if (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT && activation.getActivationOtpValidation() == ActivationOtpValidation.ON_COMMIT) {
+            if (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) {
                 model.put("showOtpInput", true);
             } else {
                 model.put("showOtpInput", false);

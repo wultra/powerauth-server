@@ -13,3 +13,7 @@ ALTER TABLE pa_application_config ADD encryption_mode VARCHAR2(255) DEFAULT 'NO_
 -- Changeset powerauth-java-server/1.9.x/20240906-configuration-encryption.xml::1::Lubos Racansky
 -- Add encryption_mode column to pa_application_callback table.
 ALTER TABLE pa_application_callback ADD encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL;
+
+-- Changeset powerauth-java-server/1.9.x/20240910-commit-phase.xml::1::Roman Strobl
+-- Add commit_phase column to pa_activation table.
+ALTER TABLE pa_activation ADD commit_phase INTEGER DEFAULT '0';
