@@ -850,7 +850,7 @@ public class ActivationServiceBehavior {
             validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase);
 
             // Generate hash from activation OTP
-            final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+            final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
             // Fetch the latest master private key
             final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationEntity.getId());

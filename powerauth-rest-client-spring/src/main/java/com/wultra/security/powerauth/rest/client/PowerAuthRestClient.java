@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Date;
@@ -229,7 +230,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setUserId(userId);
         request.setApplicationId(applicationId);
         request.setCommitPhase(commitPhase);
-        request.setActivationOtp(otp);
+        if (StringUtils.hasText(otp)) {
+            request.setActivationOtp(otp);
+        }
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
         }
