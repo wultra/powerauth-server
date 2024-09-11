@@ -17,6 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.impl.ECDSA;
+import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
 import com.wultra.security.powerauth.client.model.request.SignECDSARequest;
 import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
 import com.wultra.security.powerauth.client.model.response.SignECDSAResponse;
@@ -155,6 +158,7 @@ public class AsymmetricSignatureServiceBehavior {
             final String activationId = request.getActivationId();
             final String data = request.getData();
             final String signature  = request.getSignature();
+            final ECDSASignatureFormat signatureFormat = request.getSignatureFormat();
             if (activationId == null || data == null || signature == null) {
                 logger.warn("Invalid request parameters in method verifyECDSASignature");
                 // Rollback is not required, database is not used for writing
@@ -173,7 +177,12 @@ public class AsymmetricSignatureServiceBehavior {
 
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
-            final boolean matches = signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
+
+            final byte[] dataBytes = Base64.getDecoder().decode(data);
+            final byte[] signatureBytes = Base64.getDecoder().decode(signature);
+            final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
+
+            final boolean matches = signatureUtils.validateECDSASignature(dataBytes, signatureBytesDER, devicePublicKey);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)
@@ -201,6 +210,17 @@ public class AsymmetricSignatureServiceBehavior {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
 
+    }
+
+    /**
+     * Helper method to convert signature to DER format if needed.
+     * @param signatureFormat Expected signature format.
+     * @param signature Signature value in the provided format.
+     * @return Signature value in DER format.
+     * @throws JOSEException In case JOSE conversion fails.
+     */
+    private byte[] signatureDER(ECDSASignatureFormat signatureFormat, byte[] signature) throws JOSEException {;
+        return (signatureFormat == ECDSASignatureFormat.JOSE) ? ECDSA.transcodeSignatureToDER(signature) : signature;
     }
 
 }

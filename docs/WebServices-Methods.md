@@ -938,15 +938,16 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 
 #### Request
 
-REST endpoint: `POST /rest/v3/verifyECDSASignature`
+REST endpoint: `POST /rest/v3/signature/ecdsa/verify`
 
 `VerifyECDSASignatureRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Base64 encoded data for the signature |
-| `String` | `signature` | Base64 encoded ECDSA signature |
+| Type                   | Name              | Description                                               |
+|------------------------|-------------------|-----------------------------------------------------------|
+| `String`               | `activationId`    | An identifier of an activation                            |
+| `String`               | `data`            | Base64 encoded data for the signature                     |
+| `String`               | `signature`       | Base64 encoded ECDSA signature                            |
+| `ECDSASignatureFormat` | `signatureFormat` | Format of the ECDSA signature: `DER` (default) or `JOSE`. |
 
 #### Response
 

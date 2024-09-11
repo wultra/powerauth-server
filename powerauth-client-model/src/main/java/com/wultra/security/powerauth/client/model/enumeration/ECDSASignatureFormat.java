@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,24 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.request;
-
-import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
-import lombok.Data;
-import lombok.ToString;
+package com.wultra.security.powerauth.client.model.enumeration;
 
 /**
- * Model class representing request for ECDSA signature verification.
+ * Enum with possible ECDSA signature formats.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Data
-public class VerifyECDSASignatureRequest {
+public enum ECDSASignatureFormat {
+    /**
+     * Signature is in a standard DER format.
+     */
+    DER,
 
-    private String activationId;
-    private String data;
-    @ToString.Exclude
-    private String signature;
-    private ECDSASignatureFormat signatureFormat;
-
+    /**
+     * Signature is a JOSE format (used in JWT).
+     */
+    JOSE
 }
