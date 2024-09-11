@@ -1140,6 +1140,11 @@ public class ActivationServiceBehavior {
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
             // Validate activation OTP
+            if (activation.getActivationOtpValidation() == ActivationOtpValidation.ON_KEY_EXCHANGE && !StringUtils.hasText(layer2Request.getActivationOtp())) {
+                logger.info("Activation OTP is missing on key exchange: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
             validateActivationOtp(layer2Request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
@@ -1540,6 +1545,11 @@ public class ActivationServiceBehavior {
             }
 
             // Validate activation OTP
+            if (activation.getActivationOtpValidation() == ActivationOtpValidation.ON_COMMIT && !StringUtils.hasText(activationOtp)) {
+                logger.info("Activation OTP is missing during commit: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
             validateActivationOtp(activationOtp, activation, externalUserId);
 
             // Check the commit phase
