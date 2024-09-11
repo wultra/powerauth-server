@@ -23,6 +23,8 @@ import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 /**
  * Converter class between {@link CommitPhase} and
  * {@link io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase}.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class ActivationCommitPhaseConverter {
 
