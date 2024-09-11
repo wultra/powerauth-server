@@ -433,7 +433,7 @@ Methods related to activation management.
 
 ### Method 'initActivation'
 
-Create (initialize) a new activation for given user and application. If both `activationOtpValidation` and `activationOtp` optional parameters are set, then the same value of activation OTP must be later provided for the confirmation.
+Create (initialize) a new activation for given user and application. If the optional `activationOtp` parameter is set, then the same value of activation OTP must be later provided for the confirmation.
 
 After calling this method, a new activation record is created in CREATED state.
 
@@ -443,14 +443,15 @@ REST endpoint: `POST /rest/v3/activation/init`
 
 `InitActivationRequest`
 
-| Type                      | Name | Description |
-|---------------------------|------|-------------|
-| `String`                  | `userId` | An identifier of a user |
-| `String`                  | `applicationId` | An identifier of an application |
-| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long`                    | `maxFailureCount` | How many failures are allowed for this activation |
-| `ActivationOtpValidation` | `activationOtpValidation` | Optional activation OTP validation mode |
-| `String`                  | `activationOtp` | Optional activation OTP |
+| Type                      | Name                        | Description                                                                                                                                                                                                                                           |
+|---------------------------|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`                  | `userId`                    | An identifier of a user                                                                                                                                                                                                                               |
+| `String`                  | `applicationId`             | An identifier of an application                                                                                                                                                                                                                       |
+| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                                                                                                                                                                                       |
+| `Long`                    | `maxFailureCount`           | How many failures are allowed for this activation                                                                                                                                                                                                     |
+| `ActivationOtpValidation` | `activationOtpValidation`   | *Deprecated* optional activation OTP validation mode, use the `activationOtp` parameter during activation init or activation commit to control the OTP check. Use the `commitPhase` parameter for specifying when the activation should be committed. |
+| `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |        
+| `String`                  | `activationOtp` | Optional activation OTP                                                                                                                                                                                                                               |
 
 #### Response
 
@@ -502,7 +503,7 @@ ECIES request should contain following data (as JSON):
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
  - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
  - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
- - `activationOtp` - Optional activation OTP for confirmation. The value must be provided in case that activation was initialized with `ActivationOtpValidation` set to `ON_KEY_EXCHANGE`. 
+ - `activationOtp` - Optional activation OTP for confirmation.
 
 #### Response
 
@@ -680,30 +681,31 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name                         | Description                                                                               |
-|---------------------------|------------------------------|-------------------------------------------------------------------------------------------|
-| `String`                  | `activationId`               | An identifier of an activation                                                            |
-| `ActivationStatus`        | `activationStatus`           | An activation status                                                                      |
-| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode                                                         |
-| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                |
-| `String`                  | `activationName`             | An activation name                                                                        |
-| `String`                  | `userId`                     | An identifier of a user                                                                   |
-| `String`                  | `extras`                     | Any custom attributes                                                                     |
-| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                           |
-| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                          |
-| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                              |
-| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
-| `String[]`                | `activationFlags`            | Activation flags                                                                          |
-| `String`                  | `applicationId`              | An identifier fo an application                                                           |
-| `String[]`                | `applicationRoles`           | Application roles                                                                         |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
-| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                 |
+| Type                      | Name                         | Description                                                                             |
+|---------------------------|------------------------------|-----------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                          |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                    |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                        |
+| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                  |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                              |
+| `String`                  | `activationName`             | An activation name                                                                      |
+| `String`                  | `userId`                     | An identifier of a user                                                                 |
+| `String`                  | `extras`                     | Any custom attributes                                                                   |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                         |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                        |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                            |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                            |
+| `String[]`                | `activationFlags`            | Activation flags                                                                        |
+| `String`                  | `applicationId`              | An identifier fo an application                                                         |
+| `String[]`                | `applicationRoles`           | Application roles                                                                       |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                             |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                           |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                            |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                               |
 | `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
-| `Long`                    | `version`                    | Activation version                                                                        |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                      |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification   |
+| `Long`                    | `version`                    | Activation version                                                                      |
 
 ### Method 'removeActivation'
 
@@ -2775,10 +2777,14 @@ This chapter lists all enums used by PowerAuth Server services.
     - BLOCKED
     - REMOVED
 
-- `ActivationOtpValidation` - Represents mode of validation of additional OTP:
+- `ActivationOtpValidation` - Represents mode of validation of additional OTP (*deprecated*):
     - NONE
     - ON_KEY_EXCHANGE
     - ON_COMMIT
+
+- `CommitPhase` - Specifies when activation is committed:
+    - ON_COMMIT (default) - activation is committed in the `PENDING_COMMIT` state
+    - ON_KEY_EXCHANGE - activation is committed during key exchange
 
 - `SignatureType` - Represents the type of the signature, one of the following values:
     - POSSESSION

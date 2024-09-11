@@ -209,26 +209,26 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public InitActivationResponse initActivation(String userId, String applicationId) throws PowerAuthClientException {
-        return initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
+        return initActivation(userId, applicationId, null, null, CommitPhase.ON_COMMIT, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
-        return initActivation(userId, applicationId, null, null, otpValidation, otp);
+    public InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException {
+        return initActivation(userId, applicationId, null, null, commitPhase, otp);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
-        return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
+        return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, CommitPhase.ON_COMMIT, null);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                                 ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
+                                                 CommitPhase commitPhase, String otp) throws PowerAuthClientException {
         final InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
-        request.setActivationOtpValidation(otpValidation);
+        request.setCommitPhase(commitPhase);
         request.setActivationOtp(otp);
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);

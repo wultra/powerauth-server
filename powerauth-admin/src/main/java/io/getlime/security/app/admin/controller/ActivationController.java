@@ -19,8 +19,8 @@ package io.getlime.security.app.admin.controller;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -214,7 +214,7 @@ public class ActivationController {
      *
      * @param applicationId           Application ID of an associated application.
      * @param userId                  User ID.
-     * @param activationOtpValidation Activation OTP validation mode.
+     * @param commitPhase             Specifies when activation is committed.
      * @param activationOtp           Activation OTP code.
      * @param model                   Model with passed parameters.
      * @param redirectAttributes      Redirect attributes.
@@ -222,29 +222,20 @@ public class ActivationController {
      */
     @GetMapping("/activation/create")
     public String activationCreate(@RequestParam("applicationId") String applicationId, @RequestParam("userId") String userId,
-                                   @RequestParam("activationOtpValidation") String activationOtpValidation,
+                                   @RequestParam("commitPhase") String commitPhase,
                                    @RequestParam("activationOtp") String activationOtp,
                                    Map<String, Object> model, RedirectAttributes redirectAttributes) {
         try {
             InitActivationResponse response;
 
-            if (!"NONE".equals(activationOtpValidation) && (activationOtp == null || activationOtp.isEmpty())) {
-                redirectAttributes.addFlashAttribute("error", "Please specify the OTP validation code.");
-                return "redirect:/activation/list?userId=" + userId;
-            }
-            switch (activationOtpValidation) {
-                case "NONE" ->
-                        response = client.initActivation(userId, applicationId);
-                case "ON_KEY_EXCHANGE" ->
-                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_KEY_EXCHANGE, activationOtp);
+            switch (commitPhase) {
                 case "ON_COMMIT" ->
-                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_COMMIT, activationOtp);
-                default -> {
-                    redirectAttributes.addFlashAttribute("error", "Invalid OTP validation mode.");
-                    return "redirect:/activation/list?userId=" + userId;
-                }
+                        response = client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
+                case "ON_KEY_EXCHANGE" ->
+                        response = client.initActivation(userId, applicationId, CommitPhase.ON_KEY_EXCHANGE, activationOtp);
+                default ->
+                        response = client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
             }
-
 
             model.put("activationCode", response.getActivationCode());
             model.put("activationId", response.getActivationId());

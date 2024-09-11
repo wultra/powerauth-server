@@ -33,3 +33,9 @@ The API now publishes new endpoints related to the temporary key management:
 
 - `POST /rest/v3/keystore/create` - Creates a new temporary key pair
 - `POST /rest/v3/keystore/remove` - Removes a temporary key pair
+
+### Deprecated Parameter activationOtpValidation in Init Activation
+
+The parameter `activationOtpValidation` is deprecated.
+Use the `activationOtp` parameter during activation init or activation commit to control the OTP check.
+Use the `commitPhase` parameter for specifying when the activation should be committed.

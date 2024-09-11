@@ -120,12 +120,12 @@ public interface PowerAuthClient {
      *
      * @param userId        User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param commitPhase   Specifies when the activation is committed.
      * @param otp           Additional OTP value.
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
+    InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -146,13 +146,13 @@ public interface PowerAuthClient {
      * @param applicationId             Application ID for which a new CREATED activation should be created.
      * @param maxFailureCount           How many failed attempts should be allowed for this activation.
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
-     * @param otpValidation             Mode that determines in which stage of activation should be additional OTP validated.
+     * @param commitPhase               Specifies when the activation is committed.
      * @param otp                       Additional OTP value.
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
     InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                          ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
+                                          CommitPhase commitPhase, String otp) throws PowerAuthClientException;
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
      *
