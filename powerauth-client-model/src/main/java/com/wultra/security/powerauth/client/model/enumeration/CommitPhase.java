@@ -25,8 +25,8 @@ package com.wultra.security.powerauth.client.model.enumeration;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public enum CommitPhase {
+
     /**
-     *
      * Activation is commited in PENDING_COMMIT state (default).
      */
     ON_COMMIT,
