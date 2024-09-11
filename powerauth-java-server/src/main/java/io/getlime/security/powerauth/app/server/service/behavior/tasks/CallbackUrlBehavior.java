@@ -449,8 +449,9 @@ public class CallbackUrlBehavior {
             return;
         }
 
+        final String restClientCacheKey = callbackUrlRestClientManager.createRestClientIfAbsent(callbackUrlEntity);
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveCallbackUrlEventEntity(callbackUrlEntity, callbackData);
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, restClientCacheKey);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
         );
@@ -465,7 +466,7 @@ public class CallbackUrlBehavior {
         try {
             callbackUrlEventQueueService.submitToExecutor(callbackUrlEvent);
         } catch (RejectedExecutionException e) {
-            logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.callbackUrlEventEntityId());
+            logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.entityId());
             callbackUrlEventQueueService.enqueueToDatabase(callbackUrlEvent);
         }
     }

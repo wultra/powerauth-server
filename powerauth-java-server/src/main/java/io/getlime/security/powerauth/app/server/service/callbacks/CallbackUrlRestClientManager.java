@@ -63,12 +63,25 @@ public class CallbackUrlRestClientManager {
         }
     }
 
+    public String createRestClientIfAbsent(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+        synchronized (restClientCacheLock) {
+            if (restClientCache.containsKey(cacheKey)) {
+                logger.debug("REST client already exists in cache, callback cache key: {}", cacheKey);
+            } else {
+                logger.debug("REST client does not exist in cache, initializing new REST client, callback cache key: {}", cacheKey);
+                createRestClientAndStoreInCache(callbackUrlEntity);
+            }
+            return cacheKey;
+        }
+    }
+
     /**
      * Get a key for the REST client cache from a callback URL entity.
      * @param callbackUrlEntity Callback URL entity.
      * @return Cache key.
      */
-    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
+    public String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
         return callbackUrlEntity.getId();
     }
 
@@ -78,11 +91,21 @@ public class CallbackUrlRestClientManager {
      * @return Rest client.
      */
     private RestClient createRestClientAndStoreInCache(final CallbackUrlEvent callbackUrlEvent) throws RestClientException, GenericServiceException {
-        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during REST Client initialization: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
+                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during REST Client initialization: callbackUrlEventId=" + callbackUrlEvent.entityId()));
 
-        final RestClient restClient = initializeRestClient(callbackUrlEventEntity.getCallbackUrlEntity());
-        restClientCache.put(callbackUrlEvent.restClientCacheKey(), restClient);
+        return createRestClientAndStoreInCache(callbackUrlEventEntity.getCallbackUrlEntity());
+    }
+
+    /**
+     * Create a new REST client and store it in cache for given callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Rest client.
+     */
+    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+        final RestClient restClient = initializeRestClient(callbackUrlEntity);
+        restClientCache.put(cacheKey, restClient);
         return restClient;
     }
 

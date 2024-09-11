@@ -54,8 +54,8 @@ public class CallbackUrlEventResponseHandler {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleSuccess(final CallbackUrlEvent callbackUrlEvent) {
-        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                        .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its success handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
+                        .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its success handling: callbackUrlEventId=" + callbackUrlEvent.entityId()));
 
         logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId());
 
@@ -75,8 +75,8 @@ public class CallbackUrlEventResponseHandler {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleFailure(final CallbackUrlEvent callbackUrlEvent, final Throwable error) {
-        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failure handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
+                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failure handling: callbackUrlEventId=" + callbackUrlEvent.entityId()));
 
         logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
 

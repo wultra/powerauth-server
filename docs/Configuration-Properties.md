@@ -108,7 +108,8 @@ Imbalanced settings of the thread pool size and database connection pool size ca
 Callback events are periodically monitored to detect any stale callback events that might have become stuck during
 processing due to rare circumstances. When a currently processed callback event exceeds the defined `forceRerunPeriod`
 without completion, it is automatically scheduled to be rerun. By default, the force rerun period is calculated as the
-sum of the HTTP connection timeout, the HTTP response timeout, and an additional ten-second delay.
+sum of the HTTP connection timeout, the HTTP response timeout, and an additional ten-second delay. This does not apply
+to callback events with max attempts set to 1, such callback events are never scheduled to be rerun.
 
 | Property                                                            | Default | Note                                                                                                               |
 |---------------------------------------------------------------------|---------|--------------------------------------------------------------------------------------------------------------------|

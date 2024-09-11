@@ -45,12 +45,6 @@ The `pa_application_callback_event` table comes with following indices:
 - `pa_app_cb_event_status_idx` on `(status)`,
 - `pa_app_cb_event_ts_del_idx` on `(timestamp_delete_after)`.
 
-### New Configuration Properties for Callback Events Monitoring
-
-New configuration options has been added to modify the Callback URL Events monitoring and retry policy.
-See the [Callback URL Events Configuration section](./Configuration-Properties.md#callback-url-events-configuration)
-for further details.
-
 ### Add Columns to Configure Callback Retry Strategy
 
 New columns has been added to the `pa_application_callback` table. These columns provide additional configuration
@@ -83,7 +77,13 @@ The method `POST /rest/v3/signature/ecdsa/verify` now supports validation of ECD
 
 ## Other Changes
 
+### New Configuration Properties for Callback Events Monitoring
+
+New configuration options has been added to modify the Callback URL Events monitoring and retry policy.
+See the [Callback URL Events Configuration section](./Configuration-Properties.md#callback-url-events-configuration)
+for further details.
+
 ### Idempotency-Key of Callback URL Events
 
-Callback URL Events now include an `Idempotency-Key` in the HTTP request header. It is a unique key to recognize retries
-of the same request.
+Callback URL Events now include an `Idempotency-Key` in the HTTP request header. It is a unique UUIDv4 key to recognize
+retries of the same request.

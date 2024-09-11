@@ -80,7 +80,7 @@ public class CallbackUrlEventService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void moveCallbackUrlEventToPending(final CallbackUrlEvent callbackUrlEvent) {
-        callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.callbackUrlEventEntityId());
+        callbackUrlEventRepository.updateEventToPendingState(callbackUrlEvent.entityId());
     }
 
     /**
@@ -160,7 +160,8 @@ public class CallbackUrlEventService {
         callbackUrlEventEntity.setTimestampRerunAfter(shouldBeSentAtMostOnce(callbackUrlEntity) ? null : timestampNow.plus(forceRerunPeriod));
         final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity);
+        final String restClientCacheKey = callbackUrlRestClientManager.getRestClientCacheKey(callbackUrlEntity);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity, restClientCacheKey);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> postCallback(callbackUrlEvent)
         );
@@ -172,7 +173,7 @@ public class CallbackUrlEventService {
      */
     private void postCallback(final CallbackUrlEvent callbackUrlEvent) {
         if (callbackUrlEvent.status() != CallbackUrlEventStatus.PROCESSING) {
-            logger.warn("Callback URL Event to post is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.callbackUrlEventEntityId());
+            logger.warn("Callback URL Event to post is not in PROCESSING state: callbackUrlEventId={}", callbackUrlEvent.entityId());
             return;
         }
 
@@ -193,7 +194,7 @@ public class CallbackUrlEventService {
                     onSuccess,
                     onError);
 
-            logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEvent.callbackUrlEventEntityId());
+            logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEvent.entityId());
         } catch (RestClientException | GenericServiceException e) {
             callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, e);
         }

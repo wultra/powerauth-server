@@ -24,17 +24,18 @@ import lombok.NoArgsConstructor;
 
 /**
  * Convertor between data classes related to Callbacks URL.
+ *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CallbackUrlConvertor {
 
-    public static CallbackUrlEvent convert(final CallbackUrlEventEntity callbackUrlEventEntity) {
+    public static CallbackUrlEvent convert(final CallbackUrlEventEntity callbackUrlEventEntity, final String restClientCacheKey) {
         return CallbackUrlEvent.builder()
-                .callbackUrlEventEntityId(callbackUrlEventEntity.getId())
+                .entityId(callbackUrlEventEntity.getId())
                 .callbackData(callbackUrlEventEntity.getCallbackData())
                 .callbackUrl(callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl())
-                .restClientCacheKey(callbackUrlEventEntity.getCallbackUrlEntity().getId())
+                .restClientCacheKey(restClientCacheKey)
                 .status(callbackUrlEventEntity.getStatus())
                 .idempotencyKey(callbackUrlEventEntity.getIdempotencyKey())
                 .build();
