@@ -84,6 +84,7 @@ class ServerPrivateKeyConverterTest {
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
         final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
 
+        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
         assertThrows(GenericServiceException.class, () ->
             serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID));
     }
@@ -93,6 +94,7 @@ class ServerPrivateKeyConverterTest {
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
         final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
 
+        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
         assertThrows(GenericServiceException.class, () ->
             serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
     }
