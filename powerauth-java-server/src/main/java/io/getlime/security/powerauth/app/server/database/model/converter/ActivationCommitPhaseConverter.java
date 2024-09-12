@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Converter
-@Component
 public class ActivationCommitPhaseConverter implements AttributeConverter<CommitPhase, Integer> {
 
     /**
