@@ -1553,7 +1553,6 @@ public class ActivationServiceBehavior {
             validateActivationOtp(activationOtp, activation, externalUserId);
 
             // Check the commit phase
-            System.out.println("PHASE: " + activation.getCommitPhase());
             if (activation.getCommitPhase() != io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
                 logger.info("Invalid commit phase during commit for activation ID: {}, commit phase: {}", activationId, activation.getCommitPhase());
                 // Rollback is not required, error occurs before writing to database
