@@ -117,6 +117,21 @@ public interface PowerAuthClient {
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * 
+     * @deprecated use {@link #initActivation(String, String, CommitPhase, String)}
+     *
+     * @param userId        User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param otp           Additional OTP value.
+     * @return {@link InitActivationResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    @Deprecated
+    InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server interface.
      *
      * @param userId        User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
@@ -142,17 +157,20 @@ public interface PowerAuthClient {
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #initActivation(InitActivationRequest)}
+     *
      * @param userId                    User ID for which a new CREATED activation should be created.
      * @param applicationId             Application ID for which a new CREATED activation should be created.
      * @param maxFailureCount           How many failed attempts should be allowed for this activation.
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
-     * @param commitPhase               Specifies when the activation is committed.
+     * @param otpValidation             Mode that determines in which stage of activation should be additional OTP validated.
      * @param otp                       Additional OTP value.
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                          CommitPhase commitPhase, String otp) throws PowerAuthClientException;
+                                          ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
      *
