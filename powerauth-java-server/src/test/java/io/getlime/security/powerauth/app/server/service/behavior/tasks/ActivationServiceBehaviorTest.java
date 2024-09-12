@@ -37,6 +37,7 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -277,7 +278,7 @@ class ActivationServiceBehaviorTest {
         final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Initiate activation of a user
-        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE);
+        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, null);
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
@@ -309,14 +310,40 @@ class ActivationServiceBehaviorTest {
     }
 
     @Test
+    void testPrepareActivationWithOtpMissing() throws Exception {
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        assertThrows(GenericServiceException.class, () ->
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, null));
+    }
+
+    @Test
+    void testPrepareActivationWithOtpEmpty() throws Exception {
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        assertThrows(GenericServiceException.class, () ->
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, ""));
+    }
+
+    @Test
+    void testPrepareActivationWithOtpPresentWrongStage() throws Exception {
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        assertThrows(GenericServiceException.class, () ->
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_COMMIT, "1234"));
+    }
+
+    @Test
     void testPrepareActivationInvalidCombinationOtpValidationCommitPhase() throws Exception {
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Test exception for invalid parameters
-        assertThrows(GenericServiceException.class, () -> {
-            initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT);
-        });
+        assertThrows(GenericServiceException.class, () ->
+                prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT, "1234"));
     }
 
     private ActivationLayer2Response createActivationAndGetResponsePayload(GetApplicationDetailResponse applicationDetail) throws Exception {
@@ -454,17 +481,51 @@ class ActivationServiceBehaviorTest {
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
-       return initActivation(applicationId, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE);
+       return initActivation(applicationId, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, null);
     }
 
-    private InitActivationResponse initActivation(String applicationId, CommitPhase commitPhase, ActivationOtpValidation activationOtpValidation) throws Exception {
+    private InitActivationResponse initActivation(String applicationId, CommitPhase commitPhase, ActivationOtpValidation activationOtpValidation, String otp) throws Exception {
         final InitActivationRequest request = new InitActivationRequest();
         request.setProtocol(ActivationProtocol.POWERAUTH);
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setCommitPhase(commitPhase);
         request.setActivationOtpValidation(activationOtpValidation);
+        request.setActivationOtp(otp);
         return tested.initActivation(request);
+    }
+
+    private void prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp) throws Exception {
+        // Initiate activation of a user
+        final InitActivationResponse initActivationResponse = initActivation(applicationDetail.getApplicationId(), commitPhase, otpValidation, otp);
+
+        final String activationId = initActivationResponse.getActivationId();
+
+        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+
+        // Generate public key for a client device
+        final String publicKey = generatePublicKey();
+
+        // Create request payload
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        requestL2.setDevicePublicKey(publicKey);
+        requestL2.setActivationOtp(otp);
+        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, applicationDetail);
+
+        // Prepare activation
+        final String activationCode = initActivationResponse.getActivationCode();
+        final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
+        final PrepareActivationRequest request = new PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setGenerateRecoveryCodes(false);
+        request.setProtocolVersion(version);
+        request.setApplicationKey(applicationKey);
+        request.setMac(encryptedRequest.getMac());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+        tested.prepareActivation(request);
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {
