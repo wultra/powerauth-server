@@ -41,6 +41,9 @@ public class InitActivationRequest {
     private String applicationId;
     private Date timestampActivationExpire;
     private Long maxFailureCount;
+    /**
+     * @deprecated use {@link #activationOtp} for enabling OTP check and {@link #commitPhase} for controlling activation commit
+     */
     @Deprecated
     private ActivationOtpValidation activationOtpValidation;
     private CommitPhase commitPhase;
