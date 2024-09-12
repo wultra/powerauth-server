@@ -1147,6 +1147,10 @@ public class ActivationServiceBehavior {
             }
             validateActivationOtp(layer2Request.getActivationOtp(), activation, null);
 
+            // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
+            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
+            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
+
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey = null;
@@ -1162,10 +1166,6 @@ public class ActivationServiceBehavior {
             final HashBasedCounter counter = new HashBasedCounter();
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
-
-            // If Activation OTP is available or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            final boolean isActive = layer2Request.getActivationOtp() != null || activation.getCommitPhase() == io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
-            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Update the activation record
             activation.setActivationStatus(activationStatus);
