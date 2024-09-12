@@ -82,7 +82,19 @@ public class PowerAuthCallbacksConfiguration {
 
     /**
      * Period after which a Callback URL Event is considered stale and should be dispatched again.
+     * The default value is computed as a function of configured HTTP timeouts.
      */
     private Duration forceRerunPeriod;
+
+    /**
+     * Number of allowed Callback URL Events failures in a row. When the threshold is reached no other
+     * events with the same Callback URL configuration will be posted.
+     */
+    private Integer failureThreshold = 200;
+
+    /**
+     * Period after which a Callback URL Event will be dispatched even though failure threshold is reached.
+     */
+    private Duration resetTimeout = Duration.ofSeconds(60);
 
 }

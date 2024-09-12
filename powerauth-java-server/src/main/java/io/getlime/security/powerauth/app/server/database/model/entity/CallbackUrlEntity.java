@@ -29,6 +29,7 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -117,6 +118,18 @@ public class CallbackUrlEntity implements Serializable {
     @Column(name = "retention_period")
     @Convert(converter = DurationConverter.class)
     private Duration retentionPeriod;
+
+    /**
+     * Timestamp of last callback failure.
+     */
+    @Column(name = "timestamp_last_failure")
+    private LocalDateTime timestampLastFailure;
+
+    /**
+     * Number of failed callbacks in a row.
+     */
+    @Column(name = "failure_count", nullable = false)
+    private Integer failureCount;
 
     @Override
     public boolean equals(Object o) {

@@ -90,7 +90,14 @@ public class CallbackUrlEventService {
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
         callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
-                .forEach(this::dispatchPendingCallbackUrlEvent);
+                .forEach(event -> {
+                    if (failureThresholdReached(event.getCallbackUrlEntity())) {
+                        logger.debug("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
+                        failWithoutDispatching(event);
+                    } else {
+                        dispatchPendingCallbackUrlEvent(event);
+                    }
+                });
     }
 
     /**
@@ -115,12 +122,12 @@ public class CallbackUrlEventService {
     }
 
     /**
-     * Create and save a new {@link CallbackUrlEventEntity}.
+     * Create and save a new {@link CallbackUrlEventEntity} in processing state.
      * @param callbackUrlEntity Existing CallbackUrlEntity with the Callback URL configuration.
      * @param callbackData Data to be sent with the Callback URL.
      * @return Saved {@link CallbackUrlEventEntity}.
      */
-    public CallbackUrlEventEntity createAndSaveCallbackUrlEventEntity(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
+    public CallbackUrlEventEntity createAndSaveEventForProcessing(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
         final LocalDateTime timestampNow = LocalDateTime.now();
         final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
 
@@ -137,12 +144,47 @@ public class CallbackUrlEventService {
     }
 
     /**
+     * Create and save a new {@link CallbackUrlEventEntity} in failed state.
+     * @param callbackUrlEntity Existing CallbackUrlEntity with the Callback URL configuration.
+     * @param callbackData Data to be sent with the Callback URL.
+     * @return Saved {@link CallbackUrlEventEntity}.
+     */
+    public CallbackUrlEventEntity createAndSaveFailedEvent(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
+        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
+        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackData(callbackData);
+        callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
+        callbackUrlEventEntity.setAttempts(0);
+        return callbackUrlEventRepository.save(failWithoutDispatching(callbackUrlEventEntity));
+    }
+
+    /**
      * Obtain maximum attempts to send a Callback URL Event.
      * @param callbackUrlEntity The Callback URL Event configuration.
      * @return Maximum number of attempts.
      */
     public int obtainMaxAttempts(final CallbackUrlEntity callbackUrlEntity) {
         return Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
+    }
+
+    /**
+     * Check if the Callback URL should be processed. This check prevents from failed callback event flooding.
+     * @param callbackUrlEntity Callback Url Entity holding failure statistics.
+     * @return True if the callback should be processed, false otherwise.
+     */
+    public boolean failureThresholdReached(final CallbackUrlEntity callbackUrlEntity) {
+        final Integer failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
+        final Duration resetTimeout = powerAuthCallbacksConfiguration.getResetTimeout();
+
+        final Integer failureCount = callbackUrlEntity.getFailureCount();
+        final LocalDateTime timestampLastFailure = Objects.requireNonNullElse(callbackUrlEntity.getTimestampLastFailure(), LocalDateTime.MAX);
+
+        if (failureCount >= failureThreshold && LocalDateTime.now().minus(resetTimeout).isAfter(timestampLastFailure)) {
+            return false;
+        }
+
+        return failureCount >= failureThreshold;
     }
 
     /**
@@ -214,6 +256,16 @@ public class CallbackUrlEventService {
 
     private boolean shouldBeSentAtMostOnce(final CallbackUrlEntity callbackUrlEntity) {
         return obtainMaxAttempts(callbackUrlEntity) == 1;
+    }
+
+    private CallbackUrlEventEntity failWithoutDispatching(final CallbackUrlEventEntity callbackUrlEventEntity) {
+        final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
+
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
+        callbackUrlEventEntity.setTimestampNextCall(null);
+        callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
+        callbackUrlEventEntity.setTimestampRerunAfter(null);
+        return callbackUrlEventEntity;
     }
 
     @PostConstruct

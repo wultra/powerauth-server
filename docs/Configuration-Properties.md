@@ -100,6 +100,13 @@ for dispatching a callback event. The default values are set with respect to the
 However, it is possible to override these defaults or configure each callback settings individually using the
 Callback URL Management API.
 
+In certain scenarios, repeatedly attempting to dispatch callback events may be pointless due to system failure on the
+receiver's side. To address this, if multiple callback events with the same configuration fail consecutively, the
+service temporarily halts further dispatch attempts and marks these events as failed without retrying. The number of
+consecutive failures allowed before stopping dispatch is defined by the `failureThreshold` property, while the halt
+period is configurable via the `resetTimeout` property. After this period, a callback dispatch attempt will be made again
+to check the receiver's availability.
+
 PowerAuth dispatches a callback as soon as a change in operation or activation status is detected. Each newly created
 callback is passed to a configurable thread pool executor for dispatch. Even if the thread pool's queue is full, the
 callback will eventually be dispatched. Keep in mind that dispatching a callback involves database operations.
@@ -123,6 +130,8 @@ to callback events with max attempts set to 1, such callback events are never sc
 | `powerauth.service.callbacks.threadPoolMaxSize`                     | `2`     | Maximum number of threads in the thread pool used by the executor.                                                 |
 | `powerauth.service.callbacks.threadPoolQueueCapacity`               | `1000`  | Queue capacity of the thread pool used by the executor.                                                            |
 | `powerauth.service.callbacks.forceRerunPeriod`                      |         | Time period after which a currently processed callback event is considered stale and should be scheduled to rerun. |
+| `powerauth.service.callbacks.failureThreshold`                      | `200`   | The number of consecutive failures allowed for callback events with the same configuration.                        |
+| `powerauth.service.callbacks.resetTimeout`                          | `60s`   | Time period after which a Callback URL Event will be dispatched, even if failure threshold has been reached.       |
 
 The backoff period after the `N-th` attempt is calculated as follows:
 

@@ -185,6 +185,8 @@ Stores callback URLs - per-application endpoints that are notified whenever an a
 | max_attempts | INTEGER | - | Maximum number of attempts to dispatch a callback. |
 | initial_backoff | VARCHAR(64) | - | Initial backoff period before the next send attempt, stored as a ISO 8601 string. |
 | retention_period | VARCHAR(64) | - | Minimal duration for which is a completed callback event persisted, stored as a ISO 8601 string. |
+| timestamp_last_failure | DATETIME | - | The timestamp of the most recent failed callback event associated with this configuration. |
+| failure_count | INTEGER | - | The number of consecutive failed callback events associated with this configuration. |
 <!-- end -->
 
 <!-- begin database table pa_token -->

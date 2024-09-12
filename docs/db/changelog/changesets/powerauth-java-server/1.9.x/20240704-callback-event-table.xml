@@ -110,4 +110,30 @@
         <createSequence sequenceName="pa_app_callback_event_seq" startValue="1" incrementBy="50" cacheSize="20"/>
     </changeSet>
 
+    <changeSet id="8" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="timestamp_last_failure" />
+            </not>
+        </preConditions>
+        <comment>Add timestamp_last_failure column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="timestamp_last_failure" type="timestamp(6)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="9" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="failure_count" />
+            </not>
+        </preConditions>
+        <comment>Add failure_count column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="failure_count" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

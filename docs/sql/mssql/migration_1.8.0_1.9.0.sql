@@ -56,3 +56,14 @@ GO
 -- Create a new sequence pa_app_callback_event_seq
 CREATE SEQUENCE pa_app_callback_event_seq START WITH 1 INCREMENT BY 50;
 GO
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::8::Jan Pesek
+-- Add timestamp_last_failure column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD timestamp_last_failure datetime2(6);
+GO
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::9::Jan Pesek
+-- Add failure_count column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD failure_count int CONSTRAINT DF_pa_application_callback_failure_count DEFAULT 0 NOT NULL;
+GO
+

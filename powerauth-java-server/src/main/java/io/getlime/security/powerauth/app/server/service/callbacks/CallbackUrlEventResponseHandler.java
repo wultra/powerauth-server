@@ -23,6 +23,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUr
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
+import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ import java.util.Objects;
 public class CallbackUrlEventResponseHandler {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final CallbackUrlRepository callbackUrlRepository;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
@@ -66,6 +68,7 @@ public class CallbackUrlEventResponseHandler {
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
+        callbackUrlRepository.resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
     }
 
     /**
@@ -101,6 +104,7 @@ public class CallbackUrlEventResponseHandler {
         }
 
         callbackUrlEventRepository.save(callbackUrlEventEntity);
+        callbackUrlRepository.incrementFailureCount(callbackUrlEntity.getId(), LocalDateTime.now());
     }
 
     /**

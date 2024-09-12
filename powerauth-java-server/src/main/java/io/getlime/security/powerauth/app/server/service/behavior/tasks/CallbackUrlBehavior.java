@@ -112,6 +112,7 @@ public class CallbackUrlBehavior {
             entity.setType(CallbackUrlType.valueOf(request.getType()));
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
+            entity.setFailureCount(0);
             final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
@@ -449,8 +450,14 @@ public class CallbackUrlBehavior {
             return;
         }
 
+        if (callbackUrlEventService.failureThresholdReached(callbackUrlEntity)) {
+            logger.debug("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", callbackUrlEntity.getId());
+            callbackUrlEventService.createAndSaveFailedEvent(callbackUrlEntity, callbackData);
+            return;
+        }
+
         final String restClientCacheKey = callbackUrlRestClientManager.createRestClientIfAbsent(callbackUrlEntity);
-        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveCallbackUrlEventEntity(callbackUrlEntity, callbackData);
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveEventForProcessing(callbackUrlEntity, callbackData);
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, restClientCacheKey);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
