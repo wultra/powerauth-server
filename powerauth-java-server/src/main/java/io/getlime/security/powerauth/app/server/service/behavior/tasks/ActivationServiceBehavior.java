@@ -1139,13 +1139,9 @@ public class ActivationServiceBehavior {
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
-            // Validate activation OTP
-            if (activation.getActivationOtpValidation() == ActivationOtpValidation.ON_KEY_EXCHANGE && !StringUtils.hasText(layer2Request.getActivationOtp())) {
-                logger.info("Activation OTP is missing on key exchange: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            validateActivationOtp(layer2Request.getActivationOtp(), activation, null);
+
+            // Validate activation OTP for stage ON_KEY_EXCHANGE
+            validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
             // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
             final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
@@ -1544,13 +1540,8 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Validate activation OTP
-            if (activation.getActivationOtpValidation() == ActivationOtpValidation.ON_COMMIT && !StringUtils.hasText(activationOtp)) {
-                logger.info("Activation OTP is missing during commit: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            validateActivationOtp(activationOtp, activation, externalUserId);
+            // Validate activation OTP for stage ON_COMMIT
+            validateActivationOtp(ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
 
             // Check the commit phase
             if (activation.getCommitPhase() != io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
@@ -1729,12 +1720,27 @@ public class ActivationServiceBehavior {
      * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
      * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
      */
-    private void validateActivationOtp(String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+    private void validateActivationOtp(ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
 
         final String activationId = activation.getActivationId();
+        final ActivationOtpValidation expectedStage = activation.getActivationOtpValidation();
         final String expectedOtpHash = activation.getActivationOtp();
 
-        // Check whether activation OTP is specified.
+        // Validate activation OTP is present for given stage, if required.
+        if (expectedStage == currentStage && !StringUtils.hasText(confirmationOtp)) {
+            logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentStage);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+
+        // Validate activation OTP is absent when it should not be present.
+        if (expectedStage != ActivationOtpValidation.NONE && expectedStage != currentStage && StringUtils.hasText(confirmationOtp)) {
+            logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentStage);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+
+        // Check whether activation OTP is specified, otherwise the validation is not required.
         if (!StringUtils.hasText(confirmationOtp)) {
             return;
         }
