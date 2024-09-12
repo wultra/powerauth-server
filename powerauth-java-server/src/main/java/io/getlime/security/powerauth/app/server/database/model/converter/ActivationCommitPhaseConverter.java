@@ -22,7 +22,8 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Activ
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 /**
  * Converter between {@link CommitPhase} enumeration and integer values.
@@ -39,14 +40,8 @@ public class ActivationCommitPhaseConverter implements AttributeConverter<Commit
      */
     @Override
     public Integer convertToDatabaseColumn(CommitPhase commitPhase) {
-        if (commitPhase == null) {
-            // For compatibility with old data
-            return 0;
-        }
-        return switch (commitPhase) {
-            case ON_COMMIT -> 0;
-            case ON_KEY_EXCHANGE -> 1;
-        };
+        // For compatibility with old data
+        return (int) Objects.requireNonNullElse(commitPhase, CommitPhase.ON_COMMIT).getByte();
     }
 
     /**
