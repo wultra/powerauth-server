@@ -1728,8 +1728,9 @@ public class ActivationServiceBehavior {
         final String expectedOtpHash = activation.getActivationOtp();
 
         if (expectedStage != ActivationOtpValidation.NONE) {
-            // Validation using ActivationOtpValidation (deprecated)
-            // Validate activation OTP is present, if required, and absent when it should be absent.
+            // Validation using ActivationOtpValidation (deprecated):
+            // - in case the check is done in different phase, skip validation
+            // - for correct phase make sure OTP is available when required
             if (expectedStage == ActivationOtpValidation.ON_KEY_EXCHANGE && currentPhase == CommitPhase.ON_COMMIT
                     || expectedStage == ActivationOtpValidation.ON_COMMIT && currentPhase == CommitPhase.ON_KEY_EXCHANGE) {
                 if (StringUtils.hasText(confirmationOtp)) {
@@ -1737,6 +1738,7 @@ public class ActivationServiceBehavior {
                     // Rollback is not required, database is not used for writing yet.
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
                 }
+                // Different phase, skip validation
                 return;
             }
             if (!StringUtils.hasText(confirmationOtp)) {
