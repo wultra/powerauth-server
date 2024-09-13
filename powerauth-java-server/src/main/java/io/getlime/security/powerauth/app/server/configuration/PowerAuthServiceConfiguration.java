@@ -265,6 +265,18 @@ public class PowerAuthServiceConfiguration {
     private int proximityCheckOtpLength;
 
     /**
+     * Time-step size used for generating and validating TOTP for the proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.step-length:30s}")
+    private Duration proximityCheckStepLength;
+
+    /**
+     * Acceptable TOTP transmission delay as the number of past time-steps used for validating TOTP for the proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.step-count:1}")
+    private int proximityCheckStepCount;
+
+    /**
      * Number of operation that will be set expired in the single scheduled job run.
      */
     @Value("${powerauth.service.scheduled.job.expireOperationsLimit:100}")
@@ -730,6 +742,24 @@ public class PowerAuthServiceConfiguration {
      */
     public int getProximityCheckOtpLength() {
         return proximityCheckOtpLength;
+    }
+
+    /**
+     * Get step length for TOTP generation and validation for proximity check.
+     *
+     * @return duration of TOTP step
+     */
+    public Duration getProximityCheckStepLength() {
+        return proximityCheckStepLength;
+    }
+
+    /**
+     * Get number of allowed backward step for TOTP validation for proximity check.
+     *
+     * @return number of allowed backward steps for TOTP validation
+     */
+    public int getProximityCheckStepCount() {
+        return proximityCheckStepCount;
     }
 
     /**
