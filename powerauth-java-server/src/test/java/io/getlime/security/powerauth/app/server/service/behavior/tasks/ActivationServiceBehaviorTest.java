@@ -81,7 +81,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testPrepareActivationWithValidPayload() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -119,7 +118,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testPrepareActivationWithInvalidPayload() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -158,7 +156,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testCreateActivationWithValidPayload() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -189,7 +186,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testCreateActivationWithInvalidPayload() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -218,7 +214,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testCreateActivationUsingRecoveryCode() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -251,7 +246,6 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testCreateActivationUsingRecoveryCodeWithInvalidPayload() throws Exception {
-
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
@@ -273,81 +267,117 @@ class ActivationServiceBehaviorTest {
 
     @Test
     void testPrepareActivationWithCommitOnKeyExchange() throws Exception {
-
-        // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, null, false);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
 
-        // Initiate activation of a user
-        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId(), CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, null);
-        final String activationId = initActivationResponse.getActivationId();
+    @Test
+    void testPrepareActivationWithCommitOnKeyExchangeWithOtpValid() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, "1234", true);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
 
-        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+    @Test
+    void testPrepareActivationWithCommitOnKeyExchangeWithOtpMissing() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        assertThrows(GenericServiceException.class, () ->
+            prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, "1234", false));
+    }
 
-        // Generate public key for a client device
-        final String publicKey = generatePublicKey();
+    @Test
+    void testPrepareActivationWithCommitAfterKeyExchange() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, null, false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        commitActivation(activationResponse.getActivationId(), null);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
 
-        // Create request payload
-        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setDevicePublicKey(publicKey);
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+    @Test
+    void testPrepareActivationWithCommitAfterKeyExchangeWithOtp() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, "1234", false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        commitActivation(activationResponse.getActivationId(), "1234");
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
 
-        // Prepare activation
-        final String activationCode = initActivationResponse.getActivationCode();
-        final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
-        final PrepareActivationRequest request = new PrepareActivationRequest();
-        request.setActivationCode(activationCode);
-        request.setGenerateRecoveryCodes(false);
-        request.setProtocolVersion(version);
-        request.setApplicationKey(applicationKey);
-        request.setMac(encryptedRequest.getMac());
-        request.setNonce(encryptedRequest.getNonce());
-        request.setEncryptedData(encryptedRequest.getEncryptedData());
-        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-        request.setTimestamp(encryptedRequest.getTimestamp());
-        tested.prepareActivation(request);
+    @Test
+    void testPrepareActivationWithCommitAfterKeyExchangeWithOtpInvalid() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, "1234", false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        assertThrows(GenericServiceException.class, () ->
+            commitActivation(activationResponse.getActivationId(), "4321"));
+    }
 
-        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationId));
+    @Test
+    void testPrepareActivationWithCommitAfterKeyExchangeWithOtpEmpty() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, "1234", false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        assertThrows(GenericServiceException.class, () ->
+                commitActivation(activationResponse.getActivationId(), ""));
+    }
+
+    @Test
+    void testPrepareActivationWithCommitAfterKeyExchangeWithOtpMissing() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, "1234", false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        assertThrows(GenericServiceException.class, () ->
+                commitActivation(activationResponse.getActivationId(), null));
+    }
+
+    @Test
+    void testPrepareActivationWithOtpValidOnKeyExchange() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, "1234", true);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
+
+    @Test
+    void testPrepareActivationWithOtpValidOnCommit() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        PrepareActivationResponse activationResponse = prepareActivation(detailResponse, null, ActivationOtpValidation.ON_COMMIT, "1234", false);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        commitActivation(activationResponse.getActivationId(), "1234");
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
     }
 
     @Test
     void testPrepareActivationWithOtpMissing() throws Exception {
-        // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
-
         assertThrows(GenericServiceException.class, () ->
-                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, null));
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, null, false));
     }
 
     @Test
     void testPrepareActivationWithOtpEmpty() throws Exception {
-        // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
-
         assertThrows(GenericServiceException.class, () ->
-                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, ""));
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_KEY_EXCHANGE, "", true));
     }
 
     @Test
     void testPrepareActivationWithOtpPresentWrongStage() throws Exception {
-        // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
-
         assertThrows(GenericServiceException.class, () ->
-                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_COMMIT, "1234"));
+                prepareActivation(detailResponse, null, ActivationOtpValidation.ON_COMMIT, "1234", true));
     }
 
     @Test
     void testPrepareActivationInvalidCombinationOtpValidationCommitPhase() throws Exception {
-        // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Test exception for invalid parameters
         assertThrows(GenericServiceException.class, () ->
-                prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT, "1234"));
+                prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT, "1234", false));
     }
 
     private ActivationLayer2Response createActivationAndGetResponsePayload(GetApplicationDetailResponse applicationDetail) throws Exception {
-
         final String applicationId = applicationDetail.getApplicationId();
 
         // Set recovery config
@@ -389,7 +419,7 @@ class ActivationServiceBehaviorTest {
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
 
         // Commit activation
-        commitActivation(activationId);
+        commitActivation(activationId, null);
         assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationId));
 
         // Decrypt createActivation response payload
@@ -425,9 +455,10 @@ class ActivationServiceBehaviorTest {
         return Base64.getEncoder().encodeToString(publicKeyBytes);
     }
 
-    private void commitActivation(String activationId) throws Exception {
+    private void commitActivation(String activationId, String otp) throws Exception {
         final CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
         commitActivationRequest.setActivationId(activationId);
+        commitActivationRequest.setActivationOtp(otp);
         activationServiceBehavior.commitActivation(commitActivationRequest);
     }
 
@@ -495,7 +526,7 @@ class ActivationServiceBehaviorTest {
         return tested.initActivation(request);
     }
 
-    private void prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp) throws Exception {
+    private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, boolean useOtp) throws Exception {
         // Initiate activation of a user
         final InitActivationResponse initActivationResponse = initActivation(applicationDetail.getApplicationId(), commitPhase, otpValidation, otp);
 
@@ -509,7 +540,9 @@ class ActivationServiceBehaviorTest {
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(publicKey);
-        requestL2.setActivationOtp(otp);
+        if (useOtp) {
+            requestL2.setActivationOtp(otp);
+        }
         final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, applicationDetail);
 
         // Prepare activation
@@ -525,7 +558,7 @@ class ActivationServiceBehaviorTest {
         request.setEncryptedData(encryptedRequest.getEncryptedData());
         request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         request.setTimestamp(encryptedRequest.getTimestamp());
-        tested.prepareActivation(request);
+        return tested.prepareActivation(request);
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {

@@ -1724,25 +1724,49 @@ public class ActivationServiceBehavior {
 
         final String activationId = activation.getActivationId();
         final ActivationOtpValidation expectedStage = activation.getActivationOtpValidation();
+        final CommitPhase commitPhase = activation.getCommitPhase();
         final String expectedOtpHash = activation.getActivationOtp();
 
-        // Validate activation OTP is present for given stage, if required.
-        if (expectedStage == currentStage && !StringUtils.hasText(confirmationOtp)) {
-            logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentStage);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-        }
-
-        // Validate activation OTP is absent when it should not be present.
-        if (expectedStage != ActivationOtpValidation.NONE && expectedStage != currentStage && StringUtils.hasText(confirmationOtp)) {
-            logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentStage);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-        }
-
-        // Check whether activation OTP is specified, otherwise the validation is not required.
-        if (!StringUtils.hasText(confirmationOtp)) {
-            return;
+        if (expectedStage != ActivationOtpValidation.NONE) {
+            // Validation using ActivationOtpValidation (deprecated)
+            // Validate activation OTP is present for given stage, if required.
+            if (expectedStage == currentStage && !StringUtils.hasText(confirmationOtp)) {
+                logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentStage);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            // Validate activation OTP is absent when it should not be present.
+            if (expectedStage != currentStage) {
+                if (StringUtils.hasText(confirmationOtp)) {
+                    logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentStage);
+                    // Rollback is not required, database is not used for writing yet.
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+                }
+                // No validation required for this stage, the current stage is different from expected stage
+                return;
+            }
+        } else {
+            // Validation of commit phase:
+            // - if no OTP is specified for an activation, no validation is required
+            // - check each stage to make sure OTP is available when required
+            // - in case the commit is done in the next stage, skip validation
+            if (expectedOtpHash == null) {
+                return;
+            }
+            if (currentStage == ActivationOtpValidation.ON_KEY_EXCHANGE && commitPhase == CommitPhase.ON_KEY_EXCHANGE && !StringUtils.hasText(confirmationOtp)) {
+                logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentStage);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            if (currentStage == ActivationOtpValidation.ON_COMMIT && commitPhase == CommitPhase.ON_COMMIT && !StringUtils.hasText(confirmationOtp)) {
+                logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentStage);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            if (currentStage == ActivationOtpValidation.ON_KEY_EXCHANGE && commitPhase == CommitPhase.ON_COMMIT) {
+                // Validation is done after key exchange, skip it for now
+                return;
+            }
         }
 
         // Check whether hash is present in the database.
