@@ -226,16 +226,11 @@ public class ActivationController {
                                    @RequestParam("activationOtp") String activationOtp,
                                    Map<String, Object> model, RedirectAttributes redirectAttributes) {
         try {
-            InitActivationResponse response;
-
-            switch (commitPhase) {
-                case "ON_COMMIT" ->
-                        response = client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
-                case "ON_KEY_EXCHANGE" ->
-                        response = client.initActivation(userId, applicationId, CommitPhase.ON_KEY_EXCHANGE, activationOtp);
-                default ->
-                        response = client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
-            }
+            final InitActivationResponse response = switch (commitPhase) {
+                case "ON_COMMIT" -> client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
+                case "ON_KEY_EXCHANGE" -> client.initActivation(userId, applicationId, CommitPhase.ON_KEY_EXCHANGE, activationOtp);
+                default -> client.initActivation(userId, applicationId, CommitPhase.ON_COMMIT, activationOtp);
+            };
 
             model.put("activationCode", response.getActivationCode());
             model.put("activationId", response.getActivationId());
