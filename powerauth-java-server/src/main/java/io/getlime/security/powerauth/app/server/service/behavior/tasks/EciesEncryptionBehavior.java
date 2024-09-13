@@ -20,12 +20,15 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.converter.TemporaryPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
-import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -43,8 +46,8 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +58,6 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Behavior class implementing the ECIES service logic.
@@ -70,31 +71,22 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EciesEncryptionBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final TemporaryKeyBehavior temporaryKeyBehavior;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
+    private final ApplicationVersionRepository applicationVersionRepository;
+    private final MasterKeyPairRepository masterKeyPairRepository;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    @Autowired
-    public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, TemporaryKeyBehavior temporaryKeyBehavior, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-        this.activationQueryService = activationQueryService;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.temporaryKeyBehavior = temporaryKeyBehavior;
-        this.replayVerificationService = replayVerificationService;
-        this.activationValidator = activationValidator;
-    }
 
     /**
      * Obtain ECIES decryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
@@ -150,7 +142,7 @@ public class EciesEncryptionBehavior {
 
         try {
             // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
                 // Rollback is not required, database is not used for writing
@@ -177,7 +169,7 @@ public class EciesEncryptionBehavior {
                 // Get master private key
                 final ApplicationEntity application = applicationVersion.getApplication();
                 final String applicationId = application.getId();
-                final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
                 if (masterKeyPairEntity == null) {
                     logger.error("Missing key pair for application ID: {}", applicationId);
                     // Rollback is not required, database is not used for writing
@@ -277,7 +269,7 @@ public class EciesEncryptionBehavior {
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
             // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Rollback is not required, database is not used for writing

@@ -26,7 +26,6 @@ import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.*;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -62,8 +61,8 @@ import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -92,6 +91,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ActivationServiceBehavior {
 
     /**
@@ -105,13 +105,11 @@ public class ActivationServiceBehavior {
     // Maximum date for SQL timestamps: 01/01/9999 @ 12:00am (UTC)
     private static final Date MAX_TIMESTAMP = new Date(253370764800000L);
 
-    private final RepositoryCatalogue repositoryCatalogue;
+    private final CallbackUrlBehavior callbackUrlBehavior;
+    private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
-    private CallbackUrlBehavior callbackUrlBehavior;
-    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private TemporaryKeyBehavior temporaryKeyBehavior;
-
-    private LocalizationProvider localizationProvider;
+    private final LocalizationProvider localizationProvider;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthPageableConfiguration powerAuthPageableConfiguration;
@@ -122,59 +120,25 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
 
+    private final ApplicationRepository applicationRepository;
+    private final ActivationRepository activationRepository;
+    private final RecoveryCodeRepository recoveryCodeRepository;
+    private final MasterKeyPairRepository masterKeyPairRepository;
+    private final ApplicationVersionRepository applicationVersionRepository;
+    private final RecoveryConfigRepository recoveryConfigRepository;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
-    private ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private RecoveryPukConverter recoveryPukConverter;
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final RecoveryPukConverter recoveryPukConverter;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final ObjectMapper objectMapper;
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration, ReplayVerificationService eciesReplayPersistenceService, ActivationContextValidator activationValidator, ActivationQueryService activationQueryService, ObjectMapper objectMapper) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
-        this.replayVerificationService = eciesReplayPersistenceService;
-        this.activationValidator = activationValidator;
-        this.activationQueryService = activationQueryService;
-        this.objectMapper = objectMapper;
-    }
-
-    @Autowired
-    public void setCallbackUrlBehavior(CallbackUrlBehavior callbackUrlBehavior) {
-        this.callbackUrlBehavior = callbackUrlBehavior;
-    }
-
-    @Autowired
-    public void setTemporaryKeyBehavior(TemporaryKeyBehavior temporaryKeyBehavior) {
-        this.temporaryKeyBehavior = temporaryKeyBehavior;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
-
-    @Autowired
-    public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
-        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
-    }
-
-    @Autowired
-    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-    }
-
-    @Autowired
-    public void setRecoveryPukConverter(RecoveryPukConverter recoveryPukConverter) {
-        this.recoveryPukConverter = recoveryPukConverter;
-    }
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
@@ -387,7 +351,6 @@ public class ActivationServiceBehavior {
             final List<String> activationFlags = request.getActivationFlags();
 
             final LookupActivationsResponse response = new LookupActivationsResponse();
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             if (applicationIds != null && applicationIds.isEmpty()) {
                 // Make sure application ID list is null in case no application ID is specified
                 applicationIds = null;
@@ -525,9 +488,6 @@ public class ActivationServiceBehavior {
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
-
-            // Get the repository
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Prepare key generator
             final KeyGenerator keyGenerator = new KeyGenerator();
@@ -814,7 +774,6 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Find application by application key
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
             if (applicationEntityOptional.isEmpty()) {
                 logger.warn("Application does not exist: {}", applicationId);
@@ -822,10 +781,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
             final ApplicationEntity applicationEntity = applicationEntityOptional.get();
-
-            // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
@@ -1040,11 +995,6 @@ public class ActivationServiceBehavior {
 
             // Get current timestamp
             final Date timestamp = new Date();
-
-            // Get required repositories
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             // Find application by application key
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
@@ -1291,10 +1241,6 @@ public class ActivationServiceBehavior {
             // Get current timestamp
             final Date timestamp = new Date();
 
-            // Get required repositories
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
@@ -1487,7 +1433,7 @@ public class ActivationServiceBehavior {
     // Create a new recovery code and PUK for new activation if activation recovery is enabled
     private ActivationRecovery createActivationRecovery(boolean shouldGenerateRecoveryCodes, ActivationRecordEntity activation) throws GenericServiceException {
         if (shouldGenerateRecoveryCodes) {
-            final RecoveryConfigEntity recoveryConfigEntity = repositoryCatalogue.getRecoveryConfigRepository().findByApplicationId(activation.getApplication().getId());
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 return createRecoveryCodeForActivation(activation, false);
             }
@@ -1556,7 +1502,6 @@ public class ActivationServiceBehavior {
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Update recovery code status in case a related recovery code exists in CREATED state
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
             for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
                 if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
@@ -2020,13 +1965,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Prepare repositories
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-
             // Find application by application key
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null || !applicationVersion.getSupported()) {
@@ -2329,8 +2267,6 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case of any error.
      */
     private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, boolean isActive) throws GenericServiceException {
-        final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-
         try {
             // Check whether activation recovery is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activationEntity.getApplication().getId());
@@ -2345,9 +2281,6 @@ public class ActivationServiceBehavior {
             // Note: the code below expects that application version for given activation has been verified.
             // We want to avoid checking application version twice (once during activation and second time in this method).
             // It is also expected that the activation is a valid activation which has just been created.
-            // Prepare repositories
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-
             final ApplicationEntity application = activationEntity.getApplication();
             final String activationId = activationEntity.getActivationId();
             final String userId = activationEntity.getUserId();
@@ -2458,7 +2391,6 @@ public class ActivationServiceBehavior {
      */
     private void revokeRecoveryCodes(String activationId) {
         logger.info("Revoking recovery codes for activation ID: {}", activationId);
-        final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
         final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
         final Date now = new Date();
         for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {

@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -35,6 +34,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -55,8 +55,8 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,15 +81,16 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class VaultUnlockServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final ApplicationVersionRepository applicationVersionRepository;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
@@ -99,20 +100,6 @@ public class VaultUnlockServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
     private final TemporaryKeyBehavior temporaryKeyBehavior;
-
-    @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior, TemporaryKeyBehavior temporaryKeyBehavior) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-        this.activationQueryService = activationQueryService;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.replayVerificationService = replayVerificationService;
-        this.activationValidator = activationValidator;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.objectMapper = objectMapper;
-        this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
-        this.temporaryKeyBehavior = temporaryKeyBehavior;
-    }
 
     /**
      * Method to retrieve the vault unlock key. Before calling this method, it is assumed that
@@ -185,7 +172,7 @@ public class VaultUnlockServiceBehavior {
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             // Get application version
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             // Check if application version is valid
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);

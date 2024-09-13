@@ -24,7 +24,6 @@ import com.wultra.security.powerauth.client.model.request.RemoveApplicationConfi
 import com.wultra.security.powerauth.client.model.response.CreateApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import io.getlime.core.rest.model.base.response.Response;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
@@ -60,9 +59,10 @@ public class ApplicationConfigServiceBehavior {
     private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
             CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS, CONFIG_KEY_OAUTH2_PROVIDERS);
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ApplicationConfigService applicationConfigService;
+    private final ApplicationRepository applicationRepository;
+    private final ApplicationConfigRepository applicationConfigRepository;
 
     /**
      * Get application configuration.
@@ -115,8 +115,7 @@ public class ApplicationConfigServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             validateConfigKey(key);
-            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-            final ApplicationEntity application = appRepository.findById(applicationId).orElseThrow(() -> {
+            final ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 return localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -159,16 +158,14 @@ public class ApplicationConfigServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             validateConfigKey(key);
-            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
+            final Optional<ApplicationEntity> appOptional = applicationRepository.findById(applicationId);
             if (appOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
-            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-            configs.stream().filter(config -> config.getKey().equals(key)).forEach(configRepository::delete);
+            final List<ApplicationConfigEntity> configs = applicationConfigRepository.findByApplicationId(applicationId);
+            configs.stream().filter(config -> config.getKey().equals(key)).forEach(applicationConfigRepository::delete);
             return new Response();
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
