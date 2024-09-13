@@ -745,24 +745,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get step length for TOTP generation and validation for proximity check.
-     *
-     * @return duration of TOTP step
-     */
-    public Duration getProximityCheckStepLength() {
-        return proximityCheckStepLength;
-    }
-
-    /**
-     * Get number of allowed backward step for TOTP validation for proximity check.
-     *
-     * @return number of allowed backward steps for TOTP validation
-     */
-    public int getProximityCheckStepCount() {
-        return proximityCheckStepCount;
-    }
-
-    /**
      * Set length of OTP generated for proximity check.
      *
      * @param proximityCheckOtpLength length of OTP
