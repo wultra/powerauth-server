@@ -97,4 +97,14 @@ public class CallbackUrlEventEntity implements Serializable {
         return Objects.hash(idempotencyKey);
     }
 
+    @Override
+    public String toString() {
+        return "CallbackUrlEventEntity{" +
+                "id=" + id +
+                ", callbackUrlEntity=" + (callbackUrlEntity == null ? "null" : callbackUrlEntity.getId()) +
+                ", status=" + status +
+                ", attempts=" + attempts +
+                '}';
+    }
+
 }
