@@ -34,6 +34,13 @@ The API now publishes new endpoints related to the temporary key management:
 - `POST /rest/v3/keystore/create` - Creates a new temporary key pair
 - `POST /rest/v3/keystore/remove` - Removes a temporary key pair
 
+### Deprecated Parameter activationOtpValidation in Init Activation
+
+The parameter `activationOtpValidation` is deprecated.
+Use the `activationOtp` parameter during activation init or activation commit to control the OTP check.
+Use the `commitPhase` parameter for specifying when the activation should be committed.
+
 ### ECDSA Signature Verification in JOSE Format
 
 The method `POST /rest/v3/signature/ecdsa/verify` now supports validation of ECDSA signature in JOSE format, thanks to added `signatureFormat` request attribute (`DER` as a default value, or `JOSE`).
+

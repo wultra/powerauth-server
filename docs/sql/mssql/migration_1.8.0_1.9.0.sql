@@ -17,3 +17,8 @@ GO
 -- Add encryption_mode column to pa_application_callback table.
 ALTER TABLE pa_application_callback ADD encryption_mode varchar(255) CONSTRAINT DF_pa_application_callback_encryption_mode DEFAULT 'NO_ENCRYPTION' NOT NULL;
 GO
+
+-- Changeset powerauth-java-server/1.9.x/20240910-commit-phase.xml::1::Roman Strobl
+-- Add commit_phase column to pa_activation table.
+ALTER TABLE pa_activation ADD commit_phase int CONSTRAINT DF_pa_activation_commit_phase DEFAULT 0;
+GO

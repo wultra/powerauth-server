@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -19,32 +19,26 @@
 package io.getlime.security.powerauth.app.server.database.model.enumeration;
 
 /**
- * Enum representing possible activation OTP validation stages. Following values are supported:
+ * Enum representing phase when activation is committed. Following values are supported:
  * <p>
- * - NONE = 0
+ * - ON_COMMIT = 0
  * - ON_KEY_EXCHANGE = 1
- * - ON_COMMIT = 2
  */
-public enum ActivationOtpValidation {
+public enum CommitPhase {
 
     /**
-     * NONE - no additional OTP validation is required during the activation.
+     * ON_COMMIT - activation is commited in PENDING_COMMIT state (default).
      */
-    NONE((byte) 0),
+    ON_COMMIT((byte) 0),
 
     /**
-     * ON_KEY_EXCHANGE - an additional OTP is validated during the keys-exchange activation phase.
+     * ON_KEY_EXCHANGE - activation is committed during key exchange.
      */
-    ON_KEY_EXCHANGE((byte) 1),
-
-    /**
-     * ON_COMMIT - an additional OTP is validated during the commit activation phase.
-     */
-    ON_COMMIT((byte) 2);
+    ON_KEY_EXCHANGE((byte) 1);
 
     final byte value;
 
-    ActivationOtpValidation(final byte value) {
+    CommitPhase(final byte value) {
         this.value = value;
     }
 
@@ -56,4 +50,5 @@ public enum ActivationOtpValidation {
     public byte getByte() {
         return value;
     }
+
 }

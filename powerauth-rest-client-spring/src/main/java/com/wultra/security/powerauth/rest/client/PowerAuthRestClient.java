@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.Date;
@@ -217,6 +218,17 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
+
+    @Override
+    public InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException {
+        final InitActivationRequest request = new InitActivationRequest();
+        request.setUserId(userId);
+        request.setApplicationId(applicationId);
+        request.setCommitPhase(commitPhase);
+        request.setActivationOtp(otp);
+        return initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
     @Override
     public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
         return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
@@ -229,6 +241,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setUserId(userId);
         request.setApplicationId(applicationId);
         request.setActivationOtpValidation(otpValidation);
+        request.setCommitPhase(CommitPhase.ON_COMMIT);
         request.setActivationOtp(otp);
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
