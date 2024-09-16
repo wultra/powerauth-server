@@ -24,7 +24,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.*;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -34,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Recov
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -59,6 +59,7 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,6 +82,7 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class RecoveryServiceBehavior {
 
     public static final int PUK_COUNT_MAX = 100;
@@ -88,13 +90,16 @@ public class RecoveryServiceBehavior {
     // Autowired dependencies
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final RepositoryCatalogue repositoryCatalogue;
     private final ActivationQueryService activationQueryService;
     private final ReplayVerificationService replayVerificationService;
     private final TemporaryKeyBehavior temporaryKeyBehavior;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
     private final ActivationContextValidator activationValidator;
+    private final ApplicationRepository applicationRepository;
+    private final RecoveryCodeRepository recoveryCodeRepository;
+    private final RecoveryConfigRepository recoveryConfigRepository;
+    private final ApplicationVersionRepository applicationVersionRepository;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -108,25 +113,6 @@ public class RecoveryServiceBehavior {
     private final RecoveryCodeStatusConverter recoveryCodeStatusConverter = new RecoveryCodeStatusConverter();
     private final RecoveryPukStatusConverter recoveryPukStatusConverter = new RecoveryPukStatusConverter();
     private final RecoveryPukConverter recoveryPukConverter;
-
-
-    @Autowired
-    public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
-                                   PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
-                                   TemporaryKeyBehavior temporaryKeyBehavior, ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
-                                   ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
-        this.localizationProvider = localizationProvider;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.activationQueryService = activationQueryService;
-        this.temporaryKeyBehavior = temporaryKeyBehavior;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
-        this.replayVerificationService = replayVerificationService;
-        this.activationValidator = activationValidator;
-        this.objectMapper = objectMapper;
-        this.recoveryPukConverter = recoveryPukConverter;
-    }
 
     /**
      * Create recovery code for secure recovery postcard. Recovery code status is set to CREATED.
@@ -146,10 +132,6 @@ public class RecoveryServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
@@ -316,9 +298,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.warn("Activation not found, activation ID: {}", activationId);
@@ -362,7 +341,7 @@ public class RecoveryServiceBehavior {
             final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
 
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -508,9 +487,6 @@ public class RecoveryServiceBehavior {
             final RecoveryCodeStatus recoveryCodeStatus = recoveryCodeStatusConverter.convertTo(request.getRecoveryCodeStatus());
             final RecoveryPukStatus recoveryPukStatus = recoveryPukStatusConverter.convertTo(request.getRecoveryPukStatus());
 
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-
             // If an application was specified, validate it exists
             if (applicationId != null) {
                 final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
@@ -623,8 +599,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-
             final List<Long> recoveryCodeIds = request.getRecoveryCodeIds();
             for (Long recoveryCodeId : recoveryCodeIds) {
                 if (recoveryCodeId == null || recoveryCodeId < 0L) {
@@ -692,8 +666,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
             final ApplicationEntity applicationEntity = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, database is not used for writing
@@ -746,8 +718,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);

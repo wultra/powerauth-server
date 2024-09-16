@@ -19,10 +19,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.response.TelemetryReportResponse;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -37,6 +36,7 @@ import java.util.Map;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@AllArgsConstructor
 public class TelemetryServiceBehavior {
 
     private static final int DAYS_FOR_MAU = 30;
@@ -54,12 +54,7 @@ public class TelemetryServiceBehavior {
     private static final String RESULT_APPLICATION = "application";
     private static final String RESULT_DAYS = "days";
 
-    private final RepositoryCatalogue repositoryCatalogue;
-
-    @Autowired
-    public TelemetryServiceBehavior(RepositoryCatalogue repositoryCatalogue) {
-        this.repositoryCatalogue = repositoryCatalogue;
-    }
+    private final ActivationRepository activationRepository;
 
     public TelemetryReportResponse report(String reportName, Map<String, Object> parameters) throws TelemetryReportException {
         switch (reportName.toUpperCase()) {
@@ -100,7 +95,6 @@ public class TelemetryServiceBehavior {
 
         final Date toDate = new Date();
         final Date fromDate = Date.from(Instant.now().minus(days, ChronoUnit.DAYS));
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final long userCount = activationRepository.uniqueUserCountForApplicationBetweenDates(applicationId, fromDate, toDate);
         final TelemetryReportResponse response = new TelemetryReportResponse();
         response.setName(reportName);

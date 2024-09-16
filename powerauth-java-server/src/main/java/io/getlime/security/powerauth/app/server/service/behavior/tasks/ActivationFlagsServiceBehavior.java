@@ -27,15 +27,14 @@ import com.wultra.security.powerauth.client.model.response.AddActivationFlagsRes
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,20 +50,13 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ActivationFlagsServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
+    private final ActivationRepository activationRepository;
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final AuditingServiceBehavior audit;
-
-    @Autowired
-    public ActivationFlagsServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, AuditingServiceBehavior audit) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-        this.activationQueryService = activationQueryService;
-        this.audit = audit;
-    }
 
     /**
      * List activation flags.
@@ -123,7 +115,6 @@ public class ActivationFlagsServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -183,7 +174,6 @@ public class ActivationFlagsServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -237,7 +227,6 @@ public class ActivationFlagsServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
