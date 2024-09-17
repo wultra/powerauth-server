@@ -100,8 +100,8 @@ retries of the same request.
 Two new configuration properties have been introduced to adjust parameters for the TOTP generation and validation
 algorithm in the proximity check process.
 
-- `powerauth.service.proximity-check.otp.step-length` defines the time-step duration used for generating and validating
-  TOTP during the proximity check. Defaults to 30 seconds.
+- `powerauth.service.proximity-check.otp.step-duration` defines the time-step duration used for generating and
+  validating TOTP during the proximity check. Defaults to 30 seconds.
 - `powerauth.service.proximity-check.otp.step-count` defines the acceptable TOTP transmission delay by setting the
   number of past time-steps that will be validated for the proximity check. Defaults to 1, which means proximity otp
   value from the current time-step or the previous time-step is acceptable.

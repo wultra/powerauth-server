@@ -1073,14 +1073,14 @@ public class OperationServiceBehavior {
     @SneakyThrows(GenericServiceException.class)
     private OperationDetailResponse convertFromEntityAndFillOtp(final OperationEntity source) {
         final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
-        final Duration otpStepLength = powerAuthServiceConfiguration.getProximityCheckStepLength();
-        final String totp = generateTotp(source, otpLength, otpStepLength);
+        final Duration otpStepDuration = powerAuthServiceConfiguration.getProximityCheckStepDuration();
+        final String totp = generateTotp(source, otpLength, otpStepDuration);
         final OperationDetailResponse target = convertFromEntity(source);
         target.setProximityOtp(totp);
         return target;
     }
 
-    private String generateTotp(final OperationEntity operation, final int otpLength, final Duration otpStepLength) throws GenericServiceException {
+    private String generateTotp(final OperationEntity operation, final int otpLength, final Duration otpStepDuration) throws GenericServiceException {
         final String seed = operation.getTotpSeed();
         final String operationId = operation.getId();
 
@@ -1092,7 +1092,7 @@ public class OperationServiceBehavior {
         try {
             final byte[] seedBytes = Base64.getDecoder().decode(seed);
             final Instant now = Instant.now();
-            final byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpStepLength, otpLength);
+            final byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpStepDuration, otpLength);
 
             return new String(totp, StandardCharsets.UTF_8);
         } catch (CryptoProviderException | IllegalArgumentException e) {
@@ -1142,9 +1142,9 @@ public class OperationServiceBehavior {
         try {
             final String otp = otpObject.toString();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
-            final Duration otpStepLength = powerAuthServiceConfiguration.getProximityCheckStepLength();
+            final Duration otpStepDuration = powerAuthServiceConfiguration.getProximityCheckStepDuration();
             final int otpStepCount = powerAuthServiceConfiguration.getProximityCheckStepCount();
-            final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength, otpStepCount, otpStepLength);
+            final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength, otpStepCount, otpStepDuration);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
             return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
         } catch (CryptoProviderException | IllegalArgumentException e) {

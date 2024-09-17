@@ -265,10 +265,10 @@ public class PowerAuthServiceConfiguration {
     private int proximityCheckOtpLength;
 
     /**
-     * Time-step size used for generating and validating TOTP for the proximity check.
+     * Step duration used for generating and validating TOTP for the proximity check.
      */
-    @Value("${powerauth.service.proximity-check.otp.step-length:30s}")
-    private Duration proximityCheckStepLength;
+    @Value("${powerauth.service.proximity-check.otp.step-duration:30s}")
+    private Duration proximityCheckStepDuration;
 
     /**
      * Acceptable TOTP transmission delay as the number of past time-steps used for validating TOTP for the proximity check.
