@@ -802,7 +802,7 @@ public class ActivationServiceBehavior {
                 activationOtpValidation = com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
             }
 
-            validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase);
+            validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase, activationOtp);
 
             // Generate hash from activation OTP
             final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
@@ -936,13 +936,16 @@ public class ActivationServiceBehavior {
         }
     }
 
-    private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase) throws GenericServiceException {
+    private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase, String activationOtp) throws GenericServiceException {
         // Validate combination of activation OTP and OTP validation mode.
         if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && commitPhase != null) {
             logger.warn("Invalid combination of input parameters activationOtpValidation and commitPhase.");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-
+        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasLength(activationOtp)) {
+            logger.warn("Missing activation OTP for OTP validation: " + activationOtpValidation);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
     }
 
     private io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol convert(final ActivationProtocol source) {
