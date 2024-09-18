@@ -942,7 +942,7 @@ public class ActivationServiceBehavior {
             logger.warn("Invalid combination of input parameters activationOtpValidation and commitPhase.");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasLength(activationOtp)) {
+        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasText(activationOtp)) {
             logger.warn("Missing activation OTP for OTP validation: {}", activationOtpValidation);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
