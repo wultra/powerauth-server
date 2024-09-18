@@ -943,7 +943,7 @@ public class ActivationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasLength(activationOtp)) {
-            logger.warn("Missing activation OTP for OTP validation: " + activationOtpValidation);
+            logger.warn("Missing activation OTP for OTP validation: {}", activationOtpValidation);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
     }
