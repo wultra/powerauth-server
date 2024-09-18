@@ -37,6 +37,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
@@ -278,21 +279,23 @@ public class TemporaryKeyBehavior {
                 return result;
             } else {
 
-                final String appId = applicationVersionEntity.getApplication().getId();
+                final Long appId = applicationVersionEntity.getApplication().getRid();
 
                 final Optional<ActivationRecordEntity> activationWithoutLock = activationRepository.findActivationWithoutLock(requestClaims.getActivationId());
                 if (activationWithoutLock.isEmpty()) {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
                 final ActivationRecordEntity activation = activationWithoutLock.get();
-                if (activation.getActivationStatus() != ActivationStatus.ACTIVE || !appId.equals(activation.getApplication().getId())) {
+                if (activation.getActivationStatus() != ActivationStatus.ACTIVE
+                        || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
+                        || Objects.equals(appId, activation.getApplication().getRid())) {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
 
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
                 final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
                 final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
-                String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
+                final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
                 final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
                 final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
