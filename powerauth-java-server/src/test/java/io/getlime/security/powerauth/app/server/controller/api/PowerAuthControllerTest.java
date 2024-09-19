@@ -524,6 +524,7 @@ class PowerAuthControllerTest {
         updateCallbackUrlRequest.setId(callbackUrlResponse.getId());
         updateCallbackUrlRequest.setApplicationId(config.getApplicationId());
         updateCallbackUrlRequest.setAuthentication(null);
+        updateCallbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.toString());
 
         final UpdateCallbackUrlResponse updateCallbackUrlResponse = powerAuthClient.updateCallbackUrl(updateCallbackUrlRequest);
         assertEquals(callbackAttributes, updateCallbackUrlResponse.getAttributes());
