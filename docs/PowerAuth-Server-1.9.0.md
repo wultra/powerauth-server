@@ -86,7 +86,7 @@ and `/rest/v3/application/callback/update` endpoints and response body of `/rest
 
 Following attributes have been added:
 - `retentionPeriod` defines the duration after which a completed callback event is automatically removed from database.
-- `initialBackoff` defines the delay before retry attempt following a callback event failure, if retries are enabled.
+- `initialBackoff` defines the initial delay before retry attempt following a callback event failure, if retries are enabled.
 - `maxAttempts` defines the maximum number of attempts to send a callback event.
 
 ### ECDSA Signature Verification in JOSE Format
