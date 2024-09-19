@@ -19,8 +19,13 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.hibernate.validator.constraints.time.DurationMin;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,11 +37,31 @@ import java.util.List;
 @Data
 public class CreateCallbackUrlRequest {
 
+    @NotBlank
     private String applicationId;
+
+    @NotBlank
     private String name;
+
+    @NotBlank
     private String type;
+
+    @NotBlank
     private String callbackUrl;
+
     private List<String> attributes = new ArrayList<>();
     private HttpAuthenticationPrivate authentication = new HttpAuthenticationPrivate();
+
+    @DurationMin(message = "Duration must be positive or zero")
+    @Schema(type = "string", format = "ISO 8601 Duration", example = "P30D")
+    private Duration retentionPeriod;
+
+    @DurationMin(message = "Duration must be positive or zero")
+    @Schema(type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    private Duration initialBackoff;
+
+    @Min(1)
+    @Schema(type = "integer", example = "1")
+    private Integer maxAttempts;
 
 }

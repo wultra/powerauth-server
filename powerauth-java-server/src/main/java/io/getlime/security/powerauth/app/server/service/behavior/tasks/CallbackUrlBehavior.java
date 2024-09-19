@@ -81,12 +81,6 @@ public class CallbackUrlBehavior {
     @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
         try {
-            if (request.getName() == null) {
-                logger.warn("Invalid request parameter name in method createCallbackUrl");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Check the URL format
             try {
                 new URL(request.getCallbackUrl());
@@ -116,7 +110,11 @@ public class CallbackUrlBehavior {
             final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setRetentionPeriod(request.getRetentionPeriod());
+            entity.setInitialBackoff(request.getInitialBackoff());
+            entity.setMaxAttempts(request.getMaxAttempts());
             callbackUrlRepository.save(entity);
+
             final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
             response.setId(entity.getId());
             response.setApplicationId(entity.getApplication().getId());
@@ -126,6 +124,9 @@ public class CallbackUrlBehavior {
                 response.getAttributes().addAll(entity.getAttributes());
             }
             response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
+            response.setRetentionPeriod(entity.getRetentionPeriod());
+            response.setInitialBackoff(entity.getInitialBackoff());
+            response.setMaxAttempts(entity.getMaxAttempts());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -147,12 +148,6 @@ public class CallbackUrlBehavior {
      */
     public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws GenericServiceException {
         try {
-            if (request.getId() == null || request.getApplicationId() == null || request.getName() == null || request.getAttributes() == null) {
-                logger.warn("Invalid request in method updateCallbackUrl");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
                     .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
                     .orElseThrow(() -> {
@@ -175,6 +170,7 @@ public class CallbackUrlBehavior {
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
+            entity.setType(CallbackUrlType.valueOf(request.getType()));
             // Retain existing passwords in case new password is not set
             final HttpAuthenticationPrivate authRequest = request.getAuthentication();
             final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationCryptor.decrypt(entity);
@@ -202,6 +198,9 @@ public class CallbackUrlBehavior {
             final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(authRequest, entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setRetentionPeriod(request.getRetentionPeriod());
+            entity.setInitialBackoff(request.getInitialBackoff());
+            entity.setMaxAttempts(request.getMaxAttempts());
             callbackUrlRepository.save(entity);
 
             final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
@@ -214,6 +213,9 @@ public class CallbackUrlBehavior {
                 response.getAttributes().addAll(entity.getAttributes());
             }
             response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
+            response.setRetentionPeriod(entity.getRetentionPeriod());
+            response.setInitialBackoff(entity.getInitialBackoff());
+            response.setMaxAttempts(entity.getMaxAttempts());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -248,6 +250,9 @@ public class CallbackUrlBehavior {
                     item.getAttributes().addAll(callbackUrl.getAttributes());
                 }
                 item.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(callbackUrl));
+                item.setRetentionPeriod(callbackUrl.getRetentionPeriod());
+                item.setInitialBackoff(callbackUrl.getInitialBackoff());
+                item.setMaxAttempts(callbackUrl.getMaxAttempts());
                 response.getCallbackUrlList().add(item);
             }
             return response;

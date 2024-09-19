@@ -78,6 +78,17 @@ The parameter `activationOtpValidation` is deprecated.
 Use the `activationOtp` parameter during activation init or activation commit to control the OTP check.
 Use the `commitPhase` parameter for specifying when the activation should be committed.
 
+### New Attributes in Callback URL Management API
+
+The Callback URL Management API supports configuration of retry policy and retention period for each Callback URL
+configuration. These changes impact both the request and response bodies of `/rest/v3/application/callback/create`
+and `/rest/v3/application/callback/update` endpoints and response body of `/rest/v3/application/callback/list` endpoint.
+
+Following attributes have been added:
+- `retentionPeriod` defines the duration after which a completed callback event is automatically removed from database.
+- `initialBackoff` defines the delay before retry attempt following a callback event failure, if retries are enabled.
+- `maxAttempts` defines the maximum number of attempts to send a callback event.
+
 ### ECDSA Signature Verification in JOSE Format
 
 The method `POST /rest/v3/signature/ecdsa/verify` now supports validation of ECDSA signature in JOSE format, thanks to added `signatureFormat` request attribute (`DER` as a default value, or `JOSE`).
