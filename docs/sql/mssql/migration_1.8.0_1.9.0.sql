@@ -21,6 +21,7 @@ GO
 -- Changeset powerauth-java-server/1.9.x/20240910-commit-phase.xml::1::Roman Strobl
 -- Add commit_phase column to pa_activation table.
 ALTER TABLE pa_activation ADD commit_phase int CONSTRAINT DF_pa_activation_commit_phase DEFAULT 0;
+GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::1::Jan Pesek
 -- Create a new table pa_callback_event
