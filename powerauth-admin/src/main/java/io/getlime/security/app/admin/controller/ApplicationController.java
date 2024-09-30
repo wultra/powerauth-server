@@ -34,7 +34,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -171,7 +174,7 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackUpdate" view.
      */
-    @PostMapping("/application/detail/{applicationId}/callback/update")
+    @GetMapping("/application/detail/{applicationId}/callback/update")
     public String applicationUpdateCallback(@PathVariable("applicationId") String applicationId,
                                             @RequestParam String callbackId,
                                             Map<String, Object> model) {
@@ -226,6 +229,10 @@ public class ApplicationController {
                             model.put("auth_oAuth2Scope", oAuth2.getScope());
                             model.put("auth_oAuth2TokenUri", oAuth2.getTokenUri());
                         }
+
+                        model.put("retentionPeriod", callback.getRetentionPeriod());
+                        model.put("initialBackoff", callback.getInitialBackoff());
+                        model.put("maxAttempts", callback.getMaxAttempts());
                     }
                     return "callbackUpdate";
                 }
@@ -353,6 +360,19 @@ public class ApplicationController {
             if (errorAuth != null) {
                 error = errorAuth;
             }
+
+            if (!isValidDurationOrNull(allParams.get("retentionPeriod"))) {
+                error = "Retention period must be in ISO 8601 Duration format.";
+            }
+
+            if (!isValidDurationOrNull(allParams.get("initialBackoff"))) {
+                error = "Initial backoff must be in ISO 8601 Duration format.";
+            }
+
+            if (!isPositiveIntegerOrNull(allParams.get("maxAttempts"))) {
+                error = "Max attempts must be a positive integer.";
+            }
+
             if (error != null) {
                 for (String attribute: CALLBACK_ATTRIBUTES_OPTIONAL) {
                     if (allParams.get(attribute) != null) {
@@ -372,7 +392,10 @@ public class ApplicationController {
                 }
             }
             HttpAuthenticationPrivate httpAuthentication = prepareHttpAuthentication(allParams);
-            client.createCallbackUrl(applicationId, name, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, attributes, httpAuthentication);
+            final Integer maxAttempts = parse(allParams.get("maxAttempts"), Integer::parseInt);
+            final Duration retentionPeriod = parse(allParams.get("retentionPeriod"), Duration::parse);
+            final Duration initialBackoff = parse(allParams.get("initialBackoff"), Duration::parse);
+            client.createCallbackUrl(applicationId, name, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, attributes, httpAuthentication, retentionPeriod, initialBackoff, maxAttempts);
             return "redirect:/application/detail/" + applicationId + "#callbacks";
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
@@ -413,6 +436,19 @@ public class ApplicationController {
             if (errorAuth != null) {
                 error = errorAuth;
             }
+
+            if (!isValidDurationOrNull(allParams.get("retentionPeriod"))) {
+                error = "Retention period must be in ISO 8601 Duration format.";
+            }
+
+            if (!isValidDurationOrNull(allParams.get("initialBackoff"))) {
+                error = "Initial backoff must be in ISO 8601 Duration format.";
+            }
+
+            if (!isPositiveIntegerOrNull(allParams.get("maxAttempts"))) {
+                error = "Max attempts must be a positive integer.";
+            }
+
             if (error != null) {
                 redirectAttributes.addAttribute("callbackId", callbackId);
                 redirectAttributes.addFlashAttribute("error", error);
@@ -428,7 +464,10 @@ public class ApplicationController {
                 }
             }
             HttpAuthenticationPrivate httpAuthentication = prepareHttpAuthentication(allParams);
-            client.updateCallbackUrl(callbackId, applicationId, name, callbackUrl, attributes, httpAuthentication);
+            final Integer maxAttempts = parse(allParams.get("maxAttempts"), Integer::parseInt);
+            final Duration retentionPeriod = parse(allParams.get("retentionPeriod"), Duration::parse);
+            final Duration initialBackoff = parse(allParams.get("initialBackoff"), Duration::parse);
+            client.updateCallbackUrl(callbackId, applicationId, name, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, attributes, httpAuthentication, retentionPeriod, initialBackoff, maxAttempts);
             return "redirect:/application/detail/" + applicationId + "#callbacks";
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
@@ -634,6 +673,28 @@ public class ApplicationController {
         final List<T> target = new ArrayList<>(source);
         Collections.reverse(target);
         return target;
+    }
+
+    private static boolean isValidDurationOrNull(final String value) {
+        try {
+            parse(value, Duration::parse);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    private static boolean isPositiveIntegerOrNull(final String value) {
+        try {
+            final Integer parsed = parse(value, Integer::parseInt);
+            return parsed == null || parsed > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static <T> T parse(final String value, final Function<String, T> parser) {
+        return StringUtils.hasText(value) ? parser.apply(value) : null;
     }
 
 }
