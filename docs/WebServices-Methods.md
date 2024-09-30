@@ -1394,6 +1394,9 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 When creating a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
 
@@ -1466,6 +1469,9 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'updateCallbackUrl'
 
@@ -1486,6 +1492,9 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 When configuring a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
 
@@ -1560,6 +1569,9 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1594,6 +1606,9 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'removeCallbackUrl'
 

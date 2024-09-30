@@ -30,6 +30,7 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,7 +64,7 @@ public class ApplicationCallbackController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateCallbackUrlResponse> createCallbackUrl(@RequestBody ObjectRequest<CreateCallbackUrlRequest> request) throws Exception {
+    public ObjectResponse<CreateCallbackUrlResponse> createCallbackUrl(@Valid @RequestBody ObjectRequest<CreateCallbackUrlRequest> request) throws Exception {
         logger.info("CreateCallbackUrlRequest received: {}", request);
         final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(request.getRequestObject()));
         logger.info("CreateCallbackUrlRequest succeeded: {}", response);
@@ -78,7 +79,7 @@ public class ApplicationCallbackController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/update")
-    public ObjectResponse<UpdateCallbackUrlResponse> updateCallbackUrl(@RequestBody ObjectRequest<UpdateCallbackUrlRequest> request) throws Exception {
+    public ObjectResponse<UpdateCallbackUrlResponse> updateCallbackUrl(@Valid @RequestBody ObjectRequest<UpdateCallbackUrlRequest> request) throws Exception {
         logger.info("UpdateCallbackUrlRequest received: {}", request);
         final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>(service.updateCallbackUrl(request.getRequestObject()));
         logger.info("UpdateCallbackUrlRequest succeeded: {}", response);
