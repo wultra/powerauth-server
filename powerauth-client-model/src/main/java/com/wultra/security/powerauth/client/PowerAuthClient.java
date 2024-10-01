@@ -1155,12 +1155,15 @@ public interface PowerAuthClient {
     /**
      * Create a new callback URL with given parameters.
      *
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param type           Callback type.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
@@ -1189,12 +1192,16 @@ public interface PowerAuthClient {
     /**
      * Update a callback URL with given parameters.
      *
-     * @param id             Callback URL identifier.
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param id              Callback URL identifier.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
