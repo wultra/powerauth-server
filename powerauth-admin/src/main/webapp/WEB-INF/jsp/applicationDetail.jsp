@@ -146,7 +146,7 @@
                                             <div class="panel panel-default">
                                                 <div class="panel-heading">
                                                     <h3 class="panel-title button-sm pull-left">Callbacks</h3>
-                                                    <a href="${pageContext.request.contextPath}/application/detail/<c:out value="${id}"/>/callback/create" class="btn btn-sm btn-default pull-right">Add Callback</a>
+                                                    <a href="${pageContext.request.contextPath}/application/detail/<c:out value="${id}"/>/callback/create/form" class="btn btn-sm btn-default pull-right">Add Callback</a>
                                                     <div class="clearfix"></div>
                                                 </div>
 
@@ -178,7 +178,7 @@
                                                                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                                             <input type="submit" value="Remove" class="btn btn-sm btn-danger pull-right btn-table"/>
                                                                         </form>
-                                                                        <form action="${pageContext.request.contextPath}/application/detail/<c:out value="${id}"/>/callback/update" method="GET" class="pull-right">
+                                                                        <form action="${pageContext.request.contextPath}/application/detail/<c:out value="${id}"/>/callback/update/form" method="GET" class="pull-right">
                                                                             <input type="hidden" name="callbackId" value="<c:out value="${item.id}"/>"/>
                                                                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                                                             <input type="submit" value="Update" class="btn btn-sm btn-success pull-right btn-table"/>

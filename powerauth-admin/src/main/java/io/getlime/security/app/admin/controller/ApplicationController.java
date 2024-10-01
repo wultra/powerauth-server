@@ -160,7 +160,7 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackCreate" view.
      */
-    @GetMapping("/application/detail/{applicationId}/callback/create")
+    @GetMapping("/application/detail/{applicationId}/callback/create/form")
     public String applicationCreateCallback(@PathVariable("applicationId") String id, Map<String, Object> model) {
         model.put("applicationId", id);
         return "callbackCreate";
@@ -174,7 +174,7 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackUpdate" view.
      */
-    @GetMapping("/application/detail/{applicationId}/callback/update")
+    @GetMapping("/application/detail/{applicationId}/callback/update/form")
     public String applicationUpdateCallback(@PathVariable("applicationId") String applicationId,
                                             @RequestParam String callbackId,
                                             Map<String, Object> model) {
@@ -382,7 +382,7 @@ public class ApplicationController {
                 redirectAttributes.addFlashAttribute("error", error);
                 redirectAttributes.addFlashAttribute("name", name);
                 redirectAttributes.addFlashAttribute("callbackUrl", callbackUrl);
-                return "redirect:/application/detail/" + applicationId + "/callback/create";
+                return "redirect:/application/detail/" + applicationId + "/callback/create/form";
             }
             List<String> attributes = new ArrayList<>();
             attributes.add("activationId");
@@ -454,7 +454,7 @@ public class ApplicationController {
                 redirectAttributes.addFlashAttribute("error", error);
                 redirectAttributes.addFlashAttribute("name", name);
                 redirectAttributes.addFlashAttribute("callbackUrl", callbackUrl);
-                return "redirect:/application/detail/" + applicationId + "/callback/update";
+                return "redirect:/application/detail/" + applicationId + "/callback/update/form";
             }
             List<String> attributes = new ArrayList<>();
             attributes.add("activationId");
