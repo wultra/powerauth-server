@@ -453,6 +453,12 @@ REST endpoint: `POST /rest/v3/activation/init`
 | `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |        
 | `String`                  | `activationOtp` | Optional activation OTP                                                                                                                                                                                                                               |
 
+This section describes how to change the activation commit flow:
+- By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
+- In case you want the activation to be commited during key exchange, specify the `commitPhase` parameter with value `ON_KEY_EXCHANGE`. In this case, the activation transitions from `CREATED` state directly into `ACTIVE` state and no separate call is required for performing the activation commit.
+
+In case you require activation OTP validation during activation, specify the `activationOtp` parameter. The phase when the OTP gets validated is controlled by the `commitPhase` parameter, either it is checked by default during commit (value `ON_COMMIT`) or during key exchange (value `ON_KEY_EXCHANGE`). When the `activationOtp` parameter is missing, OTP validation is not performed.  
+
 #### Response
 
 `InitActivationResponse`
