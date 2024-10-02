@@ -151,6 +151,10 @@ public class EncryptionService {
      * @throws GenericServiceException Thrown when encryption fails.
      */
     public EncryptableString encrypt(final String data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
+        if (data == null) {
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, "Data must not be null");
+        }
+
         final byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
         final EncryptableData result = encrypt(dataBytes, encryptionKeyProvider);
         return new EncryptableString(result.encryptionMode(), convert(result));
@@ -166,6 +170,10 @@ public class EncryptionService {
      * @throws GenericServiceException Thrown when encryption fails.
      */
     public EncryptableData encrypt(final byte[] data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
+        if (data == null) {
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, "Data must not be null");
+        }
+
         final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the value

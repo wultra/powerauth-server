@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Converter for callback request authentication.
@@ -48,17 +49,13 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
     }
 
     @Override
-    public String convertToDatabaseColumn(CallbackUrlAuthentication authentication) {
+    public String convertToDatabaseColumn(final CallbackUrlAuthentication authentication) {
         try {
-            if (authentication == null) {
-                authentication = new CallbackUrlAuthentication();
-            }
-            return objectMapper.writeValueAsString(authentication);
+            return objectMapper.writeValueAsString(Objects.requireNonNullElse(authentication, new CallbackUrlAuthentication()));
         } catch (JsonProcessingException ex) {
             logger.error("Unable to serialize JSON payload", ex);
             return null;
         }
-
     }
 
     @Override
