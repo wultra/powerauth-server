@@ -84,7 +84,7 @@ public class SignatureController {
         logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received.");
         logger.debug("CreatePersonalizedOfflineSignaturePayloadRequest received: {}", request);
         final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
-        logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded.");
+        logger.info("action: createPersonalizedOfflineSignaturePayload, state: succeeded");
         logger.debug("CreatePersonalizedOfflineSignaturePayloadRequest succeeded: {}", response);
         return response;
     }
