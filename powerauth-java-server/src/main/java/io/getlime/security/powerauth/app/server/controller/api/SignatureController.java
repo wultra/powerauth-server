@@ -81,7 +81,7 @@ public class SignatureController {
      */
     @PostMapping("/offline/personalized/create")
     public ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody ObjectRequest<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
-        logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received.");
+        logger.info("action: createPersonalizedOfflineSignaturePayload, state: initiated, activationId: {}", request.getRequestObject().getActivationId());
         logger.debug("CreatePersonalizedOfflineSignaturePayloadRequest received: {}", request);
         final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
         logger.info("action: createPersonalizedOfflineSignaturePayload, state: succeeded");
