@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
+import io.getlime.security.powerauth.app.server.converter.CallbackUrlTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -103,7 +104,7 @@ public class CallbackUrlBehavior {
             entity.setId(UUID.randomUUID().toString());
             entity.setApplication(applicationEntityOptional.get());
             entity.setName(request.getName());
-            entity.setType(CallbackUrlType.valueOf(request.getType()));
+            entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
             entity.setFailureCount(0);
@@ -119,6 +120,7 @@ public class CallbackUrlBehavior {
             response.setId(entity.getId());
             response.setApplicationId(entity.getApplication().getId());
             response.setName(entity.getName());
+            response.setType(CallbackUrlTypeConverter.convert(entity.getType()));
             response.setCallbackUrl(entity.getCallbackUrl());
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
@@ -170,7 +172,7 @@ public class CallbackUrlBehavior {
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
-            entity.setType(CallbackUrlType.valueOf(request.getType()));
+            entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             // Retain existing passwords in case new password is not set
             final HttpAuthenticationPrivate authRequest = request.getAuthentication();
             final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationCryptor.decrypt(entity);
@@ -207,7 +209,7 @@ public class CallbackUrlBehavior {
             response.setId(entity.getId());
             response.setApplicationId(entity.getApplication().getId());
             response.setName(entity.getName());
-            response.setType(entity.getType().toString());
+            response.setType(CallbackUrlTypeConverter.convert(entity.getType()));
             response.setCallbackUrl(entity.getCallbackUrl());
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
@@ -244,7 +246,7 @@ public class CallbackUrlBehavior {
                 item.setId(callbackUrl.getId());
                 item.setApplicationId(callbackUrl.getApplication().getId());
                 item.setName(callbackUrl.getName());
-                item.setType(callbackUrl.getType().toString());
+                item.setType(CallbackUrlTypeConverter.convert(callbackUrl.getType()));
                 item.setCallbackUrl(callbackUrl.getCallbackUrl());
                 if (callbackUrl.getAttributes() != null) {
                     item.getAttributes().addAll(callbackUrl.getAttributes());

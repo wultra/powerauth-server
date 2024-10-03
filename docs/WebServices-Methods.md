@@ -1392,17 +1392,17 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 
 `CreateCallbackUrlRequest`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
-| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
-| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
-| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 When creating a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
 
@@ -1467,17 +1467,18 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `CreateCallbackUrlResponse`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
-| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
-| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
-| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'updateCallbackUrl'
 
@@ -1489,18 +1490,18 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 
 `UpdateCallbackUrlRequest`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
-| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
-| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
-| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 When configuring a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
 
@@ -1566,18 +1567,18 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `UpdateCallbackUrlResponse`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
-| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
-| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
-| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1603,18 +1604,18 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 
 `GetCallbackUrlListResponse.CallbackUrlList`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
-| `Duration`     | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
-| `Duration`     | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
-| `Integer`      | `maxAttempts` | Maximum number of attempts to send a callback event. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'removeCallbackUrl'
 

@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import jakarta.persistence.EntityManager;
@@ -64,7 +64,7 @@ class CallbackUrlBehaviorTest {
         request.setCallbackUrl("http://localhost:8080");
         request.setAuthentication(null);
         request.setName("new-name");
-        request.setType(CallbackUrlType.OPERATION_STATUS_CHANGE.toString());
+        request.setType(CallbackUrlType.OPERATION_STATUS_CHANGE);
         tested.updateCallbackUrl(request);
 
         final CallbackUrlEntity updated = entityManager.find(CallbackUrlEntity.class, "cafec169-28a6-490c-a1d5-c012b9e3c044");
