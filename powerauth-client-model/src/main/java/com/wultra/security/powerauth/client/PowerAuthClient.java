@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.core.rest.model.base.response.Response;
 import org.springframework.util.MultiValueMap;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -1154,16 +1155,19 @@ public interface PowerAuthClient {
     /**
      * Create a new callback URL with given parameters.
      *
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param type           Callback type.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
@@ -1188,16 +1192,20 @@ public interface PowerAuthClient {
     /**
      * Update a callback URL with given parameters.
      *
-     * @param id             Callback URL identifier.
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param id              Callback URL identifier.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.

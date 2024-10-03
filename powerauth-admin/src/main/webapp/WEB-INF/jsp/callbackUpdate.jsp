@@ -206,6 +206,27 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <h4 class="panel-heading">Retry Policy and Retention</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxAttempts" class="col-sm-3 control-label">Max Attempts</label>
+                        <div class="col-sm-9">
+                            <input type="number" id="maxAttempts" name="maxAttempts" class="form-control" value="${maxAttempts}" min="1"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="initialBackoff" class="col-sm-3 control-label">Initial Backoff</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="initialBackoff" name="initialBackoff" class="form-control" value="${initialBackoff}"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="retentionPeriod" class="col-sm-3 control-label">Retention Period</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="retentionPeriod" name="retentionPeriod" class="form-control" value="${retentionPeriod}"/>
+                        </div>
+                    </div>
                     <div class="form-group text-right">
                         <div class="col-sm-11">
                             <input type="hidden" name="callbackId" value="<c:out value="${callbackId}"/>"/>

@@ -45,6 +45,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -866,7 +867,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException {
         final CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -876,6 +877,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
+        request.setRetentionPeriod(retentionPeriod);
+        request.setInitialBackoff(initialBackoff);
+        request.setMaxAttempts(maxAttempts);
         return createCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -890,16 +894,20 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException {
         final UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
         request.setId(id);
         request.setApplicationId(applicationId);
         request.setName(name);
+        request.setType(type.toString());
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
+        request.setRetentionPeriod(retentionPeriod);
+        request.setInitialBackoff(initialBackoff);
+        request.setMaxAttempts(maxAttempts);
         return updateCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
