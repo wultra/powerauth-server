@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.converter.CallbackUrlTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
@@ -72,6 +73,7 @@ public class CallbackUrlBehavior {
     private LocalizationProvider localizationProvider;
     private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
     private final CallbackUrlRestClientManager callbackUrlRestClientManager;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -126,9 +128,9 @@ public class CallbackUrlBehavior {
                 response.getAttributes().addAll(entity.getAttributes());
             }
             response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
-            response.setRetentionPeriod(entity.getRetentionPeriod());
-            response.setInitialBackoff(entity.getInitialBackoff());
-            response.setMaxAttempts(entity.getMaxAttempts());
+            response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+            response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+            response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -215,9 +217,9 @@ public class CallbackUrlBehavior {
                 response.getAttributes().addAll(entity.getAttributes());
             }
             response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
-            response.setRetentionPeriod(entity.getRetentionPeriod());
-            response.setInitialBackoff(entity.getInitialBackoff());
-            response.setMaxAttempts(entity.getMaxAttempts());
+            response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+            response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+            response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -252,9 +254,9 @@ public class CallbackUrlBehavior {
                     item.getAttributes().addAll(callbackUrl.getAttributes());
                 }
                 item.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(callbackUrl));
-                item.setRetentionPeriod(callbackUrl.getRetentionPeriod());
-                item.setInitialBackoff(callbackUrl.getInitialBackoff());
-                item.setMaxAttempts(callbackUrl.getMaxAttempts());
+                item.setRetentionPeriod(Objects.requireNonNullElse(callbackUrl.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+                item.setInitialBackoff(Objects.requireNonNullElse(callbackUrl.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+                item.setMaxAttempts(Objects.requireNonNullElse(callbackUrl.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
                 response.getCallbackUrlList().add(item);
             }
             return response;
