@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -38,6 +39,7 @@ public class CreateCallbackUrlResponse {
     private String id;
     private String applicationId;
     private String name;
+    private CallbackUrlType type;
     private String callbackUrl;
     private List<String> attributes = new ArrayList<>();
     private HttpAuthenticationPublic authentication = new HttpAuthenticationPublic();

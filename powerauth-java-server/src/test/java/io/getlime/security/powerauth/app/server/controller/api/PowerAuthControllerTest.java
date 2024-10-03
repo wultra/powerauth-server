@@ -524,7 +524,7 @@ class PowerAuthControllerTest {
         updateCallbackUrlRequest.setId(callbackUrlResponse.getId());
         updateCallbackUrlRequest.setApplicationId(config.getApplicationId());
         updateCallbackUrlRequest.setAuthentication(null);
-        updateCallbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.toString());
+        updateCallbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE);
 
         final UpdateCallbackUrlResponse updateCallbackUrlResponse = powerAuthClient.updateCallbackUrl(updateCallbackUrlRequest);
         assertEquals(callbackAttributes, updateCallbackUrlResponse.getAttributes());
@@ -1106,7 +1106,7 @@ class PowerAuthControllerTest {
         final CreateCallbackUrlRequest callbackUrlRequest = new CreateCallbackUrlRequest();
         callbackUrlRequest.setCallbackUrl(PowerAuthControllerTestConfig.CALLBACK_URL);
         callbackUrlRequest.setName(PowerAuthControllerTestConfig.CALLBACK_NAME);
-        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.name());
+        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE);
         callbackUrlRequest.setApplicationId(config.getApplicationId());
         callbackUrlRequest.setAttributes(Collections.singletonList("activationId"));
         callbackUrlRequest.setAuthentication(null);

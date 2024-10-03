@@ -871,7 +871,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         final CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
-        request.setType(type.toString());
+        request.setType(type);
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
@@ -899,7 +899,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setId(id);
         request.setApplicationId(applicationId);
         request.setName(name);
-        request.setType(type.toString());
+        request.setType(type);
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
