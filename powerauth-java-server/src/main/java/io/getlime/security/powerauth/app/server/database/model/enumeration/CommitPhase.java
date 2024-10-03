@@ -20,9 +20,11 @@ package io.getlime.security.powerauth.app.server.database.model.enumeration;
 
 /**
  * Enum representing phase when activation is committed. Following values are supported:
- * <p>
- * - ON_COMMIT = 0
- * - ON_KEY_EXCHANGE = 1
+ *
+ * <ul>
+ * <li>{@code ON_COMMIT} = 0</li>
+ * <li>{@code ON_KEY_EXCHANGE} = 1</li>
+ * </ul>
  */
 public enum CommitPhase {
 
