@@ -67,3 +67,9 @@ GO
 -- Add failure_count column to pa_application_callback table.
 ALTER TABLE pa_application_callback ADD failure_count int CONSTRAINT DF_pa_application_callback_failure_count DEFAULT 0 NOT NULL;
 GO
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::10::Jan Pesek
+-- Add enabled column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD enabled bit CONSTRAINT DF_pa_application_callback_enabled DEFAULT 1 NOT NULL;
+GO
+

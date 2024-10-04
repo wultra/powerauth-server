@@ -25,6 +25,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -41,6 +42,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "pa_application_callback")
 @Getter @Setter
+@SQLRestriction("enabled = true")
 public class CallbackUrlEntity implements Serializable {
 
     @Serial
@@ -130,6 +132,12 @@ public class CallbackUrlEntity implements Serializable {
      */
     @Column(name = "failure_count", nullable = false)
     private Integer failureCount;
+
+    /**
+     * Whether the callback is enabled and can be used.
+     */
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 
     @Override
     public boolean equals(Object o) {

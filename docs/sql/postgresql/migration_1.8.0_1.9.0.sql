@@ -53,3 +53,8 @@ ALTER TABLE pa_application_callback ADD timestamp_last_failure TIMESTAMP(6) WITH
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::9::Jan Pesek
 -- Add failure_count column to pa_application_callback table.
 ALTER TABLE pa_application_callback ADD failure_count INTEGER DEFAULT 0 NOT NULL;
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::10::Jan Pesek
+-- Add enabled column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD enabled BOOLEAN DEFAULT TRUE NOT NULL;
+

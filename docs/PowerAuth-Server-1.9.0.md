@@ -62,6 +62,13 @@ failures:
 - `failure_count` to hold the number of consecutive failed callbacks of the same configuration, and
 - `timestamp_last_failure` to store the timestamp of the most recent failed callback attempt.
 
+### Add Column Indicating If a Callback Is Enabled
+
+A new column `enabled` has been added to the `pa_application_callback` table to indicate whether a Callback URL is
+enabled or disabled. When a new Callback URL is created via the Callback URL Management API, the `enabled` column is set
+to `true` (enabled) by default. A Callback URL remains enabled until a delete request is made through the Callback URL
+Management API, at which point the `enabled` column is set to `false` (disabled). Disabled Callback URLs will be
+excluded from all subsequent queries and operations.
 
 ## REST API Changes
 

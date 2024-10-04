@@ -136,4 +136,18 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="10" logicalFilePath="powerauth-java-server/1.9.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="enabled" />
+            </not>
+        </preConditions>
+        <comment>Add enabled column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
