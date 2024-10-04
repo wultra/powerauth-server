@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.9.x/20241004-add-unique-constrains.xml" author="Lubos Racansky">
+        <comment>Add a unique constraint to pa_application_version.application_key</comment>
+        <addUniqueConstraint tableName="pa_application_version" columnNames="application_key" />
+    </changeSet>
+
+</databaseChangeLog>
