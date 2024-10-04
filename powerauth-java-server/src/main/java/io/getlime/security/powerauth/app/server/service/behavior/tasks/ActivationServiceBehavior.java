@@ -1302,7 +1302,7 @@ public class ActivationServiceBehavior {
             final PrivateKey privateKey;
             if (temporaryKeyId != null) {
                 // Get temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId);
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
             } else {
                 // Get master server private key
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
