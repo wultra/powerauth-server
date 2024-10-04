@@ -34,7 +34,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationCryptor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlRestClientManager;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
@@ -71,7 +71,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlEventService callbackUrlEventService;
     private final CallbackUrlEventQueueService callbackUrlEventQueueService;
     private LocalizationProvider localizationProvider;
-    private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
+    private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
     private final CallbackUrlRestClientManager callbackUrlRestClientManager;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
@@ -110,7 +110,7 @@ public class CallbackUrlBehavior {
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
             entity.setFailureCount(0);
-            final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
+            final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
             entity.setRetentionPeriod(request.getRetentionPeriod());
@@ -127,7 +127,7 @@ public class CallbackUrlBehavior {
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
+            response.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(entity));
             response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
             response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
             response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
@@ -177,7 +177,7 @@ public class CallbackUrlBehavior {
             entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             // Retain existing passwords in case new password is not set
             final HttpAuthenticationPrivate authRequest = request.getAuthentication();
-            final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationCryptor.decrypt(entity);
+            final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationEncryptor.decrypt(entity);
             if (authRequest != null) {
                 if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
                     if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
@@ -199,7 +199,7 @@ public class CallbackUrlBehavior {
                     authRequest.getOAuth2().setClientSecret(authExisting.getOAuth2().getClientSecret());
                 }
             }
-            final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(authRequest, entity.getApplication().getId());
+            final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(authRequest, entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
             entity.setRetentionPeriod(request.getRetentionPeriod());
@@ -216,7 +216,7 @@ public class CallbackUrlBehavior {
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
+            response.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(entity));
             response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
             response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
             response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
@@ -253,7 +253,7 @@ public class CallbackUrlBehavior {
                 if (callbackUrl.getAttributes() != null) {
                     item.getAttributes().addAll(callbackUrl.getAttributes());
                 }
-                item.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(callbackUrl));
+                item.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(callbackUrl));
                 item.setRetentionPeriod(Objects.requireNonNullElse(callbackUrl.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
                 item.setInitialBackoff(Objects.requireNonNullElse(callbackUrl.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
                 item.setMaxAttempts(Objects.requireNonNullElse(callbackUrl.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));

@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  */
 @Component
 @AllArgsConstructor
-public final class CallbackUrlAuthenticationCryptor {
+public final class CallbackUrlAuthenticationEncryptor {
 
     private CallbackAuthenticationConverter callbackAuthenticationConverter;
     private EncryptionService encryptionService;

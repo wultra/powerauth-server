@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CallbackUrlRestClientManager {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
+    private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
     private final CallbackUrlEventRepository callbackUrlEventRepository;
 
     // Store REST clients in cache with their callback ID as a key
@@ -135,7 +135,7 @@ public class CallbackUrlRestClientManager {
                     .username(powerAuthServiceConfiguration.getHttpProxyUsername())
                     .password(powerAuthServiceConfiguration.getHttpProxyPassword());
         }
-        final CallbackUrlAuthentication authentication = callbackUrlAuthenticationCryptor.decrypt(callbackUrlEntity);
+        final CallbackUrlAuthentication authentication = callbackUrlAuthenticationEncryptor.decrypt(callbackUrlEntity);
         final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
