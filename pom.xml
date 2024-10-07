@@ -93,7 +93,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi-starter-webmvc-ui.version>2.6.0</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.24</swagger-annotations-jakarta.version>
+        <swagger-annotations-jakarta.version>2.2.25</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
         <shedlock.version>5.16.0</shedlock.version>
