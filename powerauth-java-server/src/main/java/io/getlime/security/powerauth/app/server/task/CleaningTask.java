@@ -97,7 +97,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvents:3000} * 0.8)}")
     public void dispatchPendingCallbackUrlEvents() {
         LockAssert.assertLocked();
-        logger.debug("dispatchPendingCallbackUrlEvents");
+        logger.debug("Calling scheduled job to dispatch pending callback url events");
         callbackUrlEventService.dispatchPendingCallbackUrlEvents();
     }
 
@@ -105,7 +105,7 @@ public class CleaningTask {
     @SchedulerLock(name = "cleanCallbackUrlEvents")
     public void cleanCallbackUrlEvents() {
         LockAssert.assertLocked();
-        logger.debug("cleanCallbackUrlEvents");
+        logger.debug("Calling scheduled job to clean completed callback url events");
         callbackUrlEventService.deleteCallbackUrlEventsAfterRetentionPeriod();
     }
 
@@ -115,7 +115,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.rerunStaleCallbackUrlEvents:3000} * 0.8)}")
     public void rerunStaleCallbackUrlEvents() {
         LockAssert.assertLocked();
-        logger.debug("rerunStaleCallbackUrlEvents");
+        logger.debug("Calling scheduled job to rerun stale callback url events");
         callbackUrlEventService.resetStaleCallbackUrlEvents();
     }
 
