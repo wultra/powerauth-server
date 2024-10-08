@@ -55,4 +55,13 @@ public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity,
            """)
     void resetFailureCount(String id);
 
+    @Modifying
+    @Query("""
+            UPDATE CallbackUrlEntity c
+            SET c.enabled = false
+            WHERE c = :entity
+            """)
+    @Override
+    void delete(CallbackUrlEntity entity);
+
 }
