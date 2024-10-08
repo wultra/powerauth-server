@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEve
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.task.CleaningTask;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,12 @@ class CallbackUrlBehaviorTest {
 
     @MockBean
     private CallbackUrlEventService callbackUrlEventService;
+
+    /**
+     * Mock CleaningTask to avoid running scheduled job when mocking CallbackUrlEventService
+     */
+    @MockBean
+    private CleaningTask cleaningTask;
 
     @Test
     void testCreateCallbackUrl() throws Exception {
