@@ -286,7 +286,7 @@ public class TemporaryKeyBehavior {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
                 final ActivationRecordEntity activation = activationWithoutLock.get();
-                if (activation.getActivationStatus() != ActivationStatus.ACTIVE
+                if ((activation.getActivationStatus() != ActivationStatus.ACTIVE && activation.getActivationStatus() != ActivationStatus.BLOCKED)
                         || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
                         || !Objects.equals(appId, activation.getApplication().getRid())) {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
