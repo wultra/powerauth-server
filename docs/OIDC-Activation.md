@@ -6,7 +6,9 @@ PowerAuth protocol allows activation using OpenID Connect (OIDC) protocol.
 ## OIDC Activation Configuration
 
 To enable OIDC activation, an entry with the key `oauth2_providers` must exist in the table `pa_application_config`.
-Mind that this table supports encryption.
+This configuration is partially exposed to the mobile token by the Enrollment Server, because some values are required for calling the authorize endpoint.
+
+Mind that this table supports encryption, see [Encrypting Records in Database](./Encrypting-Records-in-Database.md) for details.
 
 
 ### Required Configuration
