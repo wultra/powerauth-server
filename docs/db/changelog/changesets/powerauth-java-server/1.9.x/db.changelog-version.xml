@@ -9,5 +9,6 @@
     <include file="20240906-configuration-encryption.xml" relativeToChangelogFile="true" />
     <include file="20240910-commit-phase.xml" relativeToChangelogFile="true" />
     <include file="20240704-callback-event-table.xml" relativeToChangelogFile="true" />
+    <include file="20241003-add-tag-1.9.0.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
