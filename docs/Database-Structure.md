@@ -188,6 +188,7 @@ Stores callback URLs - per-application endpoints that are notified whenever an a
 | timestamp_last_failure | DATETIME | - | The timestamp of the most recent failed callback event associated with this configuration. |
 | failure_count | INTEGER | - | The number of consecutive failed callback events associated with this configuration. |
 | enabled | BOOLEAN | - | Indicator specifying whether the Callback URL should be used. |
+| timestamp_last_updated | DATETIME | - | Timestamp of the last update of the record via the Callback Management API. |
 <!-- end -->
 
 <!-- begin database table pa_token -->

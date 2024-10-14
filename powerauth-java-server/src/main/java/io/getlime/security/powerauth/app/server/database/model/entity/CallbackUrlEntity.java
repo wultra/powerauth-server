@@ -139,6 +139,12 @@ public class CallbackUrlEntity implements Serializable {
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
+    /**
+     * Timestamp of the last update via Callback Management API.
+     */
+    @Column(name = "timestamp_last_updated", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime timestampLastUpdated = LocalDateTime.now();
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

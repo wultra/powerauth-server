@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
@@ -36,7 +37,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlRestClientManager;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
@@ -52,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
@@ -72,7 +74,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlEventQueueService callbackUrlEventQueueService;
     private LocalizationProvider localizationProvider;
     private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
-    private final CallbackUrlRestClientManager callbackUrlRestClientManager;
+    private final LoadingCache<String, CachedRestClient> restClientCache;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
@@ -169,7 +171,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            callbackUrlRestClientManager.evictRestClientFromCache(entity);
+            restClientCache.refresh(entity.getId());
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -205,6 +207,7 @@ public class CallbackUrlBehavior {
             entity.setRetentionPeriod(request.getRetentionPeriod());
             entity.setInitialBackoff(request.getInitialBackoff());
             entity.setMaxAttempts(request.getMaxAttempts());
+            entity.setTimestampLastUpdated(LocalDateTime.now());
             callbackUrlRepository.save(entity);
 
             final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
@@ -282,8 +285,10 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                callbackUrlRestClientManager.evictRestClientFromCache(callbackEntity);
-                callbackUrlRepository.delete(callbackEntity);
+                callbackEntity.setEnabled(false);
+                callbackEntity.setTimestampLastUpdated(LocalDateTime.now());
+                restClientCache.invalidate(callbackEntity.getId());
+                callbackUrlRepository.save(callbackEntity);
                 response.setRemoved(true);
             } else {
                 response.setRemoved(false);
@@ -465,9 +470,8 @@ public class CallbackUrlBehavior {
             return;
         }
 
-        final String restClientCacheKey = callbackUrlRestClientManager.createRestClientIfAbsent(callbackUrlEntity);
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveEventForProcessing(callbackUrlEntity, callbackData);
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, restClientCacheKey);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, callbackUrlEntity.getId());
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
         );

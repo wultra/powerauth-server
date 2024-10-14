@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
@@ -26,7 +27,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUr
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
-import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
@@ -61,7 +62,7 @@ public class CallbackUrlEventService {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final CallbackUrlEventResponseHandler callbackUrlEventResponseHandler;
-    private final CallbackUrlRestClientManager callbackUrlRestClientManager;
+    private final LoadingCache<String, CachedRestClient> restClientCache;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
@@ -202,8 +203,7 @@ public class CallbackUrlEventService {
         callbackUrlEventEntity.setTimestampRerunAfter(shouldBeSentAtMostOnce(callbackUrlEntity) ? null : timestampNow.plus(forceRerunPeriod));
         final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final String restClientCacheKey = callbackUrlRestClientManager.getRestClientCacheKey(callbackUrlEntity);
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity, restClientCacheKey);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity, callbackUrlEntity.getId());
         TransactionUtils.executeAfterTransactionCommits(
                 () -> postCallback(callbackUrlEvent)
         );
@@ -224,7 +224,7 @@ public class CallbackUrlEventService {
             final Consumer<Throwable> onError = error -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, error);
             final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
 
-            final RestClient restClient = callbackUrlRestClientManager.getRestClient(callbackUrlEvent);
+            final RestClient restClient = getRestClient(callbackUrlEvent);
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.add("Idempotency-Key", callbackUrlEvent.idempotencyKey());
 
@@ -237,7 +237,7 @@ public class CallbackUrlEventService {
                     onError);
 
             logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEvent.entityId());
-        } catch (RestClientException | GenericServiceException e) {
+        } catch (RestClientException e) {
             callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, e);
         }
     }
@@ -266,6 +266,16 @@ public class CallbackUrlEventService {
         callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
         callbackUrlEventEntity.setTimestampRerunAfter(null);
         return callbackUrlEventEntity;
+    }
+
+    private RestClient getRestClient(final CallbackUrlEvent callbackUrlEvent) throws RestClientException {
+        final String cacheKey = callbackUrlEvent.restClientCacheKey();
+        final CachedRestClient cachedRestClient = restClientCache.get(cacheKey);
+        if (cachedRestClient == null) {
+            throw new RestClientException("REST Client not available for the Callback URL: id=" + cacheKey);
+        }
+
+        return cachedRestClient.restClient();
     }
 
     @PostConstruct

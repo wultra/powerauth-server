@@ -73,3 +73,9 @@ GO
 ALTER TABLE pa_application_callback ADD enabled bit CONSTRAINT DF_pa_application_callback_enabled DEFAULT 1 NOT NULL;
 GO
 
+-- Changeset powerauth-java-server/1.9.x/20241010-rest-client-caching.xml::1::Jan Pesek
+-- Add timestamp_last_updated column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD timestamp_last_updated datetime2(6) CONSTRAINT DF_pa_application_callback_timestamp_last_updated DEFAULT GETDATE() NOT NULL;
+GO
+
+-- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky
