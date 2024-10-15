@@ -6,14 +6,16 @@
     <changeSet id="1" logicalFilePath="powerauth-java-server/1.9.x/20241010-rest-client-caching.xml" author="Jan Pesek">
         <preConditions onFail="MARK_RAN">
             <not>
+                <columnExists tableName="pa_application_callback" columnName="timestamp_created" />
                 <columnExists tableName="pa_application_callback" columnName="timestamp_last_updated" />
             </not>
         </preConditions>
-        <comment>Add timestamp_last_updated column to pa_application_callback table.</comment>
+        <comment>Add columns timestamp_last_updated and timestamp_created to pa_application_callback table</comment>
         <addColumn tableName="pa_application_callback">
-            <column name="timestamp_last_updated" type="timestamp(6)" defaultValueComputed="${now}">
+            <column name="timestamp_created" type="timestamp(6)" defaultValueComputed="${now}">
                 <constraints nullable="false" />
             </column>
+            <column name="timestamp_last_updated" type="timestamp(6)" />
         </addColumn>
     </changeSet>
 

@@ -83,7 +83,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
         }
 
         final LocalDateTime lastEntityUpdate = optionalCallbackUrlEntity.get().getTimestampLastUpdated();
-        if (lastEntityUpdate.isAfter(cachedRestClient.timestampCreated())) {
+        if (lastEntityUpdate != null && lastEntityUpdate.isAfter(cachedRestClient.timestampCreated())) {
             final RestClient restClient = initializeRestClient(optionalCallbackUrlEntity.get());
             return new CachedRestClient(restClient, LocalDateTime.now());
         }
