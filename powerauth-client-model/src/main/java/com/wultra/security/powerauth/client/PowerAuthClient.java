@@ -194,6 +194,8 @@ public interface PowerAuthClient {
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
+     * 
+     * @deprecated use {@link #prepareActivation(PrepareActivationRequest)}
      *
      * @param activationCode                Activation code.
      * @param applicationKey                Application key.
@@ -207,6 +209,7 @@ public interface PowerAuthClient {
      * @return {@link PrepareActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey,
                                                 String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
@@ -255,6 +258,8 @@ public interface PowerAuthClient {
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #createActivation(CreateActivationRequest)}
+     *
      * @param userId                    User ID.
      * @param timestampActivationExpire Expiration timestamp for activation (optional).
      * @param maxFailureCount           Maximum failure count (optional).
@@ -268,6 +273,7 @@ public interface PowerAuthClient {
      * @return {@link CreateActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                               String applicationKey, String ephemeralPublicKey, String encryptedData,
                                               String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -674,6 +680,8 @@ public interface PowerAuthClient {
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #unlockVault(VaultUnlockRequest)}
+     *
      * @param activationId       Activation Id of an activation to be used for authentication.
      * @param applicationKey     Application Key of an application related to the activation.
      * @param signedData         Data to be signed encoded in format as specified by PowerAuth data normalization.
@@ -688,6 +696,7 @@ public interface PowerAuthClient {
      * @return {@link VaultUnlockResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                     SignatureType signatureType, String signatureVersion, String signedData,
                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce,
@@ -1280,6 +1289,8 @@ public interface PowerAuthClient {
     /**
      * Create a new token for basic token-based authentication.
      *
+     * @deprecated use {@link #createToken(CreateTokenRequest)}
+     *
      * @param activationId       Activation ID for the activation that is associated with the token.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key used for response encryption.
@@ -1292,6 +1303,7 @@ public interface PowerAuthClient {
      * @return Response with created token.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
                                     String encryptedData, String mac, String nonce, String protocolVersion,
                                     Long timestamp, SignatureType signatureType) throws PowerAuthClientException;
@@ -1418,6 +1430,8 @@ public interface PowerAuthClient {
     /**
      * Start upgrade of activations to version 3.
      *
+     * @deprecated use {@link #startUpgrade(StartUpgradeRequest)}
+     *
      * @param activationId       Activation ID.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key used for response encryption.
@@ -1429,6 +1443,7 @@ public interface PowerAuthClient {
      * @return Start upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
                                       String encryptedData, String mac, String nonce,
                                       String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -1515,6 +1530,8 @@ public interface PowerAuthClient {
     /**
      * Confirm recovery code.
      *
+     * @deprecated use {@link #confirmRecoveryCode(ConfirmRecoveryCodeRequest)}
+     *
      * @param activationId       Activation ID.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key for ECIES.
@@ -1526,6 +1543,7 @@ public interface PowerAuthClient {
      * @return Confirm recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
                                                     String encryptedData, String mac, String nonce,
                                                     String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -1614,6 +1632,8 @@ public interface PowerAuthClient {
     /**
      * Create activation using recovery code.
      *
+     * @deprecated use {@link #createActivationUsingRecoveryCode(RecoveryCodeActivationRequest)}
+     *
      * @param recoveryCode       Recovery code.
      * @param puk                Recovery PUK.
      * @param applicationKey     Application key.
@@ -1627,6 +1647,7 @@ public interface PowerAuthClient {
      * @return Create activation using recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
                                                                      String ephemeralPublicKey, String encryptedData, String mac, String nonce,
                                                                      String protocolVersion, Long timestamp) throws PowerAuthClientException;
