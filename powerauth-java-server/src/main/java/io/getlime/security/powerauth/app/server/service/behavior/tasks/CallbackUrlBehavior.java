@@ -152,6 +152,7 @@ public class CallbackUrlBehavior {
      * @return Update callback URL record.
      * @throws GenericServiceException Thrown when callback URL in request is malformed or callback URL could not be found.
      */
+    @Transactional
     public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws GenericServiceException {
         try {
             final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
@@ -170,8 +171,6 @@ public class CallbackUrlBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
-
-            restClientCache.refresh(entity.getId());
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -209,6 +208,7 @@ public class CallbackUrlBehavior {
             entity.setMaxAttempts(request.getMaxAttempts());
             entity.setTimestampLastUpdated(LocalDateTime.now());
             callbackUrlRepository.save(entity);
+            TransactionUtils.executeAfterTransactionCommits(() -> restClientCache.refresh(entity.getId()));
 
             final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
             response.setId(entity.getId());
@@ -287,8 +287,9 @@ public class CallbackUrlBehavior {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
                 callbackEntity.setEnabled(false);
                 callbackEntity.setTimestampLastUpdated(LocalDateTime.now());
-                restClientCache.invalidate(callbackEntity.getId());
                 callbackUrlRepository.save(callbackEntity);
+                TransactionUtils.executeAfterTransactionCommits(
+                        () -> restClientCache.invalidate(callbackEntity.getId()));
                 response.setRemoved(true);
             } else {
                 response.setRemoved(false);
