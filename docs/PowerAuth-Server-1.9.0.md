@@ -123,3 +123,7 @@ algorithm in the proximity check process.
 - `powerauth.service.proximity-check.otp.step-count` defines the acceptable TOTP transmission delay by setting the
   number of past time-steps that will be validated for the proximity check. Defaults to 1, which means proximity otp
   value from the current time-step or the previous time-step is acceptable.
+
+### Deprecated Methods in PowerAuth Client
+
+Several methods in PowerAuth client were deprecated in this version due to addition of temporary keys. Use the methods which contain the object parameter instead, as described in the deprecation notices.
