@@ -25,10 +25,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.CreateActivationResponse;
-import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
-import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -36,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import io.getlime.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -46,7 +44,11 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncrypt
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.DLSequence;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -54,6 +56,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -65,7 +68,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test for {@link TemporaryKeyBehavior}.
@@ -80,6 +83,7 @@ class TemporaryKeyBehaviourTest {
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private static final PowerAuthServerKeyFactory PA_SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     private final TemporaryKeyBehavior temporaryKeyBehavior;
@@ -105,6 +109,16 @@ class TemporaryKeyBehaviourTest {
     }
 
     @Test
+    void testJwtRequestInvalidClaims() throws Exception {
+        final JWTClaimsSet jwtClaims = new JWTClaimsSet.Builder().build();
+        final byte[] secretKey = getSecretKey(EncryptorScope.APPLICATION_SCOPE, "test", null);
+        final String jwtRequest = signJwt(jwtClaims, secretKey);
+        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
+        request.setJwt(jwtRequest);
+        assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
+    }
+
+    @Test
     void testJwtRequestValidApplicationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
         final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
@@ -114,6 +128,33 @@ class TemporaryKeyBehaviourTest {
         request.setJwt(jwtRequest);
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
+        final SignedJWT decodedJWT = SignedJWT.parse(request.getJwt());
+        final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyBase64();
+        final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(Base64.getDecoder().decode(masterPublicKeyBase64));
+        validateJwtSignature(decodedJWT, masterPublicKey);
+        assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
+        assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
+        assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
+    }
+
+    @Test
+    void testJwtRequestValidApplicationScopeWithRemove() throws Exception {
+        final ApplicationVersion defaultVersion = createApplication();
+        final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
+        final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
+        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null);
+        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
+        request.setJwt(jwtRequest);
+        final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
+        assertNotNull(response.getJwt());
+        final String jwtResponse = response.getJwt();
+        final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
+        final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
+        final RemoveTemporaryPublicKeyRequest removeRequest = new RemoveTemporaryPublicKeyRequest();
+        removeRequest.setId(temporaryKeyId);
+        final RemoveTemporaryPublicKeyResponse removeResponse = temporaryKeyBehavior.removeTemporaryKey(removeRequest);
+        assertEquals(temporaryKeyId, removeResponse.getId());
+        assertTrue(removeResponse.isRemoved());
     }
 
     @Test
@@ -141,7 +182,11 @@ class TemporaryKeyBehaviourTest {
         requestTempKeyActivation.setJwt(jwtRequestActivation);
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
-
+        final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
+        validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId));
+        assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
+        assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
+        assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
     }
 
     @Test
@@ -204,6 +249,12 @@ class TemporaryKeyBehaviourTest {
         return Base64.getEncoder().encodeToString(publicKeyBytes);
     }
 
+    private PublicKey getServerPublicKey(String activationId) throws Exception {
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).get();
+        final String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
+        return KEY_CONVERTOR.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
+    }
+
     private SecretKey getMasterTransportKey(String activationId) throws Exception {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).get();
         // Get the server private key, decrypt it if required
@@ -255,6 +306,33 @@ class TemporaryKeyBehaviourTest {
         final byte[] hash = new HMACHashUtilities().hash(secretKey, signingInput.getBytes(StandardCharsets.UTF_8));
         final Base64URL signature = Base64URL.encode(hash);
         return encodedHeader + "." + encodedPayload + "." + signature;
+    }
+
+    private static boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws Exception {
+        final Base64URL[] jwtParts = jwt.getParsedParts();
+        final Base64URL encodedHeader = jwtParts[0];
+        final Base64URL encodedPayload = jwtParts[1];
+        final Base64URL encodedSignature = jwtParts[2];
+        final String signingInput = encodedHeader + "." + encodedPayload;
+        final byte[] signatureBytes = convertRawSignatureToDER(encodedSignature.decode());
+        return SIGNATURE_UTILS.validateECDSASignature(signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
+    }
+
+    private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws Exception {
+        if (rawSignature.length % 2 != 0) {
+            throw new IllegalArgumentException("Invalid ECDSA signature format");
+        }
+        int len = rawSignature.length / 2;
+        byte[] rBytes = new byte[len];
+        byte[] sBytes = new byte[len];
+        System.arraycopy(rawSignature, 0, rBytes, 0, len);
+        System.arraycopy(rawSignature, len, sBytes, 0, len);
+        BigInteger r = new BigInteger(1, rBytes);
+        BigInteger s = new BigInteger(1, sBytes);
+        ASN1EncodableVector v = new ASN1EncodableVector();
+        v.add(new ASN1Integer(r));
+        v.add(new ASN1Integer(s));
+        return new DLSequence(v).getEncoded();
     }
 
 }
