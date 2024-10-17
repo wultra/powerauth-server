@@ -64,7 +64,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
 
         final Optional<CallbackUrlEntity> optionalCallbackUrlEntity = callbackUrlRepository.findById(callbackUrlId);
         if (optionalCallbackUrlEntity.isEmpty()) {
-            logger.debug("CallbackUrlEntity is not available: id={}", callbackUrlId);
+            logger.warn("CallbackUrlEntity is not available: id={}", callbackUrlId);
             return null;
         }
 
@@ -78,7 +78,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
 
         final Optional<CallbackUrlEntity> optionalCallbackUrlEntity = callbackUrlRepository.findById(callbackUrlId);
         if (optionalCallbackUrlEntity.isEmpty()) {
-            logger.debug("CallbackUrlEntity is not available: id={}", callbackUrlId);
+            logger.warn("CallbackUrlEntity is not available anymore: id={}", callbackUrlId);
             return null;
         }
 
