@@ -146,7 +146,7 @@ public class CallbackUrlEntity implements Serializable {
     private LocalDateTime timestampCreated = LocalDateTime.now();
 
     /**
-     * Timestamp of the last update via Callback Management API.
+     * Timestamp of the last update.
      */
     @Column(name = "timestamp_last_updated")
     private LocalDateTime timestampLastUpdated;
