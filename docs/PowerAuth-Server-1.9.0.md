@@ -70,6 +70,13 @@ to `true` (enabled) by default. A Callback URL remains enabled until a delete re
 Management API, at which point the `enabled` column is set to `false` (disabled). Disabled Callback URLs will be
 excluded from all subsequent queries and operations.
 
+### Callback URL Creation and Last Update Timestamp
+
+Following columns has been added to the `pa_application_callback` table to improve caching mechanism of REST clients
+used for callback posting:
+- `timestamp_created` to store the timestamp of the record creation, and
+- `timestamp_last_updated` to store the timestamp of the last record update via the Callback Management API.
+
 ## REST API Changes
 
 ### Added Services for Temporary Keys

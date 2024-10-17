@@ -1,17 +1,36 @@
+/*
+ * PowerAuth Server and related software components
+ * Copyright (C) 2024 Wultra s.r.o.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
+import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
-import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -22,108 +41,65 @@ import org.springframework.security.oauth2.client.web.reactive.function.client.S
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
- * Manager class for REST Client instances used to Callback URL Event processing.
+ * Specialization of {@link CacheLoader} for {@link CachedRestClient}.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @AllArgsConstructor
-@Component
 @Slf4j
-public class CallbackUrlRestClientManager {
+@Component
+public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, CachedRestClient> {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
-    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final CallbackUrlRepository callbackUrlRepository;
 
-    // Store REST clients in cache with their callback ID as a key
-    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
-    private final Object restClientCacheLock = new Object();
+    @Override
+    public @Nullable CachedRestClient load(final String callbackUrlId) throws RestClientException, GenericServiceException {
+        logger.debug("Loading RestClient for CallbackUrl: id={}", callbackUrlId);
 
-    /**
-     * Get a REST Client using which a Callback URL Event will be dispatched.
-     * @param callbackUrlEvent Callback URL Event for which to get the REST Client.
-     * @return REST Client.
-     * @throws RestClientException In case the REST Client initialization fails.
-     */
-    public RestClient getRestClient(final CallbackUrlEvent callbackUrlEvent) throws RestClientException, GenericServiceException {
-        final String cacheKey = callbackUrlEvent.restClientCacheKey();
-        synchronized (restClientCacheLock) {
-            final RestClient restClient = restClientCache.get(cacheKey);
-            if (restClient == null) {
-                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                return createRestClientAndStoreInCache(callbackUrlEvent);
-            } else {
-                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
-                return restClient;
-            }
+        final Optional<CallbackUrlEntity> optionalCallbackUrlEntity = callbackUrlRepository.findById(callbackUrlId);
+        if (optionalCallbackUrlEntity.isEmpty()) {
+            logger.warn("CallbackUrlEntity is not available: id={}", callbackUrlId);
+            return null;
         }
+
+        final RestClient restClient = initializeRestClient(optionalCallbackUrlEntity.get());
+        return new CachedRestClient(restClient, LocalDateTime.now());
     }
 
-    public String createRestClientIfAbsent(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        synchronized (restClientCacheLock) {
-            if (restClientCache.containsKey(cacheKey)) {
-                logger.debug("REST client already exists in cache, callback cache key: {}", cacheKey);
-            } else {
-                logger.debug("REST client does not exist in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                createRestClientAndStoreInCache(callbackUrlEntity);
-            }
-            return cacheKey;
+    @Override
+    public @Nullable CachedRestClient reload(final String callbackUrlId, final CachedRestClient cachedRestClient) throws RestClientException, GenericServiceException {
+        logger.debug("Checking cached RestClient for CallbackUrl: id={}", callbackUrlId);
+
+        final Optional<CallbackUrlEntity> optionalCallbackUrlEntity = callbackUrlRepository.findById(callbackUrlId);
+        if (optionalCallbackUrlEntity.isEmpty()) {
+            logger.warn("CallbackUrlEntity is not available anymore: id={}", callbackUrlId);
+            return null;
         }
-    }
 
-    /**
-     * Get a key for the REST client cache from a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Cache key.
-     */
-    public String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
-        return callbackUrlEntity.getId();
-    }
-
-    /**
-     * Create a new REST Client for a Callback URL Configuration and store it in a cache.
-     * @param callbackUrlEvent Callback URL Event for which to create the REST Client.
-     * @return Rest client.
-     */
-    private RestClient createRestClientAndStoreInCache(final CallbackUrlEvent callbackUrlEvent) throws RestClientException, GenericServiceException {
-        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
-                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during REST Client initialization: callbackUrlEventId=" + callbackUrlEvent.entityId()));
-
-        return createRestClientAndStoreInCache(callbackUrlEventEntity.getCallbackUrlEntity());
-    }
-
-    /**
-     * Create a new REST client and store it in cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     */
-    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient = initializeRestClient(callbackUrlEntity);
-        restClientCache.put(cacheKey, restClient);
-        return restClient;
-    }
-
-    /**
-     * Evict an instance from REST client cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    public void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
-        synchronized (restClientCacheLock) {
-            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
+        final LocalDateTime lastEntityUpdate = optionalCallbackUrlEntity.get().getTimestampLastUpdated();
+        if (lastEntityUpdate != null && lastEntityUpdate.isAfter(cachedRestClient.timestampCreated())) {
+            final RestClient restClient = initializeRestClient(optionalCallbackUrlEntity.get());
+            return new CachedRestClient(restClient, LocalDateTime.now());
         }
+
+        logger.debug("Keeping the RestClient in cache for CallbackUrl: id={}", callbackUrlId);
+        return cachedRestClient;
     }
 
     /**
      * Initialize Rest client instance and configure it based on client configuration.
      * @param callbackUrlEntity Callback URL entity.
+     * @throws RestClientException In case the REST Client initialization fails.
+     * @throws GenericServiceException In case the Callback URL Authentication decryption fails.
      */
     private RestClient initializeRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
+        logger.debug("Initiating a new RestClient for callbackUrl: id={}", callbackUrlEntity.getId());
         final DefaultRestClient.Builder builder = DefaultRestClient.builder();
         builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
         builder.responseTimeout(powerAuthServiceConfiguration.getHttpResponseTimeout());

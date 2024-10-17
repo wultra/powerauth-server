@@ -58,3 +58,10 @@ ALTER TABLE pa_application_callback ADD failure_count INTEGER DEFAULT 0 NOT NULL
 -- Add enabled column to pa_application_callback table.
 ALTER TABLE pa_application_callback ADD enabled BOOLEAN DEFAULT 1 NOT NULL;
 
+-- Changeset powerauth-java-server/1.9.x/20241010-rest-client-caching.xml::1::Jan Pesek
+-- Add columns timestamp_last_updated and timestamp_created to pa_application_callback table
+ALTER TABLE pa_application_callback ADD timestamp_created TIMESTAMP(6) DEFAULT sysdate NOT NULL;
+
+ALTER TABLE pa_application_callback ADD timestamp_last_updated TIMESTAMP(6);
+
+-- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky

@@ -186,8 +186,10 @@ Stores callback URLs - per-application endpoints that are notified whenever an a
 | initial_backoff | VARCHAR(64) | - | Initial backoff period before the next send attempt, stored as a ISO 8601 string. |
 | retention_period | VARCHAR(64) | - | Minimal duration for which is a completed callback event persisted, stored as a ISO 8601 string. |
 | timestamp_last_failure | DATETIME | - | The timestamp of the most recent failed callback event associated with this configuration. |
-| failure_count | INTEGER | - | The number of consecutive failed callback events associated with this configuration. |
+| failure_count | INTEGER | DEFAULT 0 NOT NULL | The number of consecutive failed callback events associated with this configuration. |
 | enabled | BOOLEAN | - | Indicator specifying whether the Callback URL should be used. |
+| timestamp_created | DATETIME | DEFAULT NOW() NOT NULL | Timestamp when the record was created. |
+| timestamp_last_updated | DATETIME | - | Timestamp of the last update of the record via the Callback Management API. |
 <!-- end -->
 
 <!-- begin database table pa_token -->
