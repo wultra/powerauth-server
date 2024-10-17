@@ -37,7 +37,7 @@ import java.util.List;
 @Converter
 @Component
 @Slf4j
-public class ListToJsonConverter implements AttributeConverter<List<String>, String> {
+public class ListToJsonConverter implements AttributeConverter<List<Object>, String> {
 
     private static final String EMPTY_LIST = "[]";
 
@@ -52,7 +52,7 @@ public class ListToJsonConverter implements AttributeConverter<List<String>, Str
     }
 
     @Override
-    public String convertToDatabaseColumn(List<String> attributes) {
+    public String convertToDatabaseColumn(List<Object> attributes) {
         if (attributes == null) {
             return EMPTY_LIST;
         }
@@ -65,7 +65,7 @@ public class ListToJsonConverter implements AttributeConverter<List<String>, Str
     }
 
     @Override
-    public List<String> convertToEntityAttribute(String dbValue) {
+    public List<Object> convertToEntityAttribute(String dbValue) {
         if (dbValue == null) {
             return null;
         }

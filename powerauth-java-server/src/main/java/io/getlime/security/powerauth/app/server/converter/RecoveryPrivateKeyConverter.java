@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import io.getlime.security.powerauth.app.server.database.model.Encryptable;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
-import io.getlime.security.powerauth.app.server.service.EncryptionService;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableData;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for recovery postcard private key which handles key encryption and decryption in case it is configured.
@@ -50,7 +51,9 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException In case recovery postcard private key decryption fails.
      */
     public String fromDBValue(final RecoveryPrivateKey recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        return encryptionService.fromDBValue(recoveryPrivateKey, createSecretKeyDerivationInput(applicationRid));
+        final byte[] data = convert(recoveryPrivateKey.recoveryPrivateKeyBase64());
+        final byte[] decrypted = encryptionService.decrypt(data, recoveryPrivateKey.encryptionMode(), createEncryptionKeyProvider(applicationRid));
+        return convert(decrypted);
     }
 
     /**
@@ -64,13 +67,20 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when recovery postcard private key encryption fails.
      */
     public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        final String value = Base64.getEncoder().encodeToString(recoveryPrivateKey);
-        final Encryptable dbValue = encryptionService.toDBValue(value, createSecretKeyDerivationInput(applicationRid));
-        return new RecoveryPrivateKey(dbValue.getEncryptionMode(), dbValue.getEncryptedData());
+        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, createEncryptionKeyProvider(applicationRid));
+        return new RecoveryPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
-    private static List<String> createSecretKeyDerivationInput(final long applicationRid) {
-        return List.of(String.valueOf(applicationRid));
+    private static String convert(final byte[] source) {
+        return Base64.getEncoder().encodeToString(source);
+    }
+
+    private static byte[] convert(final String source) {
+        return Base64.getDecoder().decode(source);
+    }
+
+    private static Supplier<List<String>> createEncryptionKeyProvider(final long applicationRid) {
+        return () -> List.of(String.valueOf(applicationRid));
     }
 
 }

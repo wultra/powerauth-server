@@ -30,6 +30,7 @@ public class HttpAuthenticationPublic {
 
     private Certificate certificate = new Certificate();
     private HttpBasic httpBasic = new HttpBasic();
+    private OAuth2 oAuth2 = new OAuth2();
 
     @Data
     public static class Certificate {
@@ -49,6 +50,15 @@ public class HttpAuthenticationPublic {
         private boolean enabled;
         private String username;
         private boolean passwordSet;
+    }
+
+    @Data
+    public static class OAuth2 {
+        private boolean enabled;
+        private String tokenUri;
+        private String clientId;
+        private boolean clientSecretSet;
+        private String scope;
     }
 
 }

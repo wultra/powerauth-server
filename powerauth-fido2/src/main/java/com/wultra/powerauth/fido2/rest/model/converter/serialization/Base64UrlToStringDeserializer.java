@@ -34,7 +34,7 @@ import java.util.Base64;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Slf4j
-public class Base64ToStringDeserializer extends StdDeserializer<String> {
+public class Base64UrlToStringDeserializer extends StdDeserializer<String> {
 
     @Serial
     private static final long serialVersionUID = 2540966716709142276L;
@@ -42,7 +42,7 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
     /**
      * No-arg deserializer constructor.
      */
-    public Base64ToStringDeserializer() {
+    public Base64UrlToStringDeserializer() {
         this(null);
     }
 
@@ -50,12 +50,12 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
      * Deserializer constructor with value class parameter.
      * @param vc Value class.
      */
-    public Base64ToStringDeserializer(Class<?> vc) {
+    public Base64UrlToStringDeserializer(Class<?> vc) {
         super(vc);
     }
 
     /**
-     * Deserialize data from Base64 to string.
+     * Deserialize data from Base64Url to string.
      * @param jsonParser JSON parser.
      * @param deserializationContext Deserialization context.
      * @return Deserialized string.
@@ -64,7 +64,7 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
     @Override
     public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
-            return new String(Base64.getDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
+            return new String(Base64.getUrlDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
         }  catch (IOException e) {
             logger.debug(e.getMessage(), e);
             throw new Fido2DeserializationException(e.getMessage(), e);

@@ -210,13 +210,13 @@ public class PowerAuthServiceConfiguration {
      * HTTP connection timeout.
      */
     @Value("${powerauth.service.http.connection.timeout}")
-    private Duration httpConnectionTimeout;
+    private Duration httpConnectionTimeout = Duration.ofSeconds(5);
 
     /**
      * HTTP response timeout.
      */
     @Value("${powerauth.service.http.response.timeout}")
-    private Duration httpResponseTimeout;
+    private Duration httpResponseTimeout = Duration.ofSeconds(60);
 
     /**
      * HTTP connection max idle time.
@@ -265,10 +265,29 @@ public class PowerAuthServiceConfiguration {
     private int proximityCheckOtpLength;
 
     /**
+     * Step duration used for generating and validating TOTP for the proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.step-duration:30s}")
+    private Duration proximityCheckStepDuration;
+
+    /**
+     * Acceptable TOTP transmission delay as the number of past time-steps used for validating TOTP for the proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.step-count:1}")
+    private int proximityCheckStepCount;
+
+    /**
      * Number of operation that will be set expired in the single scheduled job run.
      */
     @Value("${powerauth.service.scheduled.job.expireOperationsLimit:100}")
     private int expireOperationsLimit;
+
+    /**
+     * Validity of the temporary key pair in milliseconds.
+     */
+    @Value("${powerauth.service.temporaryKey.validity:300000}")
+    @DurationMin(millis = 0)
+    private Duration temporaryKeyValidity;
 
     /**
      * Prepare and configure object mapper.

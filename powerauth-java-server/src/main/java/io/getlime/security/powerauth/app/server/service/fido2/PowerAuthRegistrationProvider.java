@@ -31,17 +31,16 @@ import com.wultra.security.powerauth.client.model.request.RemoveActivationReques
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.fido2.model.entity.Credential;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,25 +60,16 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final RegistrationChallengeConverter registrationChallengeConverter;
 
     private final ActivationServiceBehavior activations;
     private final ApplicationConfigServiceBehavior applicationConfig;
     private final ActivationQueryService activationQueryService;
-
-    @Autowired
-    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter, ActivationServiceBehavior activations, ApplicationConfigServiceBehavior applicationConfig, ActivationQueryService activationQueryService) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.authenticatorProvider = authenticatorProvider;
-        this.registrationChallengeConverter = registrationChallengeConverter;
-        this.activations = activations;
-        this.applicationConfig = applicationConfig;
-        this.activationQueryService = activationQueryService;
-    }
+    private final ApplicationRepository applicationRepository;
 
     @Override
     @Transactional
@@ -110,7 +100,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     public RegistrationChallenge findRegistrationChallengeByValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
 
         // Find application
-        final Optional<ApplicationEntity> application = repositoryCatalogue.getApplicationRepository().findById(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (application.isEmpty()) {
             logger.warn("Application with given ID is not present: {}", applicationId);
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
@@ -146,7 +136,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final Date currentTimestamp = new Date();
 
         // Find application
-        final Optional<ApplicationEntity> application = repositoryCatalogue.getApplicationRepository().findById(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (application.isEmpty()) {
             logger.warn("Application with given ID is not present: {}", applicationId);
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
@@ -188,8 +178,11 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findFirst();
 
         if (configFmt.isPresent()) {
-            List<String> allowedFmts = configFmt.get().getValues();
-            if (!allowedFmts.contains(attestationFormat)) {
+            final boolean attestationRejected = configFmt.get().getValues().stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .noneMatch(attestationFormat::equals);
+            if (attestationRejected) {
                 logger.warn("Rejected attestation format for FIDO2 registration: {}", attestationFormat);
                 return false;
             }
@@ -200,8 +193,11 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findFirst();
 
         if (configAaguids.isPresent()) {
-            List<String> allowedAaguids = configAaguids.get().getValues();
-            if (!allowedAaguids.contains(aaguidStr)) {
+            final boolean aaguidRejected = configAaguids.get().getValues().stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .noneMatch(aaguidStr::equals);
+            if (aaguidRejected) {
                 logger.warn("Rejected AAGUID value for FIDO2 registration: {}", aaguidStr);
                 return false;
             }

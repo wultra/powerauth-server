@@ -37,11 +37,7 @@ public class ActivationOtpValidationConverter implements AttributeConverter<Acti
      */
     @Override
     public Integer convertToDatabaseColumn(ActivationOtpValidation validation) {
-        return switch (validation) {
-            case ON_KEY_EXCHANGE -> 1;
-            case ON_COMMIT -> 2;
-            default -> 0;
-        };
+        return (int) validation.getByte();
     }
 
     /**

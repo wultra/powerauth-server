@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToStringDeserializer;
+import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64UrlToStringDeserializer;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -38,7 +38,7 @@ public class CollectedClientData {
     @NotBlank
     private String type;
     @NotEmpty
-    @JsonDeserialize(using = Base64ToStringDeserializer.class)
+    @JsonDeserialize(using = Base64UrlToStringDeserializer.class)
     private String challenge;
     @NotBlank
     private String origin;

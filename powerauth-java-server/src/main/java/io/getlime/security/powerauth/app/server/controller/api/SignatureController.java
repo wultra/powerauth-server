@@ -81,9 +81,11 @@ public class SignatureController {
      */
     @PostMapping("/offline/personalized/create")
     public ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody ObjectRequest<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
-        logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received: {}", request);
+        logger.info("action: createPersonalizedOfflineSignaturePayload, state: initiated, activationId: {}", request.getRequestObject().getActivationId());
+        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: initiated, {}", request);
         final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
-        logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded: {}", response);
+        logger.info("action: createPersonalizedOfflineSignaturePayload, state: succeeded");
+        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: succeeded, {}", response);
         return response;
     }
 
@@ -96,9 +98,11 @@ public class SignatureController {
      */
     @PostMapping("/offline/non-personalized/create")
     public ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@RequestBody ObjectRequest<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
-        logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received: {}", request);
+        logger.info("action: createNonPersonalizedOfflineSignaturePayload state: initiated, activationId: {}", request.getRequestObject().getApplicationId());
+        logger.debug("action: createNonPersonalizedOfflineSignaturePayload state: initiated, {}", request);
         final ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
-        logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded: {}", response);
+        logger.info("action: createNonPersonalizedOfflineSignaturePayload state: succeeded");
+        logger.debug("action: createNonPersonalizedOfflineSignaturePayload state: succeeded, {}", response);
         return response;
     }
 

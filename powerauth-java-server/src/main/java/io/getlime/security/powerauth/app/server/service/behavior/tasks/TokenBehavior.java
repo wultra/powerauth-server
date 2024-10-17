@@ -30,7 +30,6 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -38,6 +37,8 @@ import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntit
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import io.getlime.security.powerauth.app.server.database.repository.TokenRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -58,8 +59,8 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,15 +81,17 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class TokenBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
+    private final TokenRepository tokenRepository;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -102,18 +105,7 @@ public class TokenBehavior {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     private final ObjectMapper objectMapper;
-
-    @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-        this.activationQueryService = activationQueryService;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.replayVerificationService = replayVerificationService;
-        this.activationValidator = activationValidator;
-        this.objectMapper = objectMapper;
-    }
+    private final ApplicationVersionRepository applicationVersionRepository;
 
     /**
      * Method that creates a new token provided activation.
@@ -140,15 +132,17 @@ public class TokenBehavior {
             final String applicationKey = request.getApplicationKey();
             final String version = request.getProtocolVersion();
             final SignatureType signatureType = request.getSignatureType();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
                     request.getNonce(),
                     request.getTimestamp()
             );
-            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, keyConvertor);
+            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, temporaryKeyId, keyConvertor);
             final CreateTokenResponse response = new CreateTokenResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
@@ -203,7 +197,7 @@ public class TokenBehavior {
             final byte[] tokenDigest = Base64.getDecoder().decode(request.getTokenDigest());
 
             // Lookup the token
-            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+            final Optional<TokenEntity> tokenEntityOptional = tokenRepository.findById(tokenId);
             if (tokenEntityOptional.isEmpty()) {
                 // Instead of throwing INVALID_TOKEN exception a response with invalid token is returned
                 final ValidateTokenResponse response = new ValidateTokenResponse();
@@ -282,13 +276,13 @@ public class TokenBehavior {
             final String tokenId = request.getTokenId();
             boolean removed = false;
 
-            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+            final Optional<TokenEntity> tokenEntityOptional = tokenRepository.findById(tokenId);
 
             // Token was found and activation ID corresponds to the correct user.
             if (tokenEntityOptional.isPresent()) {
                 final TokenEntity token = tokenEntityOptional.get();
                 if (token.getActivation().getActivationId().equals(request.getActivationId())) {
-                    repositoryCatalogue.getTokenRepository().delete(token);
+                    tokenRepository.delete(token);
                     removed = true;
                 }
             }
@@ -318,7 +312,7 @@ public class TokenBehavior {
      * @throws GenericServiceException In case a business error occurs.
      */
     private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
-                                          String signatureType, String version, KeyConvertor keyConversion) throws GenericServiceException {
+                                          String signatureType, String version, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -353,17 +347,20 @@ public class TokenBehavior {
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
+            // Get temporary or server key, depending on availability
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CREATE_TOKEN,
-                    new EncryptorParameters(version, applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(version, applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
             serverEncryptor.decryptRequest(encryptedRequest);
@@ -372,7 +369,7 @@ public class TokenBehavior {
             String tokenId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateTokenIdIterations(); i++) {
                 String tmpTokenId = tokenGenerator.generateTokenId();
-                final Optional<TokenEntity> tmpTokenOptional = repositoryCatalogue.getTokenRepository().findById(tmpTokenId);
+                final Optional<TokenEntity> tmpTokenOptional = tokenRepository.findById(tmpTokenId);
                 if (tmpTokenOptional.isEmpty()) {
                     tokenId = tmpTokenId;
                     break;
@@ -401,7 +398,7 @@ public class TokenBehavior {
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
             token.setSignatureTypeCreated(signatureType);
-            repositoryCatalogue.getTokenRepository().save(token);
+            tokenRepository.save(token);
 
             return encryptedResponse;
 

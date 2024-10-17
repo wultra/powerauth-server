@@ -24,7 +24,6 @@ import com.wultra.security.powerauth.client.model.request.RemoveApplicationConfi
 import com.wultra.security.powerauth.client.model.response.CreateApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import io.getlime.core.rest.model.base.response.Response;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
@@ -32,14 +31,16 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ApplicationConfigService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
 
@@ -50,21 +51,18 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ApplicationConfigServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
-    private final LocalizationProvider localizationProvider;
+    private static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
 
-    /**
-     * Behaviour class constructor.
-     * @param repositoryCatalogue Repository catalogue.
-     * @param localizationProvider Localization provider.
-     */
-    @Autowired
-    public ApplicationConfigServiceBehavior(final RepositoryCatalogue repositoryCatalogue, final LocalizationProvider localizationProvider) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-    }
+    private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
+            CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS, CONFIG_KEY_OAUTH2_PROVIDERS);
+
+    private final LocalizationProvider localizationProvider;
+    private final ApplicationConfigService applicationConfigService;
+    private final ApplicationRepository applicationRepository;
+    private final ApplicationConfigRepository applicationConfigRepository;
 
     /**
      * Get application configuration.
@@ -81,14 +79,14 @@ public class ApplicationConfigServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final List<ApplicationConfigEntity> applicationConfigs = repositoryCatalogue.getApplicationConfigRepository().findByApplicationId(applicationId);
+            final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
             final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
             response.setApplicationId(applicationId);
             final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();
             applicationConfigs.forEach(config -> {
                 final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
-                item.setKey(config.getKey());
-                item.setValues(config.getValues());
+                item.setKey(config.key());
+                item.setValues(config.values());
                 responseConfigs.add(item);
             });
             response.setApplicationConfigs(responseConfigs);
@@ -110,36 +108,28 @@ public class ApplicationConfigServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final String key = request.getKey();
-            final List<String> values = request.getValues();
+            final List<Object> values = request.getValues();
             if (applicationId == null) {
                 logger.warn("Invalid application ID in createApplicationConfig");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             validateConfigKey(key);
-            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
-            if (appOptional.isEmpty()) {
+            final ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-            final ApplicationEntity appEntity = appOptional.get();
-            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-            final Optional<ApplicationConfigEntity> matchedConfig = configs.stream()
-                    .filter(config -> config.getKey().equals(key))
-                    .findFirst();
-            matchedConfig.ifPresentOrElse(config -> {
-                config.setValues(values);
-                configRepository.save(config);
-            }, () -> {
-                final ApplicationConfigEntity config = new ApplicationConfigEntity();
-                config.setApplication(appEntity);
-                config.setKey(key);
-                config.setValues(values);
-                configRepository.save(config);
+                return localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             });
+            final Optional<ApplicationConfigService.ApplicationConfig> matchedConfig = applicationConfigService.findByApplicationId(applicationId).stream()
+                    .filter(config -> config.key().equals(key))
+                    .findFirst();
+            if (matchedConfig.isPresent()) {
+                final ApplicationConfigService.ApplicationConfig existing = matchedConfig.get();
+                applicationConfigService.createOrUpdate(new ApplicationConfigService.ApplicationConfig(existing.id(), existing.application(), existing.key(), values));
+            } else {
+                applicationConfigService.createOrUpdate(new ApplicationConfigService.ApplicationConfig(null, application, key, values));
+            }
+
             final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
             response.setApplicationId(applicationId);
             response.setKey(key);
@@ -168,16 +158,14 @@ public class ApplicationConfigServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             validateConfigKey(key);
-            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
+            final Optional<ApplicationEntity> appOptional = applicationRepository.findById(applicationId);
             if (appOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
-            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-            configs.stream().filter(config -> config.getKey().equals(key)).forEach(configRepository::delete);
+            final List<ApplicationConfigEntity> configs = applicationConfigRepository.findByApplicationId(applicationId);
+            configs.stream().filter(config -> config.getKey().equals(key)).forEach(applicationConfigRepository::delete);
             return new Response();
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
@@ -192,14 +180,12 @@ public class ApplicationConfigServiceBehavior {
      */
     private void validateConfigKey(String key) throws GenericServiceException {
         if (key == null) {
-            logger.warn("Missing configuration key in FIDO2 request");
+            logger.warn("Missing configuration key in request");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(key)
-                && !CONFIG_KEY_ALLOWED_AAGUIDS.equals(key)
-                && !CONFIG_KEY_ROOT_CA_CERTS.equals(key)) {
-            logger.warn("Unknown configuration key in FIDO2 request: {}", key);
+        if (!ALLOWED_CONFIGURATION_KEYS.contains(key)) {
+            logger.warn("Unknown configuration key in request: {}", key);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }

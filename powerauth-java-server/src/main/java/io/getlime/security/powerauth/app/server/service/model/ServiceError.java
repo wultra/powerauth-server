@@ -257,9 +257,14 @@ public final class ServiceError {
      */
     public static final String TOKEN_TIMESTAMP_TOO_IN_FUTURE = "ERR0044";
 
+    /**
+     * No temporary key found
+     */
+    public static final String MISSING_TEMPORARY_KEY = "ERR0045";
+
 
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(44);
+        final List<String> list = new ArrayList<>(45);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -305,6 +310,7 @@ public final class ServiceError {
         list.add(OPERATION_TEMPLATE_ERROR);
         list.add(DUPLICATE_APPLICATION);
         list.add(TOKEN_TIMESTAMP_TOO_IN_FUTURE);
+        list.add(MISSING_TEMPORARY_KEY);
         return list;
     }
 

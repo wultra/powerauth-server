@@ -524,6 +524,7 @@ class PowerAuthControllerTest {
         updateCallbackUrlRequest.setId(callbackUrlResponse.getId());
         updateCallbackUrlRequest.setApplicationId(config.getApplicationId());
         updateCallbackUrlRequest.setAuthentication(null);
+        updateCallbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE);
 
         final UpdateCallbackUrlResponse updateCallbackUrlResponse = powerAuthClient.updateCallbackUrl(updateCallbackUrlRequest);
         assertEquals(callbackAttributes, updateCallbackUrlResponse.getAttributes());
@@ -1003,7 +1004,7 @@ class PowerAuthControllerTest {
 
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
@@ -1020,7 +1021,7 @@ class PowerAuthControllerTest {
         final byte[] sharedInfo2Base = Base64.getDecoder().decode(decryptorResponse.getSharedInfo2());
         final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ServerEncryptorSecrets(secretKey, sharedInfo2Base)
         );
         final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
@@ -1105,7 +1106,7 @@ class PowerAuthControllerTest {
         final CreateCallbackUrlRequest callbackUrlRequest = new CreateCallbackUrlRequest();
         callbackUrlRequest.setCallbackUrl(PowerAuthControllerTestConfig.CALLBACK_URL);
         callbackUrlRequest.setName(PowerAuthControllerTestConfig.CALLBACK_NAME);
-        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.name());
+        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE);
         callbackUrlRequest.setApplicationId(config.getApplicationId());
         callbackUrlRequest.setAttributes(Collections.singletonList("activationId"));
         callbackUrlRequest.setAuthentication(null);
@@ -1339,7 +1340,7 @@ class PowerAuthControllerTest {
 
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
 

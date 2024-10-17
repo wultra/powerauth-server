@@ -31,10 +31,8 @@ import com.wultra.security.powerauth.client.model.request.GetActivationListForUs
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
@@ -48,8 +46,8 @@ import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,40 +62,24 @@ import java.util.*;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
     private static final String AUDIT_TYPE_FIDO2 = "fido2";
 
     private final ApplicationRepository applicationRepository;
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final ActivationServiceBehavior activations;
     private final ActivationHistoryServiceBehavior activationHistory;
     private final CallbackUrlBehavior callbacks;
     private final AuditingServiceBehavior audit;
     private final ActivationQueryService activationQueryService;
 
-    private LocalizationProvider localizationProvider;
+    private final LocalizationProvider localizationProvider;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
-    @Autowired
-    public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ApplicationRepository applicationRepository, ActivationServiceBehavior activations, ActivationHistoryServiceBehavior activationHistory, CallbackUrlBehavior callbacks, AuditingServiceBehavior audit, ActivationQueryService activationQueryService) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.applicationRepository = applicationRepository;
-        this.activations = activations;
-        this.activationHistory = activationHistory;
-        this.callbacks = callbacks;
-        this.audit = audit;
-        this.activationQueryService = activationQueryService;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -171,9 +153,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         try {
             // Get current timestamp
             final Date timestamp = new Date();
-
-            // Get required repositories
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
             // Find application
             final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);

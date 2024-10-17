@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.9.x/20240910-commit-phase.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="commit_phase"/>
+            </not>
+        </preConditions>
+        <comment>Add commit_phase column to pa_activation table.</comment>
+        <addColumn tableName="pa_activation">
+            <column name="commit_phase" type="integer" defaultValue="0"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

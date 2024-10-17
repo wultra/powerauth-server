@@ -24,13 +24,14 @@ import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
 import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -50,8 +51,8 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,14 +71,16 @@ import java.util.Date;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UpgradeServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
+    private final ApplicationVersionRepository applicationVersionRepository;
+    private final ActivationRepository activationRepository;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
@@ -85,25 +88,7 @@ public class UpgradeServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-
-    @Autowired
-    public UpgradeServiceBehavior(
-            final RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
-            final LocalizationProvider localizationProvider,
-            final ServerPrivateKeyConverter serverPrivateKeyConverter,
-            final ReplayVerificationService replayVerificationService,
-            ActivationContextValidator activationValidator, final ObjectMapper objectMapper,
-            final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
-
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.activationQueryService = activationQueryService;
-        this.localizationProvider = localizationProvider;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.replayVerificationService = replayVerificationService;
-        this.activationValidator = activationValidator;
-        this.objectMapper = objectMapper;
-        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
-    }
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     /**
      * Start upgrade of activation to version 3.
@@ -117,6 +102,7 @@ public class UpgradeServiceBehavior {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             if (activationId == null || applicationKey == null) {
                 logger.warn("Invalid request parameters in method startUpgrade");
@@ -126,6 +112,7 @@ public class UpgradeServiceBehavior {
 
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -165,7 +152,7 @@ public class UpgradeServiceBehavior {
             // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
 
             // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
                 // Rollback is not required, error occurs before writing to database
@@ -188,11 +175,14 @@ public class UpgradeServiceBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
+            // Get temporary or server key, depending on availability
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.UPGRADE,
-                    new EncryptorParameters(protocolVersion, applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
@@ -232,7 +222,7 @@ public class UpgradeServiceBehavior {
 
             // Save activation as last step to avoid rollbacks
             if (activationShouldBeSaved) {
-                repositoryCatalogue.getActivationRepository().save(activation);
+                activationRepository.save(activation);
             }
 
             return response;
@@ -309,7 +299,7 @@ public class UpgradeServiceBehavior {
             }
 
             // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
                 // Rollback is not required, error occurs before writing to database

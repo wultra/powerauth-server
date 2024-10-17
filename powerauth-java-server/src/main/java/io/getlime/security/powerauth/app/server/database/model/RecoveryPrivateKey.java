@@ -26,15 +26,6 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
  * @param recoveryPrivateKeyBase64 Base64-encoded recovery postcard private key.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record RecoveryPrivateKey(EncryptionMode encryptionMode, String recoveryPrivateKeyBase64) implements Encryptable {
+public record RecoveryPrivateKey(EncryptionMode encryptionMode, String recoveryPrivateKeyBase64) {
 
-    @Override
-    public EncryptionMode getEncryptionMode() {
-        return encryptionMode;
-    }
-
-    @Override
-    public String getEncryptedData() {
-        return recoveryPrivateKeyBase64;
-    }
 }

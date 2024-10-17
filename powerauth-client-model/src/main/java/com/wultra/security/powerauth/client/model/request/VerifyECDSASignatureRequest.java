@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
 import lombok.Data;
 import lombok.ToString;
 
@@ -33,5 +34,6 @@ public class VerifyECDSASignatureRequest {
     private String data;
     @ToString.Exclude
     private String signature;
+    private ECDSASignatureFormat signatureFormat;
 
 }

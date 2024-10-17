@@ -35,6 +35,6 @@ public class CreateApplicationConfigResponse {
     private String applicationId;
     private String key;
     @ToString.Exclude
-    private List<String> values = new ArrayList<>();
+    private List<Object> values = new ArrayList<>();
 
 }

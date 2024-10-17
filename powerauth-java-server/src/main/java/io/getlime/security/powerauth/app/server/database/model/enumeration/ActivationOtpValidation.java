@@ -22,8 +22,8 @@ package io.getlime.security.powerauth.app.server.database.model.enumeration;
  * Enum representing possible activation OTP validation stages. Following values are supported:
  * <p>
  * - NONE = 0
- * - KEYS_EXCHANGE = 1
- * - COMMIT = 2
+ * - ON_KEY_EXCHANGE = 1
+ * - ON_COMMIT = 2
  */
 public enum ActivationOtpValidation {
 

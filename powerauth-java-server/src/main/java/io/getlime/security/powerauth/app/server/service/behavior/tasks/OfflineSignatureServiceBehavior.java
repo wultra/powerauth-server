@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatur
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -83,12 +82,13 @@ public class OfflineSignatureServiceBehavior {
     private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
     private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationContextValidator activationValidator;
+    private final MasterKeyPairRepository masterKeyPairRepository;
+    private final ApplicationRepository applicationRepository;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -165,7 +165,6 @@ public class OfflineSignatureServiceBehavior {
             }
 
             // Fetch activation details from the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final String activationId = request.getActivationId();
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
@@ -268,8 +267,6 @@ public class OfflineSignatureServiceBehavior {
             }
 
             // Fetch associated master key pair data from the repository
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
             if (applicationEntityOptional.isEmpty()) {
                 logger.warn("No application found with ID: {}", applicationId);

@@ -15,32 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model;
 
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+package com.wultra.security.powerauth.client.model.enumeration;
 
 /**
- * A generic wrapper for encryption, keeping both the mode and the data.
+ * Enum with possible ECDSA signature formats.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
-public interface Encryptable {
+public enum ECDSASignatureFormat {
+    /**
+     * Signature is in a standard DER format.
+     */
+    DER,
 
     /**
-     * Return encryption mode.
-     * <p>
-     * Determine format of {@link #getEncryptedData()}.
-     *
-     * @return encryption mode
+     * Signature is a JOSE format (used in JWT).
      */
-    EncryptionMode getEncryptionMode();
-
-    /**
-     * Return the data.
-     * <p>
-     * May be plain or encrypted. Depends on {@link #getEncryptionMode()}.
-     *
-     * @return encrypted data or plain text
-     */
-    String getEncryptedData();
+    JOSE
 }

@@ -42,8 +42,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -217,6 +219,17 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
+
+    @Override
+    public InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException {
+        final InitActivationRequest request = new InitActivationRequest();
+        request.setUserId(userId);
+        request.setApplicationId(applicationId);
+        request.setCommitPhase(commitPhase);
+        request.setActivationOtp(otp);
+        return initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
     @Override
     public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
         return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
@@ -229,6 +242,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setUserId(userId);
         request.setApplicationId(applicationId);
         request.setActivationOtpValidation(otpValidation);
+        request.setCommitPhase(CommitPhase.ON_COMMIT);
         request.setActivationOtp(otp);
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
@@ -853,16 +867,19 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException {
         final CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
-        request.setType(type.toString());
+        request.setType(type);
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
+        request.setRetentionPeriod(retentionPeriod);
+        request.setInitialBackoff(initialBackoff);
+        request.setMaxAttempts(maxAttempts);
         return createCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -877,16 +894,20 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException {
         final UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
         request.setId(id);
         request.setApplicationId(applicationId);
         request.setName(name);
+        request.setType(type);
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
+        request.setRetentionPeriod(retentionPeriod);
+        request.setInitialBackoff(initialBackoff);
+        request.setMaxAttempts(maxAttempts);
         return updateCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -997,7 +1018,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                       String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
+                                                       String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException {
         final GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1005,6 +1026,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setNonce(nonce);
         request.setProtocolVersion(protocolVersion);
         request.setTimestamp(timestamp);
+        request.setTemporaryKeyId(temporaryKeyId);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1491,7 +1513,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException {
+    public CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<Object> values) throws PowerAuthClientException {
         final CreateApplicationConfigRequest request = new CreateApplicationConfigRequest();
         request.setApplicationId(applicationId);
         request.setKey(key);
@@ -1532,6 +1554,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
         final GetApplicationConfigRequest request = new GetApplicationConfigRequest();
         request.setApplicationId(applicationId);
         return getApplicationConfig(request);
+    }
+
+    @Override
+    public TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/keystore/create", request, queryParams, httpHeaders, TemporaryPublicKeyResponse.class);
+    }
+
+    @Override
+    public RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        final RemoveTemporaryPublicKeyRequest request = new RemoveTemporaryPublicKeyRequest();
+        request.setId(id);
+        return callV3RestApi("/keystore/remove", request, queryParams, httpHeaders, RemoveTemporaryPublicKeyResponse.class);
     }
 
 }

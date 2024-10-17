@@ -37,6 +37,7 @@ public class VaultUnlockRequest {
     private String signature;
     private SignatureType signatureType;
     private String signatureVersion;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;

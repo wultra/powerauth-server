@@ -48,12 +48,15 @@
                                 </option>
                             </c:forEach>
                         </select>
-                        <select name="activationOtpValidation" class="form-control" onchange="if (this.selectedIndex > 0) document.getElementById('activationOtp').className='otp-displayed form-control'; else document.getElementById('activationOtp').className='otp-hidden';">
-                            <option value="NONE">Do not use OTP</option>
-                            <option value="ON_KEY_EXCHANGE">OTP on key exchange</option>
-                            <option value="ON_COMMIT">OTP on activation commit</option>
+                        <select name="useOtp" class="form-control" onchange="if (this.selectedIndex > 0) document.getElementById('activationOtp').className='otp-displayed form-control'; else document.getElementById('activationOtp').className='otp-hidden';">
+                            <option value="false">Do not use OTP</option>
+                            <option value="true">Specify OTP</option>
                         </select>
                         <input type="text" size="12" name="activationOtp" id="activationOtp" class="otp-hidden"/>
+                        <select name="commitPhase" class="form-control">
+                            <option value="ON_COMMIT">Commit after key exchange</option>
+                            <option value="ON_KEY_EXCHANGE">Commit during key exchange</option>
+                        </select>
                         <input type="hidden" name="userId" value="<c:out value="${userId}"/>"/>
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
                         <input type="submit" value="Create Activation" class="btn btn-default"/>

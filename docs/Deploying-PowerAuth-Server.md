@@ -246,7 +246,7 @@ ALTER DATABASE [powerauth_database] SET ALLOW_SNAPSHOT_ISOLATION ON;
 ALTER DATABASE [powerauth_database] SET READ_COMMITTED_SNAPSHOT ON;
 ```
 
-The SNAPSHOT transaction isolation level is enforced automatically on application startup using following query:
+The SNAPSHOT transaction isolation level is enforced automatically when database sessions are started using following query:
 
 ```sql
 SET TRANSACTION ISOLATION LEVEL SNAPSHOT;

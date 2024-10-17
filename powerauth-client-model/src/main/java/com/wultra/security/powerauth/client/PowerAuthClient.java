@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.core.rest.model.base.response.Response;
 import org.springframework.util.MultiValueMap;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -117,6 +118,8 @@ public interface PowerAuthClient {
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * 
+     * @deprecated use {@link #initActivation(String, String, CommitPhase, String)}
      *
      * @param userId        User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
@@ -125,7 +128,20 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     *
+     * @param userId        User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param commitPhase   Specifies when the activation is committed.
+     * @param otp           Additional OTP value.
+     * @return {@link InitActivationResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -142,6 +158,8 @@ public interface PowerAuthClient {
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #initActivation(InitActivationRequest)}
+     *
      * @param userId                    User ID for which a new CREATED activation should be created.
      * @param applicationId             Application ID for which a new CREATED activation should be created.
      * @param maxFailureCount           How many failed attempts should be allowed for this activation.
@@ -151,6 +169,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
                                           ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
     /**
@@ -175,6 +194,8 @@ public interface PowerAuthClient {
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
+     * 
+     * @deprecated use {@link #prepareActivation(PrepareActivationRequest)}
      *
      * @param activationCode                Activation code.
      * @param applicationKey                Application key.
@@ -188,6 +209,7 @@ public interface PowerAuthClient {
      * @return {@link PrepareActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey,
                                                 String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
@@ -236,6 +258,8 @@ public interface PowerAuthClient {
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #createActivation(CreateActivationRequest)}
+     *
      * @param userId                    User ID.
      * @param timestampActivationExpire Expiration timestamp for activation (optional).
      * @param maxFailureCount           Maximum failure count (optional).
@@ -249,6 +273,7 @@ public interface PowerAuthClient {
      * @return {@link CreateActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                               String applicationKey, String ephemeralPublicKey, String encryptedData,
                                               String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -655,6 +680,8 @@ public interface PowerAuthClient {
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
      *
+     * @deprecated use {@link #unlockVault(VaultUnlockRequest)}
+     *
      * @param activationId       Activation Id of an activation to be used for authentication.
      * @param applicationKey     Application Key of an application related to the activation.
      * @param signedData         Data to be signed encoded in format as specified by PowerAuth data normalization.
@@ -669,6 +696,7 @@ public interface PowerAuthClient {
      * @return {@link VaultUnlockResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                     SignatureType signatureType, String signatureVersion, String signedData,
                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce,
@@ -1136,16 +1164,19 @@ public interface PowerAuthClient {
     /**
      * Create a new callback URL with given parameters.
      *
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param type           Callback type.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
@@ -1170,16 +1201,20 @@ public interface PowerAuthClient {
     /**
      * Update a callback URL with given parameters.
      *
-     * @param id             Callback URL identifier.
-     * @param applicationId  Application ID.
-     * @param name           Callback URL display name.
-     * @param callbackUrl    Callback URL value.
-     * @param attributes     Attributes to send in the callback data.
-     * @param authentication Callback request authentication.
+     * @param id              Callback URL identifier.
+     * @param applicationId   Application ID.
+     * @param name            Callback URL display name.
+     * @param type            Callback type.
+     * @param callbackUrl     Callback URL value.
+     * @param attributes      Attributes to send in the callback data.
+     * @param authentication  Callback request authentication.
+     * @param retentionPeriod Duration after which a completed callback event is automatically removed.
+     * @param initialBackoff  Initial delay before retry attempt following a callback event failure.
+     * @param maxAttempts     Maximum number of attempts to send a callback event.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication, Duration retentionPeriod, Duration initialBackoff, Integer maxAttempts) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.
@@ -1254,6 +1289,8 @@ public interface PowerAuthClient {
     /**
      * Create a new token for basic token-based authentication.
      *
+     * @deprecated use {@link #createToken(CreateTokenRequest)}
+     *
      * @param activationId       Activation ID for the activation that is associated with the token.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key used for response encryption.
@@ -1266,6 +1303,7 @@ public interface PowerAuthClient {
      * @return Response with created token.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
                                     String encryptedData, String mac, String nonce, String protocolVersion,
                                     Long timestamp, SignatureType signatureType) throws PowerAuthClientException;
@@ -1362,11 +1400,12 @@ public interface PowerAuthClient {
      * @param nonce              ECIES nonce.
      * @param protocolVersion    Crypto protocol version.
      * @param timestamp          Unix timestamp in milliseconds for ECIES.
+     * @param temporaryKeyId     Temporary Key ID.
      * @return ECIES decryptor parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
+                                                String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -1391,6 +1430,8 @@ public interface PowerAuthClient {
     /**
      * Start upgrade of activations to version 3.
      *
+     * @deprecated use {@link #startUpgrade(StartUpgradeRequest)}
+     *
      * @param activationId       Activation ID.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key used for response encryption.
@@ -1402,6 +1443,7 @@ public interface PowerAuthClient {
      * @return Start upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
                                       String encryptedData, String mac, String nonce,
                                       String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -1488,6 +1530,8 @@ public interface PowerAuthClient {
     /**
      * Confirm recovery code.
      *
+     * @deprecated use {@link #confirmRecoveryCode(ConfirmRecoveryCodeRequest)}
+     *
      * @param activationId       Activation ID.
      * @param applicationKey     Application key.
      * @param ephemeralPublicKey Ephemeral key for ECIES.
@@ -1499,6 +1543,7 @@ public interface PowerAuthClient {
      * @return Confirm recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
                                                     String encryptedData, String mac, String nonce,
                                                     String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -1587,6 +1632,8 @@ public interface PowerAuthClient {
     /**
      * Create activation using recovery code.
      *
+     * @deprecated use {@link #createActivationUsingRecoveryCode(RecoveryCodeActivationRequest)}
+     *
      * @param recoveryCode       Recovery code.
      * @param puk                Recovery PUK.
      * @param applicationKey     Application key.
@@ -1600,6 +1647,7 @@ public interface PowerAuthClient {
      * @return Create activation using recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
+    @Deprecated
     RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
                                                                      String ephemeralPublicKey, String encryptedData, String mac, String nonce,
                                                                      String protocolVersion, Long timestamp) throws PowerAuthClientException;
@@ -2159,7 +2207,7 @@ public interface PowerAuthClient {
      * @return Create application configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException;
+    CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<Object> values) throws PowerAuthClientException;
 
     /**
      * Remove an application configuration record.
@@ -2209,5 +2257,25 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException;
+
+    /**
+     * Fetch a new temporary public key.
+     * @param request Requested public key parameters.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Requested public key.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Remove a temporary public key.
+     * @param id ID of the temporary public key to remove.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Response with removal result.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
 }

@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import io.getlime.security.powerauth.app.server.database.model.Encryptable;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
-import io.getlime.security.powerauth.app.server.service.EncryptionService;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableData;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
@@ -51,7 +52,9 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public String fromDBValue(final ServerPrivateKey serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        return encryptionService.fromDBValue(serverPrivateKey, createSecretKeyDerivationInput(userId, activationId));
+        final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
+        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
+        return convert(decrypted);
     }
 
     /**
@@ -66,13 +69,20 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final String value = Base64.getEncoder().encodeToString(serverPrivateKey);
-        final Encryptable dbValue = encryptionService.toDBValue(value, createSecretKeyDerivationInput(userId, activationId));
-        return new ServerPrivateKey(dbValue.getEncryptionMode(), dbValue.getEncryptedData());
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createEncryptionKeyProvider(userId, activationId));
+        return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
-    private static List<String> createSecretKeyDerivationInput(final String userId, final String activationId) {
-        return List.of(userId, activationId);
+    private static String convert(final byte[] source) {
+        return Base64.getEncoder().encodeToString(source);
+    }
+
+    private static byte[] convert(final String source) {
+        return Base64.getDecoder().decode(source);
+    }
+
+    private static Supplier<List<String>> createEncryptionKeyProvider(final String userId, final String activationId) {
+        return () -> List.of(userId, activationId);
     }
 
 }

@@ -19,7 +19,8 @@ package io.getlime.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
+import org.springframework.util.StringUtils;
 
 /**
  * Converter of private to public HTTP authentication.
@@ -33,64 +34,116 @@ public class CallbackAuthenticationPublicConverter {
      * @param source Private HTTP authentication.
      * @return Public HTTP authentication.
      */
-    public HttpAuthenticationPublic toPublic(CallbackUrlAuthenticationEntity source) {
+    public HttpAuthenticationPublic toPublic(CallbackUrlAuthentication source) {
         final HttpAuthenticationPublic destination = new HttpAuthenticationPublic();
         if (source == null) {
             return destination;
         }
-        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicPrivate = source.getHttpBasic();
+
+        final CallbackUrlAuthentication.HttpBasic httpBasicPrivate = source.getHttpBasic();
         if (httpBasicPrivate != null) {
-            final HttpAuthenticationPublic.HttpBasic httpBasicPublic = new HttpAuthenticationPublic.HttpBasic();
-            httpBasicPublic.setEnabled(httpBasicPrivate.isEnabled());
-            httpBasicPublic.setUsername(httpBasicPrivate.getUsername());
-            httpBasicPublic.setPasswordSet(httpBasicPrivate.getPassword() != null && !httpBasicPrivate.getPassword().isEmpty());
-            destination.setHttpBasic(httpBasicPublic);
+            destination.setHttpBasic(convert(httpBasicPrivate));
         }
-        final CallbackUrlAuthenticationEntity.Certificate certificatePrivate = source.getCertificate();
+
+        final CallbackUrlAuthentication.Certificate certificatePrivate = source.getCertificate();
         if (certificatePrivate != null) {
-            final HttpAuthenticationPublic.Certificate certificatePublic = new HttpAuthenticationPublic.Certificate();
-            certificatePublic.setEnabled(certificatePrivate.isEnabled());
-            certificatePublic.setUseCustomKeyStore(certificatePrivate.isUseCustomKeyStore());
-            certificatePublic.setKeyStoreLocation(certificatePrivate.getKeyStoreLocation());
-            certificatePublic.setKeyStorePasswordSet(certificatePrivate.getKeyStorePassword() != null && !certificatePrivate.getKeyStorePassword().isEmpty());
-            certificatePublic.setKeyAlias(certificatePrivate.getKeyAlias());
-            certificatePublic.setKeyPasswordSet(certificatePrivate.getKeyPassword() != null && !certificatePrivate.getKeyPassword().isEmpty());
-            certificatePublic.setUseCustomTrustStore(certificatePrivate.isUseCustomTrustStore());
-            certificatePublic.setTrustStoreLocation(certificatePrivate.getTrustStoreLocation());
-            certificatePublic.setTrustStorePasswordSet(certificatePrivate.getTrustStorePassword() != null && !certificatePrivate.getTrustStorePassword().isEmpty());
-            destination.setCertificate(certificatePublic);
+            destination.setCertificate(convert(certificatePrivate));
         }
+
+        final CallbackUrlAuthentication.OAuth2 oAuth2 = source.getOAuth2();
+        if (oAuth2 != null) {
+            destination.setOAuth2(convert(oAuth2));
+        }
+
         return destination;
     }
 
-    public CallbackUrlAuthenticationEntity fromNetworkObject(HttpAuthenticationPrivate source) {
+    private static HttpAuthenticationPublic.OAuth2 convert(final CallbackUrlAuthentication.OAuth2 source) {
+        final HttpAuthenticationPublic.OAuth2 target = new HttpAuthenticationPublic.OAuth2();
+        target.setEnabled(source.isEnabled());
+        target.setClientId(source.getClientId());
+        target.setClientSecretSet(StringUtils.hasText(source.getClientSecret()));
+        target.setScope(source.getScope());
+        target.setTokenUri(source.getTokenUri());
+        return target;
+    }
+
+    private static HttpAuthenticationPublic.Certificate convert(final CallbackUrlAuthentication.Certificate source) {
+        final HttpAuthenticationPublic.Certificate target = new HttpAuthenticationPublic.Certificate();
+        target.setEnabled(source.isEnabled());
+        target.setUseCustomKeyStore(source.isUseCustomKeyStore());
+        target.setKeyStoreLocation(source.getKeyStoreLocation());
+        target.setKeyStorePasswordSet(StringUtils.hasText(source.getKeyStorePassword()));
+        target.setKeyAlias(source.getKeyAlias());
+        target.setKeyPasswordSet(StringUtils.hasText(source.getKeyPassword()));
+        target.setUseCustomTrustStore(source.isUseCustomTrustStore());
+        target.setTrustStoreLocation(source.getTrustStoreLocation());
+        target.setTrustStorePasswordSet(StringUtils.hasText(source.getTrustStorePassword()));
+        return target;
+    }
+
+    private static HttpAuthenticationPublic.HttpBasic convert(final CallbackUrlAuthentication.HttpBasic source) {
+        final HttpAuthenticationPublic.HttpBasic target = new HttpAuthenticationPublic.HttpBasic();
+        target.setEnabled(source.isEnabled());
+        target.setUsername(source.getUsername());
+        target.setPasswordSet(StringUtils.hasText(source.getPassword()));
+        return target;
+    }
+
+    public CallbackUrlAuthentication fromNetworkObject(HttpAuthenticationPrivate source) {
         if (source == null) {
             return null;
         }
-        final CallbackUrlAuthenticationEntity destination = new CallbackUrlAuthenticationEntity();
-        final HttpAuthenticationPrivate.Certificate sc = source.getCertificate();
-        if (sc != null) {
-            final CallbackUrlAuthenticationEntity.Certificate certificate = new CallbackUrlAuthenticationEntity.Certificate();
-            certificate.setEnabled(sc.isEnabled());
-            certificate.setUseCustomKeyStore(sc.isUseCustomKeyStore());
-            certificate.setKeyStoreLocation(sc.getKeyStoreLocation());
-            certificate.setKeyStorePassword(sc.getKeyStorePassword());
-            certificate.setKeyAlias(sc.getKeyAlias());
-            certificate.setKeyPassword(sc.getKeyPassword());
-            certificate.setUseCustomTrustStore(sc.isUseCustomTrustStore());
-            certificate.setTrustStoreLocation(sc.getTrustStoreLocation());
-            certificate.setTrustStorePassword(sc.getTrustStorePassword());
-            destination.setCertificate(certificate);
+
+        final CallbackUrlAuthentication destination = new CallbackUrlAuthentication();
+        final HttpAuthenticationPrivate.Certificate certificate = source.getCertificate();
+        if (certificate != null) {
+            destination.setCertificate(convert(certificate));
         }
-        final HttpAuthenticationPrivate.HttpBasic shb = source.getHttpBasic();
-        if (shb != null) {
-            final CallbackUrlAuthenticationEntity.HttpBasic httpBasic = new CallbackUrlAuthenticationEntity.HttpBasic();
-            httpBasic.setEnabled(shb.isEnabled());
-            httpBasic.setUsername(shb.getUsername());
-            httpBasic.setPassword(shb.getPassword());
-            destination.setHttpBasic(httpBasic);
+
+        final HttpAuthenticationPrivate.HttpBasic httpBasic = source.getHttpBasic();
+        if (httpBasic != null) {
+            destination.setHttpBasic(convert(httpBasic));
         }
+
+        final HttpAuthenticationPrivate.OAuth2 oAuth2 = source.getOAuth2();
+        if (oAuth2 != null) {
+            destination.setOAuth2(convert(oAuth2));
+        }
+
         return destination;
+    }
+
+    private CallbackUrlAuthentication.OAuth2 convert(final HttpAuthenticationPrivate.OAuth2 source) {
+        final CallbackUrlAuthentication.OAuth2 target = new CallbackUrlAuthentication.OAuth2();
+        target.setEnabled(source.isEnabled());
+        target.setClientId(source.getClientId());
+        target.setScope(source.getScope());
+        target.setTokenUri(source.getTokenUri());
+        target.setClientSecret(source.getClientSecret());
+        return target;
+    }
+
+    private static CallbackUrlAuthentication.Certificate convert(final HttpAuthenticationPrivate.Certificate source) {
+        final CallbackUrlAuthentication.Certificate target = new CallbackUrlAuthentication.Certificate();
+        target.setEnabled(source.isEnabled());
+        target.setUseCustomKeyStore(source.isUseCustomKeyStore());
+        target.setKeyStoreLocation(source.getKeyStoreLocation());
+        target.setKeyStorePassword(source.getKeyStorePassword());
+        target.setKeyAlias(source.getKeyAlias());
+        target.setKeyPassword(source.getKeyPassword());
+        target.setUseCustomTrustStore(source.isUseCustomTrustStore());
+        target.setTrustStoreLocation(source.getTrustStoreLocation());
+        target.setTrustStorePassword(source.getTrustStorePassword());
+        return target;
+    }
+
+    private static CallbackUrlAuthentication.HttpBasic convert(final HttpAuthenticationPrivate.HttpBasic source) {
+        final CallbackUrlAuthentication.HttpBasic target = new CallbackUrlAuthentication.HttpBasic();
+        target.setEnabled(source.isEnabled());
+        target.setUsername(source.getUsername());
+        target.setPassword(source.getPassword());
+        return target;
     }
 
 }

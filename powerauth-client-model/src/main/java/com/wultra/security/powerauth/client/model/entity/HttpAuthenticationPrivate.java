@@ -31,6 +31,7 @@ public class HttpAuthenticationPrivate {
 
     private Certificate certificate = new Certificate();
     private HttpBasic httpBasic = new HttpBasic();
+    private OAuth2 oAuth2 = new OAuth2();
 
     @Data
     public static class Certificate {
@@ -54,6 +55,16 @@ public class HttpAuthenticationPrivate {
         private String username;
         @ToString.Exclude
         private String password;
+    }
+
+    @Data
+    public static class OAuth2 {
+        private boolean enabled;
+        private String tokenUri;
+        private String clientId;
+        @ToString.Exclude
+        private String clientSecret;
+        private String scope;
     }
 
 }
