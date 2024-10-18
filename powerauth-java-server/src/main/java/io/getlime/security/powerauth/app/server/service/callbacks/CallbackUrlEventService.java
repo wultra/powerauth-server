@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
@@ -30,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlE
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.FailureStats;
 import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
@@ -63,6 +65,7 @@ public class CallbackUrlEventService {
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final CallbackUrlEventResponseHandler callbackUrlEventResponseHandler;
     private final LoadingCache<String, CachedRestClient> restClientCache;
+    private final Cache<String, FailureStats> callbackFailureStatsCache;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
@@ -175,13 +178,21 @@ public class CallbackUrlEventService {
      * @return True if the callback should be processed, false otherwise.
      */
     public boolean failureThresholdReached(final CallbackUrlEntity callbackUrlEntity) {
-        final Integer failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
-        final Duration resetTimeout = powerAuthCallbacksConfiguration.getResetTimeout();
+        final String callbackUrlId = callbackUrlEntity.getId();
+        final FailureStats failureStats = callbackFailureStatsCache.getIfPresent(callbackUrlId);
+        if (failureStats == null) {
+            logger.debug("No failure stats available yet for Callback URL processing: id={}", callbackUrlId);
+            return false;
+        }
 
-        final Integer failureCount = callbackUrlEntity.getFailureCount();
-        final LocalDateTime timestampLastFailure = Objects.requireNonNullElse(callbackUrlEntity.getTimestampLastFailure(), LocalDateTime.MAX);
+        final int failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
+        final Duration resetTimeout = powerAuthCallbacksConfiguration.getFailureResetTimeout();
+
+        final int failureCount = failureStats.failureCount();
+        final LocalDateTime timestampLastFailure = failureStats.timestampLastFailure();
 
         if (failureCount >= failureThreshold && LocalDateTime.now().minus(resetTimeout).isAfter(timestampLastFailure)) {
+            logger.debug("Callback URL reached failure threshold, but before specified reset timeout period, id={}", callbackUrlId);
             return false;
         }
 

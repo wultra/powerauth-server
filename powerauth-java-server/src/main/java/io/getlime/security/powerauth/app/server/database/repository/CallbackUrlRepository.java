@@ -41,22 +41,6 @@ public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity,
 
     @Modifying
     @Query("""
-           UPDATE CallbackUrlEntity c
-           SET c.failureCount = c.failureCount + 1, c.timestampLastFailure = :timestampLastFailure
-           WHERE c.id = :id
-           """)
-    void incrementFailureCount(String id, LocalDateTime timestampLastFailure);
-
-    @Modifying
-    @Query("""
-           UPDATE CallbackUrlEntity c
-           SET c.failureCount = 0, c.timestampLastFailure = NULL
-           WHERE c.id = :id
-           """)
-    void resetFailureCount(String id);
-
-    @Modifying
-    @Query("""
             UPDATE CallbackUrlEntity c
             SET c.enabled = false
             WHERE c = :entity

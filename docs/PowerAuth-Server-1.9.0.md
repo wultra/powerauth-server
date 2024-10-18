@@ -55,13 +55,6 @@ options for the retry strategy with an exponential backoff algorithm. Namely:
 
 These settings at the individual callback level overrides the global default settings at the application level.
 
-### Add Columns to Enable Callback Failures Monitoring
-
-Following columns has been added to the `pa_application_callback` table to enable monitoring of callback dispatch
-failures:
-- `failure_count` to hold the number of consecutive failed callbacks of the same configuration, and
-- `timestamp_last_failure` to store the timestamp of the most recent failed callback attempt.
-
 ### Add Column Indicating If a Callback Is Enabled
 
 A new column `enabled` has been added to the `pa_application_callback` table to indicate whether a Callback URL is
