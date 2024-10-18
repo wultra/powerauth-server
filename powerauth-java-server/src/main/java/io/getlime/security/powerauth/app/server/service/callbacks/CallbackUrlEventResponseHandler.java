@@ -18,13 +18,14 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.FailureStats;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,8 +48,8 @@ import java.util.Objects;
 public class CallbackUrlEventResponseHandler {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final CallbackUrlRepository callbackUrlRepository;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final Cache<String, FailureStats> callbackFailureStatsCache;
 
     /**
      * Handle successful Callback URL Event attempt.
@@ -68,7 +69,7 @@ public class CallbackUrlEventResponseHandler {
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        callbackUrlRepository.resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
+        resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
     }
 
     /**
@@ -104,7 +105,7 @@ public class CallbackUrlEventResponseHandler {
         }
 
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        callbackUrlRepository.incrementFailureCount(callbackUrlEntity.getId(), LocalDateTime.now());
+        incrementFailureCount(callbackUrlEntity.getId());
     }
 
     /**
@@ -123,6 +124,29 @@ public class CallbackUrlEventResponseHandler {
 
         final long backoffMillis = (long) (initialBackoff.toMillis() * Math.pow(multiplier, attempts - 1));
         return Duration.ofMillis(Math.min(backoffMillis, maxBackoff.toMillis()));
+    }
+
+    private void incrementFailureCount(final String callbackUrlId) {
+        final int failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
+        if (failureThreshold == -1) {
+            logger.debug("Failure stats are turned off for Callback URL processing");
+            return;
+        }
+
+        callbackFailureStatsCache.asMap().compute(callbackUrlId, (key, cachedFailureStats) -> {
+            if (cachedFailureStats == null) {
+                return new FailureStats(1, LocalDateTime.now());
+            } else {
+                return new FailureStats(cachedFailureStats.failureCount() + 1, LocalDateTime.now());
+            }
+        });
+
+    }
+
+    private void resetFailureCount(final String callbackUrlId) {
+        callbackFailureStatsCache.asMap().computeIfPresent(callbackUrlId,
+                (key, cachedFailureStats) -> new FailureStats(0, cachedFailureStats.timestampLastFailure())
+        );
     }
 
 }

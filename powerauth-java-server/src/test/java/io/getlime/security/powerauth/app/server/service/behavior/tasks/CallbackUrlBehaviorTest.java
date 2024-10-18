@@ -100,7 +100,6 @@ class CallbackUrlBehaviorTest {
         assertNull(entity.getRetentionPeriod());
         assertNull(entity.getInitialBackoff());
         assertNull(entity.getMaxAttempts());
-        assertEquals(0, entity.getFailureCount());
         assertTrue(entity.isEnabled());
     }
 

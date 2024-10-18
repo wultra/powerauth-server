@@ -13,7 +13,7 @@ INSERT INTO pa_operation (id, user_id, external_id, activation_flag, operation_t
 INSERT INTO pa_operation_application (operation_id, application_id) VALUES
     ('07e927af-689a-43ac-bd21-291179801912', 1);
 
-INSERT INTO pa_application_callback (id, application_id, name, callback_url, type, failure_count, enabled) VALUES
-    ('cba5f7aa-889e-4846-b97a-b6ba1bd51ad5', 1, 'test-callback-enabled', 'http://localhost:8080', 'OPERATION_STATUS_CHANGE', 0, true),
-    ('b5446f8f-a994-447e-b637-e7cd171a24b5', 1, 'test-callback-disabled', 'http://localhost:8080', 'OPERATION_STATUS_CHANGE', 0, false),
-    ('be335b28-8474-41a6-82c8-19ff8b7e82d2', 1, 'test-callback-activation', 'http://localhost:8080', 'ACTIVATION_STATUS_CHANGE', 0, true);
+INSERT INTO pa_application_callback (id, application_id, name, callback_url, type, enabled) VALUES
+    ('cba5f7aa-889e-4846-b97a-b6ba1bd51ad5', 1, 'test-callback-enabled', 'http://localhost:8080', 'OPERATION_STATUS_CHANGE', true),
+    ('b5446f8f-a994-447e-b637-e7cd171a24b5', 1, 'test-callback-disabled', 'http://localhost:8080', 'OPERATION_STATUS_CHANGE', false),
+    ('be335b28-8474-41a6-82c8-19ff8b7e82d2', 1, 'test-callback-activation', 'http://localhost:8080', 'ACTIVATION_STATUS_CHANGE', true);

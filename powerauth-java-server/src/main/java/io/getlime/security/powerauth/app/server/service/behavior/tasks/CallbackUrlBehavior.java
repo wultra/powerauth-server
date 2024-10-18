@@ -111,7 +111,6 @@ public class CallbackUrlBehavior {
             entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
-            entity.setFailureCount(0);
             final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
