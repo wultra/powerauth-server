@@ -97,4 +97,8 @@ public class PowerAuthCallbacksConfiguration {
      */
     private Duration failureResetTimeout = Duration.ofSeconds(60);
 
+    public boolean failureStatsDisabled() {
+        return failureThreshold == -1;
+    }
+
 }

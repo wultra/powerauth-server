@@ -68,8 +68,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
             return null;
         }
 
-        final RestClient restClient = initializeRestClient(optionalCallbackUrlEntity.get());
-        return new CachedRestClient(restClient, LocalDateTime.now());
+        return createNewCachedRestClient(optionalCallbackUrlEntity.get());
     }
 
     @Override
@@ -84,12 +83,20 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
 
         final LocalDateTime lastEntityUpdate = optionalCallbackUrlEntity.get().getTimestampLastUpdated();
         if (lastEntityUpdate != null && lastEntityUpdate.isAfter(cachedRestClient.timestampCreated())) {
-            final RestClient restClient = initializeRestClient(optionalCallbackUrlEntity.get());
-            return new CachedRestClient(restClient, LocalDateTime.now());
+            return createNewCachedRestClient(optionalCallbackUrlEntity.get());
         }
 
         logger.debug("Keeping the RestClient in cache for CallbackUrl: id={}", callbackUrlId);
         return cachedRestClient;
+    }
+
+    private CachedRestClient createNewCachedRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
+        return CachedRestClient.builder()
+                .restClient(initializeRestClient(callbackUrlEntity))
+                .timestampCreated(LocalDateTime.now())
+                .failureCount(0)
+                .timestampLastFailure(LocalDateTime.MIN)
+                .build();
     }
 
     /**

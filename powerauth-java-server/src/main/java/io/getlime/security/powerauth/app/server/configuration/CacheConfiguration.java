@@ -18,13 +18,11 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlRestClientCacheLoader;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
-import io.getlime.security.powerauth.app.server.service.callbacks.model.FailureStats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,18 +54,6 @@ public class CacheConfiguration {
         return Caffeine.newBuilder()
                 .refreshAfterWrite(refreshAfterWrite)
                 .build(cacheLoader);
-    }
-
-    /**
-     * Configuration of the cache for gathering failure statistics during callback processing.
-     * {@link CallbackUrlEntity#getId()} is used as a cache key.
-     *
-     * @return Cache for FailureStats.
-     */
-    @Bean
-    public Cache<String, FailureStats> callbackFailureStatsCache() {
-        return Caffeine.newBuilder()
-                .build();
     }
 
 }

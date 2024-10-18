@@ -18,14 +18,14 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
-import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
-import io.getlime.security.powerauth.app.server.service.callbacks.model.FailureStats;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -49,7 +49,7 @@ public class CallbackUrlEventResponseHandler {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
-    private final Cache<String, FailureStats> callbackFailureStatsCache;
+    private final LoadingCache<String, CachedRestClient> callbackUrlRestClientCache;
 
     /**
      * Handle successful Callback URL Event attempt.
@@ -127,25 +127,32 @@ public class CallbackUrlEventResponseHandler {
     }
 
     private void incrementFailureCount(final String callbackUrlId) {
-        final int failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
-        if (failureThreshold == -1) {
-            logger.debug("Failure stats are turned off for Callback URL processing");
+        if (powerAuthCallbacksConfiguration.failureStatsDisabled()) {
             return;
         }
 
-        callbackFailureStatsCache.asMap().compute(callbackUrlId, (key, cachedFailureStats) -> {
-            if (cachedFailureStats == null) {
-                return new FailureStats(1, LocalDateTime.now());
-            } else {
-                return new FailureStats(cachedFailureStats.failureCount() + 1, LocalDateTime.now());
-            }
-        });
-
+        callbackUrlRestClientCache.asMap().computeIfPresent(callbackUrlId,
+                (key, cached) -> CachedRestClient.builder()
+                        .restClient(cached.restClient())
+                        .timestampCreated(cached.timestampCreated())
+                        .failureCount(cached.failureCount() + 1)
+                        .timestampLastFailure(LocalDateTime.now())
+                        .build()
+        );
     }
 
     private void resetFailureCount(final String callbackUrlId) {
-        callbackFailureStatsCache.asMap().computeIfPresent(callbackUrlId,
-                (key, cachedFailureStats) -> new FailureStats(0, cachedFailureStats.timestampLastFailure())
+        if (powerAuthCallbacksConfiguration.failureStatsDisabled()) {
+            return;
+        }
+
+        callbackUrlRestClientCache.asMap().computeIfPresent(callbackUrlId,
+                (key, cached) -> CachedRestClient.builder()
+                        .restClient(cached.restClient())
+                        .timestampCreated(cached.timestampCreated())
+                        .failureCount(0)
+                        .timestampLastFailure(cached.timestampLastFailure())
+                        .build()
         );
     }
 
