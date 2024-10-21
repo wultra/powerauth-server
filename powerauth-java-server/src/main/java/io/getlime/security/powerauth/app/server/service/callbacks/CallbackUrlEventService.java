@@ -93,7 +93,7 @@ public class CallbackUrlEventService {
         callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
                 .forEach(event -> {
                     if (failureThresholdReached(event.getCallbackUrlEntity())) {
-                        logger.debug("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
+                        logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
                         failWithoutDispatching(event);
                     } else {
                         dispatchPendingCallbackUrlEvent(event);
