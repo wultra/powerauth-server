@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.callbacks;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
@@ -60,16 +59,16 @@ public class CallbackUrlEventResponseHandler {
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
                         .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its success handling: callbackUrlEventId=" + callbackUrlEvent.entityId()));
 
-        logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId());
+        logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEvent.config().url(), callbackUrlEventEntity.getId());
 
-        final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
+        final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEvent.config().retentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
         callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
         callbackUrlEventEntity.setTimestampNextCall(null);
         callbackUrlEventEntity.setTimestampRerunAfter(null);
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
+        resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntityId());
     }
 
     /**
@@ -82,30 +81,29 @@ public class CallbackUrlEventResponseHandler {
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.entityId())
                 .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failure handling: callbackUrlEventId=" + callbackUrlEvent.entityId()));
 
-        logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
+        logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEvent.config().url(), callbackUrlEventEntity.getId(), error.getMessage());
 
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setTimestampRerunAfter(null);
 
-        final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
-        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEntity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
+        final int maxAttempts = Objects.requireNonNullElse(callbackUrlEvent.config().maxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts());
         final int attemptsMade = callbackUrlEventEntity.getAttempts();
 
         if (attemptsMade < maxAttempts) {
-            final Duration initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff());
+            final Duration initialBackoff = Objects.requireNonNullElse(callbackUrlEvent.config().initialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff());
             final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoff());
             callbackUrlEventEntity.setTimestampNextCall(LocalDateTime.now().plus(backoffPeriod));
             callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PENDING);
         } else {
             logger.debug("Maximum number of attempts reached for callbackUrlEventId={}", callbackUrlEventEntity.getId());
-            final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
+            final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEvent.config().retentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
             callbackUrlEventEntity.setTimestampDeleteAfter(LocalDateTime.now().plus(retentionPeriod));
             callbackUrlEventEntity.setTimestampNextCall(null);
             callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
         }
 
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        incrementFailureCount(callbackUrlEntity.getId());
+        incrementFailureCount(callbackUrlEventEntity.getCallbackUrlEntityId());
     }
 
     /**
@@ -137,6 +135,7 @@ public class CallbackUrlEventResponseHandler {
                         .timestampCreated(cached.timestampCreated())
                         .failureCount(cached.failureCount() + 1)
                         .timestampLastFailure(LocalDateTime.now())
+                        .callbackUrlEntity(cached.callbackUrlEntity())
                         .build()
         );
     }
@@ -152,6 +151,7 @@ public class CallbackUrlEventResponseHandler {
                         .timestampCreated(cached.timestampCreated())
                         .failureCount(0)
                         .timestampLastFailure(cached.timestampLastFailure())
+                        .callbackUrlEntity(cached.callbackUrlEntity())
                         .build()
         );
     }

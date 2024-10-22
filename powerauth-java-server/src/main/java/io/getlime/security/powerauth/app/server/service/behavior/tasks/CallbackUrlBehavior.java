@@ -471,7 +471,7 @@ public class CallbackUrlBehavior {
         }
 
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveEventForProcessing(callbackUrlEntity, callbackData);
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, callbackUrlEntity.getId());
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, callbackUrlEntity);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> enqueue(callbackUrlEvent)
         );

@@ -240,7 +240,7 @@ class CallbackUrlBehaviorTest {
 
         final CallbackUrlEventEntity callbackUrlEventEntity = entityManager.find(CallbackUrlEventEntity.class, 1);
         assertNotNull(callbackUrlEventEntity);
-        assertEquals(callbackUrlEventEntity.getCallbackUrlEntity().getId(), callbackUrlEntity.getId());
+        assertEquals(callbackUrlEventEntity.getCallbackUrlEntityId(), callbackUrlEntity.getId());
 
         final RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlEntity.getId());

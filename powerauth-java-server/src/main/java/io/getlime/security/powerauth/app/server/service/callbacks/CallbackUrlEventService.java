@@ -91,14 +91,7 @@ public class CallbackUrlEventService {
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
         callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
-                .forEach(event -> {
-                    if (failureThresholdReached(event.getCallbackUrlEntity())) {
-                        logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
-                        failWithoutDispatching(event);
-                    } else {
-                        dispatchPendingCallbackUrlEvent(event);
-                    }
-                });
+                .forEach(this::dispatchPendingCallbackUrlEvent);
     }
 
     /**
@@ -133,7 +126,7 @@ public class CallbackUrlEventService {
         final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
 
         final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
-        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackUrlEntityId(callbackUrlEntity.getId());
         callbackUrlEventEntity.setCallbackData(callbackData);
         callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
         callbackUrlEventEntity.setTimestampCreated(timestampNow);
@@ -152,12 +145,12 @@ public class CallbackUrlEventService {
      */
     public CallbackUrlEventEntity createAndSaveFailedEvent(final CallbackUrlEntity callbackUrlEntity, final Map<String, Object> callbackData) {
         final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
-        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackUrlEntityId(callbackUrlEntity.getId());
         callbackUrlEventEntity.setCallbackData(callbackData);
         callbackUrlEventEntity.setIdempotencyKey(UUID.randomUUID().toString());
         callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
         callbackUrlEventEntity.setAttempts(0);
-        return callbackUrlEventRepository.save(failWithoutDispatching(callbackUrlEventEntity));
+        return callbackUrlEventRepository.save(failWithoutDispatching(callbackUrlEventEntity, callbackUrlEntity));
     }
 
     /**
@@ -206,7 +199,20 @@ public class CallbackUrlEventService {
      * @param callbackUrlEventEntity Event to dispatch.
      */
     private void dispatchPendingCallbackUrlEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        final CallbackUrlEntity callbackUrlEntity = callbackUrlEventEntity.getCallbackUrlEntity();
+        final CachedRestClient cachedRestClient = callbackUrlRestClientCache.get(callbackUrlEventEntity.getCallbackUrlEntityId());
+        if (cachedRestClient == null) {
+            logger.warn("Callback URL is not available, associated events are not dispatched: callbackUrlId={}", callbackUrlEventEntity.getCallbackUrlEntityId());
+            failWithoutDispatching(callbackUrlEventEntity, null);
+            return;
+        }
+
+        final CallbackUrlEntity callbackUrlEntity = cachedRestClient.callbackUrlEntity();
+        if (failureThresholdReached(callbackUrlEntity)) {
+            logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", callbackUrlEntity.getId());
+            failWithoutDispatching(callbackUrlEventEntity, callbackUrlEntity);
+            return;
+        }
+
         final LocalDateTime timestampNow = LocalDateTime.now();
         final Duration forceRerunPeriod = Objects.requireNonNullElse(powerAuthCallbacksConfiguration.getForceRerunPeriod(), defaultForceRerunPeriod());
 
@@ -216,7 +222,7 @@ public class CallbackUrlEventService {
         callbackUrlEventEntity.setTimestampRerunAfter(shouldBeSentAtMostOnce(callbackUrlEntity) ? null : timestampNow.plus(forceRerunPeriod));
         final CallbackUrlEventEntity savedEventEntity = callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity, callbackUrlEntity.getId());
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(savedEventEntity, callbackUrlEntity);
         TransactionUtils.executeAfterTransactionCommits(
                 () -> postCallback(callbackUrlEvent)
         );
@@ -241,7 +247,7 @@ public class CallbackUrlEventService {
             final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
             headers.add("Idempotency-Key", callbackUrlEvent.idempotencyKey());
 
-            restClient.postNonBlocking(callbackUrlEvent.callbackUrl(),
+            restClient.postNonBlocking(callbackUrlEvent.config().url(),
                     callbackUrlEvent.callbackData(),
                     new LinkedMultiValueMap<>(),
                     headers,
@@ -271,8 +277,13 @@ public class CallbackUrlEventService {
         return obtainMaxAttempts(callbackUrlEntity) == 1;
     }
 
-    private CallbackUrlEventEntity failWithoutDispatching(final CallbackUrlEventEntity callbackUrlEventEntity) {
-        final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
+    private CallbackUrlEventEntity failWithoutDispatching(final CallbackUrlEventEntity callbackUrlEventEntity, final CallbackUrlEntity callbackUrlEntity) {
+        final Duration retentionPeriod;
+        if (callbackUrlEntity != null && callbackUrlEntity.getRetentionPeriod() != null) {
+            retentionPeriod = callbackUrlEntity.getRetentionPeriod();
+        } else {
+            retentionPeriod = powerAuthCallbacksConfiguration.getDefaultRetentionPeriod();
+        }
 
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.FAILED);
         callbackUrlEventEntity.setTimestampNextCall(null);
@@ -282,10 +293,10 @@ public class CallbackUrlEventService {
     }
 
     private RestClient getRestClient(final CallbackUrlEvent callbackUrlEvent) throws RestClientException {
-        final String cacheKey = callbackUrlEvent.restClientCacheKey();
-        final CachedRestClient cachedRestClient = callbackUrlRestClientCache.get(cacheKey);
+        final String callbackUrlId = callbackUrlEvent.config().entityId();
+        final CachedRestClient cachedRestClient = callbackUrlRestClientCache.get(callbackUrlId);
         if (cachedRestClient == null) {
-            throw new RestClientException("REST Client not available for the Callback URL: id=" + cacheKey);
+            throw new RestClientException("REST Client not available for the Callback URL: id=" + callbackUrlId);
         }
 
         return cachedRestClient.restClient();

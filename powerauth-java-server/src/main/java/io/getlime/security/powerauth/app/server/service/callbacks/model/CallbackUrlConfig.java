@@ -18,23 +18,19 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks.model;
 
-import com.wultra.core.rest.client.base.RestClient;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
+import java.time.Duration;
 
 /**
- * Wrapper for the {@link RestClient} to track the creation timestamp
- * and failure statistics of a REST Client instance.
- *
+ * Data class holding config of a Callback URL Event.
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Builder
-public record CachedRestClient(
-        RestClient restClient,
-        LocalDateTime timestampCreated,
-        int failureCount,
-        LocalDateTime timestampLastFailure,
-        CallbackUrlEntity callbackUrlEntity
+public record CallbackUrlConfig(
+        String entityId,
+        String url,
+        Duration retentionPeriod,
+        Duration initialBackoff,
+        Integer maxAttempts
 ) { }
