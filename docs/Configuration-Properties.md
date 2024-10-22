@@ -106,8 +106,9 @@ In certain scenarios, repeatedly attempting to dispatch callback events may be p
 receiver's side. To address this, if multiple callback events with the same configuration fail consecutively, the
 service temporarily halts further dispatch attempts and marks these events as failed without retrying. The number of
 consecutive failures allowed before stopping dispatch is defined by the `failureThreshold` property, while the halt
-period is configurable via the `resetTimeout` property. After this period, a callback dispatch attempt will be made again
-to check the receiver's availability.
+period is configurable via the `failureResetTimeout` property. After this period, a callback dispatch attempt will be
+made again to check the receiver's availability. If the `failureThreshold` is set to `-1`, the functionality is not
+enabled.
 
 PowerAuth dispatches a callback as soon as a change in operation or activation status is detected. Each newly created
 callback is passed to a configurable thread pool executor for dispatch. Even if the thread pool's queue is full, the
@@ -132,8 +133,8 @@ to callback events with max attempts set to 1, such callback events are never sc
 | `powerauth.service.callbacks.threadPoolMaxSize`                     | `2`     | Maximum number of threads in the thread pool used by the executor.                                                                                                                                   |
 | `powerauth.service.callbacks.threadPoolQueueCapacity`               | `1000`  | Queue capacity of the thread pool used by the executor.                                                                                                                                              |
 | `powerauth.service.callbacks.forceRerunPeriod`                      |         | Time period after which a currently processed callback event is considered stale and should be scheduled to rerun.                                                                                   |
-| `powerauth.service.callbacks.failureThreshold`                      | `200`   | The number of consecutive failures allowed for callback events with the same configuration.                                                                                                          |
-| `powerauth.service.callbacks.resetTimeout`                          | `60s`   | Time period after which a Callback URL Event will be dispatched, even if failure threshold has been reached.                                                                                         |
+| `powerauth.service.callbacks.failureThreshold`                      | `200`   | The number of consecutive failures allowed for callback events with the same configuration. If set to `-1`, unlimited number of failures is allowed.                                                 |
+| `powerauth.service.callbacks.failureResetTimeout`                   | `60s`   | Time period after which a Callback URL Event will be dispatched, even if failure threshold has been reached.                                                                                         |
 | `powerauth.service.callbacks.clients.cache.refreshAfterWrite`       | `5m`    | Callback REST clients are cached and automatically evicted if updated through the Callback Management API on a single node. Time-based refreshing mechanism is a fallback in clustered environments. |
 
 The backoff period after the `N-th` attempt is calculated as follows:

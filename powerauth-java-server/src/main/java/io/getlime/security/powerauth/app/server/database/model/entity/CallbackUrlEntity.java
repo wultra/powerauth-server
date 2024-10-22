@@ -122,18 +122,6 @@ public class CallbackUrlEntity implements Serializable {
     private Duration retentionPeriod;
 
     /**
-     * Timestamp of last callback failure.
-     */
-    @Column(name = "timestamp_last_failure")
-    private LocalDateTime timestampLastFailure;
-
-    /**
-     * Number of failed callbacks in a row.
-     */
-    @Column(name = "failure_count", nullable = false)
-    private Integer failureCount;
-
-    /**
      * Whether the callback is enabled and can be used.
      */
     @Column(name = "enabled", nullable = false)

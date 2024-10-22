@@ -18,12 +18,13 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks;
 
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
 import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +48,8 @@ import java.util.Objects;
 public class CallbackUrlEventResponseHandler {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final CallbackUrlRepository callbackUrlRepository;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final LoadingCache<String, CachedRestClient> callbackUrlRestClientCache;
 
     /**
      * Handle successful Callback URL Event attempt.
@@ -68,7 +69,7 @@ public class CallbackUrlEventResponseHandler {
         callbackUrlEventEntity.setAttempts(callbackUrlEventEntity.getAttempts() + 1);
         callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.COMPLETED);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        callbackUrlRepository.resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
+        resetFailureCount(callbackUrlEventEntity.getCallbackUrlEntity().getId());
     }
 
     /**
@@ -104,7 +105,7 @@ public class CallbackUrlEventResponseHandler {
         }
 
         callbackUrlEventRepository.save(callbackUrlEventEntity);
-        callbackUrlRepository.incrementFailureCount(callbackUrlEntity.getId(), LocalDateTime.now());
+        incrementFailureCount(callbackUrlEntity.getId());
     }
 
     /**
@@ -123,6 +124,36 @@ public class CallbackUrlEventResponseHandler {
 
         final long backoffMillis = (long) (initialBackoff.toMillis() * Math.pow(multiplier, attempts - 1));
         return Duration.ofMillis(Math.min(backoffMillis, maxBackoff.toMillis()));
+    }
+
+    private void incrementFailureCount(final String callbackUrlId) {
+        if (powerAuthCallbacksConfiguration.failureStatsDisabled()) {
+            return;
+        }
+
+        callbackUrlRestClientCache.asMap().computeIfPresent(callbackUrlId,
+                (key, cached) -> CachedRestClient.builder()
+                        .restClient(cached.restClient())
+                        .timestampCreated(cached.timestampCreated())
+                        .failureCount(cached.failureCount() + 1)
+                        .timestampLastFailure(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    private void resetFailureCount(final String callbackUrlId) {
+        if (powerAuthCallbacksConfiguration.failureStatsDisabled()) {
+            return;
+        }
+
+        callbackUrlRestClientCache.asMap().computeIfPresent(callbackUrlId,
+                (key, cached) -> CachedRestClient.builder()
+                        .restClient(cached.restClient())
+                        .timestampCreated(cached.timestampCreated())
+                        .failureCount(0)
+                        .timestampLastFailure(cached.timestampLastFailure())
+                        .build()
+        );
     }
 
 }

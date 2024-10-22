@@ -62,7 +62,7 @@ public class CallbackUrlEventService {
 
     private final CallbackUrlEventRepository callbackUrlEventRepository;
     private final CallbackUrlEventResponseHandler callbackUrlEventResponseHandler;
-    private final LoadingCache<String, CachedRestClient> restClientCache;
+    private final LoadingCache<String, CachedRestClient> callbackUrlRestClientCache;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
@@ -93,7 +93,7 @@ public class CallbackUrlEventService {
         callbackUrlEventRepository.findPending(LocalDateTime.now(), pageRequest)
                 .forEach(event -> {
                     if (failureThresholdReached(event.getCallbackUrlEntity())) {
-                        logger.debug("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
+                        logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", event.getCallbackUrlEntity().getId());
                         failWithoutDispatching(event);
                     } else {
                         dispatchPendingCallbackUrlEvent(event);
@@ -175,13 +175,26 @@ public class CallbackUrlEventService {
      * @return True if the callback should be processed, false otherwise.
      */
     public boolean failureThresholdReached(final CallbackUrlEntity callbackUrlEntity) {
-        final Integer failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
-        final Duration resetTimeout = powerAuthCallbacksConfiguration.getResetTimeout();
+        if (powerAuthCallbacksConfiguration.failureStatsDisabled()) {
+            logger.debug("Failure stats are turned off for Callback URL processing");
+            return false;
+        }
 
-        final Integer failureCount = callbackUrlEntity.getFailureCount();
-        final LocalDateTime timestampLastFailure = Objects.requireNonNullElse(callbackUrlEntity.getTimestampLastFailure(), LocalDateTime.MAX);
+        final String callbackUrlId = callbackUrlEntity.getId();
+        final CachedRestClient cachedRestClient = callbackUrlRestClientCache.getIfPresent(callbackUrlId);
+        if (cachedRestClient == null) {
+            logger.debug("No failure stats available yet for Callback URL processing: id={}", callbackUrlId);
+            return false;
+        }
+
+        final int failureThreshold = powerAuthCallbacksConfiguration.getFailureThreshold();
+        final Duration resetTimeout = powerAuthCallbacksConfiguration.getFailureResetTimeout();
+
+        final int failureCount = cachedRestClient.failureCount();
+        final LocalDateTime timestampLastFailure = cachedRestClient.timestampLastFailure();
 
         if (failureCount >= failureThreshold && LocalDateTime.now().minus(resetTimeout).isAfter(timestampLastFailure)) {
+            logger.debug("Callback URL reached failure threshold, but before specified reset timeout period, id={}", callbackUrlId);
             return false;
         }
 
@@ -270,7 +283,7 @@ public class CallbackUrlEventService {
 
     private RestClient getRestClient(final CallbackUrlEvent callbackUrlEvent) throws RestClientException {
         final String cacheKey = callbackUrlEvent.restClientCacheKey();
-        final CachedRestClient cachedRestClient = restClientCache.get(cacheKey);
+        final CachedRestClient cachedRestClient = callbackUrlRestClientCache.get(cacheKey);
         if (cachedRestClient == null) {
             throw new RestClientException("REST Client not available for the Callback URL: id=" + cacheKey);
         }

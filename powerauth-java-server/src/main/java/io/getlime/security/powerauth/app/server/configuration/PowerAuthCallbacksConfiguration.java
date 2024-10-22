@@ -90,11 +90,15 @@ public class PowerAuthCallbacksConfiguration {
      * Number of allowed Callback URL Events failures in a row. When the threshold is reached no other
      * events with the same Callback URL configuration will be posted.
      */
-    private Integer failureThreshold = 200;
+    private int failureThreshold = 200;
 
     /**
      * Period after which a Callback URL Event will be dispatched even though failure threshold is reached.
      */
-    private Duration resetTimeout = Duration.ofSeconds(60);
+    private Duration failureResetTimeout = Duration.ofSeconds(60);
+
+    public boolean failureStatsDisabled() {
+        return failureThreshold == -1;
+    }
 
 }

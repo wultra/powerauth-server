@@ -19,15 +19,20 @@
 package io.getlime.security.powerauth.app.server.service.callbacks.model;
 
 import com.wultra.core.rest.client.base.RestClient;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 /**
- * Wrapper for the {@link RestClient} to track the creation timestamp of the REST Client instance.
+ * Wrapper for the {@link RestClient} to track the creation timestamp
+ * and failure statistics of a REST Client instance.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
+@Builder
 public record CachedRestClient(
         RestClient restClient,
-        LocalDateTime timestampCreated
+        LocalDateTime timestampCreated,
+        int failureCount,
+        LocalDateTime timestampLastFailure
 ) { }
