@@ -375,7 +375,7 @@ public class OperationServiceBehavior {
             final String expectedUserId = operationEntity.getUserId();
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
-            if ((expectedUserId != null && expectedUserId.equals(userId)) // correct user approved the operation
+            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation
                     && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
@@ -385,6 +385,7 @@ public class OperationServiceBehavior {
                     && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
                 // Approve the operation
+                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.APPROVED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -533,10 +534,11 @@ public class OperationServiceBehavior {
             }
 
             final String expectedUserId = operationEntity.getUserId();
-            if ((expectedUserId != null && expectedUserId.equals(userId)) // correct user rejects the operation
+            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user rejects the operation
                     && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
                 // Reject the operation
+                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.REJECTED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
