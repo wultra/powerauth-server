@@ -23,6 +23,8 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Callb
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
@@ -50,9 +52,8 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_callback_id", referencedColumnName = "id", nullable = false, updatable = false)
-    private CallbackUrlEntity callbackUrlEntity;
+    @Column(name = "application_callback_id", updatable = false, nullable = false)
+    private String callbackUrlEntityId;
 
     @Column(name = "callback_data", nullable = false)
     @Convert(converter = MapToJsonConverter.class)
@@ -101,7 +102,7 @@ public class CallbackUrlEventEntity implements Serializable {
     public String toString() {
         return "CallbackUrlEventEntity{" +
                 "id=" + id +
-                ", callbackUrlEntity=" + (callbackUrlEntity == null ? "null" : callbackUrlEntity.getId()) +
+                ", callbackUrlEntityId=" + callbackUrlEntityId +
                 ", status=" + status +
                 ", attempts=" + attempts +
                 '}';

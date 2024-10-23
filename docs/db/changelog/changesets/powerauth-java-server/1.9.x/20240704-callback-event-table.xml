@@ -16,7 +16,7 @@
                 <constraints primaryKey="true" />
             </column>
             <column name="application_callback_id" type="varchar(37)">
-                <constraints nullable="false" foreignKeyName="pa_application_callback_id_fk" referencedTableName="pa_application_callback" referencedColumnNames="id" />
+                <constraints nullable="false" />
             </column>
             <column name="callback_data" type="text">
                 <constraints nullable="false" />

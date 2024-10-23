@@ -31,8 +31,7 @@ import java.util.Map;
 public record CallbackUrlEvent(
         Long entityId,
         Map<String, Object> callbackData,
-        String callbackUrl,
-        String restClientCacheKey,
         CallbackUrlEventStatus status,
-        String idempotencyKey
+        String idempotencyKey,
+        CallbackUrlConfig config
 ) { }

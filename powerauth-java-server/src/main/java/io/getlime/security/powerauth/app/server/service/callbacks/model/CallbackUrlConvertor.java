@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks.model;
 
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -30,14 +31,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CallbackUrlConvertor {
 
-    public static CallbackUrlEvent convert(final CallbackUrlEventEntity callbackUrlEventEntity, final String restClientCacheKey) {
+    public static CallbackUrlEvent convert(final CallbackUrlEventEntity callbackUrlEventEntity, final CallbackUrlEntity callbackUrlEntity) {
         return CallbackUrlEvent.builder()
                 .entityId(callbackUrlEventEntity.getId())
                 .callbackData(callbackUrlEventEntity.getCallbackData())
-                .callbackUrl(callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl())
-                .restClientCacheKey(restClientCacheKey)
                 .status(callbackUrlEventEntity.getStatus())
                 .idempotencyKey(callbackUrlEventEntity.getIdempotencyKey())
+                .config(convert(callbackUrlEntity))
+                .build();
+    }
+
+    public static CallbackUrlConfig convert(final CallbackUrlEntity callbackUrlEntity) {
+        return CallbackUrlConfig.builder()
+                .entityId(callbackUrlEntity.getId())
+                .url(callbackUrlEntity.getCallbackUrl())
+                .retentionPeriod(callbackUrlEntity.getRetentionPeriod())
+                .initialBackoff(callbackUrlEntity.getInitialBackoff())
+                .maxAttempts(callbackUrlEntity.getMaxAttempts())
                 .build();
     }
 

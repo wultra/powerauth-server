@@ -96,6 +96,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
                 .timestampCreated(LocalDateTime.now())
                 .failureCount(0)
                 .timestampLastFailure(LocalDateTime.MIN)
+                .callbackUrlEntity(callbackUrlEntity)
                 .build();
     }
 
