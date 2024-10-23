@@ -544,7 +544,7 @@ class Fido2AuthenticatorTest {
         templateCreateRequest.setDataTemplate("A2");
         templateCreateRequest.setMaxFailureCount(5L);
         templateCreateRequest.setExpiration(300L);
-        templateCreateRequest.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
+        templateCreateRequest.getSignatureType().add(SignatureType.POSSESSION);
         operationTemplateService.createOperationTemplate(templateCreateRequest);
     }
 
