@@ -146,7 +146,10 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
                 @SuppressWarnings("unchecked")
                 final List<String> allowCredentials = (List<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
                 final String credentialId = (String) request.getAdditionalData().get(ATTR_CREDENTIAL_ID);
-                return allowCredentials == null || allowCredentials.isEmpty() || allowCredentials.contains(credentialId);
+                final boolean allowCredentialsMatches = allowCredentials == null // no allow credentials at all are expected (null)
+                        || allowCredentials.isEmpty() // no allow credentials at all are expected (empty collection)
+                        || allowCredentials.contains(credentialId); // used credential matches one of expected values
+                return !allowCredentialsMatches;
             });
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
