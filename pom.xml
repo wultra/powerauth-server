@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -86,8 +86,8 @@
         <spring-cloud-vault.version>4.1.3</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.9.0</powerauth-java-crypto.version>
-        <wultra-core.version>1.11.0</wultra-core.version>
+        <powerauth-java-crypto.version>1.10.0-SNAPSHOT</powerauth-java-crypto.version>
+        <wultra-core.version>1.12.0-SNAPSHOT</wultra-core.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
