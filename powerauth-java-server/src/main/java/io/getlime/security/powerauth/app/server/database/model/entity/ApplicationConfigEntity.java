@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.converter.ListToJsonConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,8 +25,6 @@ import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -57,27 +55,11 @@ public class ApplicationConfigEntity implements Serializable {
     private String key;
 
     @Column(name = "config_values", columnDefinition = "CLOB")
-    @Convert(converter = ListToJsonConverter.class)
-    private List<String> values = new ArrayList<>();
+    private String values = "[]";
 
-    /**
-     * No-arg constructor.
-     */
-    public ApplicationConfigEntity() {
-    }
-
-    /**
-     * Constructor for a new application configuration.
-     *
-     * @param application Application entity.
-     * @param key         Configuration key.
-     * @param values       Configuration values.
-     */
-    public ApplicationConfigEntity(ApplicationEntity application, String key, List<String> values) {
-        this.application = application;
-        this.key = key;
-        this.values = values;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
+    private EncryptionMode encryptionMode;
 
     @Override
     public boolean equals(Object o) {
@@ -102,6 +84,7 @@ public class ApplicationConfigEntity implements Serializable {
                 ", appId='" + application.getId() + '\'' +
                 ", key=" + key +
                 ", values=" + values +
+                ", encryptionMode=" + encryptionMode +
                 '}';
     }
 }

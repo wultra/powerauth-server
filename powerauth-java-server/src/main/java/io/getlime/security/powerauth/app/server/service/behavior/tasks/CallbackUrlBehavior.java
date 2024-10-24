@@ -17,8 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.core.rest.client.base.DefaultRestClient;
-import com.wultra.core.rest.client.base.RestClient;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
@@ -30,27 +29,33 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationPublicConverter;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
+import io.getlime.security.powerauth.app.server.converter.CallbackUrlTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
+import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -59,40 +64,18 @@ import java.util.stream.Collectors;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@AllArgsConstructor
 @Slf4j
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
+    private final CallbackUrlEventService callbackUrlEventService;
+    private final CallbackUrlEventQueueService callbackUrlEventQueueService;
     private LocalizationProvider localizationProvider;
-    private PowerAuthServiceConfiguration configuration;
-
-    // Store REST clients in cache with their callback ID as a key
-    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
-    private final Object restClientCacheLock = new Object();
-
-    private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
-
-    /**
-     * Behavior constructor.
-     * @param callbackUrlRepository Callback URL repository.
-     * @param applicationRepository Application repository.
-     */
-    @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository) {
-        this.callbackUrlRepository = callbackUrlRepository;
-        this.applicationRepository = applicationRepository;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
-
-    @Autowired
-    public void setConfiguration(PowerAuthServiceConfiguration configuration) {
-        this.configuration = configuration;
-    }
+    private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
+    private final LoadingCache<String, CachedRestClient> restClientCache;
+    private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -103,12 +86,6 @@ public class CallbackUrlBehavior {
     @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
         try {
-            if (request.getName() == null) {
-                logger.warn("Invalid request parameter name in method createCallbackUrl");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Check the URL format
             try {
                 new URL(request.getCallbackUrl());
@@ -131,20 +108,30 @@ public class CallbackUrlBehavior {
             entity.setId(UUID.randomUUID().toString());
             entity.setApplication(applicationEntityOptional.get());
             entity.setName(request.getName());
-            entity.setType(CallbackUrlType.valueOf(request.getType()));
+            entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
-            entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(request.getAuthentication()));
+            final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
+            entity.setAuthentication(encrypted.encryptedData());
+            entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setRetentionPeriod(request.getRetentionPeriod());
+            entity.setInitialBackoff(request.getInitialBackoff());
+            entity.setMaxAttempts(request.getMaxAttempts());
             callbackUrlRepository.save(entity);
+
             final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
             response.setId(entity.getId());
             response.setApplicationId(entity.getApplication().getId());
             response.setName(entity.getName());
+            response.setType(CallbackUrlTypeConverter.convert(entity.getType()));
             response.setCallbackUrl(entity.getCallbackUrl());
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
+            response.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(entity));
+            response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+            response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+            response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -164,14 +151,9 @@ public class CallbackUrlBehavior {
      * @return Update callback URL record.
      * @throws GenericServiceException Thrown when callback URL in request is malformed or callback URL could not be found.
      */
+    @Transactional
     public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws GenericServiceException {
         try {
-            if (request.getId() == null || request.getApplicationId() == null || request.getName() == null || request.getAttributes() == null) {
-                logger.warn("Invalid request in method updateCallbackUrl");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
                     .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
                     .orElseThrow(() -> {
@@ -189,14 +171,13 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            evictRestClientFromCache(entity);
-
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
+            entity.setType(CallbackUrlTypeConverter.convert(request.getType()));
             // Retain existing passwords in case new password is not set
             final HttpAuthenticationPrivate authRequest = request.getAuthentication();
-            final CallbackUrlAuthenticationEntity authExisting = entity.getAuthentication();
+            final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationEncryptor.decrypt(entity);
             if (authRequest != null) {
                 if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
                     if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
@@ -214,20 +195,33 @@ public class CallbackUrlBehavior {
                         authRequest.getHttpBasic().setPassword(authExisting.getHttpBasic().getPassword());
                     }
                 }
+                if (authRequest.getOAuth2() != null && authExisting.getOAuth2() != null && authExisting.getOAuth2().getClientSecret() != null && authRequest.getOAuth2().getClientSecret() == null) {
+                    authRequest.getOAuth2().setClientSecret(authExisting.getOAuth2().getClientSecret());
+                }
             }
-            entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
+            final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(authRequest, entity.getApplication().getId());
+            entity.setAuthentication(encrypted.encryptedData());
+            entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setRetentionPeriod(request.getRetentionPeriod());
+            entity.setInitialBackoff(request.getInitialBackoff());
+            entity.setMaxAttempts(request.getMaxAttempts());
+            entity.setTimestampLastUpdated(LocalDateTime.now());
             callbackUrlRepository.save(entity);
+            TransactionUtils.executeAfterTransactionCommits(() -> restClientCache.refresh(entity.getId()));
 
             final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
             response.setId(entity.getId());
             response.setApplicationId(entity.getApplication().getId());
             response.setName(entity.getName());
-            response.setType(entity.getType().toString());
+            response.setType(CallbackUrlTypeConverter.convert(entity.getType()));
             response.setCallbackUrl(entity.getCallbackUrl());
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
+            response.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(entity));
+            response.setRetentionPeriod(Objects.requireNonNullElse(entity.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+            response.setInitialBackoff(Objects.requireNonNullElse(entity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+            response.setMaxAttempts(Objects.requireNonNullElse(entity.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -256,12 +250,15 @@ public class CallbackUrlBehavior {
                 item.setId(callbackUrl.getId());
                 item.setApplicationId(callbackUrl.getApplication().getId());
                 item.setName(callbackUrl.getName());
-                item.setType(callbackUrl.getType().toString());
+                item.setType(CallbackUrlTypeConverter.convert(callbackUrl.getType()));
                 item.setCallbackUrl(callbackUrl.getCallbackUrl());
                 if (callbackUrl.getAttributes() != null) {
                     item.getAttributes().addAll(callbackUrl.getAttributes());
                 }
-                item.setAuthentication(authenticationPublicConverter.toPublic(callbackUrl.getAuthentication()));
+                item.setAuthentication(callbackUrlAuthenticationEncryptor.decryptToPublic(callbackUrl));
+                item.setRetentionPeriod(Objects.requireNonNullElse(callbackUrl.getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod()));
+                item.setInitialBackoff(Objects.requireNonNullElse(callbackUrl.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoff()));
+                item.setMaxAttempts(Objects.requireNonNullElse(callbackUrl.getMaxAttempts(), powerAuthCallbacksConfiguration.getDefaultMaxAttempts()));
                 response.getCallbackUrlList().add(item);
             }
             return response;
@@ -287,8 +284,11 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                evictRestClientFromCache(callbackEntity);
-                callbackUrlRepository.delete(callbackEntity);
+                callbackEntity.setEnabled(false);
+                callbackEntity.setTimestampLastUpdated(LocalDateTime.now());
+                callbackUrlRepository.save(callbackEntity);
+                TransactionUtils.executeAfterTransactionCommits(
+                        () -> restClientCache.invalidate(callbackEntity.getId()));
                 response.setRemoved(true);
             } else {
                 response.setRemoved(false);
@@ -316,7 +316,7 @@ public class CallbackUrlBehavior {
                     notifyCallbackUrl(callbackUrlEntity, callbackData);
                 }
             }
-        } catch (RestClientException ex) {
+        } catch (RestClientException | GenericServiceException ex) {
             // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
         }
@@ -382,7 +382,7 @@ public class CallbackUrlBehavior {
                     }
                 }
             }
-        } catch (RestClientException ex) {
+        } catch (RestClientException | GenericServiceException ex) {
             // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
         }
@@ -456,112 +456,48 @@ public class CallbackUrlBehavior {
      * @param callbackUrlEntity Callback URL entity.
      * @param callbackData Callback data.
      * @throws RestClientException Thrown when HTTP request fails.
+     * @throws GenericServiceException Thrown when callback configuration is wrong.
      */
-    private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
-        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.info("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
-        final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
-        final RestClient restClient = getRestClient(callbackUrlEntity);
-        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
-    }
-
-    /**
-     * Get a rest client for a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     * @throws RestClientException Thrown when rest client initialization fails.
-     */
-    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        RestClient restClient;
-        synchronized (restClientCacheLock) {
-            restClient = restClientCache.get(cacheKey);
-            if (restClient == null) {
-                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                restClient = createRestClientAndStoreInCache(callbackUrlEntity);
-            } else {
-                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
-            }
+    private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException, GenericServiceException {
+        if (!isMaxAttemptsPositive(callbackUrlEntity)) {
+            logger.info("Callback URL is configured with non-positive max attempts: callbackUrlId={}", callbackUrlEntity.getId());
+            return;
         }
-        return restClient;
+
+        if (callbackUrlEventService.failureThresholdReached(callbackUrlEntity)) {
+            logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", callbackUrlEntity.getId());
+            callbackUrlEventService.createAndSaveFailedEvent(callbackUrlEntity, callbackData);
+            return;
+        }
+
+        final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventService.createAndSaveEventForProcessing(callbackUrlEntity, callbackData);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity, callbackUrlEntity);
+        TransactionUtils.executeAfterTransactionCommits(
+                () -> enqueue(callbackUrlEvent)
+        );
     }
 
     /**
-     * Get a key for the REST client cache from a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Cache key.
+     * Try to submit a Callback URL Event to a task executor.
+     * If rejected, enqueue the Callback URL Event to a database.
+     * @param callbackUrlEvent Callback URL Event to enqueue
      */
-    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
-        return callbackUrlEntity.getId();
-    }
-
-    /**
-     * Create a new REST client and store it in cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     */
-    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient = initializeRestClient(callbackUrlEntity);
-        restClientCache.put(cacheKey, restClient);
-        return restClient;
-    }
-
-    /**
-     * Evict an instance from REST client cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
-        synchronized (restClientCacheLock) {
-            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
+    private void enqueue(final CallbackUrlEvent callbackUrlEvent) {
+        try {
+            callbackUrlEventQueueService.submitToExecutor(callbackUrlEvent);
+        } catch (RejectedExecutionException e) {
+            logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.entityId());
+            callbackUrlEventQueueService.enqueueToDatabase(callbackUrlEvent);
         }
     }
 
     /**
-     * Initialize Rest client instance and configure it based on client configuration.
-     * @param callbackUrlEntity Callback URL entity.
+     * Check if a Callback URL is configured to be dispatched at least once.
+     * @param callbackUrlEntity Callback URL to check.
+     * @return True if the Callback URL should be dispatched at least once, false otherwise.
      */
-    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (configuration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
-        }
-        if (configuration.getHttpResponseTimeout() != null) {
-            builder.responseTimeout(configuration.getHttpResponseTimeout());
-        }
-        if (configuration.getHttpMaxIdleTime() != null) {
-            builder.maxIdleTime(configuration.getHttpMaxIdleTime());
-        }
-        if (configuration.getHttpProxyEnabled()) {
-            final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
-            if (configuration.getHttpProxyUsername() != null) {
-                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
-            }
-        }
-        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
-        final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
-        if (certificateAuth != null && certificateAuth.isEnabled()) {
-            final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
-            if (certificateAuth.isUseCustomKeyStore()) {
-                certificateAuthBuilder.enableCustomKeyStore()
-                        .keyStoreLocation(certificateAuth.getKeyStoreLocation())
-                        .keyStorePassword(certificateAuth.getKeyStorePassword())
-                        .keyAlias(certificateAuth.getKeyAlias())
-                        .keyPassword(certificateAuth.getKeyPassword());
-            }
-            if (certificateAuth.isUseCustomTrustStore()) {
-                certificateAuthBuilder.enableCustomTruststore()
-                        .trustStoreLocation(certificateAuth.getTrustStoreLocation())
-                        .trustStorePassword(certificateAuth.getTrustStorePassword());
-            }
-        }
-        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicAuth = authentication.getHttpBasic();
-        if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
-            builder.httpBasicAuth()
-                    .username(httpBasicAuth.getUsername())
-                    .password(httpBasicAuth.getPassword());
-        }
-        return builder.build();
+    private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
+        return callbackUrlEventService.obtainMaxAttempts(callbackUrlEntity) > 0;
     }
 
 }

@@ -15,10 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service;
+package io.getlime.security.powerauth.app.server.service.encryption;
 
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.Encryptable;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -40,6 +39,7 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Service for encryption and decryption database data.
@@ -60,22 +60,34 @@ public class EncryptionService {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     /**
-     * Convert encryptable composite database value to string value.
-     * <p>
-     * The method should be called before writing to the database because the GenericServiceException can be thrown.
-     * This could lead to a database inconsistency because the transaction is not rolled back.
+     * Decrypt the given string.
      *
-     * @param source Ecryptable value.
-     * @param secretKeyDerivationInput Values used for derivation of secret key.
+     * @param dataString String to decrypt.
+     * @param encryptionMode Encryption mode.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Decrypted value.
+     * @see #decrypt(byte[], EncryptionMode, Supplier) if you want to encrypt binary data.
      * @throws GenericServiceException In case decryption fails.
      */
-    public String fromDBValue(final Encryptable source, final List<String> secretKeyDerivationInput) throws GenericServiceException {
-        final String data = source.getEncryptedData();
-        final EncryptionMode encryptionMode = source.getEncryptionMode();
+    public String decrypt(final String dataString, final EncryptionMode encryptionMode, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
+        final byte[] dataBytes = convert(dataString, encryptionMode);
+        final byte[] decrypted = decrypt(dataBytes, encryptionMode, encryptionKeyProvider);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Decrypt the given data.
+     *
+     * @param data Data to decrypt.
+     * @param encryptionMode Encryption mode.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
+     * @return Decrypted value.
+     * @see #decrypt(String, EncryptionMode, Supplier) if you want to encrypt string data.
+     * @throws GenericServiceException In case decryption fails.
+     */
+    public byte[] decrypt(final byte[] data, final EncryptionMode encryptionMode, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
-            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
 
@@ -89,7 +101,6 @@ public class EncryptionService {
                 // In case master DB encryption key does not exist, do not encrypt the value
                 if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
                     logger.error("Missing master DB encryption key");
-                    // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
                 }
                 try {
@@ -97,69 +108,77 @@ public class EncryptionService {
                     final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
-                    final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, secretKeyDerivationInput);
-
-                    // Base64-decode hash
-                    final byte[] dataBytes = Base64.getDecoder().decode(data);
+                    final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
-                    if (dataBytes.length < 16) {
+                    if (data.length < 16) {
                         logger.error("Invalid encrypted data hash format - the byte array is too short");
-                        // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                     }
 
                     // IV is present in first 16 bytes
-                    final byte[] iv = Arrays.copyOfRange(dataBytes, 0, 16);
+                    final byte[] iv = Arrays.copyOfRange(data, 0, 16);
 
                     // Encrypted data hash is present after IV
-                    final byte[] encryptedData = Arrays.copyOfRange(dataBytes, 16, dataBytes.length);
+                    final byte[] encryptedData = Arrays.copyOfRange(data, 16, data.length);
 
-                    final byte[] decryptedData = aesEncryptionUtils.decrypt(encryptedData, iv, secretKey);
-
-                    // Return decrypted hash
-                    return new String(decryptedData, StandardCharsets.UTF_8);
-
+                    return aesEncryptionUtils.decrypt(encryptedData, iv, secretKey);
                 } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                 } catch (GenericCryptoException ex) {
                     logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 } catch (CryptoProviderException ex) {
                     logger.error(ex.getMessage(), ex);
-                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
                 }
             }
             default -> {
                 logger.error("Unknown key encryption mode: {}", encryptionMode.getValue());
-                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
             }
         }
     }
 
     /**
-     * Convert to encryptable composite database value.
-     * <p>
-     * Value is encrypted in case master DB encryption key is configured in PA server configuration.
-     * The method should be called before writing to the database because the GenericServiceException can be thrown.
-     * This could lead to a database inconsistency because the transaction is not rolled back.
+     * Encrypt the given string.
      *
-     * @param source Value to encrypt if master DB encryption key is present.
-     * @param secretKeyDerivations Values used for derivation of secret key.
-     * @return Encryptable composite database value.
+     * @param data String to encrypt.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
+     * @return Encryptable composite data.
+     * @see #encrypt(byte[], Supplier) if you want to encrypt binary data.
      * @throws GenericServiceException Thrown when encryption fails.
      */
-    public Encryptable toDBValue(final String source, final List<String> secretKeyDerivations) throws GenericServiceException {
+    public EncryptableString encrypt(final String data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
+        if (data == null) {
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, "Data must not be null");
+        }
+
+        final byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
+        final EncryptableData result = encrypt(dataBytes, encryptionKeyProvider);
+        return new EncryptableString(result.encryptionMode(), convert(result));
+    }
+
+    /**
+     * Encrypt the given data.
+     *
+     * @param data Data to encrypt.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
+     * @return Encryptable composite data.
+     * @see #encrypt(String, Supplier) if you want to encrypt binary data.
+     * @throws GenericServiceException Thrown when encryption fails.
+     */
+    public EncryptableData encrypt(final byte[] data, final Supplier<List<String>> encryptionKeyProvider) throws GenericServiceException {
+        if (data == null) {
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, "Data must not be null");
+        }
+
         final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the value
         if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new EncryptableRecord(EncryptionMode.NO_ENCRYPTION, source);
+            return new EncryptableData(EncryptionMode.NO_ENCRYPTION, data);
         }
 
         try {
@@ -167,13 +186,13 @@ public class EncryptionService {
             final SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
-            final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, secretKeyDerivations);
+            final SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, encryptionKeyProvider);
 
             // Generate random IV
             final byte[] iv = keyGenerator.generateRandomBytes(16);
 
             // Encrypt serverPrivateKey using secretKey with generated IV
-            final byte[] encrypted = aesEncryptionUtils.encrypt(source.getBytes(StandardCharsets.UTF_8), iv, secretKey);
+            final byte[] encrypted = aesEncryptionUtils.encrypt(data, iv, secretKey);
 
             // Generate output bytes as encrypted + IV
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -181,26 +200,18 @@ public class EncryptionService {
             baos.write(encrypted);
             final byte[] encryptedData = baos.toByteArray();
 
-            final String encryptedBase64 = Base64.getEncoder().encodeToString(encryptedData);
-
-            // Return encrypted data including encryption mode
-            return new EncryptableRecord(EncryptionMode.AES_HMAC, encryptedBase64);
-
+            return new EncryptableData(EncryptionMode.AES_HMAC, encryptedData);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, serialization is executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
     }
@@ -209,28 +220,32 @@ public class EncryptionService {
      * Derive secret key from master DB encryption key and the given derivations.
      *
      * @param masterDbEncryptionKey Master DB encryption key.
-     * @param secretKeyDerivations Values used for derivation of secret key.
+     * @param encryptionKeyProvider Provider for values used for derivation of secret key.
      * @return Derived secret key.
      * @throws GenericCryptoException In case key derivation fails.
      * @see <a href="https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md">Encrypting Records in Database</a>
      */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, final List<String> secretKeyDerivations) throws GenericCryptoException, CryptoProviderException {
+    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, final Supplier<List<String>> encryptionKeyProvider) throws GenericCryptoException, CryptoProviderException {
         // Use concatenated value bytes as index for KDF_INTERNAL
-        final byte[] index = String.join("&", secretKeyDerivations).getBytes(StandardCharsets.UTF_8);
+        final byte[] index = String.join("&", encryptionKeyProvider.get()).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
     }
 
-    private record EncryptableRecord(EncryptionMode encryptionMode, String encryptedData) implements Encryptable {
-        @Override
-        public EncryptionMode getEncryptionMode() {
-            return encryptionMode;
+    private static byte[] convert(final String source, final EncryptionMode encryptionMode) {
+        if (encryptionMode == EncryptionMode.NO_ENCRYPTION) {
+            return source.getBytes(StandardCharsets.UTF_8);
+        } else {
+            return Base64.getDecoder().decode(source);
         }
+    }
 
-        @Override
-        public String getEncryptedData() {
-            return encryptedData;
+    private static String convert(final EncryptableData source) {
+        if (source.encryptionMode() == EncryptionMode.NO_ENCRYPTION) {
+            return new String(source.encryptedData(), StandardCharsets.UTF_8);
+        } else {
+            return Base64.getEncoder().encodeToString(source.encryptedData());
         }
     }
 

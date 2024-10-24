@@ -18,15 +18,19 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
-import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.DurationConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +42,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "pa_application_callback")
 @Getter @Setter
+@SQLRestriction("enabled = true")
 public class CallbackUrlEntity implements Serializable {
 
     @Serial
@@ -84,11 +89,55 @@ public class CallbackUrlEntity implements Serializable {
     private List<String> attributes;
 
     /**
-     * Callback request authentication.
+     * Callback request authentication. May be encrypted, configured by {@link #encryptionMode}.
      */
-    @Column(name = "authentication")
-    @Convert(converter = CallbackAuthenticationConverter.class)
-    private CallbackUrlAuthenticationEntity authentication;
+    @Column(name = "authentication", columnDefinition = "CLOB")
+    private String authentication = "{}";
+
+    /**
+     * Encryption mode of {@link #authentication}.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
+    private EncryptionMode encryptionMode;
+
+    /**
+     * Maximum number of attempts to send the callback.
+     */
+    @Column(name = "max_attempts")
+    private Integer maxAttempts;
+
+    /**
+     * Initial backoff before the next send attempt.
+     */
+    @Column(name = "initial_backoff")
+    @Convert(converter = DurationConverter.class)
+    private Duration initialBackoff;
+
+    /**
+     * Duration for which is the callback event stored.
+     */
+    @Column(name = "retention_period")
+    @Convert(converter = DurationConverter.class)
+    private Duration retentionPeriod;
+
+    /**
+     * Whether the callback is enabled and can be used.
+     */
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
+
+    /**
+     * Timestamp of the creation.
+     */
+    @Column(name = "timestamp_created", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime timestampCreated = LocalDateTime.now();
+
+    /**
+     * Timestamp of the last update.
+     */
+    @Column(name = "timestamp_last_updated")
+    private LocalDateTime timestampLastUpdated;
 
     @Override
     public boolean equals(Object o) {

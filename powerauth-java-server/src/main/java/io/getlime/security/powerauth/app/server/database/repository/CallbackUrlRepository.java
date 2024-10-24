@@ -19,9 +19,12 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -35,5 +38,14 @@ public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity,
     List<CallbackUrlEntity> findByApplicationIdOrderByName(String applicationId);
 
     List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(String applicationId, CallbackUrlType type);
+
+    @Modifying
+    @Query("""
+            UPDATE CallbackUrlEntity c
+            SET c.enabled = false
+            WHERE c = :entity
+            """)
+    @Override
+    void delete(CallbackUrlEntity entity);
 
 }

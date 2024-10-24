@@ -101,6 +101,9 @@ The following `v3` methods are published using the service:
     - [getTemplateDetail](#method-gettemplatedetail)
     - [updateOperationTemplate](#method-updateoperationtemplate)
     - [removeOperationTemplate](#method-removeoperationtemplate)
+- Temporary Keys
+    - [createTemporaryKey](#method-createtemporarykey)
+    - [removeTemporaryKey](#method-removetemporarykey)
 
 
 ## System status
@@ -371,7 +374,14 @@ REST endpoint: `POST /rest/v3/application/config/detail`
 
 The `ApplicationConfigurationItem` record contains following parameters: 
   - `String key` - configuration key name
-  - `List<String> values` - configuration values 
+  - `List<Object> values` - configuration values
+
+Following configuration keys are expected:
+
+- `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
+- `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+- `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
+- `oauth2_providers` - Configuration of OAuth 2.0 providers, see [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) for details.
 
 ### Method 'createApplicationConfig'
 
@@ -383,26 +393,28 @@ REST endpoint: `POST /rest/v3/application/config/create`
 
 `CreateApplicationConfigRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values serialized as JSON array |
+| Type           | Name            | Description                                               |
+|----------------|-----------------|-----------------------------------------------------------|
+| `String`       | `applicationId` | An identifier of an application                           |
+| `String`       | `key`           | Application configuration key name                        |
+| `List<Object>` | `values`        | Application configuration values serialized as JSON array |
 
 Following configuration keys are accepted:
+
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
 - `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
 - `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
+- `oauth2_providers` - Configuration of OAuth 2.0 providers, see for [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) details.
 
 #### Response
 
 `CreateApplicationConfigResponse`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values |
+| Type           | Name            | Description                        |
+|----------------|-----------------|------------------------------------|
+| `String`       | `applicationId` | An identifier of an application    |
+| `String`       | `key`           | Application configuration key name |
+| `List<Object>` | `values`        | Application configuration values   |
 
 ### Method 'removeApplicationConfig'
 
@@ -429,7 +441,7 @@ Methods related to activation management.
 
 ### Method 'initActivation'
 
-Create (initialize) a new activation for given user and application. If both `activationOtpValidation` and `activationOtp` optional parameters are set, then the same value of activation OTP must be later provided for the confirmation.
+Create (initialize) a new activation for given user and application. If the optional `activationOtp` parameter is set, then the same value of activation OTP must be later provided for the confirmation.
 
 After calling this method, a new activation record is created in CREATED state.
 
@@ -439,14 +451,21 @@ REST endpoint: `POST /rest/v3/activation/init`
 
 `InitActivationRequest`
 
-| Type                      | Name | Description |
-|---------------------------|------|-------------|
-| `String`                  | `userId` | An identifier of a user |
-| `String`                  | `applicationId` | An identifier of an application |
-| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long`                    | `maxFailureCount` | How many failures are allowed for this activation |
-| `ActivationOtpValidation` | `activationOtpValidation` | Optional activation OTP validation mode |
-| `String`                  | `activationOtp` | Optional activation OTP |
+| Type                      | Name                        | Description                                                                                                                                                                                                                                           |
+|---------------------------|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`                  | `userId`                    | An identifier of a user                                                                                                                                                                                                                               |
+| `String`                  | `applicationId`             | An identifier of an application                                                                                                                                                                                                                       |
+| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                                                                                                                                                                                       |
+| `Long`                    | `maxFailureCount`           | How many failures are allowed for this activation                                                                                                                                                                                                     |
+| `ActivationOtpValidation` | `activationOtpValidation`   | *Deprecated* optional activation OTP validation mode, use the `activationOtp` parameter during activation init or activation commit to control the OTP check. Use the `commitPhase` parameter for specifying when the activation should be committed. |
+| `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |        
+| `String`                  | `activationOtp` | Optional activation OTP                                                                                                                                                                                                                               |
+
+This section describes how to change the activation commit flow:
+- By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
+- In case you want the activation to be commited during key exchange, specify the `commitPhase` parameter with value `ON_KEY_EXCHANGE`. In this case, the activation transitions from `CREATED` state directly into `ACTIVE` state and no separate call is required for performing the activation commit.
+
+In case you require activation OTP validation during activation, specify the `activationOtp` parameter. The phase when the OTP gets validated is controlled by the `commitPhase` parameter, either it is checked by default during commit (value `ON_COMMIT`) or during key exchange (value `ON_KEY_EXCHANGE`). When the `activationOtp` parameter is missing, OTP validation is not performed.  
 
 #### Response
 
@@ -498,7 +517,7 @@ ECIES request should contain following data (as JSON):
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
  - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
  - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
- - `activationOtp` - Optional activation OTP for confirmation. The value must be provided in case that activation was initialized with `ActivationOtpValidation` set to `ON_KEY_EXCHANGE`. 
+ - `activationOtp` - Optional activation OTP for confirmation.
 
 #### Response
 
@@ -676,30 +695,31 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name                         | Description                                                                               |
-|---------------------------|------------------------------|-------------------------------------------------------------------------------------------|
-| `String`                  | `activationId`               | An identifier of an activation                                                            |
-| `ActivationStatus`        | `activationStatus`           | An activation status                                                                      |
-| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode                                                         |
-| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                |
-| `String`                  | `activationName`             | An activation name                                                                        |
-| `String`                  | `userId`                     | An identifier of a user                                                                   |
-| `String`                  | `extras`                     | Any custom attributes                                                                     |
-| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                           |
-| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                          |
-| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                              |
-| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
-| `String[]`                | `activationFlags`            | Activation flags                                                                          |
-| `String`                  | `applicationId`              | An identifier fo an application                                                           |
-| `String[]`                | `applicationRoles`           | Application roles                                                                         |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
-| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                 |
+| Type                      | Name                         | Description                                                                             |
+|---------------------------|------------------------------|-----------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                          |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                    |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                        |
+| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                  |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                              |
+| `String`                  | `activationName`             | An activation name                                                                      |
+| `String`                  | `userId`                     | An identifier of a user                                                                 |
+| `String`                  | `extras`                     | Any custom attributes                                                                   |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                         |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                        |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                            |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                            |
+| `String[]`                | `activationFlags`            | Activation flags                                                                        |
+| `String`                  | `applicationId`              | An identifier fo an application                                                         |
+| `String[]`                | `applicationRoles`           | Application roles                                                                       |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                             |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                           |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                            |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                               |
 | `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
-| `Long`                    | `version`                    | Activation version                                                                        |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                      |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification   |
+| `Long`                    | `version`                    | Activation version                                                                      |
 
 ### Method 'removeActivation'
 
@@ -934,15 +954,16 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 
 #### Request
 
-REST endpoint: `POST /rest/v3/verifyECDSASignature`
+REST endpoint: `POST /rest/v3/signature/ecdsa/verify`
 
 `VerifyECDSASignatureRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Base64 encoded data for the signature |
-| `String` | `signature` | Base64 encoded ECDSA signature |
+| Type                   | Name              | Description                                               |
+|------------------------|-------------------|-----------------------------------------------------------|
+| `String`               | `activationId`    | An identifier of an activation                            |
+| `String`               | `data`            | Base64 encoded data for the signature                     |
+| `String`               | `signature`       | Base64 encoded ECDSA signature                            |
+| `ECDSASignatureFormat` | `signatureFormat` | Format of the ECDSA signature: `DER` (default) or `JOSE`. |
 
 #### Response
 
@@ -1379,25 +1400,47 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 
 `CreateCallbackUrlRequest`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
-The `attributes` list can contain following values:
-- `activationId`
+When creating a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
+
 - `userId`
 - `activationName`
 - `deviceInfo`
 - `platform`
+- `protocol`
 - `activationFlags`
 - `activationStatus`
 - `blockedReason`
 - `applicationId`
+
+When creating a callback URL of type `OPERATION_STATUS_CHANGE`, following `attributes` can be used:
+
+- `userId`
+- `applications`
+- `operationType`
+- `parameters`
+- `additionalData`
+- `activationFlag`
+- `status`
+- `data`
+- `failureCount`
+- `maxFailureCount`
+- `signatureType`
+- `externalId`
+- `timestampCreated`
+- `timestampExpires`
+- `timestampFinalized`
 
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
@@ -1417,6 +1460,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
+  },
+  "oauth2": {
+    "enabled": false,
+    "clientId": "[OAuth2 client ID]",
+    "clientSecret": "[OAuth2 client secret]",
+    "tokenUri": "[OAuth2 token URI]",
+    "scope": "[OAuth2 scope]"
   }
 }
 ```
@@ -1425,14 +1475,18 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `CreateCallbackUrlResponse`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'updateCallbackUrl'
 
@@ -1444,24 +1498,48 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 
 `UpdateCallbackUrlRequest`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. See possible attributes bellow. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
-The `attributes` list can contain following values:
-- `activationId`
+When configuring a callback URL of type `ACTIVATION_STATUS_CHANGE`, following `attributes` can be used:
+
 - `userId`
 - `activationName`
 - `deviceInfo`
 - `platform`
+- `protocol`
 - `activationFlags`
 - `activationStatus`
 - `blockedReason`
 - `applicationId`
+
+When configuring a callback URL of type `OPERATION_STATUS_CHANGE`, following `attributes` can be used:
+
+- `userId`
+- `applications`
+- `operationType`
+- `parameters`
+- `additionalData`
+- `activationFlag`
+- `status`
+- `data`
+- `failureCount`
+- `maxFailureCount`
+- `signatureType`
+- `externalId`
+- `timestampCreated`
+- `timestampExpires`
+- `timestampFinalized`
 
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
@@ -1481,6 +1559,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
+  },
+  "oauth2": {
+    "enabled": false,
+    "clientId": "[OAuth2 client ID]",
+    "clientSecret": "[OAuth2 client secret]",
+    "tokenUri": "[OAuth2 token URI]",
+    "scope": "[OAuth2 scope]"
   }
 }
 ```
@@ -1490,15 +1575,18 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `UpdateCallbackUrlResponse`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1524,15 +1612,18 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 
 `GetCallbackUrlListResponse.CallbackUrlList`
 
-| Type           | Name | Description |
-|----------------|------|-------------|
-| `String`       | `id` | Callback URL identifier (UUID4). |
-| `String`       | `applicationId` | Associated application ID. |
-| `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
-| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String`       | `authentication` | Callback HTTP request authentication configuration. |
+| Type              | Name | Description |
+|-------------------|------|-------------|
+| `String`          | `id` | Callback URL identifier (UUID4). |
+| `String`          | `applicationId` | Associated application ID. |
+| `String`          | `name` | Callback URL name, for visual identification. |
+| `CallbackUrlType` | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| `String`          | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>`    | `attributes` | Attributes which should be sent with the callback. |
+| `String`          | `authentication` | Callback HTTP request authentication configuration. |
+| `Duration`        | `retentionPeriod` | Duration in ISO 8601 duration format after which a completed callback event is automatically removed from database. |
+| `Duration`        | `initialBackoff` | Initial delay in ISO 8601 duration format before retry attempt following a callback event failure, if retries are enabled. |
+| `Integer`         | `maxAttempts` | Maximum number of attempts to send a callback event. |
 
 ### Method 'removeCallbackUrl'
 
@@ -1546,7 +1637,7 @@ REST endpoint: `POST /rest/v3/application/callback/remove`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `id` | ID of an callback URL to be removed. |
+| `String` | `id` | ID of the callback URL to be removed. |
 
 #### Response
 
@@ -1554,8 +1645,8 @@ REST endpoint: `POST /rest/v3/application/callback/remove`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `id` | ID of an callback URL to be removed. |
-| `Boolean` | `removed` | Flag specifying if a callback URL was removed or not. |
+| `String` | `id` | ID of the callback URL. |
+| `Boolean` | `removed` | Flag specifying if the callback URL was removed or not. |
 
 ## End-To-End Encryption
 
@@ -2638,6 +2729,74 @@ REST endpoint: `POST /rest/v3/operation/template/remove`
 
 _empty response_
 
+## Temporary Keys
+
+### Method 'createTemporaryKey'
+
+Create temporary key pair.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/keystore/create`
+
+`TemporaryPublicKeyRequest`
+
+| Type                  | Name                      | Description                                                                  |
+|-----------------------|---------------------------|------------------------------------------------------------------------------|
+| `String`              | `jwt`                     | Signed JWT payload (HS256) with `TemporaryPublicKeyRequestClaims` structure. |
+
+`TemporaryPublicKeyRequestClaims`
+
+| Type     | Name             | Description      |
+|----------|------------------|------------------|
+| `String` | `applicationKey` | Application key  |
+| `String` | `activationId`   | Activation ID    |
+| `String` | `challenge`      | Random challenge |
+
+#### Response
+
+`TemporaryPublicKeyResponse`
+
+| Type                  | Name                      | Description                                                                   |
+|-----------------------|---------------------------|-------------------------------------------------------------------------------|
+| `String`              | `jwt`                     | Signed JWT payload (ES256) with `TemporaryPublicKeyResponseClaims` structure. |
+
+`TemporaryPublicKeyResponseClaims`
+
+| Type     | Name             | Description                    |
+|----------|------------------|--------------------------------|
+| `String` | `applicationKey` | Application key                |
+| `String` | `activationId`   | Activation ID                  |
+| `String` | `challenge`      | Random challenge               |
+| `String` | `keyId`          | Unique key pair ID             |
+| `String` | `publicKey`      | Public key (encoded as Base64) |
+| `Date`   | `expiration`     | Expiration timestamp.          |
+
+
+### Method 'removeTemporaryKey'
+
+Remove temporary key pair.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/keystore/remove`
+
+`RemoveTemporaryPublicKeyRequest`
+
+| Type     | Name | Description               |
+|----------|------|---------------------------|
+| `String` | `id` | Key pair ID to be removed |
+
+
+#### Response
+
+`RemoveTemporaryPublicKeyResponse`
+
+| Type      | Name      | Description                                 |
+|-----------|-----------|---------------------------------------------|
+| `String`  | `id`      | Key pair ID to be removed                   |
+| `boolean` | `removed` | Boolean indicating if the value was removed |
+
 ## Used enums
 
 This chapter lists all enums used by PowerAuth Server services.
@@ -2649,10 +2808,14 @@ This chapter lists all enums used by PowerAuth Server services.
     - BLOCKED
     - REMOVED
 
-- `ActivationOtpValidation` - Represents mode of validation of additional OTP:
+- `ActivationOtpValidation` - Represents mode of validation of additional OTP (*deprecated*):
     - NONE
     - ON_KEY_EXCHANGE
     - ON_COMMIT
+
+- `CommitPhase` - Specifies when activation is committed:
+    - ON_COMMIT (default) - activation is committed in the `PENDING_COMMIT` state
+    - ON_KEY_EXCHANGE - activation is committed during key exchange
 
 - `SignatureType` - Represents the type of the signature, one of the following values:
     - POSSESSION

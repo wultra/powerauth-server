@@ -22,10 +22,10 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -38,8 +38,8 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,24 +60,17 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class OnlineSignatureServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
+    private final ApplicationVersionRepository applicationVersionRepository;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    @Autowired
-    public OnlineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, ActivationQueryService activationQueryService, LocalizationProvider localizationProvider) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.signatureSharedServiceBehavior = signatureSharedServiceBehavior;
-        this.activationQueryService = activationQueryService;
-        this.localizationProvider = localizationProvider;
-    }
 
     /**
      * Verify signature for given activation and provided data in online mode. Log every validation attempt in the audit log.
@@ -172,7 +165,7 @@ public class OnlineSignatureServiceBehavior {
         final SignatureConfiguration signatureConfiguration = SignatureConfiguration.forFormat(signatureFormat);
 
         // Check the activation - application relationship and version support
-        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
 
         if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getRid(), applicationId)) {
             logger.warn("Application version is incorrect, application key: {}", applicationKey);

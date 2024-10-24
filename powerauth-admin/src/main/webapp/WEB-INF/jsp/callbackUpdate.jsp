@@ -171,6 +171,62 @@
                             <c:if test="${true eq auth_trustStorePasswordSet}"><div class="col-sm-4" style="margin-top: 8px">Password is set.</div></c:if>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="auth_useOAuth2" class="col-sm-4 control-label">Use OAuth2 Authentication</label>
+                                <div class="col-sm-8" style="margin-top: 6px">
+                                    <input type="checkbox" id="auth_useOAuth2" name="auth_oAuth2Enabled" <c:if test="${true eq auth_oAuth2Enabled}">checked</c:if>/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth_oAuth2ClientId" class="col-sm-4 control-label">Client ID</label>
+                                <div class="col-sm-8" style="margin-top: 6px">
+                                    <input type="text" id="auth_oAuth2ClientId" name="auth_oAuth2ClientId" value="${auth_oAuth2ClientId}"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth_oAuth2ClientSecret" class="col-sm-4 control-label">Client Secret</label>
+                                <div class="col-sm-4">
+                                    <input type="password" id="auth_oAuth2ClientSecret" name="auth_oAuth2ClientSecret" class="form-control" onchange="document.getElementById('auth_oAuth2ClientSecretChanged').value='true'" onkeyup="document.getElementById('auth_oAuth2ClientSecretChanged').value='true'" onpaste="document.getElementById('auth_oAuth2ClientSecretChanged').value='true'"/>
+                                </div>
+                                <c:if test="${true eq auth_oAuth2ClientSecretSet}"><div class="col-sm-4" style="margin-top: 8px">Client secret is set.</div></c:if>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth_oAuth2TokenUri" class="col-sm-4 control-label">Token URI</label>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_oAuth2TokenUri" name="auth_oAuth2TokenUri" class="form-control" value="${auth_oAuth2TokenUri}"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth_oAuth2Scope" class="col-sm-4 control-label">Scope</label>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_oAuth2Scope" name="auth_oAuth2Scope" class="form-control" value="${auth_oAuth2Scope}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <h4 class="panel-heading">Retry Policy and Retention</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxAttempts" class="col-sm-3 control-label">Max Attempts</label>
+                        <div class="col-sm-9">
+                            <input type="number" id="maxAttempts" name="maxAttempts" class="form-control" value="${maxAttempts}" min="1"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="initialBackoff" class="col-sm-3 control-label">Initial Backoff</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="initialBackoff" name="initialBackoff" class="form-control" value="${initialBackoff}"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="retentionPeriod" class="col-sm-3 control-label">Retention Period</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="retentionPeriod" name="retentionPeriod" class="form-control" value="${retentionPeriod}"/>
+                        </div>
+                    </div>
                     <div class="form-group text-right">
                         <div class="col-sm-11">
                             <input type="hidden" name="callbackId" value="<c:out value="${callbackId}"/>"/>
@@ -178,6 +234,7 @@
                             <input type="hidden" name="auth_keyStorePasswordChanged" id="auth_keyStorePasswordChanged" value="false"/>
                             <input type="hidden" name="auth_keyPasswordChanged" id="auth_keyPasswordChanged" value="false"/>
                             <input type="hidden" name="auth_trustStorePasswordChanged" id="auth_trustStorePasswordChanged" value="false"/>
+                            <input type="hidden" name="auth_oAuth2ClientSecretChanged" id="auth_oAuth2ClientSecretChanged" value="false"/>
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <input type="submit" value="Submit" class="btn btn-success"/>
                         </div>

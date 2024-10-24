@@ -18,9 +18,13 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +39,20 @@ public class CreateCallbackUrlResponse {
     private String id;
     private String applicationId;
     private String name;
+    private CallbackUrlType type;
     private String callbackUrl;
     private List<String> attributes = new ArrayList<>();
     private HttpAuthenticationPublic authentication = new HttpAuthenticationPublic();
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @Schema(type = "string", format = "ISO 8601 Duration", example = "P30D")
+    private Duration retentionPeriod;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @Schema(type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    private Duration initialBackoff;
+
+    @Schema(type = "integer", example = "1")
+    private Integer maxAttempts;
 
 }

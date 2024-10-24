@@ -144,7 +144,7 @@ public class RESTControllerAdvice {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler
-    public @ResponseBody ObjectResponse<PowerAuthError> returnActivationRecoveryError(final MethodArgumentNotValidException ex) {
+    public @ResponseBody ObjectResponse<PowerAuthError> returnInvalidRequestError(final MethodArgumentNotValidException ex) {
         logger.error("Error occurred while processing the request: {}", ex.getMessage());
         logger.debug("Exception details:", ex);
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <include file="20240718-add-temporary-keys.xml" relativeToChangelogFile="true" />
+    <include file="20240723-configuration-encryption.xml" relativeToChangelogFile="true" />
+    <include file="20240906-configuration-encryption.xml" relativeToChangelogFile="true" />
+    <include file="20240910-commit-phase.xml" relativeToChangelogFile="true" />
+    <include file="20240704-callback-event-table.xml" relativeToChangelogFile="true" />
+    <include file="20241010-rest-client-caching.xml" relativeToChangelogFile="true" />
+    <include file="20241003-add-tag-1.9.0.xml" relativeToChangelogFile="true" />
+
+</databaseChangeLog>

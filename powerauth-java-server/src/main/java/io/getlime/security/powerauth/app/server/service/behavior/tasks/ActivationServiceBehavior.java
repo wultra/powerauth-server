@@ -25,11 +25,7 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.RecoveryPukConverter;
-import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
+import io.getlime.security.powerauth.app.server.converter.*;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -65,8 +61,8 @@ import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -95,6 +91,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ActivationServiceBehavior {
 
     /**
@@ -108,13 +105,11 @@ public class ActivationServiceBehavior {
     // Maximum date for SQL timestamps: 01/01/9999 @ 12:00am (UTC)
     private static final Date MAX_TIMESTAMP = new Date(253370764800000L);
 
-    private final RepositoryCatalogue repositoryCatalogue;
+    private final CallbackUrlBehavior callbackUrlBehavior;
+    private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
-    private CallbackUrlBehavior callbackUrlBehavior;
-
-    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-
-    private LocalizationProvider localizationProvider;
+    private final LocalizationProvider localizationProvider;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthPageableConfiguration powerAuthPageableConfiguration;
@@ -125,53 +120,25 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
 
+    private final ApplicationRepository applicationRepository;
+    private final ActivationRepository activationRepository;
+    private final RecoveryCodeRepository recoveryCodeRepository;
+    private final MasterKeyPairRepository masterKeyPairRepository;
+    private final ApplicationVersionRepository applicationVersionRepository;
+    private final RecoveryConfigRepository recoveryConfigRepository;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
-    private ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private RecoveryPukConverter recoveryPukConverter;
+    private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final RecoveryPukConverter recoveryPukConverter;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final ObjectMapper objectMapper;
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration, ReplayVerificationService eciesReplayPersistenceService, ActivationContextValidator activationValidator, ActivationQueryService activationQueryService, ObjectMapper objectMapper) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
-        this.replayVerificationService = eciesReplayPersistenceService;
-        this.activationValidator = activationValidator;
-        this.activationQueryService = activationQueryService;
-        this.objectMapper = objectMapper;
-    }
-
-    @Autowired
-    public void setCallbackUrlBehavior(CallbackUrlBehavior callbackUrlBehavior) {
-        this.callbackUrlBehavior = callbackUrlBehavior;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
-
-    @Autowired
-    public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
-        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
-    }
-
-    @Autowired
-    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-    }
-
-    @Autowired
-    public void setRecoveryPukConverter(RecoveryPukConverter recoveryPukConverter) {
-        this.recoveryPukConverter = recoveryPukConverter;
-    }
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
@@ -384,7 +351,6 @@ public class ActivationServiceBehavior {
             final List<String> activationFlags = request.getActivationFlags();
 
             final LookupActivationsResponse response = new LookupActivationsResponse();
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             if (applicationIds != null && applicationIds.isEmpty()) {
                 // Make sure application ID list is null in case no application ID is specified
                 applicationIds = null;
@@ -523,9 +489,6 @@ public class ActivationServiceBehavior {
             // Generate timestamp in advance
             final Date timestamp = new Date();
 
-            // Get the repository
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-
             // Prepare key generator
             final KeyGenerator keyGenerator = new KeyGenerator();
 
@@ -570,6 +533,7 @@ public class ActivationServiceBehavior {
                     response.setUserId(activation.getUserId());
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
+                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
@@ -684,6 +648,7 @@ public class ActivationServiceBehavior {
                     response.setActivationId(activationId);
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
+                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
@@ -725,6 +690,7 @@ public class ActivationServiceBehavior {
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
                 response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
+                response.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
@@ -790,6 +756,7 @@ public class ActivationServiceBehavior {
             final String activationOtp = request.getActivationOtp();
             final List<String> flags = request.getFlags();
             com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
+            final com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase = request.getCommitPhase();
 
             if (userId == null || userId.isEmpty() || userId.length() > 255) {
                 logger.warn("Invalid request parameter userId in method initActivation");
@@ -807,7 +774,6 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Find application by application key
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
             if (applicationEntityOptional.isEmpty()) {
                 logger.warn("Application does not exist: {}", applicationId);
@@ -815,10 +781,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
             final ApplicationEntity applicationEntity = applicationEntityOptional.get();
-
-            // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
@@ -836,18 +798,14 @@ public class ActivationServiceBehavior {
                 timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
             }
 
-            // Validate combination of activation OTP and OTP validation mode.
-            final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
             if (activationOtpValidation == null) {
                 activationOtpValidation = com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
             }
-            if ((activationOtpValidation == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && hasActivationOtp) ||
-                    (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !hasActivationOtp)) {
-                logger.warn("Activation OTP doesn't match its validation mode.");
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+
+            validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase, activationOtp);
+
             // Generate hash from activation OTP
-            final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+            final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
             // Fetch the latest master private key
             final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationEntity.getId());
@@ -910,6 +868,7 @@ public class ActivationServiceBehavior {
             activation.setActivationId(activationId);
             activation.setActivationCode(activationCode);
             activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
+            activation.setCommitPhase(activationCommitPhaseConverter.convertTo(commitPhase));
             activation.setActivationOtp(activationOtpHash);
             activation.setExternalId(null);
             activation.setActivationName(null);
@@ -977,6 +936,18 @@ public class ActivationServiceBehavior {
         }
     }
 
+    private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase, String activationOtp) throws GenericServiceException {
+        // Validate combination of activation OTP and OTP validation mode.
+        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && commitPhase != null) {
+            logger.warn("Invalid combination of input parameters activationOtpValidation and commitPhase.");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasText(activationOtp)) {
+            logger.warn("Missing activation OTP for OTP validation: {}", activationOtpValidation);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+    }
+
     private io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol convert(final ActivationProtocol source) {
         if (source == null) {
             return null;
@@ -1006,9 +977,11 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -1026,12 +999,6 @@ public class ActivationServiceBehavior {
             // Get current timestamp
             final Date timestamp = new Date();
 
-            // Get required repositories
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-
             // Find application by application key
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null || !applicationVersion.getSupported()) {
@@ -1047,14 +1014,6 @@ public class ActivationServiceBehavior {
             }
             final String applicationId = application.getId();
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -1066,13 +1025,27 @@ public class ActivationServiceBehavior {
                         protocolVersion);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId != null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            } else {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null),
+                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
@@ -1119,8 +1092,13 @@ public class ActivationServiceBehavior {
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
-            // Validate activation OTP
-            validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+
+            // Validate activation OTP for stage ON_KEY_EXCHANGE
+            validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+
+            // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
+            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
+            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
@@ -1137,11 +1115,6 @@ public class ActivationServiceBehavior {
             final HashBasedCounter counter = new HashBasedCounter();
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
-
-            // If Activation OTP is available, then the status is set directly to "ACTIVE".
-            // We don't need to commit such activation afterwards.
-            final boolean isActive = layer2Request.getActivationOtp() != null;
-            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Update the activation record
             activation.setActivationStatus(activationStatus);
@@ -1250,9 +1223,11 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -1268,11 +1243,6 @@ public class ActivationServiceBehavior {
             }
             // Get current timestamp
             final Date timestamp = new Date();
-
-            // Get required repositories
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
 
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             // If there is no such activation version or activation version is unsupported, exit
@@ -1304,6 +1274,7 @@ public class ActivationServiceBehavior {
             initRequest.setTimestampActivationExpire(activationExpireTimestamp);
             initRequest.setActivationOtp(activationOtp);
             initRequest.setActivationOtpValidation(activationOtpValidation);
+            initRequest.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
             final InitActivationResponse initResponse = this.initActivation(initRequest);
             final String activationId = initResponse.getActivationId();
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
@@ -1317,14 +1288,6 @@ public class ActivationServiceBehavior {
 
             validateCreatedActivation(activation, application, true);
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Master key pair is missing, rollback this transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -1336,13 +1299,26 @@ public class ActivationServiceBehavior {
                         protocolVersion);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId != null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            } else {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Master key pair is missing, rollback this transaction
+                    throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null),
+                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
@@ -1460,7 +1436,7 @@ public class ActivationServiceBehavior {
     // Create a new recovery code and PUK for new activation if activation recovery is enabled
     private ActivationRecovery createActivationRecovery(boolean shouldGenerateRecoveryCodes, ActivationRecordEntity activation) throws GenericServiceException {
         if (shouldGenerateRecoveryCodes) {
-            final RecoveryConfigEntity recoveryConfigEntity = repositoryCatalogue.getRecoveryConfigRepository().findByApplicationId(activation.getApplication().getId());
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 return createRecoveryCodeForActivation(activation, false);
             }
@@ -1513,8 +1489,15 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Validate activation OTP
-            validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
+            // Validate activation OTP for stage ON_COMMIT
+            validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
+
+            // Check the commit phase
+            if (activation.getCommitPhase() != io.getlime.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
+                logger.info("Invalid commit phase during commit for activation ID: {}, commit phase: {}", activationId, activation.getCommitPhase());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
 
             // Change activation state to ACTIVE
             activation.setActivationStatus(ActivationStatus.ACTIVE);
@@ -1522,7 +1505,6 @@ public class ActivationServiceBehavior {
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Update recovery code status in case a related recovery code exists in CREATED state
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
             for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
                 if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
@@ -1681,52 +1663,62 @@ public class ActivationServiceBehavior {
     /**
      * Validate activation OTP against value set in the activation's record.
      *
-     * @param currentStage      Determines in which step of the activation is this method called.
      * @param confirmationOtp   OTP value to be validated.
      * @param activation        Activation record.
      * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
      * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
      */
-    private void validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+    private void validateActivationOtp(CommitPhase currentPhase, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
 
         final String activationId = activation.getActivationId();
-        final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
+        final ActivationOtpValidation expectedStage = activation.getActivationOtpValidation();
+        final CommitPhase expectedCommitPhase = activation.getCommitPhase();
         final String expectedOtpHash = activation.getActivationOtp();
 
-        if (currentStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
-            // This should never happen.
-            logger.info("Internal error in activation OTP validation: {}", activationId);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        if (expectedStage != ActivationOtpValidation.NONE) {
+            // Validation using ActivationOtpValidation (deprecated):
+            // - in case the check is done in different phase, skip validation
+            // - for correct phase make sure OTP is available when required
+            if (expectedStage == ActivationOtpValidation.ON_KEY_EXCHANGE && currentPhase == CommitPhase.ON_COMMIT
+                    || expectedStage == ActivationOtpValidation.ON_COMMIT && currentPhase == CommitPhase.ON_KEY_EXCHANGE) {
+                if (StringUtils.hasText(confirmationOtp)) {
+                    logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentPhase);
+                    // Rollback is not required, database is not used for writing yet.
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+                }
+                // Different phase, skip validation
+                return;
+            }
+            if (!StringUtils.hasText(confirmationOtp)) {
+                logger.info("Activation OTP is missing for activation ID: {}, phase: {}", activationId, currentPhase);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+        } else {
+            // Validation of commit phase:
+            // - if no OTP is specified for an activation, no validation is required
+            // - in case the commit is done in different phase, skip validation
+            // - for correct phase make sure OTP is available when required
+            if (expectedOtpHash == null) {
+                return;
+            }
+            if (currentPhase != expectedCommitPhase) {
+                if (StringUtils.hasText(confirmationOtp)) {
+                    logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentPhase);
+                    // Rollback is not required, database is not used for writing yet.
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+                }
+                // Different phase, skip validation
+                return;
+            }
+            if (!StringUtils.hasText(confirmationOtp)) {
+                logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentPhase);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
         }
 
-        // Check whether activation OTP validation is turned OFF. In this case, the confirmation OTP must not
-        // be provided.
-        if (expectedStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
-            if (confirmationOtp != null) {
-                logger.info("Activation OTP is not used, but is provided: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            return;
-        }
-        // Check whether this is validation in the different step of activation. If yes, then the confirmation
-        // OTP must not be provided.
-        if (expectedStage != currentStage) {
-            if (confirmationOtp != null) {
-                logger.info("Activation OTP is not expected, but is provided: {}", activationId);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-            return;
-        }
-        // We're in the right step, so the confirmation OTP must be provided.
-        if (confirmationOtp == null) {
-            logger.info("Activation OTP is expected, but is missing: {}", activationId);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-        }
-        // The final test only checks, whether hash is present in the database.
+        // Check whether hash is present in the database.
         if (expectedOtpHash == null) {
             logger.info("Activation OTP is missing in activation data: {}", activationId);
             // Rollback is not required, database is not used for writing yet.
@@ -1958,9 +1950,11 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final Long maxFailureCount = request.getMaxFailureCount();
             final String activationOtp = request.getActivationOtp();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Prepare and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
                     request.getMac(),
@@ -1973,13 +1967,6 @@ public class ActivationServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-
-            // Prepare repositories
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             // Find application by application key
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
@@ -2005,14 +1992,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -2024,13 +2003,26 @@ public class ActivationServiceBehavior {
                         version);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId != null) {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            } else {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(version, applicationKey, null),
+                    new EncryptorParameters(version, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
@@ -2278,8 +2270,6 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case of any error.
      */
     private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, boolean isActive) throws GenericServiceException {
-        final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-
         try {
             // Check whether activation recovery is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activationEntity.getApplication().getId());
@@ -2294,9 +2284,6 @@ public class ActivationServiceBehavior {
             // Note: the code below expects that application version for given activation has been verified.
             // We want to avoid checking application version twice (once during activation and second time in this method).
             // It is also expected that the activation is a valid activation which has just been created.
-            // Prepare repositories
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-
             final ApplicationEntity application = activationEntity.getApplication();
             final String activationId = activationEntity.getActivationId();
             final String userId = activationEntity.getUserId();
@@ -2407,7 +2394,6 @@ public class ActivationServiceBehavior {
      */
     private void revokeRecoveryCodes(String activationId) {
         logger.info("Revoking recovery codes for activation ID: {}", activationId);
-        final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
         final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
         final Date now = new Date();
         for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {

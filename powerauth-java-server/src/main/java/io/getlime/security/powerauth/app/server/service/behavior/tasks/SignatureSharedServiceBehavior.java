@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -42,6 +41,7 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,51 +64,22 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SignatureSharedServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final AuditingServiceBehavior auditingServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationContextValidator activationValidator;
+    private final ActivationRepository activationRepository;
 
-    private ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
-
-    /**
-     * Constuctor for shared signature service behavior.
-     * @param repositoryCatalogue Repository catalogue.
-     * @param activationHistoryServiceBehavior Activation history service behavior.
-     * @param auditingServiceBehavior Auditing service behavior.
-     * @param callbackUrlBehavior Callback URL behavior.
-     * @param localizationProvider Localization provider for error handling.
-     * @param powerAuthServiceConfiguration PowerAuth service configuration.
-     * @param activationValidator
-     */
-    @Autowired
-    public SignatureSharedServiceBehavior(RepositoryCatalogue repositoryCatalogue, ActivationHistoryServiceBehavior activationHistoryServiceBehavior, AuditingServiceBehavior auditingServiceBehavior, CallbackUrlBehavior callbackUrlBehavior, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ActivationContextValidator activationValidator) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
-        this.auditingServiceBehavior = auditingServiceBehavior;
-        this.callbackUrlBehavior = callbackUrlBehavior;
-        this.localizationProvider = localizationProvider;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.activationValidator = activationValidator;
-    }
-
-    /**
-     * Set private key converter.
-     * @param serverPrivateKeyConverter Private key converter.
-     */
-    @Autowired
-    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-    }
 
     /**
      * Verify online signature.
@@ -354,9 +325,6 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleInvalidApplicationVersionImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -382,11 +350,11 @@ public class SignatureSharedServiceBehavior {
                 notifyCallbackListeners = true;
             } else {
                 // Save the activation
-                activationRepository.saveAndFlush(activation);
+                activationRepository.save(activation);
             }
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record
@@ -407,9 +375,6 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleValidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
@@ -430,7 +395,7 @@ public class SignatureSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Save the activation
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
 
         // Create the audit log record with activation values of ctrDataBase64 and counter before calculating next ones.
         auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
@@ -445,9 +410,6 @@ public class SignatureSharedServiceBehavior {
      */
     private void handleInvalidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, SignatureType signatureType,
                                             Date currentTimestamp, boolean biometryAllowedInOfflineMode) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -486,7 +448,7 @@ public class SignatureSharedServiceBehavior {
             notifyCallbackListeners = true;
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record.
@@ -507,14 +469,11 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleInactiveActivationSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Save the activation
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
 
         // Create the audit log record
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);

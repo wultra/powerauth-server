@@ -18,13 +18,11 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.ActivationProtocolConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationCommitPhaseConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,7 +65,15 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "activation_otp_validation", nullable = false)
     @Convert(converter = ActivationOtpValidationConverter.class)
+    @Deprecated
     private ActivationOtpValidation activationOtpValidation;
+
+    /**
+     * Commit phase.
+     */
+    @Column(name = "commit_phase")
+    @Convert(converter = ActivationCommitPhaseConverter.class)
+    private CommitPhase commitPhase;
 
     /**
      * Activation OTP.

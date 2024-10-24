@@ -19,13 +19,14 @@ package io.getlime.security.powerauth.app.server.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Converter for callback request authentication.
@@ -35,7 +36,7 @@ import java.io.IOException;
 @Converter
 @Component
 @Slf4j
-public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthenticationEntity, String> {
+public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthentication, String> {
 
     private final ObjectMapper objectMapper;
 
@@ -48,29 +49,25 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
     }
 
     @Override
-    public String convertToDatabaseColumn(CallbackUrlAuthenticationEntity authentication) {
+    public String convertToDatabaseColumn(final CallbackUrlAuthentication authentication) {
         try {
-            if (authentication == null) {
-                authentication = new CallbackUrlAuthenticationEntity();
-            }
-            return objectMapper.writeValueAsString(authentication);
+            return objectMapper.writeValueAsString(Objects.requireNonNullElse(authentication, new CallbackUrlAuthentication()));
         } catch (JsonProcessingException ex) {
             logger.error("Unable to serialize JSON payload", ex);
             return null;
         }
-
     }
 
     @Override
-    public CallbackUrlAuthenticationEntity convertToEntityAttribute(String authentication) {
+    public CallbackUrlAuthentication convertToEntityAttribute(String authentication) {
         if (authentication == null) {
-            return new CallbackUrlAuthenticationEntity();
+            return new CallbackUrlAuthentication();
         }
         try {
-            return objectMapper.readValue(authentication, CallbackUrlAuthenticationEntity.class);
+            return objectMapper.readValue(authentication, CallbackUrlAuthentication.class);
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload", ex);
-            return new CallbackUrlAuthenticationEntity();
+            return new CallbackUrlAuthentication();
         }
 
     }

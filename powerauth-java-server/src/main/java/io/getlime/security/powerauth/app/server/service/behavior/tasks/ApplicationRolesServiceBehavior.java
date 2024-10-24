@@ -25,14 +25,13 @@ import com.wultra.security.powerauth.client.model.response.AddApplicationRolesRe
 import com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,16 +47,11 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ApplicationRolesServiceBehavior {
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
-
-    @Autowired
-    public ApplicationRolesServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-    }
+    private final ApplicationRepository applicationRepository;
 
     /**
      * List application roles.
@@ -74,7 +68,7 @@ public class ApplicationRolesServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
+            final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
@@ -117,7 +111,6 @@ public class ApplicationRolesServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
@@ -171,7 +164,6 @@ public class ApplicationRolesServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             final UpdateApplicationRolesResponse response = new UpdateApplicationRolesResponse();
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             response.setApplicationId(applicationId);
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
@@ -219,7 +211,6 @@ public class ApplicationRolesServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);

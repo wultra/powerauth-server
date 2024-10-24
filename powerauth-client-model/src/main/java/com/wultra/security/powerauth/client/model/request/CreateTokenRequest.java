@@ -32,6 +32,7 @@ public class CreateTokenRequest {
 
     private String activationId;
     private String applicationKey;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;

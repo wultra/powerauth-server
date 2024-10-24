@@ -39,7 +39,6 @@ import com.wultra.security.powerauth.client.model.response.OperationDetailRespon
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -51,7 +50,6 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.Operation
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -78,7 +76,6 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private static final String ATTR_ORIGIN = "origin";
     private static final String ATTR_TOP_ORIGIN = "topOrigin";
 
-    private final RepositoryCatalogue repositoryCatalogue;
     private final AuditingServiceBehavior audit;
     private final OperationServiceBehavior operations;
     private final CallbackUrlBehavior callbacks;
@@ -88,6 +85,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final AssertionChallengeConverter assertionChallengeConverter;
     private final ActivationQueryService activationQueryService;
     private final OperationServiceBehavior operationServiceBehavior;
+    private final ActivationRepository activationRepository;
 
     @Override
     @Transactional
@@ -146,7 +144,10 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
                 @SuppressWarnings("unchecked")
                 final List<String> allowCredentials = (List<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
                 final String credentialId = (String) request.getAdditionalData().get(ATTR_CREDENTIAL_ID);
-                return allowCredentials == null || allowCredentials.isEmpty() || allowCredentials.contains(credentialId);
+                final boolean allowCredentialsMatches = allowCredentials == null // no allow credentials at all are expected (null)
+                        || allowCredentials.isEmpty() // no allow credentials at all are expected (empty collection)
+                        || allowCredentials.contains(credentialId); // used credential matches one of expected values
+                return !allowCredentialsMatches;
             });
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
@@ -227,9 +228,6 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleInvalidSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -252,7 +250,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             notifyCallbackListeners = true;
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record.
