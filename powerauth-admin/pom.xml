@@ -11,7 +11,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.6.6</version>
+        <version>1.6.5</version>
     </parent>
 
     <dependencies>
