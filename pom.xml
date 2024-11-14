@@ -105,7 +105,7 @@
         <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.27.0.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.28.0.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
@@ -294,6 +294,8 @@
                                         <exclude>org.apache.tomcat.embed:*:*:*:compile</exclude>
                                         <exclude>org.bouncycastle:bcpkix-jdk15on:*:*:compile</exclude>
                                         <exclude>org.bouncycastle:bcprov-jdk15on:*:*:compile</exclude>
+                                        <exclude>org.bouncycastle:bcpkix-jdk15on18:*:*:compile</exclude>
+                                        <exclude>org.bouncycastle:bcprov-jdk15on18:*:*:compile</exclude>
                                         <!-- Force switching to Jakarta EE -->
                                         <exclude>javax.*</exclude>
                                         <!-- already on application server or servlet container -->
