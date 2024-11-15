@@ -34,7 +34,7 @@ public class OperationClaimRequest  {
     private String operationId;
 
     /**
-     * Optional user identifier of the user who is claiming the operation.
+     * User identifier of the user who is claiming the operation.
      */
     private String userId;
 
