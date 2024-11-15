@@ -371,7 +371,7 @@ public class OperationServiceBehavior {
 
             final String expectedUserId = operationEntity.getUserId();
             if (expectedUserId == null) {
-                logger.warn("Operation cannot be approved, because user ID is not set: {}.", operationId);
+                logger.warn("Operation ID: {} cannot be approved, because user ID is not set.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
