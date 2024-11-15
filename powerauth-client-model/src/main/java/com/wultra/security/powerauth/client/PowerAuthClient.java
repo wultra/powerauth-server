@@ -1977,6 +1977,24 @@ public interface PowerAuthClient {
     OperationDetailResponse operationDetail(OperationDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
+     * Claim operation for a user.
+     * @param request Operation detail request.
+     * @return Operation detail response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationClaim(OperationClaimRequest request) throws PowerAuthClientException;
+
+    /**
+     * Claim operation for a user.
+     * @param request Operation detail request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Operation detail response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationClaim(OperationClaimRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
      * Get list with all operations for provided user.
      * @param request Get operation list request.
      * @return Get operation list response.

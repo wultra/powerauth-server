@@ -31,10 +31,7 @@ import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
-import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationFailApprovalRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
@@ -132,6 +129,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             }
             final String operationId = split[0];
             final String operationData = split[1];
+
+            // Claim operation to set user ID for this operation before approval
+            final OperationClaimRequest claimRequest = new OperationClaimRequest();
+            claimRequest.setOperationId(operationId);
+            claimRequest.setUserId(authenticatorDetail.getUserId());
+            operationServiceBehavior.operationClaim(claimRequest);
 
             final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
             operationApproveRequest.setOperationId(operationId);

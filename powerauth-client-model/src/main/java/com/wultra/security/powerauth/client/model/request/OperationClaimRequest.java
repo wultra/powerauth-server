@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -21,13 +21,21 @@ package com.wultra.security.powerauth.client.model.request;
 import lombok.Data;
 
 /**
- * Request for operation detail.
+ * Request for operation claim.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class OperationDetailRequest {
+public class OperationClaimRequest  {
 
+    /**
+     * Operation identifier.
+     */
     private String operationId;
+
+    /**
+     * Optional user identifier of the user who is claiming the operation.
+     */
+    private String userId;
 
 }

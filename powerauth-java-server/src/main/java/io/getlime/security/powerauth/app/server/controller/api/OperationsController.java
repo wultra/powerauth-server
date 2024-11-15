@@ -82,6 +82,21 @@ public class OperationsController {
     }
 
     /**
+     * Claim operation for a user.
+     *
+     * @param request Claim operation for a user.
+     * @return Get operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/claim")
+    public ObjectResponse<OperationDetailResponse> operationClaim(@RequestBody ObjectRequest<OperationClaimRequest> request) throws Exception {
+        logger.info("OperationClaimRequest received: {}", request);
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationClaim(request.getRequestObject()));
+        logger.info("OperationClaimRequest succeeded: {}", response);
+        return response;
+    }
+
+    /**
      * Find all operations for given user.
      *
      * @param request Get operation list request.

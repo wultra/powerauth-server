@@ -454,7 +454,6 @@ class PowerAuthControllerTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         final String operationId = operation.getId();
         detailRequest.setOperationId(operationId);
-        detailRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
 
         final OperationDetailResponse detailResponse = powerAuthClient.operationDetail(detailRequest);
         assertEquals(OperationStatus.PENDING, detailResponse.getStatus());

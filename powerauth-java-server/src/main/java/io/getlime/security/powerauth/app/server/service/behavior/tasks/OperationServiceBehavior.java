@@ -369,13 +369,18 @@ public class OperationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
+            final String expectedUserId = operationEntity.getUserId();
+            if (expectedUserId == null) {
+                logger.warn("Operation cannot be approved, because user ID is not set: {}.", operationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+            }
+
             // Check the operation properties match the request
             final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
             final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
-            final String expectedUserId = operationEntity.getUserId();
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
-            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation
+            if (expectedUserId.equals(userId) // correct user approved the operation
                     && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
@@ -751,6 +756,38 @@ public class OperationServiceBehavior {
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws GenericServiceException {
         try {
             final String error = OperationDetailRequestValidator.validate(request);
+            if (error != null) {
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
+            }
+
+            final Date currentTimestamp = new Date();
+            final String operationId = request.getOperationId();
+
+            final OperationEntity operation = operationQueryService.findOperationForUpdate(operationId).orElseThrow(() -> {
+                logger.warn("Operation was not found for ID: {}", operationId);
+                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+            });
+
+            final OperationEntity operationEntity = expireOperation(operation, currentTimestamp);
+            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
+            extendAndSetOperationDetailData(operationDetailResponse);
+            return operationDetailResponse;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    @Transactional // operation is modified when expiration happens
+    public OperationDetailResponse operationClaim(OperationClaimRequest request) throws GenericServiceException {
+        try {
+            final String error = OperationClaimRequestValidator.validate(request);
             if (error != null) {
                 throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
