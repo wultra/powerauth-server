@@ -734,6 +734,23 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
+    void testOperationApprovalFailDifferentUserId() throws GenericServiceException {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(List.of("PA_Tests"));
+        operationCreateRequest.setTemplateName("test-template");
+        operationCreateRequest.setUserId("test_user_1");
+        final OperationDetailResponse operation = operationService.createOperation(operationCreateRequest);
+        final OperationApproveRequest approveRequest = new OperationApproveRequest();
+        approveRequest.setOperationId(operation.getId());
+        approveRequest.setUserId("test_user_2");
+        approveRequest.setData("A2");
+        approveRequest.setApplicationId("PA_Tests");
+        approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
+        final OperationUserActionResponse response = operationService.attemptApproveOperation(approveRequest);
+        assertEquals(UserActionResult.APPROVAL_FAILED, response.getResult());
+    }
+
+    @Test
     void testAnonymousOperationRejectUserChanged() throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(List.of("PA_Tests"));
