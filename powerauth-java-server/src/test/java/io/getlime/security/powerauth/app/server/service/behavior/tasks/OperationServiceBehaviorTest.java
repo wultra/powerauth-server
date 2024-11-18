@@ -618,6 +618,25 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
+    void testOperationClaimFailDifferentUserId() throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        operationCreateRequest.setUserId("test_user_id");
+        final String operationId = operationService.createOperation(operationCreateRequest).getId();
+        final String userId = "user_" + UUID.randomUUID();
+        final OperationClaimRequest claimRequest = new OperationClaimRequest();
+        claimRequest.setOperationId(operationId);
+        claimRequest.setUserId(userId);
+        final Exception exception = assertThrows(GenericServiceException.class, () -> {
+            operationService.operationClaim(claimRequest);
+        });
+        assertEquals("Operation was not found.", exception.getMessage());
+    }
+
+    @Test
     void testOperationApproveWithValidProximityOtp() throws Exception {
         final OperationDetailResponse operation = createOperation(true);
         final String operationId = operation.getId();
