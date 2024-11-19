@@ -804,11 +804,9 @@ public class OperationServiceBehavior {
             });
 
             final String userId = request.getUserId();
-            final OperationEntity operationEntity = expireOperation(
-                    claimOperation(operation, userId, currentTimestamp),
-                    currentTimestamp
-            );
-            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
+            final OperationEntity operationClaimed = claimOperation(operation, userId, currentTimestamp);
+            final OperationEntity operationUpdated = expireOperation(operationClaimed, currentTimestamp);
+            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationUpdated);
             extendAndSetOperationDetailData(operationDetailResponse);
             return operationDetailResponse;
         } catch (GenericServiceException ex) {
