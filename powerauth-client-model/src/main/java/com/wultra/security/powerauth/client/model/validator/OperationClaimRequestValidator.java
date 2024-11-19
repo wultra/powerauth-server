@@ -31,11 +31,8 @@ public class OperationClaimRequestValidator {
         if (source == null) {
             return "Operation claim request must not be null";
         }
-        if (source.getOperationId() == null) {
-            return "Operation ID must not be null when requesting operation claim";
-        }
-        if (source.getOperationId().isEmpty()) {
-            return "Operation ID must not be empty when requesting operation claim";
+        if (source.getOperationId() == null || source.getOperationId().isEmpty()) {
+            return "Operation ID must be specified when requesting operation claim";
         }
         if (source.getUserId() == null || source.getUserId().isEmpty()) {
             return "User ID must be specified when requesting operation claim";
