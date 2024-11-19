@@ -730,7 +730,8 @@ class OperationServiceBehaviorTest {
         approveRequest.setData("A2");
         approveRequest.setApplicationId("PA_Tests");
         approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        assertThrows(GenericServiceException.class, () -> operationService.attemptApproveOperation(approveRequest));
+        final Exception exception = assertThrows(GenericServiceException.class, () -> operationService.attemptApproveOperation(approveRequest));
+        assertEquals("Operation cannot be approved.", exception.getMessage());
     }
 
     @Test
@@ -760,7 +761,8 @@ class OperationServiceBehaviorTest {
         rejectRequest.setOperationId(operation.getId());
         rejectRequest.setUserId("test_user");
         rejectRequest.setApplicationId("PA_Tests");
-        assertThrows(GenericServiceException.class, () -> operationService.rejectOperation(rejectRequest));
+        final Exception exception = assertThrows(GenericServiceException.class, () -> operationService.rejectOperation(rejectRequest));
+        assertEquals("Operation cannot be approved.", exception.getMessage());
     }
 
     @Test
