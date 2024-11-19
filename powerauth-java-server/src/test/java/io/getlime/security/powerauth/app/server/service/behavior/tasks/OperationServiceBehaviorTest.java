@@ -751,7 +751,7 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
-    void testAnonymousOperationRejectUserChanged() throws GenericServiceException {
+    void testAnonymousOperationRejectError() throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(List.of("PA_Tests"));
         operationCreateRequest.setTemplateName("test-template");
@@ -760,30 +760,22 @@ class OperationServiceBehaviorTest {
         rejectRequest.setOperationId(operation.getId());
         rejectRequest.setUserId("test_user");
         rejectRequest.setApplicationId("PA_Tests");
-        final OperationUserActionResponse response = operationService.rejectOperation(rejectRequest);
-        assertEquals(UserActionResult.REJECTED, response.getResult());
-        final OperationDetailRequest detailRequest = new OperationDetailRequest();
-        detailRequest.setOperationId(operation.getId());
-        final OperationDetailResponse operationDetail = operationService.operationDetail(detailRequest);
-        assertEquals("test_user", operationDetail.getUserId());
+        assertThrows(GenericServiceException.class, () -> operationService.rejectOperation(rejectRequest));
     }
 
     @Test
-    void testAnonymousOperationRejectFailedUserNotChanged() throws GenericServiceException {
+    void testOperationRejectFailedDifferentUserId() throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(List.of("PA_Tests"));
         operationCreateRequest.setTemplateName("test-template");
+        operationCreateRequest.setUserId("test_user_1");
         final OperationDetailResponse operation = operationService.createOperation(operationCreateRequest);
         final OperationRejectRequest rejectRequest = new OperationRejectRequest();
         rejectRequest.setOperationId(operation.getId());
-        rejectRequest.setUserId("test_user");
-        rejectRequest.setApplicationId(APP_ID);
+        rejectRequest.setUserId("test_user_2");
+        rejectRequest.setApplicationId("PA_Tests");
         final OperationUserActionResponse response = operationService.rejectOperation(rejectRequest);
         assertEquals(UserActionResult.REJECT_FAILED, response.getResult());
-        final OperationDetailRequest detailRequest = new OperationDetailRequest();
-        detailRequest.setOperationId(operation.getId());
-        final OperationDetailResponse operationDetail = operationService.operationDetail(detailRequest);
-        assertNull(operationDetail.getUserId());
     }
 
     private void createApplication() throws GenericServiceException {

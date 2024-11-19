@@ -390,7 +390,6 @@ public class OperationServiceBehavior {
                     && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
                 // Approve the operation
-                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.APPROVED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -539,11 +538,15 @@ public class OperationServiceBehavior {
             }
 
             final String expectedUserId = operationEntity.getUserId();
-            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user rejects the operation
+            if (expectedUserId == null) {
+                logger.warn("Operation ID: {} cannot be rejected, because user ID is not set.", operationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+            }
+
+            if ((expectedUserId.equals(userId)) // correct user rejects the operation
                     && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
                 // Reject the operation
-                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.REJECTED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
