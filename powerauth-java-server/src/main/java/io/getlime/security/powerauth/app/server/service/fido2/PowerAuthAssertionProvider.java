@@ -280,7 +280,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final Map<String, Object> additionalData = new LinkedHashMap<>();
         additionalData.put(ATTR_ACTIVATION_ID, authenticatorDetail.getActivationId());
         additionalData.put(ATTR_APPLICATION_ID, authenticatorDetail.getApplicationId());
-        additionalData.put(ATTR_CREDENTIAL_ID, authenticatorData.getAttestedCredentialData().getCredentialId());
+        additionalData.put(ATTR_CREDENTIAL_ID, authenticatorDetail.getCredentialId());
         additionalData.put(ATTR_AUTH_FACTOR, supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
         additionalData.put(ATTR_ORIGIN, clientDataJSON.getOrigin());
         additionalData.put(ATTR_TOP_ORIGIN, clientDataJSON.getTopOrigin());
