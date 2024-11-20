@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -1386,6 +1385,16 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public OperationDetailResponse operationDetail(OperationDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/detail", request, queryParams, httpHeaders, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationDetailResponse operationClaim(OperationClaimRequest request) throws PowerAuthClientException {
+        return operationClaim(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public OperationDetailResponse operationClaim(OperationClaimRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/operation/claim", request, queryParams, httpHeaders, OperationDetailResponse.class);
     }
 
     @Override
