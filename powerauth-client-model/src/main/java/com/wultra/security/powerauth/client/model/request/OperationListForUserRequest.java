@@ -18,7 +18,11 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -32,12 +36,22 @@ import java.util.List;
 @Data
 public class OperationListForUserRequest {
 
+    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "User ID must not be empty when requesting operation list")
     private String userId;
+
+    @Schema(description = "Associated application identifiers", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Application ID list must not be null when requesting operation list")
+    @Size(min = 1, message = "Application ID list must not be empty when requesting operation list")
     private List<String> applications = new ArrayList<>();
+
     @Min(0)
     private Integer pageNumber;
+
     @Min(1)
     private Integer pageSize;
+
+    @Schema(description = "The identifier of the activation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String activationId;
 
 }

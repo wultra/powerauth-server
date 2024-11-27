@@ -1,48 +1,30 @@
-/*
- * PowerAuth Server and related software components
- * Copyright (C) 2020 Wultra s.r.o.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package com.wultra.security.powerauth.client.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.*;
 
-/**
- * Request method for creating a new operation.
- *
- * @author Petr Dvorak, petr@wultra.com
- */
 @Data
 public class OperationCreateRequest {
 
     @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Size(min = 1, message = "User ID must not be empty when creating operation")
     private String userId;
 
     @Schema(description = "List of associated applications", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "Application ID list must not be null when creating operation")
+    @Size(min = 1, message = "Application ID list must not be empty when creating operation")
     private List<String> applications = new ArrayList<>();
 
     @Schema(description = "Activation flag associated with the operation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String activationFlag;
 
     @Schema(description = "Name of the template used for creating the operation", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "Template name must not be empty when creating operation")
     private String templateName;
 
     @Schema(description = "Timestamp of when the operation will expire, overrides expiration period from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
@@ -63,6 +45,6 @@ public class OperationCreateRequest {
     private Boolean proximityCheckEnabled;
 
     @Schema(description = "Activation ID. It is possible to specify a single device (otherwise all user's activations are taken into account).", requiredMode = Schema.RequiredMode.NOT_REQUIRED, maxLength = 37)
+    @Size(max = 37, message = "Activation ID must not exceed 37 characters when creating operation")
     private String activationId;
-
 }

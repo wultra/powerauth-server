@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.LinkedHashMap;
@@ -33,10 +35,19 @@ import java.util.Map;
 @Data
 public class OperationRejectRequest {
 
+    @Schema(description = "The identifier of the operation", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "Operation ID must not be empty when rejecting operation")
     private String operationId;
+
+    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "User ID must not be empty when rejecting operation")
     private String userId;
+
+    @Schema(description = "The identifier of the application", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "Application ID must not be empty when rejecting operation")
     private String applicationId;
 
+    @Schema(description = "Additional data associated with the operation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
