@@ -33,11 +33,11 @@ import java.util.List;
 @Data
 public class OperationExtIdRequest {
 
-    @Schema(description = "External identifier of the operation", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "External identifier of the operation")
     @NotBlank(message = "External ID must not be empty when requesting operation lookup by external ID")
     private String externalId;
 
-    @Schema(description = "Associated application identifiers", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Associated application identifiers")
     @NotNull(message = "Application ID list must not be null when requesting operation lookup by external ID")
     @Size(min = 1, message = "Application ID list must not be empty when requesting operation lookup by external ID")
     private List<String> applications = new ArrayList<>();

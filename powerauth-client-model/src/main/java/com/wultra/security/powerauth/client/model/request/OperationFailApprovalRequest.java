@@ -35,11 +35,11 @@ import java.util.Map;
 @Data
 public class OperationFailApprovalRequest {
 
-    @Schema(description = "The identifier of the operation", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "The identifier of the operation")
     @NotBlank(message = "Operation ID must not be empty when requesting operation approval failure")
     private String operationId;
 
-    @Schema(description = "Additional data associated with the operation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "Additional data associated with the operation")
     @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 

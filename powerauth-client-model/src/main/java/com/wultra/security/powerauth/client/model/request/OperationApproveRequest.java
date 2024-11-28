@@ -37,27 +37,27 @@ import java.util.Map;
 @Data
 public class OperationApproveRequest {
 
-    @Schema(description = "The identifier of the operation", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "The identifier of the operation")
     @NotBlank(message = "Operation ID must not be empty when approving operation")
     private String operationId;
 
-    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "The identifier of the user")
     @NotBlank(message = "User ID must not be empty when approving operation")
     private String userId;
 
-    @Schema(description = "The identifier of the application", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "The identifier of the application")
     @NotBlank(message = "Application ID must not be empty when approving operation")
     private String applicationId;
 
-    @Schema(description = "Operation data to approve", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Operation data to approve")
     @NotBlank(message = "Data must not be empty when approving operation")
     private String data;
 
-    @Schema(description = "PowerAuth signature type", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "PowerAuth signature type")
     @NotNull(message = "Signature type must not be null when approving operation")
     private SignatureType signatureType;
 
-    @Schema(description = "Additional data associated with the operation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Schema(description = "Additional data associated with the operation")
     @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
