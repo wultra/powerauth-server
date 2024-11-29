@@ -375,13 +375,17 @@ public class OperationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
+            if (!expectedUserId.equals(userId)) {
+                logger.warn("Operation ID: {} cannot be approved, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+            }
+
             // Check the operation properties match the request
             final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
             final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
-            if (expectedUserId.equals(userId) // correct user approved the operation
-                    && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
+            if (operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
                     && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
@@ -540,11 +544,15 @@ public class OperationServiceBehavior {
             final String expectedUserId = operationEntity.getUserId();
             if (expectedUserId == null) {
                 logger.warn("Operation ID: {} cannot be rejected, because user ID is not set.", operationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
             }
 
-            if ((expectedUserId.equals(userId)) // correct user rejects the operation
-                    && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
+            if (!expectedUserId.equals(userId)) {
+                logger.warn("Operation ID: {} cannot be rejected, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+            }
+
+            if (operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
                 // Reject the operation
                 operationEntity.setStatus(OperationStatusDo.REJECTED);
