@@ -371,12 +371,12 @@ public class OperationServiceBehavior {
 
             final String expectedUserId = operationEntity.getUserId();
             if (expectedUserId == null) {
-                logger.warn("Operation ID: {} cannot be approved, because user ID is not set.", operationId);
+                logger.warn("Operation with operationId: {} cannot be approved, because user ID is not set.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
             if (!expectedUserId.equals(userId)) {
-                logger.warn("Operation ID: {} cannot be approved, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                logger.warn("Operation with operationId: {} cannot be approved, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
@@ -543,12 +543,12 @@ public class OperationServiceBehavior {
 
             final String expectedUserId = operationEntity.getUserId();
             if (expectedUserId == null) {
-                logger.warn("Operation ID: {} cannot be rejected, because user ID is not set.", operationId);
+                logger.warn("Operation with operationId: {} cannot be rejected, because user ID is not set.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
             }
 
             if (!expectedUserId.equals(userId)) {
-                logger.warn("Operation ID: {} cannot be rejected, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                logger.warn("Operation with operationId: {} cannot be rejected, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
             }
 
