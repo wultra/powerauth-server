@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.Set;
@@ -35,10 +36,17 @@ import java.util.Set;
 @Data
 public class GetActivationListForUserRequest {
 
-    @NotBlank
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when requesting activation list for user")
     private String userId;
+
+    @Schema(description = "The identifier of the application")
+    @NotNull(message = "Application ID must not be null requesting activation list for user")
     private String applicationId;
+
+    @Schema(description = "Activation protocols")
     private Set<ActivationProtocol> protocols = Set.of(ActivationProtocol.FIDO2, ActivationProtocol.POWERAUTH);
+
     @Min(0)
     private Integer pageNumber;
     @Min(1)

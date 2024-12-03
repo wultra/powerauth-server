@@ -236,12 +236,6 @@ public class ActivationServiceBehavior {
             final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
             final Set<ActivationStatus> activationStatuses = convert(request.getActivationStatuses());
 
-            if (userId == null) {
-                logger.warn("Invalid request parameter userId in method getActivationListForUser");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Generate timestamp in advance
             final Date timestamp = new Date();
 
@@ -343,11 +337,6 @@ public class ActivationServiceBehavior {
                 activationStatus = activationStatusConverter.convert(request.getActivationStatus());
             }
 
-            if (userIds == null || userIds.isEmpty()) {
-                logger.warn("Invalid request parameter userIds in method lookupActivations");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final List<String> activationFlags = request.getActivationFlags();
 
             final LookupActivationsResponse response = new LookupActivationsResponse();
@@ -422,12 +411,6 @@ public class ActivationServiceBehavior {
     @Transactional
     public UpdateStatusForActivationsResponse updateStatusForActivation(UpdateStatusForActivationsRequest request) throws GenericServiceException {
         try {
-            if (request.getActivationIds() == null || request.getActivationIds().isEmpty()) {
-                logger.warn("Invalid request parameter activationIds in method updateStatusForActivations");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final List<String> activationIds = request.getActivationIds();
             ActivationStatus activationStatus = null;
             if (request.getActivationStatus() != null) {
@@ -479,12 +462,6 @@ public class ActivationServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final String challenge = request.getChallenge();
-
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method getActivationStatus");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
@@ -757,18 +734,6 @@ public class ActivationServiceBehavior {
             final List<String> flags = request.getFlags();
             com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
             final com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase = request.getCommitPhase();
-
-            if (userId == null || userId.isEmpty() || userId.length() > 255) {
-                logger.warn("Invalid request parameter userId in method initActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
-            if (applicationId == null) {
-                logger.warn("Application ID not specified");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
-            }
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
@@ -1458,12 +1423,6 @@ public class ActivationServiceBehavior {
             final String externalUserId = request.getExternalUserId();
             final String activationOtp = request.getActivationOtp();
 
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method commitActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Find activation
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
@@ -1586,19 +1545,6 @@ public class ActivationServiceBehavior {
             final String activationId = request.getActivationId();
             final String externalUserId = request.getExternalUserId();
             final String activationOtp = request.getActivationOtp();
-
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method commitActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
-            // Validate provided OTP
-            if (activationOtp == null || activationOtp.isEmpty()) {
-                logger.warn("Activation OTP not specified in update");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             // Find activation
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
@@ -1777,11 +1723,6 @@ public class ActivationServiceBehavior {
             final String activationId = request.getActivationId();
             final String externalUserId = request.getExternalUserId();
             boolean revokeRecoveryCodes = request.isRevokeRecoveryCodes();
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method removeActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -1831,12 +1772,6 @@ public class ActivationServiceBehavior {
             final String reason = request.getReason();
             final String externalUserId = request.getExternalUserId();
 
-            if (request.getActivationId() == null) {
-                logger.warn("Invalid request parameter activationId in method blockActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -1885,12 +1820,6 @@ public class ActivationServiceBehavior {
             final String activationId = request.getActivationId();
             final String externalUserId = request.getExternalUserId();
 
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method unblockActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -1937,12 +1866,6 @@ public class ActivationServiceBehavior {
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
         try {
-            if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null) {
-                logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Extract request data
             final Boolean shouldGenerateRecoveryCodes = request.getGenerateRecoveryCodes();
             final String recoveryCode = request.getRecoveryCode();

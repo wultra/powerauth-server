@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.ToString;
 
@@ -29,8 +31,14 @@ import lombok.ToString;
 @Data
 public class CommitActivationRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when commiting activation")
     private String activationId;
+
+    @Schema(description = "External user identifier")
     private String externalUserId;
+
+    @Schema(description = "Activation OTP value")
     @ToString.Exclude
     private String activationOtp;
 
