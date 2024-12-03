@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -83,7 +83,7 @@
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.1.4</spring-cloud-vault.version>
+        <spring-cloud-vault.version>4.2.0</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.10.0-SNAPSHOT</powerauth-java-crypto.version>
