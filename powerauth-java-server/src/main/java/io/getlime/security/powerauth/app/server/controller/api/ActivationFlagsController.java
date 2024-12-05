@@ -18,10 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.controller.api;
 
-import com.wultra.security.powerauth.client.model.request.AddActivationFlagsRequest;
-import com.wultra.security.powerauth.client.model.request.ListActivationFlagsRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveActivationFlagsRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateActivationFlagsRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.AddActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse;
@@ -30,8 +27,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationFlagsServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("activationFlagsController")
 @RequestMapping("/rest/v3/activation/flags")
 @Tag(name = "PowerAuth Activation Flags Controller (V3)")
+@Validated
 @Slf4j
 public class ActivationFlagsController {
 
@@ -63,10 +63,13 @@ public class ActivationFlagsController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/list")
-    public ObjectResponse<ListActivationFlagsResponse> listActivationFlags(@RequestBody ObjectRequest<ListActivationFlagsRequest> request) throws Exception {
-        logger.info("ListActivationFlagsRequest received: {}", request);
+    public ObjectResponse<ListActivationFlagsResponse> listActivationFlags(@Valid @RequestBody ObjectRequest<ListActivationFlagsRequest> request) throws Exception {
+        final ListActivationFlagsRequest req = request.getRequestObject();
+        logger.info("action: listActivationFlags, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: listActivationFlags, state: initiated, request: {}", request);
         final ObjectResponse<ListActivationFlagsResponse> response = new ObjectResponse<>(service.listActivationFlags(request.getRequestObject()));
-        logger.info("ListActivationFlagsRequest succeeded: {}", response);
+        logger.info("action: listActivationFlags, state: succeeded");
+        logger.debug("action: listActivationFlags, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -78,10 +81,13 @@ public class ActivationFlagsController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<AddActivationFlagsResponse> addActivationFlags(@RequestBody ObjectRequest<AddActivationFlagsRequest> request) throws Exception {
-        logger.info("AddActivationFlagsRequest received: {}", request);
+    public ObjectResponse<AddActivationFlagsResponse> addActivationFlags(@Valid @RequestBody ObjectRequest<AddActivationFlagsRequest> request) throws Exception {
+        final AddActivationFlagsRequest req = request.getRequestObject();
+        logger.info("action: addActivationFlags, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: addActivationFlags, state: initiated, request: {}", request);
         final ObjectResponse<AddActivationFlagsResponse> response = new ObjectResponse<>(service.addActivationFlags(request.getRequestObject()));
-        logger.info("addActivationFlagsRequest succeeded: {}", response);
+        logger.info("action: addActivationFlags, state: succeeded");
+        logger.debug("action: addActivationFlags, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -93,10 +99,13 @@ public class ActivationFlagsController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/update")
-    public ObjectResponse<UpdateActivationFlagsResponse> updateActivationFlags(@RequestBody ObjectRequest<UpdateActivationFlagsRequest> request) throws Exception {
-        logger.info("UpdateActivationFlagsRequest received: {}", request);
+    public ObjectResponse<UpdateActivationFlagsResponse> updateActivationFlags(@Valid @RequestBody ObjectRequest<UpdateActivationFlagsRequest> request) throws Exception {
+        final UpdateActivationFlagsRequest req = request.getRequestObject();
+        logger.info("action: updateActivationFlags, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: updateActivationFlags, state: initiated, request: {}", request);
         final ObjectResponse<UpdateActivationFlagsResponse> response = new ObjectResponse<>(service.updateActivationFlags(request.getRequestObject()));
-        logger.info("UpdateActivationFlagsRequest succeeded: {}", response);
+        logger.info("action: updateActivationFlags, state: succeeded");
+        logger.debug("action: updateActivationFlags, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -108,10 +117,13 @@ public class ActivationFlagsController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody ObjectRequest<RemoveActivationFlagsRequest> request) throws Exception {
-        logger.info("RemoveActivationFlagsRequest received: {}", request);
+    public ObjectResponse<RemoveActivationFlagsResponse> removeActivationFlags(@Valid @RequestBody ObjectRequest<RemoveActivationFlagsRequest> request) throws Exception {
+        final RemoveActivationFlagsRequest req = request.getRequestObject();
+        logger.info("action: removeActivationFlags, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: removeActivationFlags, state: initiated, request: {}", request);
         final ObjectResponse<RemoveActivationFlagsResponse> response = new ObjectResponse<>(service.removeActivationFlags(request.getRequestObject()));
-        logger.info("RemoveActivationFlagsRequest succeeded: {}", response);
+        logger.info("action: removeActivationFlags, state: succeeded");
+        logger.debug("action: removeActivationFlags, state: succeeded, response: {}", response);
         return response;
     }
 

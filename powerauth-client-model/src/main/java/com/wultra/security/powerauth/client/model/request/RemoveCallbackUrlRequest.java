@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,6 +30,8 @@ import lombok.Data;
 @Data
 public class RemoveCallbackUrlRequest {
 
+    @Schema(description = "The identifier of the callback")
+    @NotBlank(message = "Callback ID must not be empty when removing a callback")
     private String id;
 
 }

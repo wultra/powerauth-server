@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -29,9 +30,12 @@ import lombok.Data;
 @Data
 public class RemoveApplicationConfigRequest {
 
-    @NotBlank
+    @Schema(description = "The identifier of the application")
+    @NotBlank(message = "Application ID must not be empty when removing an application configuration")
     private String applicationId;
-    @NotBlank
+
+    @Schema(description = "The configuration key")
+    @NotBlank(message = "The configuration key must not be empty when removing an application configuration")
     private String key;
 
 }

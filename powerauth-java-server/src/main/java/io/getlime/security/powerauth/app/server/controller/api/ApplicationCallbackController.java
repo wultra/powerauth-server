@@ -18,10 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.controller.api;
 
-import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
@@ -33,6 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("applicationCallbackController")
 @RequestMapping("/rest/v3/application/callback")
 @Tag(name = "PowerAuth Application Callback Controller (V3)")
+@Validated
 @Slf4j
 public class ApplicationCallbackController {
 
@@ -65,9 +64,12 @@ public class ApplicationCallbackController {
      */
     @PostMapping("/create")
     public ObjectResponse<CreateCallbackUrlResponse> createCallbackUrl(@Valid @RequestBody ObjectRequest<CreateCallbackUrlRequest> request) throws Exception {
-        logger.info("CreateCallbackUrlRequest received: {}", request);
+        final CreateCallbackUrlRequest req = request.getRequestObject();
+        logger.info("action: createCallbackUrl, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: createCallbackUrl, state: initiated, request: {}", request);
         final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(request.getRequestObject()));
-        logger.info("CreateCallbackUrlRequest succeeded: {}", response);
+        logger.info("action: createCallbackUrl, state: succeeded");
+        logger.debug("action: createCallbackUrl, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -80,9 +82,12 @@ public class ApplicationCallbackController {
      */
     @PostMapping("/update")
     public ObjectResponse<UpdateCallbackUrlResponse> updateCallbackUrl(@Valid @RequestBody ObjectRequest<UpdateCallbackUrlRequest> request) throws Exception {
-        logger.info("UpdateCallbackUrlRequest received: {}", request);
+        final UpdateCallbackUrlRequest req = request.getRequestObject();
+        logger.info("action: updateCallbackUrl, state: initiated, callbackId: {}", req.getId());
+        logger.debug("action: updateCallbackUrl, state: initiated, request: {}", request);
         final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>(service.updateCallbackUrl(request.getRequestObject()));
-        logger.info("UpdateCallbackUrlRequest succeeded: {}", response);
+        logger.info("action: updateCallbackUrl, state: succeeded");
+        logger.debug("action: updateCallbackUrl, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -94,10 +99,13 @@ public class ApplicationCallbackController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/list")
-    public ObjectResponse<GetCallbackUrlListResponse> getCallbackUrlList(@RequestBody ObjectRequest<GetCallbackUrlListRequest> request) throws Exception {
-        logger.info("GetCallbackUrlListRequest received: {}", request);
+    public ObjectResponse<GetCallbackUrlListResponse> getCallbackUrlList(@Valid @RequestBody ObjectRequest<GetCallbackUrlListRequest> request) throws Exception {
+        final GetCallbackUrlListRequest req = request.getRequestObject();
+        logger.info("action: getCallbackUrlList, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: getCallbackUrlList, state: initiated, request: {}", request);
         final ObjectResponse<GetCallbackUrlListResponse> response = new ObjectResponse<>(service.getCallbackUrlList(request.getRequestObject()));
-        logger.info("GetCallbackUrlListRequest succeeded: {}", response);
+        logger.info("action: getCallbackUrlList, state: succeeded");
+        logger.debug("action: getCallbackUrlList, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -109,10 +117,13 @@ public class ApplicationCallbackController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveCallbackUrlResponse> removeCallbackUrl(@RequestBody ObjectRequest<RemoveCallbackUrlRequest> request) throws Exception {
-        logger.info("RemoveCallbackUrlRequest received: {}", request);
+    public ObjectResponse<RemoveCallbackUrlResponse> removeCallbackUrl(@Valid @RequestBody ObjectRequest<RemoveCallbackUrlRequest> request) throws Exception {
+        final RemoveCallbackUrlRequest req = request.getRequestObject();
+        logger.info("action: removeCallbackUrl, state: initiated, callbackId: {}", req.getId());
+        logger.debug("action: removeCallbackUrl, state: initiated, request: {}", request);
         final ObjectResponse<RemoveCallbackUrlResponse> response = new ObjectResponse<>(service.removeCallbackUrl(request.getRequestObject()));
-        logger.info("RemoveCallbackUrlRequest succeeded: {}", response);
+        logger.info("action: removeCallbackUrl, state: succeeded");
+        logger.debug("action: removeCallbackUrl, state: succeeded, response: {}", response);
         return response;
     }
 
