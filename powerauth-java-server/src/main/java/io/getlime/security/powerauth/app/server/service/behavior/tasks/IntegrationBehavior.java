@@ -69,12 +69,6 @@ public class IntegrationBehavior {
     @Transactional
     public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws GenericServiceException {
         try {
-            if (request.getName() == null) {
-                logger.warn("Invalid request parameter name in method createIntegration");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final IntegrationEntity entity = new IntegrationEntity();
             entity.setName(request.getName());
             entity.setId(UUID.randomUUID().toString());

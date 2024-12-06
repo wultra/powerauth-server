@@ -74,11 +74,6 @@ public class ApplicationConfigServiceBehavior {
     public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
-            if (applicationId == null) {
-                logger.warn("Invalid application ID in getApplicationConfig");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
             final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
             response.setApplicationId(applicationId);
@@ -109,11 +104,6 @@ public class ApplicationConfigServiceBehavior {
             final String applicationId = request.getApplicationId();
             final String key = request.getKey();
             final List<Object> values = request.getValues();
-            if (applicationId == null) {
-                logger.warn("Invalid application ID in createApplicationConfig");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             validateConfigKey(key);
             final ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.info("Application not found, application ID: {}", applicationId);
@@ -152,11 +142,6 @@ public class ApplicationConfigServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final String key = request.getKey();
-            if (applicationId == null) {
-                logger.warn("Invalid application ID in deleteApplicationConfig");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             validateConfigKey(key);
             final Optional<ApplicationEntity> appOptional = applicationRepository.findById(applicationId);
             if (appOptional.isEmpty()) {

@@ -1011,7 +1011,9 @@ class PowerAuthControllerTest {
         eciesDecryptorRequest.setActivationId(null);
         eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
         eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        eciesDecryptorRequest.setEncryptedData(encryptedRequest.getEncryptedData());
         eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
+        eciesDecryptorRequest.setMac(encryptedRequest.getMac());
         eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
         final GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
 

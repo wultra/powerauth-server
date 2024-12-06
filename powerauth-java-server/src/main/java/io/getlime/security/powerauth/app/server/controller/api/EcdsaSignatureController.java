@@ -26,8 +26,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AsymmetricSignatureServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("ecdsaSignatureController")
 @RequestMapping("/rest/v3/signature/ecdsa")
 @Tag(name = "PowerAuth ECDSA Signature Controller (V3)")
+@Validated
 @Slf4j
 public class EcdsaSignatureController {
 
@@ -57,10 +60,13 @@ public class EcdsaSignatureController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/sign")
-    public ObjectResponse<SignECDSAResponse> signDataWithECDSA(@RequestBody ObjectRequest<SignECDSARequest> request) throws Exception {
-        logger.info("SignECDSARequest received: {}", request);
+    public ObjectResponse<SignECDSAResponse> signDataWithECDSA(@Valid @RequestBody ObjectRequest<SignECDSARequest> request) throws Exception {
+        final SignECDSARequest req = request.getRequestObject();
+        logger.info("action: signDataWithECDSA, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: signDataWithECDSA, state: initiated, request: {}", request);
         final ObjectResponse<SignECDSAResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.signDataWithECDSA(request.getRequestObject()));
-        logger.info("SignECDSARequest succeeded: {}", response);
+        logger.info("action: signDataWithECDSA, state: succeeded");
+        logger.debug("action: signDataWithECDSA, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -72,10 +78,13 @@ public class EcdsaSignatureController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/verify")
-    public ObjectResponse<VerifyECDSASignatureResponse> verifyECDSASignature(@RequestBody ObjectRequest<VerifyECDSASignatureRequest> request) throws Exception {
-        logger.info("VerifyECDSASignatureRequest received: {}", request);
+    public ObjectResponse<VerifyECDSASignatureResponse> verifyECDSASignature(@Valid @RequestBody ObjectRequest<VerifyECDSASignatureRequest> request) throws Exception {
+        final VerifyECDSASignatureRequest req = request.getRequestObject();
+        logger.info("action: verifyECDSASignature, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: verifyECDSASignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifyECDSASignatureResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.verifyECDSASignature(request.getRequestObject()));
-        logger.info("VerifyECDSASignatureRequest succeeded: {}", response);
+        logger.info("action: verifyECDSASignature, state: succeeded");
+        logger.debug("action: verifyECDSASignature, state: succeeded, response: {}", response);
         return response;
     }
 

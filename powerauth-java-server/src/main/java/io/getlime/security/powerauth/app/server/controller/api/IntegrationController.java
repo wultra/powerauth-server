@@ -27,8 +27,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.IntegrationBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("integrationController")
 @RequestMapping("/rest/v3/integration")
 @Tag(name = "PowerAuth Integration Controller (V3)")
+@Validated
 @Slf4j
 public class IntegrationController {
 
@@ -60,10 +63,13 @@ public class IntegrationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateIntegrationResponse> createIntegration(@RequestBody ObjectRequest<CreateIntegrationRequest> request) throws Exception {
-        logger.info("CreateIntegrationRequest received: {}", request);
+    public ObjectResponse<CreateIntegrationResponse> createIntegration(@Valid @RequestBody ObjectRequest<CreateIntegrationRequest> request) throws Exception {
+        final CreateIntegrationRequest req = request.getRequestObject();
+        logger.info("action: createIntegration, state: initiated, name: {}", req.getName());
+        logger.debug("action: createIntegration, state: initiated, request: {}", request);
         final ObjectResponse<CreateIntegrationResponse> response = new ObjectResponse<>(service.createIntegration(request.getRequestObject()));
-        logger.info("CreateIntegrationRequest succeeded: {}", response);
+        logger.info("action: createIntegration, state: succeeded");
+        logger.debug("action: createIntegration, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -75,9 +81,11 @@ public class IntegrationController {
      */
     @PostMapping("/list")
     public ObjectResponse<GetIntegrationListResponse> getIntegrationList() throws Exception {
-        logger.info("GetIntegrationListRequest received");
+        logger.info("action: getIntegrationList, state: initiated");
+        logger.debug("action: getIntegrationList, state: initiated, emtpy request");
         final ObjectResponse<GetIntegrationListResponse> response = new ObjectResponse<>(service.getIntegrationList());
-        logger.info("GetIntegrationListRequest succeeded: {}", response);
+        logger.info("action: getIntegrationList, state: succeeded");
+        logger.debug("action: getIntegrationList, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -89,10 +97,13 @@ public class IntegrationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveIntegrationResponse> removeIntegration(@RequestBody ObjectRequest<RemoveIntegrationRequest> request) throws Exception {
-        logger.info("RemoveIntegrationRequest received: {}", request);
+    public ObjectResponse<RemoveIntegrationResponse> removeIntegration(@Valid @RequestBody ObjectRequest<RemoveIntegrationRequest> request) throws Exception {
+        final RemoveIntegrationRequest req = request.getRequestObject();
+        logger.info("action: removeIntegration, state: initiated, id: {}", req.getId());
+        logger.debug("action: removeIntegration, state: initiated, request: {}", request);
         final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>(service.removeIntegration(request.getRequestObject()));
-        logger.info("RemoveIntegrationRequest succeeded: {}", response);
+        logger.info("action: removeIntegration, state: succeeded");
+        logger.debug("action: removeIntegration, state: succeeded, response: {}", response);
         return response;
     }
 

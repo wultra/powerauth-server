@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.ErrorCode
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("errorController")
 @RequestMapping("/rest/v3/error")
 @Tag(name = "PowerAuth Error Controller (V3)")
+@Validated
 @Slf4j
 public class ErrorController {
 
@@ -53,9 +55,11 @@ public class ErrorController {
      */
     @PostMapping("/list")
     public ObjectResponse<GetErrorCodeListResponse> getErrorCodeList() {
-        logger.info("GetErrorCodeListRequest received");
+        logger.info("action: getErrorCodeList, state: initiated");
+        logger.debug("action: getErrorCodeList, state: initiated, empty request");
         final ObjectResponse<GetErrorCodeListResponse> response = new ObjectResponse<>(service.getErrorCodeList());
-        logger.info("GetErrorCodeListRequest succeeded: {}", response);
+        logger.info("action: getErrorCodeList, state: succeeded");
+        logger.debug("action: getErrorCodeList, state: succeeded, response: {}", response);
         return response;
     }
 

@@ -88,11 +88,6 @@ public class AsymmetricSignatureServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final String data = request.getData();
-            if (activationId == null || data == null) {
-                logger.warn("Invalid request parameters in method signDataWithECDSA");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.warn("Activation used when computing ECDSA signature does not exist, activation ID: {}", activationId);
@@ -159,11 +154,6 @@ public class AsymmetricSignatureServiceBehavior {
             final String data = request.getData();
             final String signature  = request.getSignature();
             final ECDSASignatureFormat signatureFormat = request.getSignatureFormat();
-            if (activationId == null || data == null || signature == null) {
-                logger.warn("Invalid request parameters in method verifyECDSASignature");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
             if (activationOptional.isEmpty()) {
