@@ -30,8 +30,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationRolesServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("applicationRolesController")
 @RequestMapping("/rest/v3/application/roles")
 @Tag(name = "PowerAuth Application Roles Controller (V3)")
+@Validated
 @Slf4j
 public class ApplicationRolesController {
 
@@ -63,10 +66,13 @@ public class ApplicationRolesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/list")
-    public ObjectResponse<ListApplicationRolesResponse> listApplicationRoles(@RequestBody ObjectRequest<ListApplicationRolesRequest> request) throws Exception {
-        logger.info("ListApplicationRolesRequest received: {}", request);
+    public ObjectResponse<ListApplicationRolesResponse> listApplicationRoles(@Valid @RequestBody ObjectRequest<ListApplicationRolesRequest> request) throws Exception {
+        final ListApplicationRolesRequest req = request.getRequestObject();
+        logger.info("action: listApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: listApplicationRoles, state: initiated, request: {}", request);
         final ObjectResponse<ListApplicationRolesResponse> response = new ObjectResponse<>(service.listApplicationRoles(request.getRequestObject()));
-        logger.info("ListApplicationRolesRequest succeeded: {}", response);
+        logger.info("action: listApplicationRoles, state: succeeded");
+        logger.debug("action: listApplicationRoles, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -78,10 +84,13 @@ public class ApplicationRolesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<AddApplicationRolesResponse> addApplicationRoles(@RequestBody ObjectRequest<AddApplicationRolesRequest> request) throws Exception {
-        logger.info("AddApplicationRolesRequest received: {}", request);
+    public ObjectResponse<AddApplicationRolesResponse> addApplicationRoles(@Valid @RequestBody ObjectRequest<AddApplicationRolesRequest> request) throws Exception {
+        final AddApplicationRolesRequest req = request.getRequestObject();
+        logger.info("action: addApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: addApplicationRoles, state: initiated, request: {}", request);
         final ObjectResponse<AddApplicationRolesResponse> response = new ObjectResponse<>(service.addApplicationRoles(request.getRequestObject()));
-        logger.info("AddApplicationRolesRequest succeeded: {}", response);
+        logger.info("action: addApplicationRoles, state: succeeded");
+        logger.debug("action: addApplicationRoles, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -93,10 +102,13 @@ public class ApplicationRolesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/update")
-    public ObjectResponse<UpdateApplicationRolesResponse> updateApplicationRoles(@RequestBody ObjectRequest<UpdateApplicationRolesRequest> request) throws Exception {
-        logger.info("UpdateApplicationRolesRequest received: {}", request);
+    public ObjectResponse<UpdateApplicationRolesResponse> updateApplicationRoles(@Valid @RequestBody ObjectRequest<UpdateApplicationRolesRequest> request) throws Exception {
+        final UpdateApplicationRolesRequest req = request.getRequestObject();
+        logger.info("action: updateApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: updateApplicationRoles, state: initiated, request: {}", request);
         final ObjectResponse<UpdateApplicationRolesResponse> response = new ObjectResponse<>(service.updateApplicationRoles(request.getRequestObject()));
-        logger.info("UpdateApplicationRolesRequest succeeded: {}", response);
+        logger.info("action: updateApplicationRoles, state: succeeded");
+        logger.debug("action: updateApplicationRoles, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -108,10 +120,13 @@ public class ApplicationRolesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveApplicationRolesResponse> removeApplicationRoles(@RequestBody ObjectRequest<RemoveApplicationRolesRequest> request) throws Exception {
-        logger.info("RemoveApplicationRolesRequest received: {}", request);
+    public ObjectResponse<RemoveApplicationRolesResponse> removeApplicationRoles(@Valid @RequestBody ObjectRequest<RemoveApplicationRolesRequest> request) throws Exception {
+        final RemoveApplicationRolesRequest req = request.getRequestObject();
+        logger.info("action: removeApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: removeApplicationRoles, state: initiated, request: {}", request);
         final ObjectResponse<RemoveApplicationRolesResponse> response = new ObjectResponse<>(service.removeApplicationRoles(request.getRequestObject()));
-        logger.info("RemoveApplicationRolesRequest succeeded: {}", response);
+        logger.info("action: removeApplicationRoles, state: succeeded");
+        logger.debug("action: removeApplicationRoles, state: succeeded, response: {}", response);
         return response;
     }
 

@@ -29,8 +29,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("applicationController")
 @RequestMapping("/rest/v3/application")
 @Tag(name = "PowerAuth Application Controller (V3)")
+@Validated
 @Slf4j
 public class ApplicationController {
 
@@ -62,9 +65,11 @@ public class ApplicationController {
      */
     @PostMapping("/list")
     public ObjectResponse<GetApplicationListResponse> getApplicationList() throws Exception {
-        logger.info("GetApplicationListRequest received");
+        logger.info("action: getApplicationList, state: initiated");
+        logger.debug("action: getApplicationList, state: initiated, empty request");
         final ObjectResponse<GetApplicationListResponse> response = new ObjectResponse<>(applicationService.getApplicationList());
-        logger.info("GetApplicationListRequest succeeded: {}", response);
+        logger.info("action: getApplicationList, state: succeeded");
+        logger.debug("action: getApplicationList, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -76,10 +81,13 @@ public class ApplicationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateApplicationResponse> createApplication(@RequestBody ObjectRequest<CreateApplicationRequest> request) throws Exception {
-        logger.info("CreateApplicationRequest received: {}", request);
+    public ObjectResponse<CreateApplicationResponse> createApplication(@Valid  @RequestBody ObjectRequest<CreateApplicationRequest> request) throws Exception {
+        final CreateApplicationRequest req = request.getRequestObject();
+        logger.info("action: createApplication, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: createApplication, state: initiated, request: {}", request);
         final ObjectResponse<CreateApplicationResponse> response = new ObjectResponse<>(applicationService.createApplication(request.getRequestObject()));
-        logger.info("CreateApplicationRequest succeeded: {}", response);
+        logger.info("action: createApplication, state: succeeded");
+        logger.debug("action: createApplication, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -91,10 +99,13 @@ public class ApplicationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/detail")
-    public ObjectResponse<GetApplicationDetailResponse> getApplicationDetail(@RequestBody ObjectRequest<GetApplicationDetailRequest> request) throws Exception {
-        logger.info("GetApplicationDetailRequest received: {}", request);
+    public ObjectResponse<GetApplicationDetailResponse> getApplicationDetail(@Valid @RequestBody ObjectRequest<GetApplicationDetailRequest> request) throws Exception {
+        final GetApplicationDetailRequest req = request.getRequestObject();
+        logger.info("action: getApplicationDetail, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: getApplicationDetail, state: initiated, request: {}", request);
         final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationService.getApplicationDetail(request.getRequestObject()));
-        logger.info("GetApplicationDetailRequest succeeded: {}", response);
+        logger.info("action: getApplicationDetail, state: succeeded");
+        logger.debug("action: getApplicationDetail, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -106,10 +117,13 @@ public class ApplicationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/detail/version")
-    public ObjectResponse<LookupApplicationByAppKeyResponse> lookupApplicationByAppKey(@RequestBody ObjectRequest<LookupApplicationByAppKeyRequest> request) throws Exception {
-        logger.info("LookupApplicationByAppKeyRequest received: {}", request);
+    public ObjectResponse<LookupApplicationByAppKeyResponse> lookupApplicationByAppKey(@Valid @RequestBody ObjectRequest<LookupApplicationByAppKeyRequest> request) throws Exception {
+        final LookupApplicationByAppKeyRequest req = request.getRequestObject();
+        logger.info("action: lookupApplicationByAppKey, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.debug("action: lookupApplicationByAppKey, state: initiated, request: {}", request);
         final ObjectResponse<LookupApplicationByAppKeyResponse> response = new ObjectResponse<>(applicationService.lookupApplicationByAppKey(request.getRequestObject()));
-        logger.info("LookupApplicationByAppKeyRequest succeeded: {}", response);
+        logger.info("action: lookupApplicationByAppKey, state: succeeded");
+        logger.debug("action: lookupApplicationByAppKey, state: succeeded, response: {}", response);
         return response;
     }
 
