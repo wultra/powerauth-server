@@ -24,10 +24,6 @@ import com.wultra.security.powerauth.client.model.request.OperationTemplateDetai
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
-import com.wultra.security.powerauth.client.model.validator.OperationTemplateCreateRequestValidator;
-import com.wultra.security.powerauth.client.model.validator.OperationTemplateDeleteRequestValidator;
-import com.wultra.security.powerauth.client.model.validator.OperationTemplateDetailRequestValidator;
-import com.wultra.security.powerauth.client.model.validator.OperationTemplateUpdateRequestValidator;
 import io.getlime.security.powerauth.app.server.converter.OperationTemplateConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
@@ -97,10 +93,6 @@ public class OperationTemplateServiceBehavior {
     @Transactional(readOnly = true)
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws GenericServiceException {
         try {
-            final String error = OperationTemplateDetailRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
             final Long id = request.getId();
             final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
             if (template.isEmpty()) {
@@ -127,10 +119,6 @@ public class OperationTemplateServiceBehavior {
     @Transactional
     public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws GenericServiceException {
         try {
-            final String error = OperationTemplateCreateRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
             final String templateName = request.getTemplateName();
             final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
             if (templateByName.isPresent()) {
@@ -159,11 +147,6 @@ public class OperationTemplateServiceBehavior {
     @Transactional
     public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws GenericServiceException {
         try {
-            final String error = OperationTemplateUpdateRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Long id = request.getId();
 
             // Check if the template exists
@@ -196,11 +179,6 @@ public class OperationTemplateServiceBehavior {
     @Transactional
     public void removeOperationTemplate(OperationTemplateDeleteRequest request) throws GenericServiceException {
         try {
-            final String error = OperationTemplateDeleteRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Long id = request.getId();
             final Optional<OperationTemplateEntity> templateEntity = templateRepository.findById(id);
             if (templateEntity.isPresent()) {
