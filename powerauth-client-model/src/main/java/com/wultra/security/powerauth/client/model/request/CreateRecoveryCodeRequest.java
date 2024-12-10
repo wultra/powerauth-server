@@ -18,6 +18,11 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 /**
@@ -28,8 +33,17 @@ import lombok.Data;
 @Data
 public class CreateRecoveryCodeRequest {
 
+    @Schema(description = "The identifier of the application")
+    @NotNull(message = "Application ID must not be null when creating recovery code")
     private String applicationId;
+
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when creating recovery code")
     private String userId;
+
+    @Schema(description = "The number of PUK codes")
+    @Positive(message = "The PUK count value should be positive when creating recovery code")
+    @Max(value = 100, message = "The maximum PUK count of 100 was exceeded")
     private long pukCount;
 
 }

@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -28,10 +30,20 @@ import lombok.Data;
 @Data
 public class UpdateRecoveryConfigRequest {
 
+    @Schema(description = "The identifier of the application")
+    @NotNull(message = "Application ID must not be null when updating recovery code configuration")
     private String applicationId;
+
+    @Schema(description = "Whether recovery codes are enabled")
     private boolean activationRecoveryEnabled;
+
+    @Schema(description = "Whether recovery postcard is enabled")
     private boolean recoveryPostcardEnabled;
+
+    @Schema(description = "Whether multiple recovery codes per user are enabled")
     private boolean allowMultipleRecoveryCodes;
+
+    @Schema(description = "Recovery postcard public key")
     private String remotePostcardPublicKey;
 
 }
