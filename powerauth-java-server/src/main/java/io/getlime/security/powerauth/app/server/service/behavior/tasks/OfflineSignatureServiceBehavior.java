@@ -33,7 +33,6 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -106,12 +105,6 @@ public class OfflineSignatureServiceBehavior {
     public VerifyOfflineSignatureResponse verifyOfflineSignature(final VerifyOfflineSignatureRequest request)
             throws GenericServiceException {
         try {
-            if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
-                logger.warn("Invalid request parameters in method verifyOfflineSignature");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            final String activationId = request.getActivationId();
             final BigInteger componentLength = request.getComponentLength();
             final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
             // The order of signature types is important. PowerAuth server logs first found signature type
@@ -158,12 +151,6 @@ public class OfflineSignatureServiceBehavior {
     @Transactional
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         try {
-            if (request.getActivationId() == null || request.getData() == null) {
-                logger.warn("Invalid request parameters in method createPersonalizedOfflineSignaturePayload");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Fetch activation details from the repository
             final String activationId = request.getActivationId();
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -259,12 +246,6 @@ public class OfflineSignatureServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final String data = request.getData();
-
-            if (data == null) {
-                logger.warn("Invalid request parameter data in method createNonPersonalizedOfflineSignaturePayload");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             // Fetch associated master key pair data from the repository
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);

@@ -19,6 +19,9 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
@@ -30,13 +33,32 @@ import lombok.ToString;
 @Data
 public class VerifySignatureRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when verifying signature")
     private String activationId;
+
+    @Schema(description = "Application key")
+    @NotBlank(message = "Application key must not be empty when verifying signature")
     private String applicationKey;
+
+    @Schema(description = "Signed data")
+    @NotBlank(message = "Parameter data must not be empty when verifying signature")
     private String data;
+
+    @Schema(description = "Signature")
+    @NotBlank(message = "Signature must not be empty when verifying signature")
     @ToString.Exclude
     private String signature;
+
+    @Schema(description = "Signature")
+    @NotNull(message = "Signature type must not be null when verifying signature")
     private SignatureType signatureType;
+
+    @Schema(description = "Signature protocol version")
+    @NotBlank(message = "Signature version must not be empty when verifying signature")
     private String signatureVersion;
+
+    @Schema(description = "Forced signature protocol version used during protocol upgrade")
     private Integer forcedSignatureVersion;
 
 }

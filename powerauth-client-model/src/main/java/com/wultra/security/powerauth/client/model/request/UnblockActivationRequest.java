@@ -31,7 +31,7 @@ import lombok.Data;
 public class UnblockActivationRequest {
 
     @Schema(description = "Activation identifier")
-    @NotBlank(message = "Activation ID must not be empty when blocking activation")
+    @NotBlank(message = "Activation ID must not be empty when unblocking activation")
     private String activationId;
 
     @Schema(description = "External user identifier")
