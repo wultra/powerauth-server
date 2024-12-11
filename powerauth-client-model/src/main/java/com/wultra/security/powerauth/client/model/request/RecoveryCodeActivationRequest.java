@@ -77,7 +77,7 @@ public class RecoveryCodeActivationRequest {
     private String activationOtp;
 
     @Schema(description = "Cryptography protocol version")
-    @NotBlank(message = "Protocol version must not be empty when preparing activation")
+    @NotBlank(message = "Protocol version must not be empty when creating activation using recovery code")
     private String protocolVersion;
 
     @Schema(description = "Timestamp value used in encryption")

@@ -31,7 +31,7 @@ import lombok.Data;
 public class CreateIntegrationRequest {
 
     @Schema(description = "Integration name")
-    @NotBlank(message = "Integration name must not be empty when creating integration")
+    @NotBlank(message = "Integration name must not be empty when creating an integration")
     private String name;
 
 }

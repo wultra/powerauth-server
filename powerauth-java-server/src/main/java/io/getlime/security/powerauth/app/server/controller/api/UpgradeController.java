@@ -26,8 +26,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.UpgradeServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("updateController")
 @RequestMapping("/rest/v3/upgrade")
 @Tag(name = "PowerAuth Upgrade Protocol Controller (V3)")
+@Validated
 @Slf4j
 public class UpgradeController {
 
@@ -60,9 +63,12 @@ public class UpgradeController {
      */
     @PostMapping("/start")
     public ObjectResponse<StartUpgradeResponse> startUpgrade(@RequestBody ObjectRequest<StartUpgradeRequest> request) throws Exception {
-        logger.info("StartUpgradeRequest received: {}", request);
-        final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>(service.startUpgrade(request.getRequestObject()));
-        logger.info("StartUpgradeRequest succeeded: {}", response);
+        final StartUpgradeRequest req = request.getRequestObject();
+        logger.info("action: startUpgrade, state: initiated");
+        logger.debug("action: startUpgrade, state: initiated, request: {}", request);
+        final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>(service.startUpgrade(req));
+        logger.info("action: startUpgrade, state: succeeded");
+        logger.debug("action: startUpgrade, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -74,10 +80,13 @@ public class UpgradeController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/commit")
-    public ObjectResponse<CommitUpgradeResponse> commitUpgrade(@RequestBody ObjectRequest<CommitUpgradeRequest> request) throws Exception {
-        logger.info("CommitUpgradeRequest received: {}", request);
-        final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>(service.commitUpgrade(request.getRequestObject()));
-        logger.info("CommitUpgradeRequest succeeded: {}", response);
+    public ObjectResponse<CommitUpgradeResponse> commitUpgrade(@Valid @RequestBody ObjectRequest<CommitUpgradeRequest> request) throws Exception {
+        final CommitUpgradeRequest req = request.getRequestObject();
+        logger.info("action: commitUpgrade, state: initiated");
+        logger.debug("action: commitUpgrade, state: initiated, request: {}", request);
+        final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>(service.commitUpgrade(req));
+        logger.info("action: commitUpgrade, state: succeeded");
+        logger.debug("action: commitUpgrade, state: succeeded, response: {}", response);
         return response;
     }
 

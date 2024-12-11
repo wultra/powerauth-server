@@ -18,7 +18,10 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
 
@@ -30,21 +33,27 @@ import lombok.ToString;
 @Data
 public class ValidateTokenRequest {
 
-    @NotNull
+    @Schema(description = "Token identifier")
+    @NotBlank(message = "Token ID must not be empty when validating token")
     private String tokenId;
 
     @ToString.Exclude
-    @NotNull
+    @Schema(description = "Token digest")
+    @NotBlank(message = "Token digest must not be empty when validating token")
     private String tokenDigest;
 
-    @NotNull
+    @Schema(description = "Nonce")
+    @NotBlank(message = "Parameter nonce must not be empty when validating token")
     @ToString.Exclude
     private String nonce;
 
-    @NotNull
+    @Schema(description = "Cryptography protocol version")
+    @NotBlank(message = "Protocol version must not be empty when validating token")
     private String protocolVersion;
 
-    @NotNull
+    @Schema(description = "Timestamp")
+    @NotNull(message = "Timestamp must not be null when validating token")
+    @Positive(message = "Invalid timestamp value when validating token")
     private long timestamp;
 
 }

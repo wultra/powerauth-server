@@ -64,7 +64,7 @@ public class EciesController {
         final GetEciesDecryptorRequest req = request.getRequestObject();
         logger.info("action: getEciesDecryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: getEciesDecryptor, state: initiated, request: {}", request);
-        final ObjectResponse<GetEciesDecryptorResponse> response = new ObjectResponse<>(service.getEciesDecryptor(request.getRequestObject()));
+        final ObjectResponse<GetEciesDecryptorResponse> response = new ObjectResponse<>(service.getEciesDecryptor(req));
         logger.info("action: getEciesDecryptor, state: succeeded");
         logger.debug("action: getEciesDecryptor, state: succeeded, response: {}", response);
         return response;

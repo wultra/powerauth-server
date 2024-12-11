@@ -31,7 +31,7 @@ import lombok.Data;
 public class GetCallbackUrlListRequest {
 
     @Schema(description = "The identifier of the application")
-    @NotBlank(message = "Application ID must not be empty when creating a callback")
+    @NotBlank(message = "Application ID must not be empty when fetching callback list")
     private String applicationId;
 
 }

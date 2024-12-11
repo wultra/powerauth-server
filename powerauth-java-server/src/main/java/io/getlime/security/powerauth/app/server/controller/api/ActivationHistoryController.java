@@ -64,7 +64,7 @@ public class ActivationHistoryController {
         final ActivationHistoryRequest req = request.getRequestObject();
         logger.info("action: getActivationHistory, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: getActivationHistory, state: initiated, request: {}", request);
-        final ObjectResponse<ActivationHistoryResponse> response = new ObjectResponse<>(service.getActivationHistory(request.getRequestObject()));
+        final ObjectResponse<ActivationHistoryResponse> response = new ObjectResponse<>(service.getActivationHistory(req));
         logger.info("action: getActivationHistory, state: succeeded");
         logger.debug("action: getActivationHistory, state: succeeded, response: {}", response);
         return response;

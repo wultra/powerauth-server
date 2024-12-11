@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.Telemetry
 import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,8 +43,9 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/rest/v3/telemetry")
-@Validated
 @Tag(name = "PowerAuth Telemetry Controller V3")
+@Validated
+@Slf4j
 public class TelemetryController {
 
     private final TelemetryServiceBehavior telemetryServiceBehavior;
@@ -55,11 +57,17 @@ public class TelemetryController {
 
     @PostMapping("report")
     public ObjectResponse<TelemetryReportResponse> report(@Valid @RequestBody ObjectRequest<TelemetryReportRequest> request) throws TelemetryReportException {
+        final TelemetryReportRequest req = request.getRequestObject();
+        logger.info("action: report, state: initiated, name: {}", req.getName());
+        logger.debug("action: report, state: initiated, request: {}", request);
         final TelemetryReportRequest requestObject = request.getRequestObject();
         final String reportName = requestObject.getName();
         final Map<String, Object> parameters = requestObject.getParameters();
         final TelemetryReportResponse responseObject = telemetryServiceBehavior.report(reportName, parameters);
-        return new ObjectResponse<>(responseObject);
+        final ObjectResponse<TelemetryReportResponse> response = new ObjectResponse<>(responseObject);
+        logger.info("action: report, state: succeeded");
+        logger.debug("action: report, state: succeeded, response: {}", response);
+        return response;
     }
 
 

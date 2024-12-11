@@ -63,7 +63,7 @@ public class RecoveryController {
         final CreateRecoveryCodeRequest req = request.getRequestObject();
         logger.info("action: createRecoveryCodeForUser, state: initiated, applicationId: {}, userId: {}", req.getApplicationId(), req.getUserId());
         logger.debug("action: createRecoveryCodeForUser, state: initiated, request: {}", request);
-        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>(service.createRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>(service.createRecoveryCode(req));
         logger.info("action: createRecoveryCodeForUser, state: succeeded");
         logger.debug("action: createRecoveryCodeForUser, state: succeeded, response: {}", response);
         return response;
@@ -81,7 +81,7 @@ public class RecoveryController {
         final ConfirmRecoveryCodeRequest req = request.getRequestObject();
         logger.info("action: confirmRecoveryCode, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
         logger.debug("action: confirmRecoveryCode, state: initiated, request: {}", request);
-        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(req));
         logger.info("action: confirmRecoveryCode, state: succeeded");
         logger.debug("action: confirmRecoveryCode, state: succeeded, response: {}", response);
         return response;
@@ -99,7 +99,7 @@ public class RecoveryController {
         final LookupRecoveryCodesRequest req = request.getRequestObject();
         logger.info("action: lookupRecoveryCodesRequest, state: initiated, userId: {}, activationId: {}", req.getUserId(), req.getActivationId());
         logger.debug("action: lookupRecoveryCodesRequest, state: initiated, request: {}", request);
-        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(request.getRequestObject()));
+        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(req));
         logger.info("action: lookupRecoveryCodesRequest, state: succeeded");
         logger.debug("action: lookupRecoveryCodesRequest, state: succeeded, response: {}", response);
         return response;
@@ -117,7 +117,7 @@ public class RecoveryController {
         final RevokeRecoveryCodesRequest req = request.getRequestObject();
         logger.info("action: revokeRecoveryCodesRequest, state: initiated, recoveryCodeIds: {}", req.getRecoveryCodeIds());
         logger.debug("action: revokeRecoveryCodesRequest, state: initiated, request: {}", request);
-        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>(service.revokeRecoveryCodes(request.getRequestObject()));
+        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>(service.revokeRecoveryCodes(req));
         logger.info("action: revokeRecoveryCodesRequest, state: succeeded");
         logger.debug("action: revokeRecoveryCodesRequest, state: succeeded, response: {}", response);
         return response;
@@ -135,7 +135,7 @@ public class RecoveryController {
         final GetRecoveryConfigRequest req = request.getRequestObject();
         logger.info("action: getRecoveryConfig, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: getRecoveryConfig, state: initiated, request: {}", request);
-        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>(service.getRecoveryConfig(request.getRequestObject()));
+        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>(service.getRecoveryConfig(req));
         logger.info("action: getRecoveryConfig, state: succeeded");
         logger.debug("action: getRecoveryConfig, state: succeeded, response: {}", response);
         return response;
@@ -153,7 +153,7 @@ public class RecoveryController {
         final UpdateRecoveryConfigRequest req = request.getRequestObject();
         logger.info("action: updateRecoveryConfig, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: updateRecoveryConfig, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>(service.updateRecoveryConfig(request.getRequestObject()));
+        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>(service.updateRecoveryConfig(req));
         logger.info("action: updateRecoveryConfig, state: succeeded");
         logger.debug("action: updateRecoveryConfig, state: succeeded, response: {}", response);
         return response;

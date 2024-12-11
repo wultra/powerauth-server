@@ -104,12 +104,6 @@ public class UpgradeServiceBehavior {
             final String protocolVersion = request.getProtocolVersion();
             final String temporaryKeyId = request.getTemporaryKeyId();
 
-            if (activationId == null || applicationKey == null) {
-                logger.warn("Invalid request parameters in method startUpgrade");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
                     request.getTemporaryKeyId(),
@@ -269,14 +263,6 @@ public class UpgradeServiceBehavior {
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
-            final String applicationKey = request.getApplicationKey();
-
-            // Verify input data
-            if (activationId == null || applicationKey == null) {
-                logger.warn("Invalid commit upgrade request");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-            }
 
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {

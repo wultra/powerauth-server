@@ -122,12 +122,6 @@ public class TokenBehavior {
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getActivationId() == null || request.getApplicationKey() == null) {
-                logger.warn("Invalid request parameters in method createToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String version = request.getProtocolVersion();
@@ -171,12 +165,6 @@ public class TokenBehavior {
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null || request.getProtocolVersion() == null) {
-                logger.warn("Invalid request parameters in method validateToken");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Verify the token timestamp validity
             final long currentTimeMillis = System.currentTimeMillis();
             final long requestTimestamp = request.getTimestamp();
@@ -267,12 +255,6 @@ public class TokenBehavior {
     @Transactional
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getTokenId() == null) {
-                logger.warn("Invalid request parameter tokenId in method removeToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final String tokenId = request.getTokenId();
             boolean removed = false;
 

@@ -70,7 +70,7 @@ public class ApplicationRolesController {
         final ListApplicationRolesRequest req = request.getRequestObject();
         logger.info("action: listApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: listApplicationRoles, state: initiated, request: {}", request);
-        final ObjectResponse<ListApplicationRolesResponse> response = new ObjectResponse<>(service.listApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<ListApplicationRolesResponse> response = new ObjectResponse<>(service.listApplicationRoles(req));
         logger.info("action: listApplicationRoles, state: succeeded");
         logger.debug("action: listApplicationRoles, state: succeeded, response: {}", response);
         return response;
@@ -88,7 +88,7 @@ public class ApplicationRolesController {
         final AddApplicationRolesRequest req = request.getRequestObject();
         logger.info("action: addApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: addApplicationRoles, state: initiated, request: {}", request);
-        final ObjectResponse<AddApplicationRolesResponse> response = new ObjectResponse<>(service.addApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<AddApplicationRolesResponse> response = new ObjectResponse<>(service.addApplicationRoles(req));
         logger.info("action: addApplicationRoles, state: succeeded");
         logger.debug("action: addApplicationRoles, state: succeeded, response: {}", response);
         return response;
@@ -106,7 +106,7 @@ public class ApplicationRolesController {
         final UpdateApplicationRolesRequest req = request.getRequestObject();
         logger.info("action: updateApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: updateApplicationRoles, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateApplicationRolesResponse> response = new ObjectResponse<>(service.updateApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<UpdateApplicationRolesResponse> response = new ObjectResponse<>(service.updateApplicationRoles(req));
         logger.info("action: updateApplicationRoles, state: succeeded");
         logger.debug("action: updateApplicationRoles, state: succeeded, response: {}", response);
         return response;
@@ -124,7 +124,7 @@ public class ApplicationRolesController {
         final RemoveApplicationRolesRequest req = request.getRequestObject();
         logger.info("action: removeApplicationRoles, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: removeApplicationRoles, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveApplicationRolesResponse> response = new ObjectResponse<>(service.removeApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<RemoveApplicationRolesResponse> response = new ObjectResponse<>(service.removeApplicationRoles(req));
         logger.info("action: removeApplicationRoles, state: succeeded");
         logger.debug("action: removeApplicationRoles, state: succeeded, response: {}", response);
         return response;

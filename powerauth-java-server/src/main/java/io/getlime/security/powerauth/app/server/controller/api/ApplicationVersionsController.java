@@ -68,7 +68,7 @@ public class ApplicationVersionsController {
         final CreateApplicationVersionRequest req = request.getRequestObject();
         logger.info("action: createApplicationVersion, state: initiated, applicationId: {}, versionId: {}", req.getApplicationId(), req.getApplicationVersionId());
         logger.debug("action: createApplicationVersion, state: initiated, request: {}", request);
-        final CreateApplicationVersionResponse response = applicationServiceBehavior.createApplicationVersion(request.getRequestObject());
+        final CreateApplicationVersionResponse response = applicationServiceBehavior.createApplicationVersion(req);
         logger.info("action: createApplicationVersion, state: succeeded");
         logger.debug("action: createApplicationVersion, state: succeeded, response: {}", response);
         return new ObjectResponse<>(response);
@@ -86,7 +86,7 @@ public class ApplicationVersionsController {
         final UnsupportApplicationVersionRequest req = request.getRequestObject();
         logger.info("action: unsupportApplicationVersion, state: initiated, applicationId: {}, versionId: {}", req.getApplicationId(), req.getApplicationVersionId());
         logger.debug("action: unsupportApplicationVersion, state: initiated, request: {}", request);
-        final UnsupportApplicationVersionResponse response = applicationServiceBehavior.unsupportApplicationVersion(request.getRequestObject());
+        final UnsupportApplicationVersionResponse response = applicationServiceBehavior.unsupportApplicationVersion(req);
         logger.info("action: unsupportApplicationVersion, state: succeeded");
         logger.debug("action: unsupportApplicationVersion, state: succeeded, response: {}", response);
         return new ObjectResponse<>(response);
@@ -104,7 +104,7 @@ public class ApplicationVersionsController {
         final SupportApplicationVersionRequest req = request.getRequestObject();
         logger.info("action: supportApplicationVersion, state: initiated, applicationId: {}, versionId: {}", req.getApplicationId(), req.getApplicationVersionId());
         logger.debug("action: supportApplicationVersion, state: initiated, request: {}", request);
-        final SupportApplicationVersionResponse response = applicationServiceBehavior.supportApplicationVersion(request.getRequestObject());
+        final SupportApplicationVersionResponse response = applicationServiceBehavior.supportApplicationVersion(req);
         logger.info("action: supportApplicationVersion, state: succeeded");
         logger.debug("action: supportApplicationVersion, state: succeeded, response: {}", response);
         return new ObjectResponse<>(response);

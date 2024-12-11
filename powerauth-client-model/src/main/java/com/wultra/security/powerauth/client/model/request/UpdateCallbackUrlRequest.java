@@ -56,7 +56,7 @@ public class UpdateCallbackUrlRequest {
     private CallbackUrlType type;
 
     @Schema(description = "Callback URL")
-    @NotBlank(message = "Callback URL must not be empty when creating a callback")
+    @NotBlank(message = "Callback URL must not be empty when updating a callback")
     private String callbackUrl;
 
     @Schema(description = "Callback attributes")

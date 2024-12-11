@@ -31,7 +31,7 @@ import lombok.Data;
 public class RemoveIntegrationRequest {
 
     @Schema(description = "Integration identifier")
-    @NotBlank(message = "Integration identifier must not be empty when removing integration")
+    @NotBlank(message = "Integration identifier must not be empty when removing an integration")
     private String id;
 
 }

@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -28,6 +29,7 @@ import lombok.Data;
 @Data
 public class GetErrorCodeListRequest {
 
+    @Schema(description = "ISO 639 language code")
     private String language;
 
 }

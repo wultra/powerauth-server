@@ -114,13 +114,6 @@ public class VaultUnlockServiceBehavior {
     @Transactional
     public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
         try {
-            if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
-                    || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null) {
-                logger.warn("Invalid request parameters in method vaultUnlock");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Get request data
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();

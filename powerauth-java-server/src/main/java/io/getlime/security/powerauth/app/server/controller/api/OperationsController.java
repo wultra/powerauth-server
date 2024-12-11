@@ -67,7 +67,7 @@ public class OperationsController {
         final OperationCreateRequest req = request.getRequestObject();
         logger.info("action: createOperation, state: initiated, userId: {}, applications: {}, templateName: {}", req.getUserId(), req.getApplications(), req.getTemplateName());
         logger.debug("action: createOperation, state: initiated, request: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.createOperation(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.createOperation(req));
         logger.info("action: createOperation, state: succeeded");
         logger.debug("action: createOperation, state: succeeded, response: {}", response);
         return response;
@@ -85,7 +85,7 @@ public class OperationsController {
         final OperationDetailRequest req = request.getRequestObject();
         logger.info("action: operationDetail, state: initiated, operationId: {}", req.getOperationId());
         logger.debug("action: operationDetail, state: initiated, request: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationDetail(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationDetail(req));
         logger.info("action: operationDetail, state: succeeded");
         logger.debug("action: operationDetail, state: succeeded, response: {}", response);
         return response;
@@ -103,7 +103,7 @@ public class OperationsController {
         final OperationClaimRequest req = request.getRequestObject();
         logger.info("action: operationClaim, state: initiated, operationId: {}, userId: {}", req.getOperationId(), req.getUserId());
         logger.debug("action: operationClaim, state: initiated, request: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationClaim(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationClaim(req));
         logger.info("action: operationClaim, state: succeeded");
         logger.debug("action: operationClaim, state: succeeded, response: {}", response);
         return response;
@@ -121,7 +121,7 @@ public class OperationsController {
         final OperationListForUserRequest req = request.getRequestObject();
         logger.info("action: operationList, state: initiated, userId: {}, applications: {}", req.getUserId(), req.getApplications());
         logger.debug("action: operationList, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findAllOperationsForUser(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findAllOperationsForUser(req));
         logger.info("action: operationList, state: succeeded");
         logger.debug("action: operationList, state: succeeded, response: {}", response);
         return response;
@@ -139,7 +139,7 @@ public class OperationsController {
         final OperationListForUserRequest req = request.getRequestObject();
         logger.info("action: pendingOperationList, state: initiated, userId: {}, applications: {}", req.getUserId(), req.getApplications());
         logger.debug("action: pendingOperationList, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findPendingOperationsForUser(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findPendingOperationsForUser(req));
         logger.info("action: pendingOperationList, state: succeeded");
         logger.debug("action: pendingOperationList, state: succeeded, response: {}", response);
         return response;
@@ -157,7 +157,7 @@ public class OperationsController {
         final OperationExtIdRequest req = request.getRequestObject();
         logger.info("action: findAllOperationsByExternalId, state: initiated, externalId: {}, applications: {}", req.getExternalId(), req.getApplications());
         logger.debug("action: findAllOperationsByExternalId, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findOperationsByExternalId(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findOperationsByExternalId(req));
         logger.info("action: findAllOperationsByExternalId, state: succeeded");
         logger.debug("action: findAllOperationsByExternalId, state: succeeded, response: {}", response);
         return response;
@@ -175,7 +175,7 @@ public class OperationsController {
         final OperationCancelRequest req = request.getRequestObject();
         logger.info("action: cancelOperation, state: initiated, operationId: {}", req.getOperationId());
         logger.debug("action: cancelOperation, state: initiated, request: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.cancelOperation(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.cancelOperation(req));
         logger.info("action: cancelOperation, state: succeeded");
         logger.debug("action: cancelOperation, state: succeeded, response: {}", response);
         return response;
@@ -193,7 +193,7 @@ public class OperationsController {
         final OperationApproveRequest req = request.getRequestObject();
         logger.info("action: approveOperation, state: initiated, operationId: {}, userId: {}, applicationId: {}", req.getOperationId(), req.getUserId(), req.getApplicationId());
         logger.debug("action: approveOperation, state: initiated, request: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.attemptApproveOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.attemptApproveOperation(req));
         logger.info("action: approveOperation, state: succeeded");
         logger.debug("action: approveOperation, state: succeeded, response: {}", response);
         return response;
@@ -211,7 +211,7 @@ public class OperationsController {
         final OperationFailApprovalRequest req = request.getRequestObject();
         logger.info("action: failApprovalOperation, state: initiated, operationId: {}", req.getOperationId());
         logger.debug("action: failApprovalOperation, state: initiated, request: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.failApprovalOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.failApprovalOperation(req));
         logger.info("action: failApprovalOperation, state: succeeded");
         logger.debug("action: failApprovalOperation, state: succeeded, response: {}", response);
         return response;
@@ -229,7 +229,7 @@ public class OperationsController {
         final OperationRejectRequest req = request.getRequestObject();
         logger.info("action: rejectOperation, state: initiated, operationId: {}, userId: {}, applicationId: {}", req.getOperationId(), req.getUserId(), req.getApplicationId());
         logger.debug("action: rejectOperation, state: initiated, request: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.rejectOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.rejectOperation(req));
         logger.info("action: rejectOperation, state: succeeded");
         logger.debug("action: rejectOperation, state: succeeded, response: {}", response);
         return response;

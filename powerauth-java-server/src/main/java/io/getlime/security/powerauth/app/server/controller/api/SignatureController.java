@@ -126,7 +126,7 @@ public class SignatureController {
         final VerifyOfflineSignatureRequest req = request.getRequestObject();
         logger.info("action: verifyOfflineSignature, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: verifyOfflineSignature, state: initiated, {}", request);
-        final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(request.getRequestObject()));
+        final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(req));
         logger.info("action: verifyOfflineSignature, state: succeeded");
         logger.debug("action: verifyOfflineSignature, state: succeeded, {}", response);
         return response;
@@ -141,9 +141,12 @@ public class SignatureController {
      */
     @PostMapping("/list")
     public ObjectResponse<SignatureAuditResponse> getSignatureAuditLog(@Valid @RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
-        logger.info("SignatureAuditRequest received: {}", request);
-        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getSignatureAuditLog(request.getRequestObject()));
-        logger.info("SignatureAuditRequest succeeded: {}", response);
+        final SignatureAuditRequest req = request.getRequestObject();
+        logger.info("action: getSignatureAuditLog, state: initiated, userId: {}, applicationId: {}", req.getUserId(), req.getApplicationId());
+        logger.debug("action: getSignatureAuditLog, state: initiated, {}", request);
+        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getSignatureAuditLog(req));
+        logger.info("action: getSignatureAuditLog, state: succeeded");
+        logger.debug("action: getSignatureAuditLog, state: succeeded, {}", response);
         return response;
     }
 

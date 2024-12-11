@@ -64,7 +64,7 @@ public class ActivationController {
         final InitActivationRequest req = request.getRequestObject();
         logger.info("action: initActivation, state: initiated, userId: {}, application: {}", req.getUserId(), req.getApplicationId());
         logger.debug("action: initActivation, state: initiated, request: {}", request);
-        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(request.getRequestObject()));
+        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(req));
         logger.info("action: initActivation, state: succeeded");
         logger.debug("action: initActivation, state: succeeded, response: {}", response);
         return response;
@@ -82,7 +82,7 @@ public class ActivationController {
         final PrepareActivationRequest req = request.getRequestObject();
         logger.info("action: prepareActivation, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: prepareActivation, state: initiated, request: {}", request);
-        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(request.getRequestObject()));
+        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(req));
         logger.info("action: prepareActivation, state: succeeded");
         logger.debug("action: prepareActivation, state: succeeded, response: {}", response);
         return response;
@@ -100,7 +100,7 @@ public class ActivationController {
         final CreateActivationRequest req = request.getRequestObject();
         logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}", req.getUserId(), req.getApplicationKey());
         logger.debug("action: createActivation, state: initiated, request: {}", request);
-        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(request.getRequestObject()));
+        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(req));
         logger.info("action: createActivation, state: succeeded");
         logger.debug("action: createActivation, state: succeeded, response: {}", response);
         return response;
@@ -118,7 +118,7 @@ public class ActivationController {
         final RecoveryCodeActivationRequest req = request.getRequestObject();
         logger.info("action: createActivationUsingRecoveryCode, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: createActivationUsingRecoveryCode, state: initiated, request: {}", request);
-        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(req));
         logger.info("action: createActivationUsingRecoveryCode, state: succeeded");
         logger.debug("action: createActivationUsingRecoveryCode, state: succeeded, response: {}", response);
         return response;
@@ -136,7 +136,7 @@ public class ActivationController {
         final UpdateActivationOtpRequest req = request.getRequestObject();
         logger.info("action: updateActivationOtp, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: updateActivationOtp, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationOtp(request.getRequestObject()));
+        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationOtp(req));
         logger.info("action: updateActivationOtp, state: succeeded");
         logger.debug("action: updateActivationOtp, state: succeeded, response: {}", response);
         return response;
@@ -154,7 +154,7 @@ public class ActivationController {
         final CommitActivationRequest req = request.getRequestObject();
         logger.info("action: commitActivation, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: commitActivation, state: initiated, request: {}", request);
-        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.commitActivation(request.getRequestObject()));
+        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.commitActivation(req));
         logger.info("action: commitActivation, state: succeeded");
         logger.debug("action: commitActivation, state: succeeded, response: {}", response);
         return response;
@@ -172,7 +172,7 @@ public class ActivationController {
         final GetActivationStatusRequest req = request.getRequestObject();
         logger.info("action: getActivationStatus, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: getActivationStatus, state: initiated, request: {}", request);
-        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(request.getRequestObject()));
+        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(req));
         logger.info("action: getActivationStatus, state: succeeded");
         logger.debug("action: getActivationStatus, state: succeeded, response: {}", response);
         return response;
@@ -190,7 +190,7 @@ public class ActivationController {
         final BlockActivationRequest req = request.getRequestObject();
         logger.info("action: blockActivation, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: blockActivation, state: initiated, request: {}", request);
-        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.blockActivation(request.getRequestObject()));
+        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.blockActivation(req));
         logger.info("action: blockActivation, state: succeeded");
         logger.debug("action: blockActivation, state: succeeded, response: {}", response);
         return response;
@@ -208,7 +208,7 @@ public class ActivationController {
         final UnblockActivationRequest req = request.getRequestObject();
         logger.info("action: unblockActivation, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: unblockActivation, state: initiated, request: {}", request);
-        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.unblockActivation(request.getRequestObject()));
+        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.unblockActivation(req));
         logger.info("action: unblockActivation, state: succeeded");
         logger.debug("action: unblockActivation, state: succeeded, response: {}", response);
         return response;
@@ -226,7 +226,7 @@ public class ActivationController {
         final RemoveActivationRequest req = request.getRequestObject();
         logger.info("action: removeActivation, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: removeActivation, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.removeActivation(request.getRequestObject()));
+        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.removeActivation(req));
         logger.info("action: removeActivation, state: succeeded");
         logger.debug("action: removeActivation, state: succeeded, response: {}", response);
         return response;
@@ -246,7 +246,7 @@ public class ActivationController {
         final GetActivationListForUserRequest req = request.getRequestObject();
         logger.info("action: getActivationListForUser, state: initiated, userId: {}", req.getUserId());
         logger.debug("action: getActivationListForUser, state: initiated, request: {}", request);
-        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationList(request.getRequestObject()));
+        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationList(req));
         logger.info("action: getActivationListForUser, state: succeeded");
         logger.debug("action: getActivationListForUser, state: succeeded, response: {}", response);
         return response;
@@ -264,7 +264,7 @@ public class ActivationController {
         final UpdateActivationNameRequest req = request.getRequestObject();
         logger.info("action: updateActivation, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: updateActivation, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateActivationNameResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationName(request.getRequestObject()));
+        final ObjectResponse<UpdateActivationNameResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationName(req));
         logger.info("action: updateActivation, state: succeeded");
         logger.debug("action: updateActivation, state: succeeded, response: {}", response);
         return response;
@@ -279,9 +279,10 @@ public class ActivationController {
      */
     @PostMapping("/lookup")
     public ObjectResponse<LookupActivationsResponse> lookupActivations(@Valid @RequestBody ObjectRequest<LookupActivationsRequest> request) throws Exception {
+        final LookupActivationsRequest req = request.getRequestObject();
         logger.info("action: lookupActivations, state: initiated");
         logger.debug("action: lookupActivations, state: initiated, request: {}", request);
-        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(request.getRequestObject()));
+        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(req));
         logger.info("action: lookupActivations, state: succeeded");
         logger.debug("action: lookupActivations, state: succeeded, response: {}", response);
         return response;
@@ -296,9 +297,10 @@ public class ActivationController {
      */
     @PostMapping("/status/update")
     public ObjectResponse<UpdateStatusForActivationsResponse> updateStatusForActivations(@Valid @RequestBody ObjectRequest<UpdateStatusForActivationsRequest> request) throws Exception {
+        final UpdateStatusForActivationsRequest req = request.getRequestObject();
         logger.info("action: updateStatusForActivations, state: initiated");
         logger.debug("action: updateStatusForActivations, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(request.getRequestObject()));
+        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(req));
         logger.info("action: updateStatusForActivations, state: succeeded");
         logger.debug("action: updateStatusForActivations, state: succeeded, response: {}", response);
         return response;

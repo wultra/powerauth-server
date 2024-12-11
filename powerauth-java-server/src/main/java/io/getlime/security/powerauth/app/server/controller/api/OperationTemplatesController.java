@@ -85,7 +85,7 @@ public class OperationTemplatesController {
         final OperationTemplateDetailRequest req = request.getRequestObject();
         logger.info("action: getOperationTemplateDetail, state: initiated, id: {}", req.getId());
         logger.debug("action: getOperationTemplateDetail, state: initiated, request: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(req));
         logger.info("action: getOperationTemplateDetail, state: succeeded");
         logger.debug("action: getOperationTemplateDetail, state: succeeded, response: {}", response);
         return response;
@@ -103,7 +103,7 @@ public class OperationTemplatesController {
         final OperationTemplateCreateRequest req = request.getRequestObject();
         logger.info("action: createOperationTemplate, state: initiated, templateName: {}, operationType: {}", req.getTemplateName(), req.getOperationType());
         logger.debug("action: createOperationTemplate, state: initiated, request: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.createOperationTemplate(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.createOperationTemplate(req));
         logger.info("action: createOperationTemplate, state: succeeded");
         logger.debug("action: createOperationTemplate, state: succeeded, response: {}", response);
         return response;
@@ -121,7 +121,7 @@ public class OperationTemplatesController {
         final OperationTemplateUpdateRequest req = request.getRequestObject();
         logger.info("action: updateOperationTemplate, state: initiated, id: {}, operationType: {}", req.getId(), req.getOperationType());
         logger.debug("action: updateOperationTemplate, state: initiated, request: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(req));
         logger.info("action: updateOperationTemplate, state: succeeded");
         logger.debug("action: updateOperationTemplate, state: succeeded, response: {}", response);
         return response;
@@ -139,7 +139,7 @@ public class OperationTemplatesController {
         final OperationTemplateDeleteRequest req = request.getRequestObject();
         logger.info("action: removeOperationTemplate, state: initiated, id: {}", req.getId());
         logger.debug("action: removeOperationTemplate, state: initiated, request: {}", request);
-        service.removeOperationTemplate(request.getRequestObject());
+        service.removeOperationTemplate(req);
         logger.info("action: removeOperationTemplate, state: succeeded");
         logger.debug("action: removeOperationTemplate, state: succeeded, empty response");
         return new Response();

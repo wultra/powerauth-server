@@ -64,7 +64,7 @@ public class EcdsaSignatureController {
         final SignECDSARequest req = request.getRequestObject();
         logger.info("action: signDataWithECDSA, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: signDataWithECDSA, state: initiated, request: {}", request);
-        final ObjectResponse<SignECDSAResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.signDataWithECDSA(request.getRequestObject()));
+        final ObjectResponse<SignECDSAResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.signDataWithECDSA(req));
         logger.info("action: signDataWithECDSA, state: succeeded");
         logger.debug("action: signDataWithECDSA, state: succeeded, response: {}", response);
         return response;
@@ -82,7 +82,7 @@ public class EcdsaSignatureController {
         final VerifyECDSASignatureRequest req = request.getRequestObject();
         logger.info("action: verifyECDSASignature, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: verifyECDSASignature, state: initiated, request: {}", request);
-        final ObjectResponse<VerifyECDSASignatureResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.verifyECDSASignature(request.getRequestObject()));
+        final ObjectResponse<VerifyECDSASignatureResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.verifyECDSASignature(req));
         logger.info("action: verifyECDSASignature, state: succeeded");
         logger.debug("action: verifyECDSASignature, state: succeeded, response: {}", response);
         return response;

@@ -67,7 +67,7 @@ public class IntegrationController {
         final CreateIntegrationRequest req = request.getRequestObject();
         logger.info("action: createIntegration, state: initiated, name: {}", req.getName());
         logger.debug("action: createIntegration, state: initiated, request: {}", request);
-        final ObjectResponse<CreateIntegrationResponse> response = new ObjectResponse<>(service.createIntegration(request.getRequestObject()));
+        final ObjectResponse<CreateIntegrationResponse> response = new ObjectResponse<>(service.createIntegration(req));
         logger.info("action: createIntegration, state: succeeded");
         logger.debug("action: createIntegration, state: succeeded, response: {}", response);
         return response;
@@ -101,7 +101,7 @@ public class IntegrationController {
         final RemoveIntegrationRequest req = request.getRequestObject();
         logger.info("action: removeIntegration, state: initiated, id: {}", req.getId());
         logger.debug("action: removeIntegration, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>(service.removeIntegration(request.getRequestObject()));
+        final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>(service.removeIntegration(req));
         logger.info("action: removeIntegration, state: succeeded");
         logger.debug("action: removeIntegration, state: succeeded, response: {}", response);
         return response;

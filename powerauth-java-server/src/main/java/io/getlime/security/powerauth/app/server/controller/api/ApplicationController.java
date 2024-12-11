@@ -85,7 +85,7 @@ public class ApplicationController {
         final CreateApplicationRequest req = request.getRequestObject();
         logger.info("action: createApplication, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: createApplication, state: initiated, request: {}", request);
-        final ObjectResponse<CreateApplicationResponse> response = new ObjectResponse<>(applicationService.createApplication(request.getRequestObject()));
+        final ObjectResponse<CreateApplicationResponse> response = new ObjectResponse<>(applicationService.createApplication(req));
         logger.info("action: createApplication, state: succeeded");
         logger.debug("action: createApplication, state: succeeded, response: {}", response);
         return response;
@@ -103,7 +103,7 @@ public class ApplicationController {
         final GetApplicationDetailRequest req = request.getRequestObject();
         logger.info("action: getApplicationDetail, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: getApplicationDetail, state: initiated, request: {}", request);
-        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationService.getApplicationDetail(request.getRequestObject()));
+        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationService.getApplicationDetail(req));
         logger.info("action: getApplicationDetail, state: succeeded");
         logger.debug("action: getApplicationDetail, state: succeeded, response: {}", response);
         return response;
@@ -121,7 +121,7 @@ public class ApplicationController {
         final LookupApplicationByAppKeyRequest req = request.getRequestObject();
         logger.info("action: lookupApplicationByAppKey, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: lookupApplicationByAppKey, state: initiated, request: {}", request);
-        final ObjectResponse<LookupApplicationByAppKeyResponse> response = new ObjectResponse<>(applicationService.lookupApplicationByAppKey(request.getRequestObject()));
+        final ObjectResponse<LookupApplicationByAppKeyResponse> response = new ObjectResponse<>(applicationService.lookupApplicationByAppKey(req));
         logger.info("action: lookupApplicationByAppKey, state: succeeded");
         logger.debug("action: lookupApplicationByAppKey, state: succeeded, response: {}", response);
         return response;

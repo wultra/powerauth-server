@@ -67,7 +67,7 @@ public class ApplicationCallbackController {
         final CreateCallbackUrlRequest req = request.getRequestObject();
         logger.info("action: createCallbackUrl, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: createCallbackUrl, state: initiated, request: {}", request);
-        final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(req));
         logger.info("action: createCallbackUrl, state: succeeded");
         logger.debug("action: createCallbackUrl, state: succeeded, response: {}", response);
         return response;
@@ -85,7 +85,7 @@ public class ApplicationCallbackController {
         final UpdateCallbackUrlRequest req = request.getRequestObject();
         logger.info("action: updateCallbackUrl, state: initiated, callbackId: {}", req.getId());
         logger.debug("action: updateCallbackUrl, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>(service.updateCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>(service.updateCallbackUrl(req));
         logger.info("action: updateCallbackUrl, state: succeeded");
         logger.debug("action: updateCallbackUrl, state: succeeded, response: {}", response);
         return response;
@@ -103,7 +103,7 @@ public class ApplicationCallbackController {
         final GetCallbackUrlListRequest req = request.getRequestObject();
         logger.info("action: getCallbackUrlList, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: getCallbackUrlList, state: initiated, request: {}", request);
-        final ObjectResponse<GetCallbackUrlListResponse> response = new ObjectResponse<>(service.getCallbackUrlList(request.getRequestObject()));
+        final ObjectResponse<GetCallbackUrlListResponse> response = new ObjectResponse<>(service.getCallbackUrlList(req));
         logger.info("action: getCallbackUrlList, state: succeeded");
         logger.debug("action: getCallbackUrlList, state: succeeded, response: {}", response);
         return response;
@@ -121,7 +121,7 @@ public class ApplicationCallbackController {
         final RemoveCallbackUrlRequest req = request.getRequestObject();
         logger.info("action: removeCallbackUrl, state: initiated, callbackId: {}", req.getId());
         logger.debug("action: removeCallbackUrl, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveCallbackUrlResponse> response = new ObjectResponse<>(service.removeCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<RemoveCallbackUrlResponse> response = new ObjectResponse<>(service.removeCallbackUrl(req));
         logger.info("action: removeCallbackUrl, state: succeeded");
         logger.debug("action: removeCallbackUrl, state: succeeded, response: {}", response);
         return response;

@@ -53,7 +53,7 @@ public class OperationApproveRequest {
     @NotBlank(message = "Data must not be empty when approving operation")
     private String data;
 
-    @Schema(description = "PowerAuth signature type")
+    @Schema(description = "Signature type")
     @NotNull(message = "Signature type must not be null when approving operation")
     private SignatureType signatureType;
 

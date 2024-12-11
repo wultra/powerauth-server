@@ -50,7 +50,7 @@ public class VerifySignatureRequest {
     @ToString.Exclude
     private String signature;
 
-    @Schema(description = "Signature")
+    @Schema(description = "Signature type")
     @NotNull(message = "Signature type must not be null when verifying signature")
     private SignatureType signatureType;
 

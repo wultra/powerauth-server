@@ -68,7 +68,7 @@ public class ApplicationConfigController {
         final GetApplicationConfigRequest req = request.getRequestObject();
         logger.info("action: getApplicationConfig, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: getApplicationConfig, state: initiated, request: {}", request);
-        final ObjectResponse<GetApplicationConfigResponse> response = new ObjectResponse<>(service.getApplicationConfig(request.getRequestObject()));
+        final ObjectResponse<GetApplicationConfigResponse> response = new ObjectResponse<>(service.getApplicationConfig(req));
         logger.info("action: getApplicationConfig, state: succeeded");
         logger.debug("action: getApplicationConfig, state: succeeded, response: {}", response);
         return response;
@@ -86,7 +86,7 @@ public class ApplicationConfigController {
         final CreateApplicationConfigRequest req = request.getRequestObject();
         logger.info("action: createApplicationConfig, state: initiated, applicationId: {}, key: {}", req.getApplicationId(), req.getKey());
         logger.debug("action: createApplicationConfig, state: initiated, request: {}", request);
-        final ObjectResponse<CreateApplicationConfigResponse> response = new ObjectResponse<>(service.createApplicationConfig(request.getRequestObject()));
+        final ObjectResponse<CreateApplicationConfigResponse> response = new ObjectResponse<>(service.createApplicationConfig(req));
         logger.info("action: createApplicationConfig, state: succeeded");
         logger.debug("action: createApplicationConfig, state: succeeded, response: {}", response);
         return response;
@@ -104,7 +104,7 @@ public class ApplicationConfigController {
         final RemoveApplicationConfigRequest req = request.getRequestObject();
         logger.info("action: removeApplicationConfig, state: initiated, applicationId: {}, key: {}", req.getApplicationId(), req.getKey());
         logger.debug("action: removeApplicationConfig, state: initiated, request: {}", request);
-        service.removeApplicationConfig(request.getRequestObject());
+        service.removeApplicationConfig(req);
         logger.info("action: removeApplicationConfig, state: succeeded");
         logger.debug("action: removeApplicationConfig, state: succeeded, empty response");
         return new Response();

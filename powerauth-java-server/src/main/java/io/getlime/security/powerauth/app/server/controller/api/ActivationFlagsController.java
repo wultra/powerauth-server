@@ -67,7 +67,7 @@ public class ActivationFlagsController {
         final ListActivationFlagsRequest req = request.getRequestObject();
         logger.info("action: listActivationFlags, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: listActivationFlags, state: initiated, request: {}", request);
-        final ObjectResponse<ListActivationFlagsResponse> response = new ObjectResponse<>(service.listActivationFlags(request.getRequestObject()));
+        final ObjectResponse<ListActivationFlagsResponse> response = new ObjectResponse<>(service.listActivationFlags(req));
         logger.info("action: listActivationFlags, state: succeeded");
         logger.debug("action: listActivationFlags, state: succeeded, response: {}", response);
         return response;
@@ -85,7 +85,7 @@ public class ActivationFlagsController {
         final AddActivationFlagsRequest req = request.getRequestObject();
         logger.info("action: addActivationFlags, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: addActivationFlags, state: initiated, request: {}", request);
-        final ObjectResponse<AddActivationFlagsResponse> response = new ObjectResponse<>(service.addActivationFlags(request.getRequestObject()));
+        final ObjectResponse<AddActivationFlagsResponse> response = new ObjectResponse<>(service.addActivationFlags(req));
         logger.info("action: addActivationFlags, state: succeeded");
         logger.debug("action: addActivationFlags, state: succeeded, response: {}", response);
         return response;
@@ -103,7 +103,7 @@ public class ActivationFlagsController {
         final UpdateActivationFlagsRequest req = request.getRequestObject();
         logger.info("action: updateActivationFlags, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: updateActivationFlags, state: initiated, request: {}", request);
-        final ObjectResponse<UpdateActivationFlagsResponse> response = new ObjectResponse<>(service.updateActivationFlags(request.getRequestObject()));
+        final ObjectResponse<UpdateActivationFlagsResponse> response = new ObjectResponse<>(service.updateActivationFlags(req));
         logger.info("action: updateActivationFlags, state: succeeded");
         logger.debug("action: updateActivationFlags, state: succeeded, response: {}", response);
         return response;
@@ -121,7 +121,7 @@ public class ActivationFlagsController {
         final RemoveActivationFlagsRequest req = request.getRequestObject();
         logger.info("action: removeActivationFlags, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: removeActivationFlags, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveActivationFlagsResponse> response = new ObjectResponse<>(service.removeActivationFlags(request.getRequestObject()));
+        final ObjectResponse<RemoveActivationFlagsResponse> response = new ObjectResponse<>(service.removeActivationFlags(req));
         logger.info("action: removeActivationFlags, state: succeeded");
         logger.debug("action: removeActivationFlags, state: succeeded, response: {}", response);
         return response;
