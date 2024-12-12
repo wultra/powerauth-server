@@ -35,7 +35,7 @@ public class CommitUpgradeRequest {
     private String activationId;
 
     @Schema(description = "Application key")
-    @NotEmpty(message = "Application key must not be empty when commiting upgrade")
+    @NotEmpty(message = "Application key must not be empty when committing upgrade")
     private String applicationKey;
 
 }
