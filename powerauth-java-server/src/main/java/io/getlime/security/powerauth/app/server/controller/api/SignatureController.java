@@ -73,7 +73,7 @@ public class SignatureController {
         logger.info("action: verifySignature, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: verifySignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifySignatureResponse> response = new ObjectResponse<>(onlineSignatureService.verifySignature(request.getRequestObject(), new ArrayList<>()));
-        logger.info("action: verifySignature, state: succeeded");
+        logger.info("action: verifySignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
         logger.debug("action: verifySignature, state: succeeded, response: {}", response);
         return response;
     }
@@ -127,7 +127,7 @@ public class SignatureController {
         logger.info("action: verifyOfflineSignature, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: verifyOfflineSignature, state: initiated, {}", request);
         final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(req));
-        logger.info("action: verifyOfflineSignature, state: succeeded");
+        logger.info("action: verifyOfflineSignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
         logger.debug("action: verifyOfflineSignature, state: succeeded, {}", response);
         return response;
     }

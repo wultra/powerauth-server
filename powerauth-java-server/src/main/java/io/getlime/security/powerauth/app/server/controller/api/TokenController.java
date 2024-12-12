@@ -87,7 +87,7 @@ public class TokenController {
         logger.info("action: validateToken, state: initiated, tokenId: {}", req.getTokenId());
         logger.debug("action: validateToken, state: initiated, request: {}", request);
         final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(req));
-        logger.info("action: validateToken, state: succeeded");
+        logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.getResponseObject().isTokenValid());
         logger.debug("action: validateToken, state: succeeded, response: {}", response);
         return response;
     }

@@ -83,7 +83,7 @@ public class EcdsaSignatureController {
         logger.info("action: verifyECDSASignature, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: verifyECDSASignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifyECDSASignatureResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.verifyECDSASignature(req));
-        logger.info("action: verifyECDSASignature, state: succeeded");
+        logger.info("action: verifyECDSASignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
         logger.debug("action: verifyECDSASignature, state: succeeded, response: {}", response);
         return response;
     }

@@ -194,7 +194,7 @@ public class OperationsController {
         logger.info("action: approveOperation, state: initiated, operationId: {}, userId: {}, applicationId: {}", req.getOperationId(), req.getUserId(), req.getApplicationId());
         logger.debug("action: approveOperation, state: initiated, request: {}", request);
         final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.attemptApproveOperation(req));
-        logger.info("action: approveOperation, state: succeeded");
+        logger.info("action: approveOperation, state: succeeded, result: {}", response.getResponseObject().getResult());
         logger.debug("action: approveOperation, state: succeeded, response: {}", response);
         return response;
     }
@@ -212,7 +212,7 @@ public class OperationsController {
         logger.info("action: failApprovalOperation, state: initiated, operationId: {}", req.getOperationId());
         logger.debug("action: failApprovalOperation, state: initiated, request: {}", request);
         final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.failApprovalOperation(req));
-        logger.info("action: failApprovalOperation, state: succeeded");
+        logger.info("action: failApprovalOperation, state: succeeded, result: {}", response.getResponseObject().getResult());
         logger.debug("action: failApprovalOperation, state: succeeded, response: {}", response);
         return response;
     }
@@ -230,7 +230,7 @@ public class OperationsController {
         logger.info("action: rejectOperation, state: initiated, operationId: {}, userId: {}, applicationId: {}", req.getOperationId(), req.getUserId(), req.getApplicationId());
         logger.debug("action: rejectOperation, state: initiated, request: {}", request);
         final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.rejectOperation(req));
-        logger.info("action: rejectOperation, state: succeeded");
+        logger.info("action: rejectOperation, state: succeeded, result: {}", response.getResponseObject().getResult());
         logger.debug("action: rejectOperation, state: succeeded, response: {}", response);
         return response;
     }
