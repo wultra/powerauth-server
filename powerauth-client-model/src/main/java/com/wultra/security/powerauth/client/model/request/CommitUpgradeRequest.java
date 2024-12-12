@@ -31,7 +31,7 @@ import lombok.Data;
 public class CommitUpgradeRequest {
 
     @Schema(description = "Activation identifier")
-    @NotEmpty(message = "Activation ID must not be empty when commiting upgrade")
+    @NotEmpty(message = "Activation ID must not be empty when committing upgrade")
     private String activationId;
 
     @Schema(description = "Application key")
