@@ -29,7 +29,7 @@ import lombok.Data;
 @Data
 public class GetErrorCodeListRequest {
 
-    @Schema(description = "ISO 639 language code")
+    @Schema(description = "Language code", type = "string", format="ISO 639")
     private String language;
 
 }
