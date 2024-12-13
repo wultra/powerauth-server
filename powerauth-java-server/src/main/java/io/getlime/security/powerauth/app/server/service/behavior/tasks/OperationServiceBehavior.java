@@ -766,7 +766,7 @@ public class OperationServiceBehavior {
             final OperationEntity operationEntity =
                     claimOperation(operation, userId, currentTimestamp);
             final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
-            expireOperation(operationDetailResponse,currentTimestamp);
+            markOperationExpired(operationDetailResponse, currentTimestamp);
             extendAndSetOperationDetailData(operationDetailResponse);
             return operationDetailResponse;
         } catch (GenericServiceException ex) {
@@ -1012,7 +1012,7 @@ public class OperationServiceBehavior {
         return operationEntity;
     }
 
-    private void expireOperation(OperationDetailResponse operation, Date currentTimestamp) throws GenericServiceException {
+    private void markOperationExpired(OperationDetailResponse operation, Date currentTimestamp) throws GenericServiceException {
         // Operation is still pending and timestamp is after the expiration.
         if (OperationStatus.PENDING.equals(operation.getStatus())
                 && operation.getTimestampExpires().before(currentTimestamp)) {
