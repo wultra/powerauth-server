@@ -763,11 +763,10 @@ public class OperationServiceBehavior {
             });
 
             final String userId = request.getUserId();
-            final OperationEntity operationEntity = expireOperation(
-                    claimOperation(operation, userId, currentTimestamp),
-                    currentTimestamp
-            );
+            final OperationEntity operationEntity =
+                    claimOperation(operation, userId, currentTimestamp);
             final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
+            expireOperation(operationDetailResponse,currentTimestamp);
             extendAndSetOperationDetailData(operationDetailResponse);
             return operationDetailResponse;
         } catch (GenericServiceException ex) {
@@ -1011,6 +1010,17 @@ public class OperationServiceBehavior {
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
         }
         return operationEntity;
+    }
+
+    private void expireOperation(OperationDetailResponse operation, Date currentTimestamp) throws GenericServiceException {
+        // Operation is still pending and timestamp is after the expiration.
+        if (OperationStatus.PENDING.equals(operation.getStatus())
+                && operation.getTimestampExpires().before(currentTimestamp)) {
+            // Operation status is persisted only using background service to avoid database deadlocks,
+            // because two concurrent UPDATE queries can be executed at the same time.
+            // The status in the database may be updated few seconds later for this reason.
+            operation.setStatus(OperationStatus.EXPIRED);
+        }
     }
 
     private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthSignatureTypes usedFactor) {
