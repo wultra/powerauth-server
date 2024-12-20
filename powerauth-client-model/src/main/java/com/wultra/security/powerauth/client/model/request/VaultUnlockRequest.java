@@ -77,14 +77,6 @@ public class VaultUnlockRequest {
     @ToString.Exclude
     private String nonce;
 
-    @Schema(description = "Activation OTP value")
-    @ToString.Exclude
-    private String activationOtp;
-
-    @Schema(description = "Cryptography protocol version")
-    @NotBlank(message = "Protocol must not be empty when unlocking vault")
-    private String protocolVersion;
-
     @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
 
