@@ -66,7 +66,7 @@ public class OperationTemplateCreateRequest {
     @JsonSetter(nulls = Nulls.SKIP)
     @Schema(description = "Allowed signature types")
     @NotEmpty(message = "Template signature types must contain at least one value")
-    private final List<@NotBlank SignatureType> signatureType = new ArrayList<>();
+    private final List<SignatureType> signatureType = new ArrayList<>();
 
     /**
      * How many failed attempts should be allowed for the operation.
