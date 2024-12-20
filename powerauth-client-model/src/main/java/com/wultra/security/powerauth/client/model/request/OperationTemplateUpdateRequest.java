@@ -54,7 +54,7 @@ public class OperationTemplateUpdateRequest {
     @Schema(description = "Allowed signature types")
     @NotEmpty(message = "Template signature types must contain at least one value")
     @JsonSetter(nulls = Nulls.SKIP)
-    private final List<SignatureType> signatureType = new ArrayList<>();
+    private final List<@NotBlank SignatureType> signatureType = new ArrayList<>();
 
     @Schema(description = "How many failed attempts should be allowed for the operation")
     @NotNull(message = "Template expiration value must not be null when updating operation template")

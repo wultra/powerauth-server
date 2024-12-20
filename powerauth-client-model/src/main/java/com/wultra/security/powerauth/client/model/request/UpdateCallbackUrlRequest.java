@@ -60,7 +60,7 @@ public class UpdateCallbackUrlRequest {
     private String callbackUrl;
 
     @Schema(description = "Callback attributes")
-    private List<String> attributes = new ArrayList<>();
+    private List<@NotBlank String> attributes = new ArrayList<>();
 
     @Schema(description = "Callback authentication")
     private HttpAuthenticationPrivate authentication = new HttpAuthenticationPrivate();

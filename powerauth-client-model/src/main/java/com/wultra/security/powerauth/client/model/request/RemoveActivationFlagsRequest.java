@@ -40,6 +40,6 @@ public class RemoveActivationFlagsRequest {
 
     @Schema(description = "List of activation flags")
     @NotEmpty(message = "List of activation flags must not be empty when removing activation flags")
-    private List<String> activationFlags = new ArrayList<>();
+    private List<@NotBlank String> activationFlags = new ArrayList<>();
 
 }

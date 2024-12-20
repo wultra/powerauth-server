@@ -36,7 +36,7 @@ public class OperationCreateRequest {
     @Schema(description = "List of associated applications")
     @NotNull(message = "Application ID list must not be null when creating operation")
     @Size(min = 1, message = "Application ID list must not be empty when creating operation")
-    private List<String> applications = new ArrayList<>();
+    private List<@NotBlank String> applications = new ArrayList<>();
 
     @Schema(description = "Activation flag associated with the operation")
     private String activationFlag;

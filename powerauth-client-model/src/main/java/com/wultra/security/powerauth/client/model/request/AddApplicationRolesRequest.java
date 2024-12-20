@@ -40,6 +40,6 @@ public class AddApplicationRolesRequest {
 
     @Schema(description = "Application roles")
     @NotEmpty(message = "List of application roles must not be empty when adding application roles")
-    private List<String> applicationRoles = new ArrayList<>();
+    private List<@NotBlank String> applicationRoles = new ArrayList<>();
 
 }

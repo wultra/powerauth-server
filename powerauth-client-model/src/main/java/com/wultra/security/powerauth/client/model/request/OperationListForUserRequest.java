@@ -43,7 +43,7 @@ public class OperationListForUserRequest {
     @Schema(description = "Associated application identifiers")
     @NotNull(message = "Application ID list must not be null when requesting operation list")
     @Size(min = 1, message = "Application ID list must not be empty when requesting operation list")
-    private List<String> applications = new ArrayList<>();
+    private List<@NotBlank String> applications = new ArrayList<>();
 
     @Min(0)
     private Integer pageNumber;

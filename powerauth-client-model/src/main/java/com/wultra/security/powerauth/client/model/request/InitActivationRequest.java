@@ -71,6 +71,6 @@ public class InitActivationRequest {
     private String activationOtp;
 
     @Schema(description = "List of activation flags")
-    private List<String> flags = new ArrayList<>();
+    private List<@NotBlank String> flags = new ArrayList<>();
 
 }

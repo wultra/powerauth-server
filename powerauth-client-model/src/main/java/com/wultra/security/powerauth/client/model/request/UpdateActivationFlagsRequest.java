@@ -40,6 +40,6 @@ public class UpdateActivationFlagsRequest {
 
     @Schema(description = "List of activation flags")
     @NotNull(message = "List of activation flags must not be null when updating activation flags")
-    private List<String> activationFlags = new ArrayList<>();
+    private List<@NotBlank String> activationFlags = new ArrayList<>();
 
 }

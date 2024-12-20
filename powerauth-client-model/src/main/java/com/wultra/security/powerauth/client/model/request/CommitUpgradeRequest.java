@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -31,11 +31,11 @@ import lombok.Data;
 public class CommitUpgradeRequest {
 
     @Schema(description = "Activation identifier")
-    @NotEmpty(message = "Activation ID must not be empty when committing upgrade")
+    @NotBlank(message = "Activation ID must not be empty when committing upgrade")
     private String activationId;
 
     @Schema(description = "Application key")
-    @NotEmpty(message = "Application key must not be empty when committing upgrade")
+    @NotBlank(message = "Application key must not be empty when committing upgrade")
     private String applicationKey;
 
 }

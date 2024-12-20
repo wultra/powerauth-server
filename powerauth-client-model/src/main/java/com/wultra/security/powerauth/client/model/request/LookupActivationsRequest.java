@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
@@ -37,10 +38,10 @@ public class LookupActivationsRequest {
 
     @Schema(description = "User identifiers")
     @NotEmpty(message = "List of user identifiers must not be empty when requesting activations lookup")
-    private List<String> userIds = new ArrayList<>();
+    private List<@NotBlank String> userIds = new ArrayList<>();
 
     @Schema(description = "Application identifiers")
-    private List<String> applicationIds = new ArrayList<>();
+    private List<@NotBlank String> applicationIds = new ArrayList<>();
 
     @Schema(description = "Timestamp last used before specified timestamp")
     private Date timestampLastUsedBefore;
@@ -52,6 +53,6 @@ public class LookupActivationsRequest {
     private ActivationStatus activationStatus;
 
     @Schema(description = "List of activation flags")
-    private List<String> activationFlags = new ArrayList<>();
+    private List<@NotBlank String> activationFlags = new ArrayList<>();
 
 }

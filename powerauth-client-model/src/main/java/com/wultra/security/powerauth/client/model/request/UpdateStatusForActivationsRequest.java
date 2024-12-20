@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -37,7 +38,7 @@ public class UpdateStatusForActivationsRequest {
 
     @Schema(description = "Activation identifiers")
     @NotEmpty(message = "List of activation identifiers must not be empty when updating activation status")
-    private List<String> activationIds = new ArrayList<>();
+    private List<@NotBlank String> activationIds = new ArrayList<>();
 
     @Schema(description = "Activation status")
     @NotNull(message = "Activation status must not be empty when updating activation status")

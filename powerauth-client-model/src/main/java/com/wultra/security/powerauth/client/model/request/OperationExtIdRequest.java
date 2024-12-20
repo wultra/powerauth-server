@@ -40,7 +40,7 @@ public class OperationExtIdRequest {
     @Schema(description = "Associated application identifiers")
     @NotNull(message = "Application ID list must not be null when requesting operation lookup by external ID")
     @Size(min = 1, message = "Application ID list must not be empty when requesting operation lookup by external ID")
-    private List<String> applications = new ArrayList<>();
+    private List<@NotBlank String> applications = new ArrayList<>();
 
     @Min(0)
     private Integer pageNumber;
