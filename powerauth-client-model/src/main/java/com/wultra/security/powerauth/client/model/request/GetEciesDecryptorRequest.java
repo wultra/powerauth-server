@@ -46,11 +46,9 @@ public class GetEciesDecryptorRequest {
     private String ephemeralPublicKey;
 
     @Schema(description = "Encrypted data used in encryption")
-    @NotBlank(message = "Encrypted data must not be empty when requesting ECIES decryptor")
     private String encryptedData;
 
     @Schema(description = "Value of MAC used in encryption")
-    @NotBlank(message = "Value of MAC must not be empty when requesting ECIES decryptor")
     private String mac;
 
     @Schema(description = "Activation nonce value")
