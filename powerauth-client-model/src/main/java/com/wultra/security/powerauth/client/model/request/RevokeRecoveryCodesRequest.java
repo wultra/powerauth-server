@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -36,6 +37,6 @@ public class RevokeRecoveryCodesRequest {
 
     @Schema(description = "List of recovery code identifiers")
     @NotEmpty(message = "List of recovery code identifiers must not be empty when revoking recovery codes")
-    private List<@NotBlank Long> recoveryCodeIds = new ArrayList<>();
+    private List<@NotNull Long> recoveryCodeIds = new ArrayList<>();
 
 }
