@@ -62,7 +62,7 @@ public class VaultController {
     @PostMapping("/unlock")
     public ObjectResponse<VaultUnlockResponse> unlockVault(@Valid @RequestBody ObjectRequest<VaultUnlockRequest> request) throws Exception {
         final VaultUnlockRequest req = request.getRequestObject();
-        logger.info("action: unlockVault, state: initiated");
+        logger.info("action: unlockVault, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: unlockVault, state: initiated, request: {}", request);
         final ObjectResponse<VaultUnlockResponse> response = new ObjectResponse<>(service.unlockVault(req));
         logger.info("action: unlockVault, state: succeeded");

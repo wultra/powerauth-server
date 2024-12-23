@@ -64,7 +64,7 @@ public class UpgradeController {
     @PostMapping("/start")
     public ObjectResponse<StartUpgradeResponse> startUpgrade(@RequestBody ObjectRequest<StartUpgradeRequest> request) throws Exception {
         final StartUpgradeRequest req = request.getRequestObject();
-        logger.info("action: startUpgrade, state: initiated");
+        logger.info("action: startUpgrade, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: startUpgrade, state: initiated, request: {}", request);
         final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>(service.startUpgrade(req));
         logger.info("action: startUpgrade, state: succeeded");
@@ -82,7 +82,7 @@ public class UpgradeController {
     @PostMapping("/commit")
     public ObjectResponse<CommitUpgradeResponse> commitUpgrade(@Valid @RequestBody ObjectRequest<CommitUpgradeRequest> request) throws Exception {
         final CommitUpgradeRequest req = request.getRequestObject();
-        logger.info("action: commitUpgrade, state: initiated");
+        logger.info("action: commitUpgrade, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: commitUpgrade, state: initiated, request: {}", request);
         final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>(service.commitUpgrade(req));
         logger.info("action: commitUpgrade, state: succeeded");
