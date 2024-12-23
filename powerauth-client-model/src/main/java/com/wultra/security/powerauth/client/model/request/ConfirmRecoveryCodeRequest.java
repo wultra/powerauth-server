@@ -58,10 +58,6 @@ public class ConfirmRecoveryCodeRequest {
     @ToString.Exclude
     private String nonce;
 
-    @Schema(description = "Activation OTP value")
-    @ToString.Exclude
-    private String activationOtp;
-
     @Schema(description = "Cryptography protocol version")
     @NotBlank(message = "Protocol must not be empty when confirming recovery code")
     private String protocolVersion;
