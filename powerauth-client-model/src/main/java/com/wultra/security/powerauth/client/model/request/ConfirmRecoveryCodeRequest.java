@@ -54,7 +54,7 @@ public class ConfirmRecoveryCodeRequest {
     @NotBlank(message = "Value of MAC must not be empty when confirming recovery code")
     private String mac;
 
-    @Schema(description = "Activation nonce value")
+    @Schema(description = "Nonce value")
     @ToString.Exclude
     private String nonce;
 

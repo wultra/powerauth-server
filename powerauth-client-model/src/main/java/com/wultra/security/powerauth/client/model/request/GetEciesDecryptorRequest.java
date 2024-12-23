@@ -45,7 +45,7 @@ public class GetEciesDecryptorRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when requesting ECIES decryptor")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Activation nonce value")
+    @Schema(description = "Nonce value")
     @ToString.Exclude
     private String nonce;
 
