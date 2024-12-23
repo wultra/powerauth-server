@@ -40,7 +40,7 @@ public class VerifyOfflineSignatureRequest {
     private String activationId;
 
     @Schema(description = "Signed data")
-    @NotBlank(message = "Parameter data must not be empty when verifying signature")
+    @NotNull(message = "Parameter data must not be null when verifying signature")
     private String data;
 
     @Schema(description = "Signature")
