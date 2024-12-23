@@ -41,7 +41,6 @@ public class GetActivationListForUserRequest {
     private String userId;
 
     @Schema(description = "The identifier of the application")
-    @NotNull(message = "Application ID must not be null requesting activation list for user")
     private String applicationId;
 
     @Schema(description = "Activation protocols")

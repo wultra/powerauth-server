@@ -412,10 +412,7 @@ public class ActivationServiceBehavior {
     public UpdateStatusForActivationsResponse updateStatusForActivation(UpdateStatusForActivationsRequest request) throws GenericServiceException {
         try {
             final List<String> activationIds = request.getActivationIds();
-            ActivationStatus activationStatus = null;
-            if (request.getActivationStatus() != null) {
-                activationStatus = activationStatusConverter.convert(request.getActivationStatus());
-            }
+            ActivationStatus activationStatus = activationStatusConverter.convert(request.getActivationStatus());
 
             final UpdateStatusForActivationsResponse response = new UpdateStatusForActivationsResponse();
 

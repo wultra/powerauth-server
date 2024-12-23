@@ -47,13 +47,11 @@ import java.util.UUID;
 public class IntegrationBehavior {
 
     private final IntegrationRepository integrationRepository;
-    private final LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
     @Autowired
     public IntegrationBehavior(IntegrationRepository integrationRepository, LocalizationProvider localizationProvider) {
         this.integrationRepository = integrationRepository;
-        this.localizationProvider = localizationProvider;
     }
 
     @Autowired

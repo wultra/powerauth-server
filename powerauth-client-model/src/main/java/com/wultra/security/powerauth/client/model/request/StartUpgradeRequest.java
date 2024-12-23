@@ -60,10 +60,6 @@ public class StartUpgradeRequest {
     @ToString.Exclude
     private String nonce;
 
-    @Schema(description = "Signature type")
-    @NotNull(message = "Signature type must not be null when starting upgrade")
-    private SignatureType signatureType;
-
     @Schema(description = "Cryptography protocol version")
     @NotBlank(message = "Protocol must not be empty when starting upgrade")
     private String protocolVersion;

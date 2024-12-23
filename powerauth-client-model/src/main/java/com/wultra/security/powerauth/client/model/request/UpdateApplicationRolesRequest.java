@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ public class UpdateApplicationRolesRequest {
     private String applicationId;
 
     @Schema(description = "Application roles")
-    @NotEmpty(message = "List of application roles must not be empty when updating application roles")
     private List<@NotBlank String> applicationRoles = new ArrayList<>();
 
 }

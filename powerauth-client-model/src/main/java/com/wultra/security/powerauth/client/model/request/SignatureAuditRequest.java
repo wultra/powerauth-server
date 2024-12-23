@@ -37,7 +37,6 @@ public class SignatureAuditRequest {
     private String userId;
 
     @Schema(description = "The identifier of the application")
-    @NotBlank(message = "Application ID must not be empty when requesting signature audit")
     private String applicationId;
 
     @Schema(description = "The timestamp from parameter in date filter")

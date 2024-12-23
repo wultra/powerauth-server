@@ -164,11 +164,6 @@ public class ApplicationConfigServiceBehavior {
      * @throws GenericServiceException Thrown in case configuration key is invalid.
      */
     private void validateConfigKey(String key) throws GenericServiceException {
-        if (key == null) {
-            logger.warn("Missing configuration key in request");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
         if (!ALLOWED_CONFIGURATION_KEYS.contains(key)) {
             logger.warn("Unknown configuration key in request: {}", key);
             // Rollback is not required, error occurs before writing to database

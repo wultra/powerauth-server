@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -35,7 +36,7 @@ public class CreateNonPersonalizedOfflineSignaturePayloadRequest {
     private String applicationId;
 
     @Schema(description = "Signed data")
-    @NotBlank(message = "Signed data must not be empty when creating offline signature payload")
+    @NotNull(message = "Signed data must not be null when creating offline signature payload")
     private String data;
 
 }

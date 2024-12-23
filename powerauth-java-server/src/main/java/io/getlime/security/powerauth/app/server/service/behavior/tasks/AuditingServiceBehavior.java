@@ -118,11 +118,6 @@ public class AuditingServiceBehavior {
             final String applicationId = request.getApplicationId();
             final Date timestampFrom = request.getTimestampFrom();
             final Date timestampTo = request.getTimestampTo();
-            if (userId == null) {
-                logger.warn("Invalid request parameter userId in method getSignatureAuditLog");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             List<SignatureEntity> signatureAuditEntityList;
             if (applicationId == null) {
