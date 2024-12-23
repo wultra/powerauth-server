@@ -45,12 +45,6 @@ public class GetEciesDecryptorRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when requesting ECIES decryptor")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
-    private String encryptedData;
-
-    @Schema(description = "Value of MAC used in encryption")
-    private String mac;
-
     @Schema(description = "Activation nonce value")
     @ToString.Exclude
     private String nonce;
@@ -61,6 +55,5 @@ public class GetEciesDecryptorRequest {
 
     @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
-
 
 }
