@@ -42,6 +42,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -122,10 +123,17 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
         final CallbackUrlAuthentication authentication = callbackUrlAuthenticationEncryptor.decrypt(callbackUrlEntity);
         final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
+            final byte[] keyStoreBytes = certificateAuth.getKeyStoreContent() != null
+                    ? Base64.getDecoder().decode(certificateAuth.getKeyStoreContent())
+                    : null;
+            final byte[] trustStoreBytes = certificateAuth.getTrustStoreContent() != null
+                    ? Base64.getDecoder().decode(certificateAuth.getTrustStoreContent())
+                    : null;
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
                 certificateAuthBuilder.enableCustomKeyStore()
                         .keyStoreLocation(certificateAuth.getKeyStoreLocation())
+                        .keyStoreBytes(keyStoreBytes)
                         .keyStorePassword(certificateAuth.getKeyStorePassword())
                         .keyAlias(certificateAuth.getKeyAlias())
                         .keyPassword(certificateAuth.getKeyPassword());
@@ -133,6 +141,7 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
             if (certificateAuth.isUseCustomTrustStore()) {
                 certificateAuthBuilder.enableCustomTruststore()
                         .trustStoreLocation(certificateAuth.getTrustStoreLocation())
+                        .trustStoreBytes(trustStoreBytes)
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }

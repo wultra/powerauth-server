@@ -66,11 +66,13 @@ public class CallbackUrlAuthentication implements Serializable {
         private boolean enabled;
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
+        private String keyStoreContent;
         private String keyStorePassword;
         private String keyAlias;
         private String keyPassword;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
+        private String trustStoreContent;
         private String trustStorePassword;
     }
 

@@ -73,11 +73,13 @@ public class CallbackAuthenticationPublicConverter {
         target.setEnabled(source.isEnabled());
         target.setUseCustomKeyStore(source.isUseCustomKeyStore());
         target.setKeyStoreLocation(source.getKeyStoreLocation());
+        target.setKeyStoreContent(source.getKeyStoreContent());
         target.setKeyStorePasswordSet(StringUtils.hasText(source.getKeyStorePassword()));
         target.setKeyAlias(source.getKeyAlias());
         target.setKeyPasswordSet(StringUtils.hasText(source.getKeyPassword()));
         target.setUseCustomTrustStore(source.isUseCustomTrustStore());
         target.setTrustStoreLocation(source.getTrustStoreLocation());
+        target.setTrustStoreContent(source.getTrustStoreContent());
         target.setTrustStorePasswordSet(StringUtils.hasText(source.getTrustStorePassword()));
         return target;
     }
@@ -129,11 +131,13 @@ public class CallbackAuthenticationPublicConverter {
         target.setEnabled(source.isEnabled());
         target.setUseCustomKeyStore(source.isUseCustomKeyStore());
         target.setKeyStoreLocation(source.getKeyStoreLocation());
+        target.setKeyStoreContent(source.getKeyStoreLocation());
         target.setKeyStorePassword(source.getKeyStorePassword());
         target.setKeyAlias(source.getKeyAlias());
         target.setKeyPassword(source.getKeyPassword());
         target.setUseCustomTrustStore(source.isUseCustomTrustStore());
         target.setTrustStoreLocation(source.getTrustStoreLocation());
+        target.setTrustStoreContent(source.getTrustStoreContent());
         target.setTrustStorePassword(source.getTrustStorePassword());
         return target;
     }

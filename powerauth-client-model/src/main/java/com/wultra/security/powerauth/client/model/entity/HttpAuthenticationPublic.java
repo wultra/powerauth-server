@@ -37,11 +37,13 @@ public class HttpAuthenticationPublic {
         private boolean enabled;
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
+        private String keyStoreContent;
         private boolean keyStorePasswordSet;
         private String keyAlias;
         private boolean keyPasswordSet;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
+        private String trustStoreContent;
         private boolean trustStorePasswordSet;
     }
 
