@@ -131,7 +131,7 @@ public class CallbackAuthenticationPublicConverter {
         target.setEnabled(source.isEnabled());
         target.setUseCustomKeyStore(source.isUseCustomKeyStore());
         target.setKeyStoreLocation(source.getKeyStoreLocation());
-        target.setKeyStoreContent(source.getKeyStoreLocation());
+        target.setKeyStoreContent(source.getKeyStoreContent());
         target.setKeyStorePassword(source.getKeyStorePassword());
         target.setKeyAlias(source.getKeyAlias());
         target.setKeyPassword(source.getKeyPassword());
