@@ -130,6 +130,12 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="attr_activationId" class="col-sm-4 control-label">Keystore Content</label>
+                                <div class="col-sm-7">
+                                    <input type="text" id="auth_keyStoreContent" name="auth_keyStoreContent" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <label for="attr_activationId" class="col-sm-4 control-label">Keystore Password</label>
                                 <div class="col-sm-4">
                                     <input type="password" id="auth_keyStorePassword" name="auth_keyStorePassword" class="form-control" onchange="document.getElementById('auth_keyStorePasswordChanged').value='true'" onkeyup="document.getElementById('auth_keyStorePasswordChanged').value='true'" onpaste="document.getElementById('auth_keyStorePasswordChanged').value='true'"/>
@@ -161,6 +167,12 @@
                             </div>
                         </div>
                         <div class="form-group">
+                            <label for="attr_activationId" class="col-sm-4 control-label">Truststore Content</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="auth_trustStoreContent" name="auth_trustStoreContent" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label for="attr_activationId" class="col-sm-4 control-label">Truststore Password</label>
                             <div class="col-sm-4">
                                 <input type="text" id="auth_trustStorePassword" name="auth_trustStorePassword" class="form-control" onchange="document.getElementById('auth_trustStorePasswordChanged').value='true'" onkeyup="document.getElementById('auth_trustStorePasswordChanged').value='true'" onpaste="document.getElementById('auth_trustStorePasswordChanged').value='true'"/>
@@ -177,8 +189,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="auth_oAuth2ClientId" class="col-sm-4 control-label">Client ID</label>
-                                <div class="col-sm-8" style="margin-top: 6px">
-                                    <input type="text" id="auth_oAuth2ClientId" name="auth_oAuth2ClientId"/>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_oAuth2ClientId" class="form-control" name="auth_oAuth2ClientId"/>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -205,20 +217,20 @@
                         <h4 class="panel-heading">Retry Policy and Retention</h4>
                     </div>
                     <div class="form-group">
-                        <label for="maxAttempts" class="col-sm-3 control-label">Max Attempts</label>
-                        <div class="col-sm-9">
+                        <label for="maxAttempts" class="col-sm-4 control-label">Max Attempts</label>
+                        <div class="col-sm-4">
                             <input type="number" id="maxAttempts" name="maxAttempts" class="form-control" value="${maxAttempts}" min="1"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="initialBackoff" class="col-sm-3 control-label">Initial Backoff</label>
-                        <div class="col-sm-9">
+                        <label for="initialBackoff" class="col-sm-4 control-label">Initial Backoff</label>
+                        <div class="col-sm-4">
                             <input type="text" id="initialBackoff" name="initialBackoff" class="form-control" value="${initialBackoff}"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="retentionPeriod" class="col-sm-3 control-label">Retention Period</label>
-                        <div class="col-sm-9">
+                        <label for="retentionPeriod" class="col-sm-4 control-label">Retention Period</label>
+                        <div class="col-sm-4">
                             <input type="text" id="retentionPeriod" name="retentionPeriod" class="form-control" value="${retentionPeriod}"/>
                         </div>
                     </div>

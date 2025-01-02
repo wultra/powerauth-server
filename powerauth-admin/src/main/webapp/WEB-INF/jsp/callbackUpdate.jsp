@@ -126,9 +126,16 @@
                             </div>
                             <div class="form-group">
                                 <label for="attr_activationId" class="col-sm-4 control-label">Keystore Location</label>
-                                <div class="col-sm-7">
+                                <div class="col-sm-4">
                                     <input type="text" id="auth_keyStoreLocation" name="auth_keyStoreLocation" class="form-control" value="${auth_keyStoreLocation}"/>
                                 </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="attr_activationId" class="col-sm-4 control-label">Keystore Content</label>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_keyStoreContent" name="auth_keyStoreContent" class="form-control"/>
+                                </div>
+                                <c:if test="${true eq auth_keyStoreContentSet}"><div class="col-sm-4" style="margin-top: 8px">Content is set.</div></c:if>
                             </div>
                             <div class="form-group">
                                 <label for="attr_activationId" class="col-sm-4 control-label">Keystore Password</label>
@@ -159,9 +166,16 @@
                         </div>
                         <div class="form-group">
                             <label for="attr_activationId" class="col-sm-4 control-label">Truststore Location</label>
-                            <div class="col-sm-7">
+                            <div class="col-sm-4">
                                 <input type="text" id="auth_trustStoreLocation" name="auth_trustStoreLocation" class="form-control" value="${auth_trustStoreLocation}"/>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="attr_activationId" class="col-sm-4 control-label">Truststore Content</label>
+                            <div class="col-sm-4">
+                                <input type="text" id="auth_trustStoreContent" name="auth_trustStoreContent" class="form-control"/>
+                            </div>
+                            <c:if test="${true eq auth_trustStoreContentSet}"><div class="col-sm-4" style="margin-top: 8px">Content is set.</div></c:if>
                         </div>
                         <div class="form-group">
                             <label for="attr_activationId" class="col-sm-4 control-label">Truststore Password</label>
@@ -181,8 +195,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="auth_oAuth2ClientId" class="col-sm-4 control-label">Client ID</label>
-                                <div class="col-sm-8" style="margin-top: 6px">
-                                    <input type="text" id="auth_oAuth2ClientId" name="auth_oAuth2ClientId" value="${auth_oAuth2ClientId}"/>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_oAuth2ClientId" name="auth_oAuth2ClientId" class="form-control" value="${auth_oAuth2ClientId}"/>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -210,20 +224,20 @@
                         <h4 class="panel-heading">Retry Policy and Retention</h4>
                     </div>
                     <div class="form-group">
-                        <label for="maxAttempts" class="col-sm-3 control-label">Max Attempts</label>
-                        <div class="col-sm-9">
+                        <label for="maxAttempts" class="col-sm-4 control-label">Max Attempts</label>
+                        <div class="col-sm-4">
                             <input type="number" id="maxAttempts" name="maxAttempts" class="form-control" value="${maxAttempts}" min="1"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="initialBackoff" class="col-sm-3 control-label">Initial Backoff</label>
-                        <div class="col-sm-9">
+                        <label for="initialBackoff" class="col-sm-4 control-label">Initial Backoff</label>
+                        <div class="col-sm-4">
                             <input type="text" id="initialBackoff" name="initialBackoff" class="form-control" value="${initialBackoff}"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="retentionPeriod" class="col-sm-3 control-label">Retention Period</label>
-                        <div class="col-sm-9">
+                        <label for="retentionPeriod" class="col-sm-4 control-label">Retention Period</label>
+                        <div class="col-sm-4">
                             <input type="text" id="retentionPeriod" name="retentionPeriod" class="form-control" value="${retentionPeriod}"/>
                         </div>
                     </div>

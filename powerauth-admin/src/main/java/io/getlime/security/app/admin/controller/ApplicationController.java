@@ -202,11 +202,13 @@ public class ApplicationController {
                             model.put("auth_certificateEnabled", certificateAuth.isEnabled());
                             model.put("auth_useCustomKeyStore", certificateAuth.isUseCustomKeyStore());
                             model.put("auth_keyStoreLocation", certificateAuth.getKeyStoreLocation());
+                            model.put("auth_keyStoreContentSet", certificateAuth.isKeyStoreContentSet());
                             model.put("auth_keyStorePasswordSet", certificateAuth.isKeyStorePasswordSet());
                             model.put("auth_keyAlias", certificateAuth.getKeyAlias());
                             model.put("auth_keyPasswordSet", certificateAuth.isKeyPasswordSet());
                             model.put("auth_useCustomTrustStore", certificateAuth.isUseCustomTrustStore());
                             model.put("auth_trustStoreLocation", certificateAuth.getTrustStoreLocation());
+                            model.put("auth_trustStoreContentSet", certificateAuth.isTrustStoreContentSet());
                             model.put("auth_trustStorePasswordSet", certificateAuth.isTrustStorePasswordSet());
                         }
 
@@ -478,10 +480,10 @@ public class ApplicationController {
     private String getErrorForAuthentication(Map<String, String> allParams) {
         String error = null;
         if ("on".equals(allParams.get("auth_useCustomKeyStore"))) {
-            if (!StringUtils.hasText(allParams.get("auth_keyStoreLocation"))
+            if ((!StringUtils.hasText(allParams.get("auth_keyStoreLocation")) && !StringUtils.hasText(allParams.get("auth_keyStoreContent")))
                         || !StringUtils.hasText(allParams.get("auth_keyAlias"))) {
                 error = "Invalid keystore configuration";
-            } else {
+            } else if (StringUtils.hasText(allParams.get("auth_keyStoreLocation"))) {
                 try {
                     new URL(allParams.get("auth_keyStoreLocation"));
                 } catch (MalformedURLException ex) {
@@ -490,9 +492,9 @@ public class ApplicationController {
             }
         }
         if ("on".equals(allParams.get("auth_useCustomTrustStore"))) {
-            if (!StringUtils.hasText(allParams.get("auth_trustStoreLocation"))) {
+            if (!StringUtils.hasText(allParams.get("auth_trustStoreLocation")) && !StringUtils.hasText(allParams.get("auth_trustStoreContent"))) {
                 error = "Invalid truststore configuration";
-            } else {
+            } else if (StringUtils.hasText(allParams.get("auth_trustStoreLocation"))) {
                 try {
                     new URL(allParams.get("auth_trustStoreLocation"));
                 } catch (MalformedURLException ex) {
@@ -631,7 +633,12 @@ public class ApplicationController {
             final HttpAuthenticationPrivate.Certificate certificateAuth = new HttpAuthenticationPrivate.Certificate();
             certificateAuth.setEnabled(true);
             certificateAuth.setUseCustomKeyStore("on".equals(allParams.get("auth_useCustomKeyStore")));
-            certificateAuth.setKeyStoreLocation(allParams.get("auth_keyStoreLocation"));
+            if (!allParams.get("auth_keyStoreLocation").isEmpty()) {
+                certificateAuth.setKeyStoreLocation(allParams.get("auth_keyStoreLocation"));
+            }
+            if (!allParams.get("auth_keyStoreContent").isEmpty()) {
+                certificateAuth.setKeyStoreContent(allParams.get("auth_keyStoreContent"));
+            }
             if ("true".equals(allParams.get("auth_keyStorePasswordChanged"))) {
                 certificateAuth.setKeyStorePassword(allParams.get("auth_keyStorePassword"));
             }
@@ -640,9 +647,14 @@ public class ApplicationController {
                 certificateAuth.setKeyPassword(allParams.get("auth_keyPassword"));
             }
             certificateAuth.setUseCustomTrustStore("on".equals(allParams.get("auth_useCustomTrustStore")));
-            certificateAuth.setTrustStoreLocation(allParams.get("auth_trustStoreLocation"));
+            if (!allParams.get("auth_trustStoreLocation").isEmpty()) {
+                certificateAuth.setKeyStoreLocation(allParams.get("auth_keyStoreLocation"));
+            }
             if ("true".equals(allParams.get("auth_trustStorePasswordChanged"))) {
                 certificateAuth.setTrustStorePassword(allParams.get("auth_trustStorePassword"));
+            }
+            if (!allParams.get("auth_trustStoreContent").isEmpty()) {
+                certificateAuth.setTrustStoreContent(allParams.get("auth_trustStoreContent"));
             }
             httpAuthentication.setCertificate(certificateAuth);
         }
