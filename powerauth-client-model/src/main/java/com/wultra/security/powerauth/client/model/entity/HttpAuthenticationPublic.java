@@ -38,14 +38,12 @@ public class HttpAuthenticationPublic {
         private boolean enabled;
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
-        @ToString.Exclude
         private boolean keyStoreContentSet;
         private boolean keyStorePasswordSet;
         private String keyAlias;
         private boolean keyPasswordSet;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
-        @ToString.Exclude
         private boolean trustStoreContentSet;
         private boolean trustStorePasswordSet;
     }
