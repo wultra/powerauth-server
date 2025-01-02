@@ -204,8 +204,14 @@ public class CallbackUrlBehavior {
                     if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
                         authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
                     }
+                    if (authExisting.getCertificate().getKeyStoreContent() != null && authRequest.getCertificate().getKeyStoreContent() == null) {
+                        authRequest.getCertificate().setKeyStoreContent(authExisting.getCertificate().getKeyStoreContent());
+                    }
                     if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
                         authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
+                    }
+                    if (authExisting.getCertificate().getTrustStoreContent() != null && authRequest.getCertificate().getTrustStoreContent() == null) {
+                        authRequest.getCertificate().setTrustStoreContent(authExisting.getCertificate().getTrustStoreContent());
                     }
                 }
                 if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
