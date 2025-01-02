@@ -105,16 +105,17 @@ public class CallbackUrlBehavior {
             }
 
             if (request.getAuthentication() != null && request.getAuthentication().getCertificate() != null) {
-                if (request.getAuthentication().getCertificate().isUseCustomKeyStore() &&
-                        request.getAuthentication().getCertificate().getKeyStoreLocation() != null &&
-                        request.getAuthentication().getCertificate().getKeyStoreContent() != null) {
+                final HttpAuthenticationPrivate.Certificate certificate = request.getAuthentication().getCertificate();
+                if (certificate.isUseCustomKeyStore() &&
+                        certificate.getKeyStoreLocation() != null &&
+                        certificate.getKeyStoreContent() != null) {
                     logger.warn("Invalid keystore configuration for callback URL: {}", request.getCallbackUrl());
                     // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
                 }
-                if (request.getAuthentication().getCertificate().isUseCustomTrustStore() &&
-                        request.getAuthentication().getCertificate().getTrustStoreLocation() != null &&
-                        request.getAuthentication().getCertificate().getTrustStoreContent() != null) {
+                if (certificate.isUseCustomTrustStore() &&
+                        certificate.getTrustStoreLocation() != null &&
+                        certificate.getTrustStoreContent() != null) {
                     logger.warn("Invalid truststore configuration for callback URL: {}", request.getCallbackUrl());
                     // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
