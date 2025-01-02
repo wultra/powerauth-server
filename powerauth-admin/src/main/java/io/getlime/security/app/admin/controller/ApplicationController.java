@@ -480,8 +480,7 @@ public class ApplicationController {
     private String getErrorForAuthentication(Map<String, String> allParams) {
         String error = null;
         if ("on".equals(allParams.get("auth_useCustomKeyStore"))) {
-            if ((!StringUtils.hasText(allParams.get("auth_keyStoreLocation")) && !StringUtils.hasText(allParams.get("auth_keyStoreContent")))
-                        || !StringUtils.hasText(allParams.get("auth_keyAlias"))) {
+            if (!StringUtils.hasText(allParams.get("auth_keyAlias"))) {
                 error = "Invalid keystore configuration";
             } else if (StringUtils.hasText(allParams.get("auth_keyStoreLocation"))) {
                 try {
@@ -492,9 +491,7 @@ public class ApplicationController {
             }
         }
         if ("on".equals(allParams.get("auth_useCustomTrustStore"))) {
-            if (!StringUtils.hasText(allParams.get("auth_trustStoreLocation")) && !StringUtils.hasText(allParams.get("auth_trustStoreContent"))) {
-                error = "Invalid truststore configuration";
-            } else if (StringUtils.hasText(allParams.get("auth_trustStoreLocation"))) {
+            if (StringUtils.hasText(allParams.get("auth_trustStoreLocation"))) {
                 try {
                     new URL(allParams.get("auth_trustStoreLocation"));
                 } catch (MalformedURLException ex) {
