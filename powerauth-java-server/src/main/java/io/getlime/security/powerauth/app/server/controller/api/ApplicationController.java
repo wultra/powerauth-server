@@ -66,7 +66,7 @@ public class ApplicationController {
     @PostMapping("/list")
     public ObjectResponse<GetApplicationListResponse> getApplicationList() throws Exception {
         logger.info("action: getApplicationList, state: initiated");
-        logger.debug("action: getApplicationList, state: initiated, empty request");
+        logger.debug("action: getApplicationList, state: initiated, request: empty");
         final ObjectResponse<GetApplicationListResponse> response = new ObjectResponse<>(applicationService.getApplicationList());
         logger.info("action: getApplicationList, state: succeeded");
         logger.debug("action: getApplicationList, state: succeeded, response: {}", response);

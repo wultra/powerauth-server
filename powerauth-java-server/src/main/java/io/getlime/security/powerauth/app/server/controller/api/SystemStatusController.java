@@ -56,7 +56,7 @@ public class SystemStatusController {
     @PostMapping
     public ObjectResponse<GetSystemStatusResponse> getSystemStatus() {
         logger.info("action: getSystemStatus, state: initiated");
-        logger.debug("action: getSystemStatus, state: initiated, empty request");
+        logger.debug("action: getSystemStatus, state: initiated, request: empty");
         final ObjectResponse<GetSystemStatusResponse> response = new ObjectResponse<>(service.getSystemStatus());
         logger.info("action: getSystemStatus, state: succeeded");
         logger.debug("action: getSystemStatus, state: succeeded, response: {}", response);

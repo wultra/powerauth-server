@@ -66,7 +66,7 @@ public class OperationTemplatesController {
     @PostMapping("/list")
     public ObjectResponse<OperationTemplateListResponse> getOperationTemplateList() throws Exception {
         logger.info("action: getOperationTemplateList, state: initiated");
-        logger.debug("action: getOperationTemplateList, state: initiated, empty request");
+        logger.debug("action: getOperationTemplateList, state: initiated, request: empty");
         final ObjectResponse<OperationTemplateListResponse> response = new ObjectResponse<>(service.getAllTemplates());
         logger.info("action: getOperationTemplateList, state: succeeded");
         logger.debug("action: getOperationTemplateList, state: succeeded, response: {}", response);
@@ -83,7 +83,7 @@ public class OperationTemplatesController {
     @PostMapping("/detail")
     public ObjectResponse<OperationTemplateDetailResponse> getOperationTemplateDetail(@Valid @RequestBody ObjectRequest<OperationTemplateDetailRequest> request) throws Exception {
         final OperationTemplateDetailRequest req = request.getRequestObject();
-        logger.info("action: getOperationTemplateDetail, state: initiated, id: {}", req.getId());
+        logger.info("action: getOperationTemplateDetail, state: initiated, templateId: {}", req.getId());
         logger.debug("action: getOperationTemplateDetail, state: initiated, request: {}", request);
         final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(req));
         logger.info("action: getOperationTemplateDetail, state: succeeded");
@@ -119,7 +119,7 @@ public class OperationTemplatesController {
     @PostMapping("/update")
     public ObjectResponse<OperationTemplateDetailResponse> updateOperationTemplate(@Valid @RequestBody ObjectRequest<OperationTemplateUpdateRequest> request) throws Exception {
         final OperationTemplateUpdateRequest req = request.getRequestObject();
-        logger.info("action: updateOperationTemplate, state: initiated, id: {}, operationType: {}", req.getId(), req.getOperationType());
+        logger.info("action: updateOperationTemplate, state: initiated, templateId: {}", req.getId());
         logger.debug("action: updateOperationTemplate, state: initiated, request: {}", request);
         final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(req));
         logger.info("action: updateOperationTemplate, state: succeeded");
@@ -137,11 +137,11 @@ public class OperationTemplatesController {
     @PostMapping("/remove")
     public Response removeOperationTemplate(@Valid @RequestBody ObjectRequest<OperationTemplateDeleteRequest> request) throws Exception {
         final OperationTemplateDeleteRequest req = request.getRequestObject();
-        logger.info("action: removeOperationTemplate, state: initiated, id: {}", req.getId());
+        logger.info("action: removeOperationTemplate, state: initiated, templateId: {}", req.getId());
         logger.debug("action: removeOperationTemplate, state: initiated, request: {}", request);
         service.removeOperationTemplate(req);
         logger.info("action: removeOperationTemplate, state: succeeded");
-        logger.debug("action: removeOperationTemplate, state: succeeded, empty response");
+        logger.debug("action: removeOperationTemplate, state: succeeded, response: empty");
         return new Response();
     }
 

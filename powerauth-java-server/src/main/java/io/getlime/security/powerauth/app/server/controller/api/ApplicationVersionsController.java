@@ -82,7 +82,7 @@ public class ApplicationVersionsController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/unsupport")
-    public ObjectResponse<UnsupportApplicationVersionResponse> unsupportApplicationVersion(@RequestBody ObjectRequest<UnsupportApplicationVersionRequest> request) throws Exception {
+    public ObjectResponse<UnsupportApplicationVersionResponse> unsupportApplicationVersion(@Valid @RequestBody ObjectRequest<UnsupportApplicationVersionRequest> request) throws Exception {
         final UnsupportApplicationVersionRequest req = request.getRequestObject();
         logger.info("action: unsupportApplicationVersion, state: initiated, applicationId: {}, versionId: {}", req.getApplicationId(), req.getApplicationVersionId());
         logger.debug("action: unsupportApplicationVersion, state: initiated, request: {}", request);

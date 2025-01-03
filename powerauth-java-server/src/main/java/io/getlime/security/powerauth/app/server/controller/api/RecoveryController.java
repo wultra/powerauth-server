@@ -97,7 +97,7 @@ public class RecoveryController {
     @PostMapping("/lookup")
     public ObjectResponse<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@Valid @RequestBody ObjectRequest<LookupRecoveryCodesRequest> request) throws Exception {
         final LookupRecoveryCodesRequest req = request.getRequestObject();
-        logger.info("action: lookupRecoveryCodesRequest, state: initiated, userId: {}, activationId: {}", req.getUserId(), req.getActivationId());
+        logger.info("action: lookupRecoveryCodesRequest, state: initiated, userId: {}, activationId: {}, applicationId: {}", req.getUserId(), req.getActivationId(), req.getApplicationId());
         logger.debug("action: lookupRecoveryCodesRequest, state: initiated, request: {}", request);
         final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(req));
         logger.info("action: lookupRecoveryCodesRequest, state: succeeded");

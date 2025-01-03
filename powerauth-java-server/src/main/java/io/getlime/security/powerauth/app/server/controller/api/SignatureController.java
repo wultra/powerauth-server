@@ -70,7 +70,7 @@ public class SignatureController {
     @PostMapping("/verify")
     public ObjectResponse<VerifySignatureResponse> verifySignature(@Valid @RequestBody ObjectRequest<VerifySignatureRequest> request) throws Exception {
         final VerifySignatureRequest req = request.getRequestObject();
-        logger.info("action: verifySignature, state: initiated, activationId: {}", req.getActivationId());
+        logger.info("action: verifySignature, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
         logger.debug("action: verifySignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifySignatureResponse> response = new ObjectResponse<>(onlineSignatureService.verifySignature(request.getRequestObject(), new ArrayList<>()));
         logger.info("action: verifySignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
@@ -89,10 +89,10 @@ public class SignatureController {
     public ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@Valid @RequestBody ObjectRequest<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
         final CreatePersonalizedOfflineSignaturePayloadRequest req = request.getRequestObject();
         logger.info("action: createPersonalizedOfflineSignaturePayload, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: initiated, {}", request);
+        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: initiated, request: {}", request);
         final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineSignaturePayload(req));
         logger.info("action: createPersonalizedOfflineSignaturePayload, state: succeeded");
-        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: succeeded, {}", response);
+        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -107,10 +107,10 @@ public class SignatureController {
     public ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@Valid @RequestBody ObjectRequest<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
         final CreateNonPersonalizedOfflineSignaturePayloadRequest req = request.getRequestObject();
         logger.info("action: createNonPersonalizedOfflineSignaturePayload, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: initiated, {}", request);
+        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: initiated, request: {}", request);
         final ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createNonPersonalizedOfflineSignaturePayload(req));
         logger.info("action: createNonPersonalizedOfflineSignaturePayload, state: succeeded");
-        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: succeeded, {}", response);
+        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -125,10 +125,10 @@ public class SignatureController {
     public ObjectResponse<VerifyOfflineSignatureResponse> verifyOfflineSignature(@Valid @RequestBody ObjectRequest<VerifyOfflineSignatureRequest> request) throws Exception {
         final VerifyOfflineSignatureRequest req = request.getRequestObject();
         logger.info("action: verifyOfflineSignature, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: verifyOfflineSignature, state: initiated, {}", request);
+        logger.debug("action: verifyOfflineSignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(req));
         logger.info("action: verifyOfflineSignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
-        logger.debug("action: verifyOfflineSignature, state: succeeded, {}", response);
+        logger.debug("action: verifyOfflineSignature, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -143,10 +143,10 @@ public class SignatureController {
     public ObjectResponse<SignatureAuditResponse> getSignatureAuditLog(@Valid @RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
         final SignatureAuditRequest req = request.getRequestObject();
         logger.info("action: getSignatureAuditLog, state: initiated, userId: {}, applicationId: {}", req.getUserId(), req.getApplicationId());
-        logger.debug("action: getSignatureAuditLog, state: initiated, {}", request);
+        logger.debug("action: getSignatureAuditLog, state: initiated, request: {}", request);
         final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getSignatureAuditLog(req));
         logger.info("action: getSignatureAuditLog, state: succeeded");
-        logger.debug("action: getSignatureAuditLog, state: succeeded, {}", response);
+        logger.debug("action: getSignatureAuditLog, state: succeeded, response: {}", response);
         return response;
     }
 

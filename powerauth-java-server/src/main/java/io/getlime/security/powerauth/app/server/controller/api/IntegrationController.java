@@ -99,7 +99,7 @@ public class IntegrationController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveIntegrationResponse> removeIntegration(@Valid @RequestBody ObjectRequest<RemoveIntegrationRequest> request) throws Exception {
         final RemoveIntegrationRequest req = request.getRequestObject();
-        logger.info("action: removeIntegration, state: initiated, id: {}", req.getId());
+        logger.info("action: removeIntegration, state: initiated, integrationId: {}", req.getId());
         logger.debug("action: removeIntegration, state: initiated, request: {}", request);
         final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>(service.removeIntegration(req));
         logger.info("action: removeIntegration, state: succeeded");

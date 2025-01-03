@@ -56,7 +56,7 @@ public class ErrorController {
     @PostMapping("/list")
     public ObjectResponse<GetErrorCodeListResponse> getErrorCodeList() {
         logger.info("action: getErrorCodeList, state: initiated");
-        logger.debug("action: getErrorCodeList, state: initiated, empty request");
+        logger.debug("action: getErrorCodeList, state: initiated, request: empty");
         final ObjectResponse<GetErrorCodeListResponse> response = new ObjectResponse<>(service.getErrorCodeList());
         logger.info("action: getErrorCodeList, state: succeeded");
         logger.debug("action: getErrorCodeList, state: succeeded, response: {}", response);

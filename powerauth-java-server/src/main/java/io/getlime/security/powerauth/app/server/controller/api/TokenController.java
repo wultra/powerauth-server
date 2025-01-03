@@ -66,7 +66,7 @@ public class TokenController {
     @PostMapping("/create")
     public ObjectResponse<CreateTokenResponse> createToken(@Valid @RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
         final CreateTokenRequest req = request.getRequestObject();
-        logger.info("action: createToken, state: initiated, activationId: {}", req.getActivationId());
+        logger.info("action: createToken, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
         logger.debug("action: createToken, state: initiated, request: {}", request);
         final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(req));
         logger.info("action: createToken, state: succeeded");

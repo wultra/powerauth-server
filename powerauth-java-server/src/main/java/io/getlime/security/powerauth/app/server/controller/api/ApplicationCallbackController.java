@@ -65,7 +65,7 @@ public class ApplicationCallbackController {
     @PostMapping("/create")
     public ObjectResponse<CreateCallbackUrlResponse> createCallbackUrl(@Valid @RequestBody ObjectRequest<CreateCallbackUrlRequest> request) throws Exception {
         final CreateCallbackUrlRequest req = request.getRequestObject();
-        logger.info("action: createCallbackUrl, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.info("action: createCallbackUrl, state: initiated, applicationId: {}, callbackUrl: {}", req.getApplicationId(), req.getCallbackUrl());
         logger.debug("action: createCallbackUrl, state: initiated, request: {}", request);
         final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(req));
         logger.info("action: createCallbackUrl, state: succeeded");

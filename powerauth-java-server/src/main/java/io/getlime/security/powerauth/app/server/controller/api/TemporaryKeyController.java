@@ -81,7 +81,7 @@ public class TemporaryKeyController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveTemporaryPublicKeyResponse> deleteTemporaryKey(@Valid @RequestBody ObjectRequest<RemoveTemporaryPublicKeyRequest> request) {
         final RemoveTemporaryPublicKeyRequest req = request.getRequestObject();
-        logger.info("action: deleteTemporaryKey, state: initiated, id: {}", req.getId());
+        logger.info("action: deleteTemporaryKey, state: initiated, temporaryKeyId: {}", req.getId());
         logger.debug("action: deleteTemporaryKey, state: initiated, request: {}", request);
         final ObjectResponse<RemoveTemporaryPublicKeyResponse> response = new ObjectResponse<>(service.removeTemporaryKey(req));
         logger.info("action: deleteTemporaryKey, state: succeeded");

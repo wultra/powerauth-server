@@ -106,7 +106,7 @@ public class ApplicationConfigController {
         logger.debug("action: removeApplicationConfig, state: initiated, request: {}", request);
         service.removeApplicationConfig(req);
         logger.info("action: removeApplicationConfig, state: succeeded");
-        logger.debug("action: removeApplicationConfig, state: succeeded, empty response");
+        logger.debug("action: removeApplicationConfig, state: succeeded, response: empty");
         return new Response();
     }
 

@@ -280,7 +280,7 @@ public class ActivationController {
     @PostMapping("/lookup")
     public ObjectResponse<LookupActivationsResponse> lookupActivations(@Valid @RequestBody ObjectRequest<LookupActivationsRequest> request) throws Exception {
         final LookupActivationsRequest req = request.getRequestObject();
-        logger.info("action: lookupActivations, state: initiated");
+        logger.info("action: lookupActivations, state: initiated, userIds: {}", req.getUserIds());
         logger.debug("action: lookupActivations, state: initiated, request: {}", request);
         final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(req));
         logger.info("action: lookupActivations, state: succeeded");
@@ -298,7 +298,7 @@ public class ActivationController {
     @PostMapping("/status/update")
     public ObjectResponse<UpdateStatusForActivationsResponse> updateStatusForActivations(@Valid @RequestBody ObjectRequest<UpdateStatusForActivationsRequest> request) throws Exception {
         final UpdateStatusForActivationsRequest req = request.getRequestObject();
-        logger.info("action: updateStatusForActivations, state: initiated");
+        logger.info("action: updateStatusForActivations, state: initiated, activationIds: {}", req.getActivationIds());
         logger.debug("action: updateStatusForActivations, state: initiated, request: {}", request);
         final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(req));
         logger.info("action: updateStatusForActivations, state: succeeded");
