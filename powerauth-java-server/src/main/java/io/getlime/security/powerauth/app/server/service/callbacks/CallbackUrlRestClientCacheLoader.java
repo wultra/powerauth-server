@@ -40,6 +40,7 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -123,10 +124,10 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
         final CallbackUrlAuthentication authentication = callbackUrlAuthenticationEncryptor.decrypt(callbackUrlEntity);
         final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
-            final byte[] keyStoreBytes = certificateAuth.getKeyStoreContent() != null
+            final byte[] keyStoreBytes = StringUtils.hasText(certificateAuth.getKeyStoreContent())
                     ? Base64.getDecoder().decode(certificateAuth.getKeyStoreContent())
                     : null;
-            final byte[] trustStoreBytes = certificateAuth.getTrustStoreContent() != null
+            final byte[] trustStoreBytes = StringUtils.hasText(certificateAuth.getTrustStoreContent())
                     ? Base64.getDecoder().decode(certificateAuth.getTrustStoreContent())
                     : null;
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();

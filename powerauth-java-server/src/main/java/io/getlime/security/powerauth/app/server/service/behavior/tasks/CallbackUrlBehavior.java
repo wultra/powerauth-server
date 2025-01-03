@@ -50,6 +50,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -107,15 +108,15 @@ public class CallbackUrlBehavior {
             if (request.getAuthentication() != null && request.getAuthentication().getCertificate() != null) {
                 final HttpAuthenticationPrivate.Certificate certificate = request.getAuthentication().getCertificate();
                 if (certificate.isUseCustomKeyStore() &&
-                        certificate.getKeyStoreLocation() != null &&
-                        certificate.getKeyStoreContent() != null) {
+                        StringUtils.hasText(certificate.getKeyStoreLocation()) &&
+                        StringUtils.hasText(certificate.getKeyStoreContent())) {
                     logger.warn("Invalid keystore configuration for callback URL: {}", request.getCallbackUrl());
                     // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
                 }
                 if (certificate.isUseCustomTrustStore() &&
-                        certificate.getTrustStoreLocation() != null &&
-                        certificate.getTrustStoreContent() != null) {
+                        StringUtils.hasText(certificate.getTrustStoreLocation()) &&
+                        StringUtils.hasText(certificate.getTrustStoreContent())) {
                     logger.warn("Invalid truststore configuration for callback URL: {}", request.getCallbackUrl());
                     // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -204,13 +205,13 @@ public class CallbackUrlBehavior {
                     if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
                         authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
                     }
-                    if (authExisting.getCertificate().getKeyStoreContent() != null && authRequest.getCertificate().getKeyStoreContent() == null) {
+                    if (StringUtils.hasText(authExisting.getCertificate().getKeyStoreContent()) && authRequest.getCertificate().getKeyStoreContent() == null) {
                         authRequest.getCertificate().setKeyStoreContent(authExisting.getCertificate().getKeyStoreContent());
                     }
                     if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
                         authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
                     }
-                    if (authExisting.getCertificate().getTrustStoreContent() != null && authRequest.getCertificate().getTrustStoreContent() == null) {
+                    if (StringUtils.hasText(authExisting.getCertificate().getTrustStoreContent()) && authRequest.getCertificate().getTrustStoreContent() == null) {
                         authRequest.getCertificate().setTrustStoreContent(authExisting.getCertificate().getTrustStoreContent());
                     }
                 }
