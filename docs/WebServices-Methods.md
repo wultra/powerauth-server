@@ -1474,8 +1474,6 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 }
 ```
 
-In case you do not want to modify the already set `keyStoreContent` or `trustStoreContent`, send a `null` value in request. For removing the existing `keyStoreContent` or `trustStoreContent` use an empty string.
-
 #### Response
 
 `CreateCallbackUrlResponse`
@@ -1576,6 +1574,8 @@ The `authentication` parameter contains a JSON-based configuration for client TL
   }
 }
 ```
+
+In case you do not want to modify the already set `keyStoreContent` or `trustStoreContent`, send a `null` value in request. For removing the existing `keyStoreContent` or `trustStoreContent` use an empty string.
 
 
 #### Response
