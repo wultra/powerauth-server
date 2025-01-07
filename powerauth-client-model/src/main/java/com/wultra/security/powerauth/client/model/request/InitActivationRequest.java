@@ -59,7 +59,7 @@ public class InitActivationRequest {
     /**
      * @deprecated use {@link #activationOtp} for enabling OTP check and {@link #commitPhase} for controlling activation commit
      */
-    @Schema(description = "Activation OTP validation (deprecated)", deprecated = true)
+    @Schema(description = "Activation OTP validation strategy (deprecated)", deprecated = true)
     @Deprecated
     private ActivationOtpValidation activationOtpValidation;
 
