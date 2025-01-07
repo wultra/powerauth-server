@@ -38,6 +38,7 @@ import java.util.List;
 @Data
 public class InitActivationRequest {
 
+    @Schema(description = "Activation protocol")
     private ActivationProtocol protocol = ActivationProtocol.POWERAUTH;
 
     @Schema(description = "The identifier of the user")
