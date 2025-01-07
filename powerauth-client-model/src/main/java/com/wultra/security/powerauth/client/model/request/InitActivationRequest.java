@@ -63,7 +63,7 @@ public class InitActivationRequest {
     @Deprecated
     private ActivationOtpValidation activationOtpValidation;
 
-    @Schema(description = "Activation commit phase")
+    @Schema(description = "Phase during which the activation is committed")
     private CommitPhase commitPhase;
 
     @Schema(description = "Activation OTP value")
