@@ -61,7 +61,7 @@ public class CreateActivationRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when creating activation")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
+    @Schema(description = "Encrypted data")
     @NotBlank(message = "Encrypted data must not be empty when creating activation")
     private String encryptedData;
 
