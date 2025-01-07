@@ -60,7 +60,7 @@ public class RecoveryCodeActivationRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when creating activation using recovery code")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
+    @Schema(description = "Encrypted data")
     @NotBlank(message = "Encrypted data must not be empty when creating activation using recovery code")
     private String encryptedData;
 
