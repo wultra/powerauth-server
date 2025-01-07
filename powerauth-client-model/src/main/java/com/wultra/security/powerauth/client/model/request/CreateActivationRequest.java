@@ -78,7 +78,7 @@ public class CreateActivationRequest {
     private String activationOtp;
 
     @Schema(description = "Cryptography protocol version")
-    @NotBlank(message = "Protocol must not be empty when creating activation")
+    @NotBlank(message = "Protocol version must not be empty when creating activation")
     private String protocolVersion;
 
     @Schema(description = "Timestamp value used in encryption")
