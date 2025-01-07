@@ -31,7 +31,7 @@ import lombok.Data;
 public class OperationTemplateDeleteRequest {
 
     @Schema(description = "Operation template identifier")
-    @NotNull(message = "Operation template identifier must not be empty when deleting operation template")
+    @NotNull(message = "Operation template identifier must not be null when deleting operation template")
     private Long id;
 
 }

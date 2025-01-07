@@ -31,11 +31,11 @@ import lombok.Data;
 public class UnsupportApplicationVersionRequest {
 
     @Schema(description = "The identifier of the application")
-    @NotBlank(message = "Application ID must not be empty when unsupporting application version")
+    @NotBlank(message = "Application ID must not be empty when marking an application version as unsupported")
     private String applicationId;
 
     @Schema(description = "The identifier of the application version")
-    @NotBlank(message = "Application version ID must not be empty when unsupporting application version")
+    @NotBlank(message = "Application version ID must not be empty when marking an application version as unsupported")
     private String applicationVersionId;
 
 }

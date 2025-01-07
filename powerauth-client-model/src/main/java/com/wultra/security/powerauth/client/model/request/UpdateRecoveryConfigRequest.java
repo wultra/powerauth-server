@@ -31,16 +31,16 @@ import lombok.Data;
 public class UpdateRecoveryConfigRequest {
 
     @Schema(description = "The identifier of the application")
-    @NotBlank(message = "Application ID must not be null when updating recovery code configuration")
+    @NotBlank(message = "Application ID must not be empty when updating recovery code configuration")
     private String applicationId;
 
-    @Schema(description = "Whether recovery codes are enabled")
+    @Schema(description = "Whether activation recovery is enabled")
     private boolean activationRecoveryEnabled;
 
     @Schema(description = "Whether recovery postcard is enabled")
     private boolean recoveryPostcardEnabled;
 
-    @Schema(description = "Whether multiple recovery codes per user are enabled")
+    @Schema(description = "Whether multiple recovery codes per user are allowed")
     private boolean allowMultipleRecoveryCodes;
 
     @Schema(description = "Recovery postcard public key")

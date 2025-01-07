@@ -33,7 +33,7 @@ public class SignECDSARequest {
     @NotBlank(message = "Activation ID must not be empty when creating signature")
     private String activationId;
 
-    @Schema(description = "Signed data")
+    @Schema(description = "data to be signed")
     @NotNull(message = "Data must not be null when creating signature")
     private String data;
 

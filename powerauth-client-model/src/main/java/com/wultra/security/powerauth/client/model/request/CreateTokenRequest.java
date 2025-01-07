@@ -48,7 +48,7 @@ public class CreateTokenRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when creating token")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
+    @Schema(description = "Encrypted data")
     @NotBlank(message = "Encrypted data must not be empty when creating token")
     private String encryptedData;
 

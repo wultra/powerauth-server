@@ -40,7 +40,7 @@ import java.util.List;
 public class OperationTemplateUpdateRequest {
 
     @Schema(description = "Operation template identifier")
-    @NotNull(message = "Operation template identifier must not be empty when updating operation template")
+    @NotNull(message = "Operation template identifier must not be null when updating operation template")
     private Long id;
 
     @Schema(description = "The type of the operation that is created based on the template")
@@ -57,7 +57,7 @@ public class OperationTemplateUpdateRequest {
     private final List<@NotNull SignatureType> signatureType = new ArrayList<>();
 
     @Schema(description = "How many failed attempts should be allowed for the operation")
-    @NotNull(message = "Template expiration value must not be null when updating operation template")
+    @NotNull(message = "Template maximum allowed failure count must not be null when updating operation template")
     @Positive(message = "Template maximum allowed failure count must be greater than zero")
     private Long maxFailureCount;
 

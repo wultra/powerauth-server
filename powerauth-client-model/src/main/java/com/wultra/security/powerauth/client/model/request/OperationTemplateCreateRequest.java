@@ -72,7 +72,7 @@ public class OperationTemplateCreateRequest {
      * How many failed attempts should be allowed for the operation.
      */
     @Schema(description = "How many failed attempts should be allowed for the operation")
-    @NotNull(message = "Template expiration value must not be null when creating operation template")
+    @NotNull(message = "Template maximum allowed failure count must not be null when creating operation template\"")
     @Positive(message = "Template maximum allowed failure count must be greater than zero")
     private Long maxFailureCount;
 

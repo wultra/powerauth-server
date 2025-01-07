@@ -37,7 +37,7 @@ public class CreatePersonalizedOfflineSignaturePayloadRequest {
     @NotBlank(message = "Activation ID must not be empty when creating offline signature payload")
     private String activationId;
 
-    @Schema(description = "Signed data")
+    @Schema(description = "Data to be signed")
     @NotNull(message = "Signed data must not be null when creating offline signature payload")
     private String data;
 

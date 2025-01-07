@@ -47,6 +47,6 @@ public class VerifyECDSASignatureRequest {
     private String signature;
 
     @Schema(description = "Signature format")
-    private ECDSASignatureFormat signatureFormat;
+    private ECDSASignatureFormat signatureFormat = ECDSASignatureFormat.DER;
 
 }

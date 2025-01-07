@@ -18,10 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
@@ -48,7 +46,7 @@ public class StartUpgradeRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when starting upgrade")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
+    @Schema(description = "Encrypted data")
     @NotBlank(message = "Encrypted data must not be empty when starting upgrade")
     private String encryptedData;
 
@@ -61,7 +59,7 @@ public class StartUpgradeRequest {
     private String nonce;
 
     @Schema(description = "Cryptography protocol version")
-    @NotBlank(message = "Protocol must not be empty when starting upgrade")
+    @NotBlank(message = "Protocol version must not be empty when starting upgrade")
     private String protocolVersion;
 
     @Schema(description = "Timestamp value used in encryption")

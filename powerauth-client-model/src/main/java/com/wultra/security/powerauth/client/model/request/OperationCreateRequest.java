@@ -34,8 +34,7 @@ public class OperationCreateRequest {
     private String userId;
 
     @Schema(description = "List of associated applications")
-    @NotNull(message = "Application ID list must not be null when creating operation")
-    @Size(min = 1, message = "Application ID list must not be empty when creating operation")
+    @NotEmpty(message = "Application ID list must not be empty when creating operation")
     private List<@NotBlank String> applications = new ArrayList<>();
 
     @Schema(description = "Activation flag associated with the operation")
@@ -62,7 +61,7 @@ public class OperationCreateRequest {
     @Schema(description = "Whether proximity check should be used, overrides configuration from operation template")
     private Boolean proximityCheckEnabled;
 
-    @Schema(description = "Activation ID. It is possible to specify a single device (otherwise all user's activations are taken into account).")
+    @Schema(description = "Activation identifier. It is possible to specify a single device (otherwise all user's activations are taken into account).")
     @Size(max = 37, message = "Activation ID must not exceed 37 characters when creating operation")
     private String activationId;
 }

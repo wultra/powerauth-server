@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.Set;
@@ -46,8 +45,11 @@ public class GetActivationListForUserRequest {
     @Schema(description = "Activation protocols")
     private Set<ActivationProtocol> protocols = Set.of(ActivationProtocol.FIDO2, ActivationProtocol.POWERAUTH);
 
+    @Schema(description = "The page number to fetch in the paginated result")
     @Min(0)
     private Integer pageNumber;
+
+    @Schema(description = "The number of records per page in the paginated result")
     @Min(1)
     private Integer pageSize;
 

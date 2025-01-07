@@ -39,10 +39,10 @@ public class SignatureAuditRequest {
     @Schema(description = "The identifier of the application")
     private String applicationId;
 
-    @Schema(description = "The timestamp from parameter in date filter")
+    @Schema(description = "The starting timestamp for filtering activation history")
     private Date timestampFrom;
 
-    @Schema(description = "The timestamp to parameter in date filter")
+    @Schema(description = "The ending timestamp for filtering activation history")
     private Date timestampTo;
 
 }

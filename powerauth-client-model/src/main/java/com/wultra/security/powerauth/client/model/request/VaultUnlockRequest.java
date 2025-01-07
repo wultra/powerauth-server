@@ -55,7 +55,7 @@ public class VaultUnlockRequest {
     private SignatureType signatureType;
 
     @Schema(description = "Signature version")
-    @NotNull(message = "Signature version must not be empty when unlocking vault")
+    @NotBlank(message = "Signature version must not be empty when unlocking vault")
     private String signatureVersion;
 
     @Schema(description = "Identifier of the temporary key for encryption")
@@ -65,7 +65,7 @@ public class VaultUnlockRequest {
     @NotBlank(message = "Ephemeral public key must not be empty when unlocking vault")
     private String ephemeralPublicKey;
 
-    @Schema(description = "Encrypted data used in encryption")
+    @Schema(description = "Encrypted data")
     @NotBlank(message = "Encrypted data must not be empty when unlocking vault")
     private String encryptedData;
 

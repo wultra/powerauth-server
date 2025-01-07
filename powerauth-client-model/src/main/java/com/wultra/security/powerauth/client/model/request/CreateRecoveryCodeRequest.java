@@ -40,7 +40,7 @@ public class CreateRecoveryCodeRequest {
     @NotBlank(message = "User ID must not be empty when creating recovery code")
     private String userId;
 
-    @Schema(description = "The number of PUK codes")
+    @Schema(description = "The number of PUK codes to generate")
     @Positive(message = "The PUK count value should be positive when creating recovery code")
     @Max(value = 100, message = "The maximum PUK count of 100 was exceeded")
     private long pukCount;

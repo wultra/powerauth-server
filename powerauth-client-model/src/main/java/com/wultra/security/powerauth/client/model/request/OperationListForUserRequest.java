@@ -19,10 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -41,13 +38,14 @@ public class OperationListForUserRequest {
     private String userId;
 
     @Schema(description = "Associated application identifiers")
-    @NotNull(message = "Application ID list must not be null when requesting operation list")
-    @Size(min = 1, message = "Application ID list must not be empty when requesting operation list")
+    @NotEmpty(message = "Application ID list must not be empty when requesting operation list")
     private List<@NotBlank String> applications = new ArrayList<>();
 
+    @Schema(description = "The page number to fetch in the paginated result")
     @Min(0)
     private Integer pageNumber;
 
+    @Schema(description = "The number of records per page in the paginated result")
     @Min(1)
     private Integer pageSize;
 

@@ -36,10 +36,10 @@ public class ActivationHistoryRequest {
     @NotBlank(message = "Activation ID must not be empty when requesting activation history")
     private String activationId;
 
-    @Schema(description = "Timestamp from used for timestamp filter")
+    @Schema(description = "The starting timestamp for filtering activation history")
     private Date timestampFrom;
 
-    @Schema(description = "Timestamp to used for timestamp filter")
+    @Schema(description = "The ending timestamp for filtering activation history")
     private Date timestampTo;
 
 }
