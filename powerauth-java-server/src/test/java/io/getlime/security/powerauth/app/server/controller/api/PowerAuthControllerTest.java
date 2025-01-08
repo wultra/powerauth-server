@@ -386,7 +386,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testUpdateActivation_badRequest() {
-        final String expectedErrorMessage = "requestObject.activationId - Activation ID must not be empty when updating activation name, requestObject.activationName - Activation name must not be empty when updating activation name";
+        final String expectedErrorMessage = "requestObject.activationId - Activation ID must not be empty when updating activation name";
         final String expectedErrorCode = "ERR0024";
         final PowerAuthClientException thrownException = assertThrows(
                 PowerAuthClientException.class,
