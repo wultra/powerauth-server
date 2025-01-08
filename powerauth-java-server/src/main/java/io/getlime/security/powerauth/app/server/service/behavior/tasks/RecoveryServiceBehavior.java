@@ -61,7 +61,6 @@ import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,8 +83,6 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class RecoveryServiceBehavior {
-
-    public static final int PUK_COUNT_MAX = 100;
 
     // Autowired dependencies
     private final LocalizationProvider localizationProvider;
@@ -126,12 +123,6 @@ public class RecoveryServiceBehavior {
             final String applicationId = request.getApplicationId();
             final String userId = request.getUserId();
             final long pukCount = request.getPukCount();
-
-            if (applicationId == null || userId == null || pukCount < 1 || pukCount > RecoveryServiceBehavior.PUK_COUNT_MAX) {
-                logger.warn("Invalid request parameters in method createRecoveryCode");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
@@ -291,12 +282,6 @@ public class RecoveryServiceBehavior {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String temporaryKeyId = request.getTemporaryKeyId();
-
-            if (activationId == null || applicationKey == null) {
-                logger.warn("Invalid request parameters in method confirmRecoveryCode");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -593,12 +578,6 @@ public class RecoveryServiceBehavior {
     @Transactional
     public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws GenericServiceException {
         try {
-            if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
-                logger.warn("Invalid request parameters in method revokeRecoveryCodes");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final List<Long> recoveryCodeIds = request.getRecoveryCodeIds();
             for (Long recoveryCodeId : recoveryCodeIds) {
                 if (recoveryCodeId == null || recoveryCodeId < 0L) {
@@ -660,12 +639,6 @@ public class RecoveryServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
 
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final ApplicationEntity applicationEntity = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, database is not used for writing
@@ -712,11 +685,6 @@ public class RecoveryServiceBehavior {
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws GenericServiceException {
         try {
             String applicationId = request.getApplicationId();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {

@@ -35,12 +35,21 @@ import java.util.Set;
 @Data
 public class GetActivationListForUserRequest {
 
-    @NotBlank
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when requesting activation list for user")
     private String userId;
+
+    @Schema(description = "The identifier of the application")
     private String applicationId;
+
+    @Schema(description = "Activation protocols")
     private Set<ActivationProtocol> protocols = Set.of(ActivationProtocol.FIDO2, ActivationProtocol.POWERAUTH);
+
+    @Schema(description = "The page number to fetch in the paginated result")
     @Min(0)
     private Integer pageNumber;
+
+    @Schema(description = "The number of records per page in the paginated result")
     @Min(1)
     private Integer pageSize;
 

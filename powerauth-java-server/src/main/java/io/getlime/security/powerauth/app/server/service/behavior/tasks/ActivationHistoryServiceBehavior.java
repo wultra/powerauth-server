@@ -127,11 +127,6 @@ public class ActivationHistoryServiceBehavior {
             final String activationId = request.getActivationId();
             final Date startingDate = request.getTimestampFrom();
             final Date endingDate = request.getTimestampTo();
-            if (request.getActivationId() == null) {
-                logger.warn("Invalid request parameter activationId in method getActivationHistory");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final List<ActivationHistoryEntity> activationHistoryEntityList = activationHistoryRepository.findActivationHistory(activationId, startingDate, endingDate);
 

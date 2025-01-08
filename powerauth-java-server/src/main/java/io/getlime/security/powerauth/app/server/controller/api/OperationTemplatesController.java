@@ -29,8 +29,10 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("operationTemplatesController")
 @RequestMapping("/rest/v3/operation/template")
 @Tag(name = "PowerAuth Operation Templates Controller (V3)")
+@Validated
 @Slf4j
 public class OperationTemplatesController {
 
@@ -62,9 +65,11 @@ public class OperationTemplatesController {
      */
     @PostMapping("/list")
     public ObjectResponse<OperationTemplateListResponse> getOperationTemplateList() throws Exception {
-        logger.info("OperationTemplateListResponse call received");
+        logger.info("action: getOperationTemplateList, state: initiated");
+        logger.debug("action: getOperationTemplateList, state: initiated, request: empty");
         final ObjectResponse<OperationTemplateListResponse> response = new ObjectResponse<>(service.getAllTemplates());
-        logger.info("OperationTemplateListResponse succeeded: {}", response);
+        logger.info("action: getOperationTemplateList, state: succeeded");
+        logger.debug("action: getOperationTemplateList, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -76,10 +81,13 @@ public class OperationTemplatesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/detail")
-    public ObjectResponse<OperationTemplateDetailResponse> getOperationTemplateDetail(@RequestBody ObjectRequest<OperationTemplateDetailRequest> request) throws Exception {
-        logger.info("OperationTemplateDetailRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(request.getRequestObject()));
-        logger.info("OperationTemplateDetailRequest succeeded: {}", response);
+    public ObjectResponse<OperationTemplateDetailResponse> getOperationTemplateDetail(@Valid @RequestBody ObjectRequest<OperationTemplateDetailRequest> request) throws Exception {
+        final OperationTemplateDetailRequest req = request.getRequestObject();
+        logger.info("action: getOperationTemplateDetail, state: initiated, templateId: {}", req.getId());
+        logger.debug("action: getOperationTemplateDetail, state: initiated, request: {}", request);
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(req));
+        logger.info("action: getOperationTemplateDetail, state: succeeded");
+        logger.debug("action: getOperationTemplateDetail, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -91,10 +99,13 @@ public class OperationTemplatesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<OperationTemplateDetailResponse> createOperationTemplate(@RequestBody ObjectRequest<OperationTemplateCreateRequest> request) throws Exception {
-        logger.info("OperationTemplateCreateRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.createOperationTemplate(request.getRequestObject()));
-        logger.info("OperationTemplateCreateRequest succeeded: {}", response);
+    public ObjectResponse<OperationTemplateDetailResponse> createOperationTemplate(@Valid @RequestBody ObjectRequest<OperationTemplateCreateRequest> request) throws Exception {
+        final OperationTemplateCreateRequest req = request.getRequestObject();
+        logger.info("action: createOperationTemplate, state: initiated, templateName: {}, operationType: {}", req.getTemplateName(), req.getOperationType());
+        logger.debug("action: createOperationTemplate, state: initiated, request: {}", request);
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.createOperationTemplate(req));
+        logger.info("action: createOperationTemplate, state: succeeded");
+        logger.debug("action: createOperationTemplate, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -106,10 +117,13 @@ public class OperationTemplatesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/update")
-    public ObjectResponse<OperationTemplateDetailResponse> updateOperationTemplate(@RequestBody ObjectRequest<OperationTemplateUpdateRequest> request) throws Exception {
-        logger.info("OperationTemplateUpdateRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(request.getRequestObject()));
-        logger.info("OperationTemplateUpdateRequest succeeded: {}", response);
+    public ObjectResponse<OperationTemplateDetailResponse> updateOperationTemplate(@Valid @RequestBody ObjectRequest<OperationTemplateUpdateRequest> request) throws Exception {
+        final OperationTemplateUpdateRequest req = request.getRequestObject();
+        logger.info("action: updateOperationTemplate, state: initiated, templateId: {}", req.getId());
+        logger.debug("action: updateOperationTemplate, state: initiated, request: {}", request);
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(req));
+        logger.info("action: updateOperationTemplate, state: succeeded");
+        logger.debug("action: updateOperationTemplate, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -121,10 +135,13 @@ public class OperationTemplatesController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public Response removeOperationTemplate(@RequestBody ObjectRequest<OperationTemplateDeleteRequest> request) throws Exception {
-        logger.info("OperationTemplateDeleteRequest call received: {}", request);
-        service.removeOperationTemplate(request.getRequestObject());
-        logger.info("OperationTemplateDeleteRequest succeeded");
+    public Response removeOperationTemplate(@Valid @RequestBody ObjectRequest<OperationTemplateDeleteRequest> request) throws Exception {
+        final OperationTemplateDeleteRequest req = request.getRequestObject();
+        logger.info("action: removeOperationTemplate, state: initiated, templateId: {}", req.getId());
+        logger.debug("action: removeOperationTemplate, state: initiated, request: {}", request);
+        service.removeOperationTemplate(req);
+        logger.info("action: removeOperationTemplate, state: succeeded");
+        logger.debug("action: removeOperationTemplate, state: succeeded, response: empty");
         return new Response();
     }
 

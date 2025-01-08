@@ -28,7 +28,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
-import com.wultra.security.powerauth.client.model.validator.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -144,10 +143,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws GenericServiceException {
         try {
-            final String error = OperationCreateRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
             validate(request);
 
             final List<String> applications = request.getApplications();
@@ -332,11 +327,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request, OperationApprovalCustomizer operationApprovalCustomizer) throws GenericServiceException {
         try {
-            final String error = OperationApproveRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Instant currentInstant = Instant.now();
             final Date currentTimestamp = Date.from(currentInstant);
 
@@ -507,11 +497,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws GenericServiceException {
         try {
-            final String error = OperationRejectRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -614,11 +599,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws GenericServiceException {
         try {
-            final String error = OperationFailApprovalRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -705,11 +685,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationDetailResponse cancelOperation(OperationCancelRequest request) throws GenericServiceException {
         try {
-            final String error = OperationCancelRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -766,11 +741,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws GenericServiceException {
         try {
-            final String error = OperationDetailRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
             final String operationId = request.getOperationId();
 
@@ -798,11 +768,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationDetailResponse operationClaim(OperationClaimRequest request) throws GenericServiceException {
         try {
-            final String error = OperationClaimRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
             final String operationId = request.getOperationId();
 
@@ -832,11 +797,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationListResponse findAllOperationsForUser(final OperationListForUserRequest request) throws GenericServiceException {
         try {
-            final String error = OperationListForUserRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final OperationListRequest operationListRequest = convert(request);
@@ -881,11 +841,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         try {
-            final String error = OperationListForUserRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final OperationListRequest operationListRequest = convert(request);
 
             final Date currentTimestamp = new Date();
@@ -940,11 +895,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
         try {
-            final String error = OperationExtIdRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final OperationListRequestWithExternalId requestWithExternalId = convert(request);

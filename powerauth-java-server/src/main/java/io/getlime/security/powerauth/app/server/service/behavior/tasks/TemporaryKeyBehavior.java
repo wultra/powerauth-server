@@ -113,10 +113,6 @@ public class TemporaryKeyBehavior {
     @Transactional
     public TemporaryPublicKeyResponse requestTemporaryKey(TemporaryPublicKeyRequest request) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, GenericCryptoException, InvalidKeyException {
 
-        if (request == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-
         // Get claims from JWT
         try {
             final SignedJWT decodedJWT = SignedJWT.parse(request.getJwt());

@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
@@ -34,11 +35,23 @@ import java.math.BigInteger;
 @Data
 public class VerifyOfflineSignatureRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when verifying offline signature")
     private String activationId;
+
+    @Schema(description = "Signed data")
+    @NotNull(message = "Parameter data must not be null when verifying signature")
     private String data;
+
+    @Schema(description = "Signature")
+    @NotBlank(message = "Signature must not be empty when verifying signature")
     @ToString.Exclude
     private String signature;
+
+    @Schema(description = "Signature component length")
     private BigInteger componentLength;
+
+    @Schema(description = "Whether biometric factor is allowed")
     private boolean allowBiometry;
 
     @Schema(description = "Optional proximity check configuration of TOTP.")

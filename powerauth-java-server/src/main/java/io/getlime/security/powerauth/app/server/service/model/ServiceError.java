@@ -42,7 +42,10 @@ public final class ServiceError {
 
     /**
      * No application ID was set.
+     *
+     * @deprecated replaced by {@link #INVALID_REQUEST}
      */
+    @Deprecated
     public static final String NO_APPLICATION_ID = "ERR0002";
 
     /**

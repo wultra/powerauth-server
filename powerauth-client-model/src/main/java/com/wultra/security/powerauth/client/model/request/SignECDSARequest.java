@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -25,6 +28,13 @@ import lombok.Data;
  */
 @Data
 public class SignECDSARequest {
+
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when creating signature")
     private String activationId;
+
+    @Schema(description = "data to be signed")
+    @NotNull(message = "Data must not be null when creating signature")
     private String data;
+
 }

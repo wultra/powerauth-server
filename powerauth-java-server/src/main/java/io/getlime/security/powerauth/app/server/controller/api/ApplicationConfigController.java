@@ -28,8 +28,10 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("applicationConfigController")
 @RequestMapping("/rest/v3/application/config")
 @Tag(name = "PowerAuth Application Config Controller (V3)")
+@Validated
 @Slf4j
 public class ApplicationConfigController {
 
@@ -61,10 +64,13 @@ public class ApplicationConfigController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/detail")
-    public ObjectResponse<GetApplicationConfigResponse> getApplicationConfig(@RequestBody ObjectRequest<GetApplicationConfigRequest> request) throws Exception {
-        logger.info("GetApplicationConfig call received: {}", request);
-        final ObjectResponse<GetApplicationConfigResponse> response = new ObjectResponse<>(service.getApplicationConfig(request.getRequestObject()));
-        logger.info("GetApplicationConfig succeeded: {}", response);
+    public ObjectResponse<GetApplicationConfigResponse> getApplicationConfig(@Valid @RequestBody ObjectRequest<GetApplicationConfigRequest> request) throws Exception {
+        final GetApplicationConfigRequest req = request.getRequestObject();
+        logger.info("action: getApplicationConfig, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: getApplicationConfig, state: initiated, request: {}", request);
+        final ObjectResponse<GetApplicationConfigResponse> response = new ObjectResponse<>(service.getApplicationConfig(req));
+        logger.info("action: getApplicationConfig, state: succeeded");
+        logger.debug("action: getApplicationConfig, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -76,10 +82,13 @@ public class ApplicationConfigController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
-        logger.info("CreateApplicationConfig call received: {}", request);
-        final ObjectResponse<CreateApplicationConfigResponse> response = new ObjectResponse<>(service.createApplicationConfig(request.getRequestObject()));
-        logger.info("CreateApplicationConfig succeeded: {}", response);
+    public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@Valid @RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
+        final CreateApplicationConfigRequest req = request.getRequestObject();
+        logger.info("action: createApplicationConfig, state: initiated, applicationId: {}, key: {}", req.getApplicationId(), req.getKey());
+        logger.debug("action: createApplicationConfig, state: initiated, request: {}", request);
+        final ObjectResponse<CreateApplicationConfigResponse> response = new ObjectResponse<>(service.createApplicationConfig(req));
+        logger.info("action: createApplicationConfig, state: succeeded");
+        logger.debug("action: createApplicationConfig, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -91,10 +100,13 @@ public class ApplicationConfigController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public Response removeApplicationConfig(@RequestBody ObjectRequest<RemoveApplicationConfigRequest> request) throws Exception {
-        logger.info("RemoveApplicationConfig call received: {}", request);
-        service.removeApplicationConfig(request.getRequestObject());
-        logger.info("RemoveApplicationConfig succeeded.");
+    public Response removeApplicationConfig(@Valid @RequestBody ObjectRequest<RemoveApplicationConfigRequest> request) throws Exception {
+        final RemoveApplicationConfigRequest req = request.getRequestObject();
+        logger.info("action: removeApplicationConfig, state: initiated, applicationId: {}, key: {}", req.getApplicationId(), req.getKey());
+        logger.debug("action: removeApplicationConfig, state: initiated, request: {}", request);
+        service.removeApplicationConfig(req);
+        logger.info("action: removeApplicationConfig, state: succeeded");
+        logger.debug("action: removeApplicationConfig, state: succeeded, response: empty");
         return new Response();
     }
 

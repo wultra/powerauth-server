@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -31,7 +34,12 @@ import java.util.List;
 @Data
 public class RemoveActivationFlagsRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when removing activation flags")
     private String activationId;
-    private List<String> activationFlags = new ArrayList<>();
+
+    @Schema(description = "List of activation flags")
+    @NotEmpty(message = "List of activation flags must not be empty when removing activation flags")
+    private List<@NotBlank String> activationFlags = new ArrayList<>();
 
 }

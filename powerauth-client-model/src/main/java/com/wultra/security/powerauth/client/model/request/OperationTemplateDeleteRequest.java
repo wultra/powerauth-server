@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -28,6 +30,8 @@ import lombok.Data;
 @Data
 public class OperationTemplateDeleteRequest {
 
+    @Schema(description = "Operation template identifier")
+    @NotNull(message = "Operation template identifier must not be null when deleting operation template")
     private Long id;
 
 }

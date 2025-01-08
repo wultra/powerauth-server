@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.SystemSta
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("systemStatusController")
 @RequestMapping("/rest/v3/status")
 @Tag(name = "PowerAuth System Status Controller (V3)")
+@Validated
 @Slf4j
 public class SystemStatusController {
 
@@ -53,9 +55,11 @@ public class SystemStatusController {
      */
     @PostMapping
     public ObjectResponse<GetSystemStatusResponse> getSystemStatus() {
-        logger.info("GetSystemStatusRequest received");
+        logger.info("action: getSystemStatus, state: initiated");
+        logger.debug("action: getSystemStatus, state: initiated, request: empty");
         final ObjectResponse<GetSystemStatusResponse> response = new ObjectResponse<>(service.getSystemStatus());
-        logger.info("GetSystemStatusRequest succeeded: {}", response);
+        logger.info("action: getSystemStatus, state: succeeded");
+        logger.debug("action: getSystemStatus, state: succeeded, response: {}", response);
         return response;
     }
 

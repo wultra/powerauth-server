@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Date;
@@ -30,8 +32,14 @@ import java.util.Date;
 @Data
 public class ActivationHistoryRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when requesting activation history")
     private String activationId;
+
+    @Schema(description = "The starting timestamp for filtering activation history")
     private Date timestampFrom;
+
+    @Schema(description = "The ending timestamp for filtering activation history")
     private Date timestampTo;
 
 }
