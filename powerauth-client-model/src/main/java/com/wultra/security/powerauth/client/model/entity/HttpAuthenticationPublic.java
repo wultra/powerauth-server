@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.client.model.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * HTTP authentication class that is intended for public usage. It does not contain any
@@ -37,11 +38,13 @@ public class HttpAuthenticationPublic {
         private boolean enabled;
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
+        private boolean keyStoreContentSet;
         private boolean keyStorePasswordSet;
         private String keyAlias;
         private boolean keyPasswordSet;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
+        private boolean trustStoreContentSet;
         private boolean trustStorePasswordSet;
     }
 

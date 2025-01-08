@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -66,11 +67,18 @@ public class CallbackUrlAuthentication implements Serializable {
         private boolean enabled;
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
+        @ToString.Exclude
+        private String keyStoreContent;
+        @ToString.Exclude
         private String keyStorePassword;
         private String keyAlias;
+        @ToString.Exclude
         private String keyPassword;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
+        @ToString.Exclude
+        private String trustStoreContent;
+        @ToString.Exclude
         private String trustStorePassword;
     }
 
@@ -86,6 +94,7 @@ public class CallbackUrlAuthentication implements Serializable {
 
         private boolean enabled;
         private String username;
+        @ToString.Exclude
         private String password;
     }
 
@@ -102,6 +111,7 @@ public class CallbackUrlAuthentication implements Serializable {
         private boolean enabled;
         private String tokenUri;
         private String clientId;
+        @ToString.Exclude
         private String clientSecret;
         private String scope;
     }

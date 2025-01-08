@@ -747,8 +747,8 @@ class OperationServiceBehaviorTest {
         approveRequest.setData("A2");
         approveRequest.setApplicationId("PA_Tests");
         approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        final OperationUserActionResponse response = operationService.attemptApproveOperation(approveRequest);
-        assertEquals(UserActionResult.APPROVAL_FAILED, response.getResult());
+        final Exception exception = assertThrows(GenericServiceException.class, () -> operationService.attemptApproveOperation(approveRequest));
+        assertEquals("Operation cannot be approved.", exception.getMessage());
     }
 
     @Test
@@ -762,7 +762,7 @@ class OperationServiceBehaviorTest {
         rejectRequest.setUserId("test_user");
         rejectRequest.setApplicationId("PA_Tests");
         final Exception exception = assertThrows(GenericServiceException.class, () -> operationService.rejectOperation(rejectRequest));
-        assertEquals("Operation cannot be approved.", exception.getMessage());
+        assertEquals("Operation cannot be rejected.", exception.getMessage());
     }
 
     @Test
@@ -776,8 +776,8 @@ class OperationServiceBehaviorTest {
         rejectRequest.setOperationId(operation.getId());
         rejectRequest.setUserId("test_user_2");
         rejectRequest.setApplicationId("PA_Tests");
-        final OperationUserActionResponse response = operationService.rejectOperation(rejectRequest);
-        assertEquals(UserActionResult.REJECT_FAILED, response.getResult());
+        final Exception exception = assertThrows(GenericServiceException.class, () -> operationService.rejectOperation(rejectRequest));
+        assertEquals("Operation cannot be rejected.", exception.getMessage());
     }
 
     private void createApplication() throws GenericServiceException {
