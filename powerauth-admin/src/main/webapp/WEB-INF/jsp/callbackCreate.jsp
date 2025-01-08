@@ -89,20 +89,20 @@
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">HTTP Basic
+                                <label for="auth_httpBasicEnabled" class="col-sm-4 control-label">HTTP Basic
                                 Authentication</label>
                                 <div class="col-sm-8" style="margin-top: 6px">
                                     <input type="checkbox" id="auth_httpBasicEnabled" name="auth_httpBasicEnabled" <c:if test="${true eq auth_httpBasicEnabled}">checked</c:if>/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">HTTP Basic Username</label>
+                                <label for="auth_httpBasicUsername" class="col-sm-4 control-label">HTTP Basic Username</label>
                                 <div class="col-sm-4">
                                     <input type="text" id="auth_httpBasicUsername" name="auth_httpBasicUsername" class="form-control" value="${auth_httpBasicUsername}"/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">HTTP Basic Password</label>
+                                <label for="auth_httpBasicPassword" class="col-sm-4 control-label">HTTP Basic Password</label>
                                 <div class="col-sm-4">
                                     <input type="password" id="auth_httpBasicPassword" name="auth_httpBasicPassword" class="form-control" onchange="document.getElementById('auth_httpBasicPasswordChanged').value='true'" onkeyup="document.getElementById('auth_httpBasicPasswordChanged').value='true'" onpaste="document.getElementById('auth_httpBasicPasswordChanged').value='true'"/>
                                 </div>
@@ -112,56 +112,68 @@
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Certificate Authentication</label>
+                                <label for="auth_certificateEnabled" class="col-sm-4 control-label">Certificate Authentication</label>
                                 <div class="col-sm-8" style="margin-top: 6px">
                                     <input type="checkbox" id="auth_certificateEnabled" name="auth_certificateEnabled" <c:if test="${true eq auth_certificateEnabled}">checked</c:if>/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Use Custom Keystore</label>
+                                <label for="auth_useCustomKeyStore" class="col-sm-4 control-label">Use Custom Keystore</label>
                                 <div class="col-sm-8" style="margin-top: 6px">
                                     <input type="checkbox" id="auth_useCustomKeyStore" name="auth_useCustomKeyStore" <c:if test="${true eq auth_useCustomKeyStore}">checked</c:if>/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Keystore Location</label>
+                                <label for="auth_keyStoreLocation" class="col-sm-4 control-label">Keystore Location</label>
                                 <div class="col-sm-7">
                                     <input type="text" id="auth_keyStoreLocation" name="auth_keyStoreLocation" class="form-control" value="${auth_keyStoreLocation}"/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Keystore Password</label>
+                                <label for="auth_keyStoreContent" class="col-sm-4 control-label">Keystore Content</label>
+                                <div class="col-sm-7">
+                                    <input type="text" id="auth_keyStoreContent" name="auth_keyStoreContent" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="auth_keyStorePassword" class="col-sm-4 control-label">Keystore Password</label>
                                 <div class="col-sm-4">
                                     <input type="password" id="auth_keyStorePassword" name="auth_keyStorePassword" class="form-control" onchange="document.getElementById('auth_keyStorePasswordChanged').value='true'" onkeyup="document.getElementById('auth_keyStorePasswordChanged').value='true'" onpaste="document.getElementById('auth_keyStorePasswordChanged').value='true'"/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Key Alias</label>
+                                <label for="auth_keyAlias" class="col-sm-4 control-label">Key Alias</label>
                                 <div class="col-sm-4">
                                     <input type="text" id="auth_keyAlias" name="auth_keyAlias" class="form-control" value="${auth_keyAlias}"/>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="attr_activationId" class="col-sm-4 control-label">Key Password</label>
+                                <label for="auth_keyPassword" class="col-sm-4 control-label">Key Password</label>
                                 <div class="col-sm-4">
                                     <input type="password" id="auth_keyPassword" name="auth_keyPassword" class="form-control" onchange="document.getElementById('auth_keyPasswordChanged').value='true'" onkeyup="document.getElementById('auth_keyPasswordChanged').value='true'" onpaste="document.getElementById('auth_keyPasswordChanged').value='true'"/>
                                 </div>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="attr_activationId" class="col-sm-4 control-label">Use Custom Truststore</label>
+                            <label for="auth_useCustomTrustStore" class="col-sm-4 control-label">Use Custom Truststore</label>
                             <div class="col-sm-8" style="margin-top: 6px">
                                 <input type="checkbox" id="auth_useCustomTrustStore" name="auth_useCustomTrustStore" <c:if test="${true eq auth_useCustomTrustStore}">checked</c:if>/>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="attr_activationId" class="col-sm-4 control-label">Truststore Location</label>
+                            <label for="auth_trustStoreLocation" class="col-sm-4 control-label">Truststore Location</label>
                             <div class="col-sm-7">
                                 <input type="text" id="auth_trustStoreLocation" name="auth_trustStoreLocation" class="form-control" value="${auth_trustStoreLocation}"/>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="attr_activationId" class="col-sm-4 control-label">Truststore Password</label>
+                            <label for="auth_trustStoreContent" class="col-sm-4 control-label">Truststore Content</label>
+                            <div class="col-sm-7">
+                                <input type="text" id="auth_trustStoreContent" name="auth_trustStoreContent" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth_trustStorePassword" class="col-sm-4 control-label">Truststore Password</label>
                             <div class="col-sm-4">
                                 <input type="text" id="auth_trustStorePassword" name="auth_trustStorePassword" class="form-control" onchange="document.getElementById('auth_trustStorePasswordChanged').value='true'" onkeyup="document.getElementById('auth_trustStorePasswordChanged').value='true'" onpaste="document.getElementById('auth_trustStorePasswordChanged').value='true'"/>
                             </div>
@@ -177,8 +189,8 @@
                             </div>
                             <div class="form-group">
                                 <label for="auth_oAuth2ClientId" class="col-sm-4 control-label">Client ID</label>
-                                <div class="col-sm-8" style="margin-top: 6px">
-                                    <input type="text" id="auth_oAuth2ClientId" name="auth_oAuth2ClientId"/>
+                                <div class="col-sm-4">
+                                    <input type="text" id="auth_oAuth2ClientId" class="form-control" name="auth_oAuth2ClientId"/>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -205,20 +217,20 @@
                         <h4 class="panel-heading">Retry Policy and Retention</h4>
                     </div>
                     <div class="form-group">
-                        <label for="maxAttempts" class="col-sm-3 control-label">Max Attempts</label>
-                        <div class="col-sm-9">
+                        <label for="maxAttempts" class="col-sm-4 control-label">Max Attempts</label>
+                        <div class="col-sm-4">
                             <input type="number" id="maxAttempts" name="maxAttempts" class="form-control" value="${maxAttempts}" min="1"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="initialBackoff" class="col-sm-3 control-label">Initial Backoff</label>
-                        <div class="col-sm-9">
+                        <label for="initialBackoff" class="col-sm-4 control-label">Initial Backoff</label>
+                        <div class="col-sm-4">
                             <input type="text" id="initialBackoff" name="initialBackoff" class="form-control" value="${initialBackoff}"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="retentionPeriod" class="col-sm-3 control-label">Retention Period</label>
-                        <div class="col-sm-9">
+                        <label for="retentionPeriod" class="col-sm-4 control-label">Retention Period</label>
+                        <div class="col-sm-4">
                             <input type="text" id="retentionPeriod" name="retentionPeriod" class="form-control" value="${retentionPeriod}"/>
                         </div>
                     </div>

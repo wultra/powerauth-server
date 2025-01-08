@@ -39,12 +39,16 @@ public class HttpAuthenticationPrivate {
         private boolean useCustomKeyStore;
         private String keyStoreLocation;
         @ToString.Exclude
+        private String keyStoreContent;
+        @ToString.Exclude
         private String keyStorePassword;
         private String keyAlias;
         @ToString.Exclude
         private String keyPassword;
         private boolean useCustomTrustStore;
         private String trustStoreLocation;
+        @ToString.Exclude
+        private String trustStoreContent;
         @ToString.Exclude
         private String trustStorePassword;
     }

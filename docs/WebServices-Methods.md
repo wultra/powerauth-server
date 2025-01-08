@@ -127,15 +127,15 @@ REST endpoint: `POST /rest/v3/status`
 
 `GetSystemStatusResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `status` | A constant value "OK". |
-| `String` | `applicationName` | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.
-| `String` | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
-| `String` | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property. |
-| `String` | `version` | Version of PowerAuth server. |
-| `String` | `buildTime` | Timestamp when the powerauth-server.war file was built. |
-| `DateTime` | `timestamp` | A current system timestamp. |
+| Type       | Name                     | Description                                                                                                                                                               |
+|------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`   | `status`                 | A constant value "OK".                                                                                                                                                    |
+| `String`   | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
+| `String`   | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
+| `String`   | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
+| `String`   | `version`                | Version of PowerAuth server.                                                                                                                                              |
+| `String`   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
+| `DateTime` | `timestamp`              | A current system timestamp.                                                                                                                                               |
 
 ### Method 'getErrorCodeList'
 
@@ -1450,11 +1450,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "useCustomKeyStore": false,
     "keyStoreLocation": "[keystore resource location]",
+    "keyStoreContent": "[keystore content encoded in Base64]",
     "keyStorePassword": "[keystore password]",
     "keyAlias": "[key alias]",
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
-    "trustStoreLocation": "[truststore resource location]", 
+    "trustStoreLocation": "[truststore resource location]",
+    "trustStoreContent": "[truststore content encoded in Base64]",
     "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
@@ -1549,11 +1551,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "useCustomKeyStore": false,
     "keyStoreLocation": "[keystore resource location]",
+    "keyStoreContent": "[keystore content encoded in Base64]",
     "keyStorePassword": "[keystore password]",
     "keyAlias": "[key alias]",
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
-    "trustStoreLocation": "[truststore resource location]", 
+    "trustStoreLocation": "[truststore resource location]",
+    "trustStoreContent": "[truststore content encoded in Base64]",
     "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
@@ -1570,6 +1574,8 @@ The `authentication` parameter contains a JSON-based configuration for client TL
   }
 }
 ```
+
+In case you do not want to modify the already set `keyStoreContent` or `trustStoreContent`, send a `null` value in request. For removing the existing `keyStoreContent` or `trustStoreContent` use an empty string.
 
 
 #### Response
