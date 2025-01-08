@@ -35,7 +35,6 @@ public class UpdateActivationNameRequest {
     private String activationId;
 
     @Schema(description = "Activation name")
-    @NotBlank(message = "Activation name must not be empty when updating activation name")
     private String activationName;
 
     @Schema(description = "External user identifier")
