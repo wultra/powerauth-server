@@ -65,7 +65,7 @@ public class CreateTokenRequest {
     private SignatureType signatureType;
 
     @Schema(description = "Cryptography protocol version")
-    @NotBlank(message = "Protocol must not be empty when creating token")
+    @NotBlank(message = "Protocol version must not be empty when creating token")
     private String protocolVersion;
 
     @Schema(description = "Timestamp value used in encryption")
