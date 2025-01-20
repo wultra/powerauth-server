@@ -25,7 +25,7 @@ import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import io.getlime.core.rest.model.base.response.Response;
+import com.wultra.core.rest.model.base.response.Response;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Duration;

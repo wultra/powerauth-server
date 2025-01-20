@@ -24,8 +24,8 @@ import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeReque
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
-import io.getlime.core.rest.model.base.request.ObjectRequest;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.request.ObjectRequest;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

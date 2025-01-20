@@ -16,7 +16,7 @@ To add a PowerAuth REST client support in your application, add Maven dependency
 
 ```xml
 <dependency>
-    <groupId>io.getlime.security</groupId>
+    <groupId>com.wultra.security</groupId>
     <artifactId>powerauth-rest-client-spring</artifactId>
     <version>${powerauth.version}</version>
 </dependency>
