@@ -70,7 +70,6 @@ Use the `logback.xml` file to configure logging, for example:
     </appender>
 
     <logger name="com.wultra" level="INFO" />
-    <logger name="com.wultra" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="FILE" />
