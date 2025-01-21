@@ -7,7 +7,6 @@ When updating across multiple versions, you need to perform all migration steps 
 <!-- end -->
 
 - [PowerAuth Server 2.0.0](./PowerAuth-Server-2.0.0.md)
-- [PowerAuth Server 1.10.0](./PowerAuth-Server-1.10.0.md)
 - [PowerAuth Server 1.9.0](./PowerAuth-Server-1.9.0.md)
 - [PowerAuth Server 1.8.0](./PowerAuth-Server-1.8.0.md)
 - [PowerAuth Server 1.7.0](./PowerAuth-Server-1.7.0.md)
