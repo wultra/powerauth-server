@@ -105,23 +105,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
-            if (request.getAuthentication() != null && request.getAuthentication().getCertificate() != null) {
-                final HttpAuthenticationPrivate.Certificate certificate = request.getAuthentication().getCertificate();
-                if (certificate.isUseCustomKeyStore() &&
-                        StringUtils.hasText(certificate.getKeyStoreLocation()) &&
-                        StringUtils.hasText(certificate.getKeyStoreContent())) {
-                    logger.warn("Invalid keystore configuration for callback URL: {}", request.getCallbackUrl());
-                    // Rollback is not required, error occurs before writing to database
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-                }
-                if (certificate.isUseCustomTrustStore() &&
-                        StringUtils.hasText(certificate.getTrustStoreLocation()) &&
-                        StringUtils.hasText(certificate.getTrustStoreContent())) {
-                    logger.warn("Invalid truststore configuration for callback URL: {}", request.getCallbackUrl());
-                    // Rollback is not required, error occurs before writing to database
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-                }
-            }
+            validateAuthenticationConfigRequest(request.getAuthentication(), request.getCallbackUrl());
 
             final CallbackUrlEntity entity = new CallbackUrlEntity();
             entity.setId(UUID.randomUUID().toString());
@@ -189,6 +173,8 @@ public class CallbackUrlBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
+
+            validateAuthenticationConfigRequest(request.getAuthentication(), request.getCallbackUrl());
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -523,6 +509,32 @@ public class CallbackUrlBehavior {
      */
     private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
         return callbackUrlEventService.obtainMaxAttempts(callbackUrlEntity) > 0;
+    }
+
+    /**
+     * Validate request so that the authentication configuration is valid.
+     * @param authentication Authentication.
+     * @param callbackUrl Callback URL.
+     * @throws GenericServiceException Thrown when request validation fails.
+     */
+    private void validateAuthenticationConfigRequest(HttpAuthenticationPrivate authentication, String callbackUrl) throws GenericServiceException {
+        if (authentication != null && authentication.getCertificate() != null) {
+            HttpAuthenticationPrivate.Certificate certificate = authentication.getCertificate();
+
+            if (certificate.isUseCustomKeyStore() &&
+                    StringUtils.hasText(certificate.getKeyStoreLocation()) &&
+                    StringUtils.hasText(certificate.getKeyStoreContent())) {
+                logger.warn("Invalid keystore configuration for callback URL: {}", callbackUrl);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            if (certificate.isUseCustomTrustStore() &&
+                    StringUtils.hasText(certificate.getTrustStoreLocation()) &&
+                    StringUtils.hasText(certificate.getTrustStoreContent())) {
+                logger.warn("Invalid truststore configuration for callback URL: {}", callbackUrl);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+        }
     }
 
 }
