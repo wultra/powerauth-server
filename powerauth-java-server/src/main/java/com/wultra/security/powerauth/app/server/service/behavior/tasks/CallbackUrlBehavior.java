@@ -519,7 +519,7 @@ public class CallbackUrlBehavior {
      */
     private void validateAuthenticationConfigRequest(HttpAuthenticationPrivate authentication, String callbackUrl) throws GenericServiceException {
         if (authentication != null && authentication.getCertificate() != null) {
-            HttpAuthenticationPrivate.Certificate certificate = authentication.getCertificate();
+            final HttpAuthenticationPrivate.Certificate certificate = authentication.getCertificate();
 
             if (certificate.isUseCustomKeyStore() &&
                     StringUtils.hasText(certificate.getKeyStoreLocation()) &&
