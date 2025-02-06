@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -207,7 +208,7 @@ public class ApplicationServiceBehavior {
             application = applicationRepository.save(application);
 
             final KeyGenerator keyGen = new KeyGenerator();
-            final KeyPair kp = keyGen.generateKeyPair();
+            final KeyPair kp = keyGen.generateKeyPair(EcCurve.P256);
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
@@ -219,7 +220,7 @@ public class ApplicationServiceBehavior {
             final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
             keyPair.setApplication(application);
             keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(publicKey)));
+            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
             keyPair.setTimestampCreated(new Date());
             keyPair.setName(applicationId + " Default Keypair");
             masterKeyPairRepository.save(keyPair);

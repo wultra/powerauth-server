@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.server.service.fido2;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
@@ -82,7 +83,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
             }
         }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
-        final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(publicKeyBytes);
+        final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, publicKeyBytes);
         return verifySignature(clientDataJSON, authData, dataSuffix, signature, publicKey);
     }
 
@@ -93,14 +94,14 @@ public class PowerAuthCryptographyService implements CryptographyService {
             return false;
         }
         final ECPoint point = pointOptional.get();
-        final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
+        final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(EcCurve.P256, point.getX(), point.getY());
         return verifySignature(clientDataJSON, attestationObject.getAuthData(), null, signature, publicKey);
     }
 
     public byte[] publicKeyToBytes(PublicKeyObject publicKey) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
         final ECPoint point = publicKey.getPoint();
-        final PublicKey publicKeyConverted = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
-        return keyConvertor.convertPublicKeyToBytes(publicKeyConverted);
+        final PublicKey publicKeyConverted = keyConvertor.convertPointBytesToPublicKey(EcCurve.P256, point.getX(), point.getY());
+        return keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKeyConverted);
     }
 
     // private methods
@@ -114,7 +115,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
             signableData = ByteUtils.concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
         }
         final SignatureUtils signatureUtils = new SignatureUtils();
-        return signatureUtils.validateECDSASignature(signableData, signature, publicKey);
+        return signatureUtils.validateECDSASignature(EcCurve.P256, signableData, signature, publicKey);
     }
 
     private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {

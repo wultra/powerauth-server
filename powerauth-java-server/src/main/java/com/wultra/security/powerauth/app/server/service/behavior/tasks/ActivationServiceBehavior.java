@@ -49,6 +49,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -498,7 +499,7 @@ public class ActivationServiceBehavior {
                     final byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterPrivateKeyBase64);
                     final byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(
                             activation.getActivationCode(),
-                            keyConvertor.convertBytesToPrivateKey(masterPrivateKeyBytes)
+                            keyConvertor.convertBytesToPrivateKey(EcCurve.P256, masterPrivateKeyBytes)
                     );
 
                     // return the data
@@ -558,9 +559,9 @@ public class ActivationServiceBehavior {
                     // the real encryptedStatusBlob value.
                     if (devicePublicKeyBase64 != null) {
 
-                        final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
-                        final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(devicePublicKeyBase64));
-                        final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
+                        final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
+                        final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(devicePublicKeyBase64));
+                        final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverPublicKeyBase64));
 
                         final SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
                         final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
@@ -778,7 +779,7 @@ public class ActivationServiceBehavior {
                 throw ex;
             }
             final byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterKeyPair.getMasterKeyPrivateBase64());
-            final PrivateKey masterPrivateKey = keyConvertor.convertBytesToPrivateKey(masterPrivateKeyBytes);
+            final PrivateKey masterPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, masterPrivateKeyBytes);
 
             // Generate new activation data, generate a unique activation ID
             String activationId = null;
@@ -823,7 +824,7 @@ public class ActivationServiceBehavior {
             // Generate server key pair
             final KeyPair serverKeyPair = powerAuthServerActivation.generateServerKeyPair();
             final byte[] serverKeyPrivateBytes = keyConvertor.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
-            final byte[] serverKeyPublicBytes = keyConvertor.convertPublicKeyToBytes(serverKeyPair.getPublic());
+            final byte[] serverKeyPublicBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, serverKeyPair.getPublic());
 
             // Store the new activation
             final ActivationRecordEntity activation = new ActivationRecordEntity();
@@ -1001,7 +1002,7 @@ public class ActivationServiceBehavior {
                 }
 
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
             }
 
             // Get server encryptor
@@ -1066,7 +1067,7 @@ public class ActivationServiceBehavior {
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey = null;
             try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
@@ -1081,7 +1082,7 @@ public class ActivationServiceBehavior {
             // Update the activation record
             activation.setActivationStatus(activationStatus);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
@@ -1274,7 +1275,7 @@ public class ActivationServiceBehavior {
                     throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                 }
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
             }
 
             // Get server encryptor
@@ -1309,7 +1310,7 @@ public class ActivationServiceBehavior {
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
                 logger.warn("Device public key is invalid, activation ID: {}", activationId);
                 // Device public key is invalid, rollback this transaction
@@ -1324,7 +1325,7 @@ public class ActivationServiceBehavior {
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
@@ -1936,7 +1937,7 @@ public class ActivationServiceBehavior {
                     throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                 }
                 final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
             }
 
             // Get server encryptor
@@ -2090,7 +2091,7 @@ public class ActivationServiceBehavior {
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
                 logger.warn("Device public key is invalid, activation ID: {}", activationId);
                 // Device public key is invalid, rollback this transaction
@@ -2105,7 +2106,7 @@ public class ActivationServiceBehavior {
             // Update and persist the activation record, activation is automatically committed in the next step in RESTful integration.
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());

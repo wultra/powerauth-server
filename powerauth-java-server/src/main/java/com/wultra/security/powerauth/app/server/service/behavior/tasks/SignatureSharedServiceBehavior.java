@@ -35,6 +35,7 @@ import com.wultra.security.powerauth.app.server.service.model.signature.OfflineS
 import com.wultra.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -250,8 +251,8 @@ public class SignatureSharedServiceBehavior {
         // Decode the keys to byte[]
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
         final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-        final PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
-        final PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
+        final PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
+        final PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
 
         // Compute the master secret key
         final SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);

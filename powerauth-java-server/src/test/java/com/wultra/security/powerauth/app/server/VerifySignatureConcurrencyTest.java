@@ -18,6 +18,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Disabled;
@@ -68,9 +69,9 @@ public class VerifySignatureConcurrencyTest {
 
         // Generate public key for non-existent client device
         KeyGenerator keyGenerator = new KeyGenerator();
-        KeyPair keyPair = keyGenerator.generateKeyPair();
+        KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P256);
         PublicKey publicKey = keyPair.getPublic();
-        byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
+        byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKey);
 
         // Generate expiration time
         Calendar expiration = Calendar.getInstance();
@@ -84,7 +85,7 @@ public class VerifySignatureConcurrencyTest {
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         GetApplicationDetailResponse detailResponse = applicationServiceBehavior.getApplicationDetail(detailRequest);
 
-        PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
+        PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
         final String version = "3.2";
         final String applicationKey = createApplicationVersionResponse.getApplicationKey();
