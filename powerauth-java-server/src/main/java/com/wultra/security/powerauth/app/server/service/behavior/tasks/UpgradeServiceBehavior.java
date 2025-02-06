@@ -41,11 +41,11 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -105,7 +105,7 @@ public class UpgradeServiceBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build and validate encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -173,10 +173,10 @@ public class UpgradeServiceBehavior {
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.UPGRADE,
                     new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
@@ -206,7 +206,7 @@ public class UpgradeServiceBehavior {
             // Encrypt response payload and return it
             final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(payloadBytes);
+            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(payloadBytes);
 
             final StartUpgradeResponse response = new StartUpgradeResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());

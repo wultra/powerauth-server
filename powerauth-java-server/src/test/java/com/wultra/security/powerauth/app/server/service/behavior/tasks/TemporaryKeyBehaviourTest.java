@@ -36,11 +36,12 @@ import com.wultra.security.powerauth.app.server.service.model.request.Activation
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -219,11 +220,11 @@ class TemporaryKeyBehaviourTest {
         final String applicationKey = applicationVersion.getApplicationKey();
         final String applicationSecret = applicationVersion.getApplicationSecret();
 
-        final ClientEncryptor clientEncryptor = new EncryptorFactory().getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters("3.3", applicationKey, null, temporaryKeyId),
-                new ClientEncryptorSecrets(temporaryPublicKey, applicationSecret));
-        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(activationLayer2Request));
+                new ClientEciesSecrets(temporaryPublicKey, applicationSecret));
+        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(activationLayer2Request));
 
         final CreateActivationRequest activationRequest = new CreateActivationRequest();
         activationRequest.setUserId(UUID.randomUUID().toString());

@@ -13,10 +13,11 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.OnlineSig
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Disabled;
@@ -87,15 +88,15 @@ public class VerifySignatureConcurrencyTest {
 
         final String version = "3.2";
         final String applicationKey = createApplicationVersionResponse.getApplicationKey();
-        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters(version, applicationKey, null, null),
-                new ClientEncryptorSecrets(masterPublicKey, createApplicationVersionResponse.getApplicationSecret())
+                new ClientEciesSecrets(masterPublicKey, createApplicationVersionResponse.getApplicationSecret())
         );
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         new ObjectMapper().writeValue(baos, requestL2);
-        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(baos.toByteArray());
+        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(baos.toByteArray());
 
         // Create activation
         CreateActivationRequest createActivationRequest = new CreateActivationRequest();

@@ -48,11 +48,12 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -128,7 +129,7 @@ public class TokenBehavior {
             final SignatureType signatureType = request.getSignatureType();
             final String temporaryKeyId = request.getTemporaryKeyId();
 
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -136,7 +137,7 @@ public class TokenBehavior {
                     request.getNonce(),
                     request.getTimestamp()
             );
-            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, temporaryKeyId, keyConvertor);
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, temporaryKeyId, keyConvertor);
             final CreateTokenResponse response = new CreateTokenResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
@@ -293,7 +294,7 @@ public class TokenBehavior {
      * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
+    private EncryptedResponse createToken(String activationId, String applicationKey, EciesEncryptedRequest encryptedRequest,
                                           String signatureType, String version, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
@@ -339,10 +340,10 @@ public class TokenBehavior {
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CREATE_TOKEN,
                     new EncryptorParameters(version, applicationKey, activationId, temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
             serverEncryptor.decryptRequest(encryptedRequest);

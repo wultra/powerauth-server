@@ -45,11 +45,11 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -124,7 +124,7 @@ public class VaultUnlockServiceBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -204,10 +204,10 @@ public class VaultUnlockServiceBehavior {
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.VAULT_UNLOCK,
                     new EncryptorParameters(signatureVersion, applicationKey, activationId, temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Decrypt request to obtain vault unlock reason
             final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
@@ -263,7 +263,7 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(reponsePayloadBytes);
+            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(reponsePayloadBytes);
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
