@@ -47,6 +47,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -188,7 +189,7 @@ public class UpgradeServiceBehavior {
             boolean activationShouldBeSaved = false;
             if (activation.getCtrDataBase64() == null) {
                 // Initialize hash based counter
-                final HashBasedCounter hashBasedCounter = new HashBasedCounter();
+                final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
                 final byte[] ctrData = hashBasedCounter.init();
                 ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
                 activation.setCtrDataBase64(ctrDataBase64);

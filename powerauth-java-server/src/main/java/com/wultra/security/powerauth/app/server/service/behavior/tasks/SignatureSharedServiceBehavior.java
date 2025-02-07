@@ -37,6 +37,7 @@ import com.wultra.security.powerauth.app.server.service.model.signature.Signatur
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -272,7 +273,7 @@ public class SignatureSharedServiceBehavior {
         byte[] ctrHash = null;
         // Next hash based counter value used in case signature is valid
         byte[] ctrDataNext = null;
-        final HashBasedCounter hashBasedCounter = new HashBasedCounter();
+        final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
         // Get counter data from activation for version 3
         if (signatureVersion == 3) {
             ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());

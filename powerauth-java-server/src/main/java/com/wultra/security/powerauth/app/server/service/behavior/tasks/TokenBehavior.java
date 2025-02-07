@@ -365,7 +365,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
             // Perform the following operations before writing to database to avoid rollbacks.
-            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret());
+            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret(version));
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);

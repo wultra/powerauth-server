@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -201,7 +202,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             }
 
             // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter();
+            final HashBasedCounter counter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 

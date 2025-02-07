@@ -1075,7 +1075,7 @@ public class ActivationServiceBehavior {
             }
 
             // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter();
+            final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
@@ -1318,7 +1318,7 @@ public class ActivationServiceBehavior {
             }
 
             // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter();
+            final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
@@ -2099,7 +2099,7 @@ public class ActivationServiceBehavior {
             }
 
             // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter();
+            final HashBasedCounter counter = new HashBasedCounter(version);
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
