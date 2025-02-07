@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -192,7 +193,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();
             PublicKey devicePublicKey = null;
             try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
                 logger.warn("Invalid public key, activation ID: {}, {}", activation.getActivationId(), ex.getMessage());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
@@ -207,7 +208,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Update the activation record
             activation.setActivationStatus(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(authenticatorDetail.getActivationName());
             activation.setExternalId(authenticatorDetail.getCredentialId());
             activation.setExtras(objectMapper.writeValueAsString(authenticatorDetail.getExtras()));

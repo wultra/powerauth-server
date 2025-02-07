@@ -42,6 +42,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -131,7 +132,7 @@ class TemporaryKeyBehaviourTest {
         assertNotNull(response.getJwt());
         final SignedJWT decodedJWT = SignedJWT.parse(request.getJwt());
         final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyBase64();
-        final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(Base64.getDecoder().decode(masterPublicKeyBase64));
+        final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterPublicKeyBase64));
         validateJwtSignature(decodedJWT, masterPublicKey);
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
@@ -172,7 +173,7 @@ class TemporaryKeyBehaviourTest {
         final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
         final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
         final String temporaryPublicKeyRaw = (String) decodedJWT.getJWTClaimsSet().getClaim("publicKey");
-        final PublicKey temporaryPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(Base64.getDecoder().decode(temporaryPublicKeyRaw));
+        final PublicKey temporaryPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(temporaryPublicKeyRaw));
         // extract temporary key and use it during an activation
         final String activationId = createActivation(defaultVersion, temporaryKeyId, temporaryPublicKey);
         final byte[] challengeBytesActivation = KEY_GENERATOR.generateRandomBytes(18);
@@ -245,15 +246,15 @@ class TemporaryKeyBehaviourTest {
 
     private String generatePublicKey() throws Exception {
         final KeyGenerator keyGenerator = new KeyGenerator();
-        final KeyPair keyPair = keyGenerator.generateKeyPair();
-        final byte[] publicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(keyPair.getPublic());
+        final KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P256);
+        final byte[] publicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, keyPair.getPublic());
         return Base64.getEncoder().encodeToString(publicKeyBytes);
     }
 
     private PublicKey getServerPublicKey(String activationId) throws Exception {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).get();
         final String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
-        return KEY_CONVERTOR.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
+        return KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverPublicKeyBase64));
     }
 
     private SecretKey getMasterTransportKey(String activationId) throws Exception {
@@ -264,11 +265,11 @@ class TemporaryKeyBehaviourTest {
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
         final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(serverPrivateKeyBytes);
+        final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
 
         // Get application secret and transport key used in sharedInfo2 parameter of ECIES
         final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-        final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(devicePublicKeyBytes);
+        final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
         final SecretKey transportKey = PA_SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
         final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
         return KEY_CONVERTOR.convertBytesToSharedSecretKey(transportKeyBytes);
@@ -316,7 +317,7 @@ class TemporaryKeyBehaviourTest {
         final Base64URL encodedSignature = jwtParts[2];
         final String signingInput = encodedHeader + "." + encodedPayload;
         final byte[] signatureBytes = convertRawSignatureToDER(encodedSignature.decode());
-        return SIGNATURE_UTILS.validateECDSASignature(signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
+        return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
     }
 
     private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws Exception {

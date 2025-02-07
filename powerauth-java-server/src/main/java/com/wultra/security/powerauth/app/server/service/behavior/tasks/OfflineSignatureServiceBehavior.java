@@ -44,6 +44,7 @@ import com.wultra.security.powerauth.app.server.service.model.signature.Signatur
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -172,14 +173,14 @@ public class OfflineSignatureServiceBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
             // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             // {DATA} consist of data from request plus optional generated proximity TOTP value
             final SignatureUtils signatureUtils = new SignatureUtils();
             final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
+            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(EcCurve.P256, signatureBase, privateKey);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
@@ -265,12 +266,12 @@ public class OfflineSignatureServiceBehavior {
 
             // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(keyPrivateBase64));
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(keyPrivateBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
+            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(EcCurve.P256, signatureBase, privateKey);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'

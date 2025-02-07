@@ -33,6 +33,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -106,10 +107,10 @@ public class AsymmetricSignatureServiceBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Sign data with the private key
-            final byte[] signature = signatureUtils.computeECDSASignature(Base64.getDecoder().decode(data), serverPrivateKey);
+            final byte[] signature = signatureUtils.computeECDSASignature(EcCurve.P256, Base64.getDecoder().decode(data), serverPrivateKey);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
             final SignECDSAResponse response = new SignECDSAResponse();
@@ -166,13 +167,13 @@ public class AsymmetricSignatureServiceBehavior {
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyData);
 
             final byte[] dataBytes = Base64.getDecoder().decode(data);
             final byte[] signatureBytes = Base64.getDecoder().decode(signature);
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
-            final boolean matches = signatureUtils.validateECDSASignature(dataBytes, signatureBytesDER, devicePublicKey);
+            final boolean matches = signatureUtils.validateECDSASignature(EcCurve.P256, dataBytes, signatureBytesDER, devicePublicKey);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)
@@ -209,7 +210,7 @@ public class AsymmetricSignatureServiceBehavior {
      * @return Signature value in DER format.
      * @throws JOSEException In case JOSE conversion fails.
      */
-    private byte[] signatureDER(ECDSASignatureFormat signatureFormat, byte[] signature) throws JOSEException {;
+    private byte[] signatureDER(ECDSASignatureFormat signatureFormat, byte[] signature) throws JOSEException {
         return (signatureFormat == ECDSASignatureFormat.JOSE) ? ECDSA.transcodeSignatureToDER(signature) : signature;
     }
 

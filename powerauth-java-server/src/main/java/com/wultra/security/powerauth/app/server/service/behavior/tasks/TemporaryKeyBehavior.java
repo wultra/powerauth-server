@@ -48,6 +48,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifier16B;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -207,7 +208,7 @@ public class TemporaryKeyBehavior {
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
         final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
         final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        return keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+        return keyConvertor.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
     }
 
     /**
@@ -263,8 +264,8 @@ public class TemporaryKeyBehavior {
 
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
 
-                final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
-                final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPublicBase64()));
+                final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
+                final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPublicBase64()));
 
                 final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
 
@@ -293,13 +294,13 @@ public class TemporaryKeyBehavior {
                 final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
                 final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
                 final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
-                final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+                final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
 
                 final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-                final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
+                final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
                 final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-                final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
                 final SecretKey transportKey = keyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
 
                 final byte[] applicationSecretKeyBytes = Base64.getDecoder().decode(applicationSecret);
@@ -320,7 +321,7 @@ public class TemporaryKeyBehavior {
     private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp) throws CryptoProviderException, GenericServiceException {
 
         // Generate a temporary key pair
-        final KeyPair temporaryKeyPair = keyGenerator.generateKeyPair();
+        final KeyPair temporaryKeyPair = keyGenerator.generateKeyPair(EcCurve.P256);
 
         // Prepare the parameters key pair
         final String keyId = UUID.randomUUID().toString();
@@ -328,7 +329,7 @@ public class TemporaryKeyBehavior {
         final String activationId = requestClaims.getActivationId();
         final String challenge = requestClaims.getChallenge();
         final byte[] privateKeyBytes = keyConvertor.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate());
-        final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(temporaryKeyPair.getPublic()));
+        final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, temporaryKeyPair.getPublic()));
         final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidity().toMillis()));
 
         // Prepare encrypted temporary private key, if encryption is enabled

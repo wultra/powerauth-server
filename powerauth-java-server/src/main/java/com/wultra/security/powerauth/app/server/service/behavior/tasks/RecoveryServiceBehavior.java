@@ -51,6 +51,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.RecoveryInfo;
@@ -171,9 +172,9 @@ public class RecoveryServiceBehavior {
             final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(encryptionMode, recoveryPrivateKeyBase64);
             String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationEntity.getRid());
             final byte[] privateKeyBytes = Base64.getDecoder().decode(decryptedPrivateKey);
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(privateKeyBytes);
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, privateKeyBytes);
             final byte[] publicKeyBytes = Base64.getDecoder().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
-            final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(publicKeyBytes);
+            final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, publicKeyBytes);
 
             final SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
             String recoveryCode = null;
@@ -323,13 +324,13 @@ public class RecoveryServiceBehavior {
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
 
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
@@ -703,11 +704,11 @@ public class RecoveryServiceBehavior {
             if (request.isRecoveryPostcardEnabled() && recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null) {
                 // Private key does not exist, generate key pair and persist it
                 KeyGenerator keyGen = new KeyGenerator();
-                KeyPair kp = keyGen.generateKeyPair();
+                KeyPair kp = keyGen.generateKeyPair(EcCurve.P256);
                 PrivateKey privateKey = kp.getPrivate();
                 PublicKey publicKey = kp.getPublic();
                 byte[] privateKeyBytes = keyConvertor.convertPrivateKeyToBytes(privateKey);
-                byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
+                byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKey);
                 String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
 
                 RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationEntity.getRid());

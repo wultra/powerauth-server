@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Test;
@@ -406,7 +407,7 @@ class ActivationServiceBehaviorTest {
 
         // Encrypt createActivation request payload
         final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
-        final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
+        final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
         final String applicationSecret = applicationDetail.getVersions().get(0).getApplicationSecret();
 
         final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
@@ -463,8 +464,8 @@ class ActivationServiceBehaviorTest {
 
     private String generatePublicKey() throws Exception {
         final KeyGenerator keyGenerator = new KeyGenerator();
-        final KeyPair keyPair = keyGenerator.generateKeyPair();
-        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(keyPair.getPublic());
+        final KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P256);
+        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, keyPair.getPublic());
         return Base64.getEncoder().encodeToString(publicKeyBytes);
     }
 
@@ -496,7 +497,7 @@ class ActivationServiceBehaviorTest {
 
         // Set parameters
         final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
-        final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
+        final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
         final String applicationSecret = applicationDetail.getVersions().get(0).getApplicationSecret();
 
         // Encrypt payload

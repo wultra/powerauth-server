@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
@@ -1309,7 +1310,7 @@ class PowerAuthControllerTest {
      * @throws Exception if there is an error during the conversion process.
      */
     private PublicKey wrapPublicKeyString() throws Exception {
-        return keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(config.getMasterPublicKey()));
+        return keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(config.getMasterPublicKey()));
     }
 
     /**
@@ -1331,9 +1332,9 @@ class PowerAuthControllerTest {
      * @throws Exception if there is an error during the encryption or serialization process.
      */
     private EciesEncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
-        final KeyPair keyPair = keyGenerator.generateKeyPair();
+        final KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P256);
         final PublicKey publicKey = keyPair.getPublic();
-        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
+        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKey);
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
