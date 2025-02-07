@@ -37,11 +37,12 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -169,14 +170,14 @@ public class EciesEncryptionBehavior {
             }
 
             // Build encryptor to derive shared info
-            final ServerEncryptor encryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> encryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.APPLICATION_SCOPE_GENERIC,
                     new EncryptorParameters(request.getProtocolVersion(), applicationVersion.getApplicationKey(), null, temporaryKeyId),
-                    new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
+                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
             // Calculate secrets for the external encryptor
-            final EncryptorSecrets encryptorSecrets = encryptor.calculateSecretsForExternalEncryptor(
-                    new EncryptedRequest(
+            final EncryptorSecrets encryptorSecrets = encryptor.deriveSecretsForExternalEncryptor(
+                    new EciesEncryptedRequest(
                             request.getTemporaryKeyId(),
                             request.getEphemeralPublicKey(),
                             null,
@@ -185,7 +186,7 @@ public class EciesEncryptionBehavior {
                             request.getTimestamp()
                     )
             );
-            if (encryptorSecrets instanceof ServerEncryptorSecrets encryptorSecretsV3) {
+            if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
                 // ECIES V3.0, V3.1, V3.2
                 final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
                 response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
@@ -284,14 +285,14 @@ public class EciesEncryptionBehavior {
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
 
             // Build encryptor to derive shared info
-            final ServerEncryptor encryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> encryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_SCOPE_GENERIC,
                     new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Calculate secrets for the external encryptor. The request object may not contain encrypted data and mac.
-            final EncryptorSecrets encryptorSecrets = encryptor.calculateSecretsForExternalEncryptor(
-                    new EncryptedRequest(
+            final EncryptorSecrets encryptorSecrets = encryptor.deriveSecretsForExternalEncryptor(
+                    new EciesEncryptedRequest(
                             temporaryKeyId,
                             ephemeralPublicKey,
                             null,
@@ -300,7 +301,7 @@ public class EciesEncryptionBehavior {
                             timestamp
                     )
             );
-            if (encryptorSecrets instanceof ServerEncryptorSecrets encryptorSecretsV3) {
+            if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
                 // ECIES V3.0, V3.1, V3.2
                 final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
                 response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));

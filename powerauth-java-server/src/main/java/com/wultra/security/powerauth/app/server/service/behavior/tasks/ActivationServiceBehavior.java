@@ -44,11 +44,11 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -942,7 +942,7 @@ public class ActivationServiceBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -1005,10 +1005,10 @@ public class ActivationServiceBehavior {
             }
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
                     new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
-                    new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
+                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
             // Decrypt activation data
@@ -1117,7 +1117,7 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
+            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -1188,7 +1188,7 @@ public class ActivationServiceBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -1278,10 +1278,10 @@ public class ActivationServiceBehavior {
             }
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
                     new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
-                    new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
+                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
             // Decrypt activation data
@@ -1354,7 +1354,7 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
+            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
 
             // Generate encrypted response
             final CreateActivationResponse response = new CreateActivationResponse();
@@ -1873,7 +1873,7 @@ public class ActivationServiceBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Prepare and validate encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -1940,10 +1940,10 @@ public class ActivationServiceBehavior {
             }
 
             // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
                     new EncryptorParameters(version, applicationKey, null, temporaryKeyId),
-                    new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
+                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
             // Decrypt activation data
@@ -2142,7 +2142,7 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
+            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
 
             final RecoveryCodeActivationResponse response = new RecoveryCodeActivationResponse();
             response.setActivationId(activation.getActivationId());

@@ -24,6 +24,8 @@ import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
@@ -32,8 +34,8 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.BeforeAll;
@@ -842,7 +844,7 @@ class PowerAuthControllerTest {
     void testVerifyOfflineSignature() throws Exception {
         initActivation();
 
-        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
+        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
 
         final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
         prepareActivationRequest.setActivationCode(config.getActivationCode());
@@ -897,7 +899,7 @@ class PowerAuthControllerTest {
     void testCreateActivation() throws Exception {
         final Date expireDate = Date.from(LocalDateTime.now().plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
         final String activationName = "TEST_ACTIVATION";
-        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(activationName);
+        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(activationName);
 
         final CreateActivationRequest createActivationRequest = new CreateActivationRequest();
         createActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
@@ -947,7 +949,7 @@ class PowerAuthControllerTest {
     void testUpdateActivationOtpAndCommit() throws Exception {
         initActivation();
         final String activationOtp = "12345678";
-        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
+        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
 
         final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
         prepareActivationRequest.setActivationCode(config.getActivationCode());
@@ -1000,12 +1002,12 @@ class PowerAuthControllerTest {
     void testGetEciesDecryptor() throws Exception {
         final String requestData = "test_data";
 
-        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
                 new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
-                new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
+                new ClientEciesSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
-        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
+        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
         final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
         eciesDecryptorRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
         eciesDecryptorRequest.setActivationId(null);
@@ -1017,10 +1019,10 @@ class PowerAuthControllerTest {
 
         final byte[] secretKey = Base64.getDecoder().decode(decryptorResponse.getSecretKey());
         final byte[] sharedInfo2Base = Base64.getDecoder().decode(decryptorResponse.getSharedInfo2());
-        final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+        final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
                 new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
-                new ServerEncryptorSecrets(secretKey, sharedInfo2Base)
+                new ServerEciesSecrets(secretKey, sharedInfo2Base)
         );
         final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
         assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
@@ -1328,7 +1330,7 @@ class PowerAuthControllerTest {
      * @return The {@link EncryptedRequest} containing the encrypted request data.
      * @throws Exception if there is an error during the encryption or serialization process.
      */
-    private EncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
+    private EciesEncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
         final KeyPair keyPair = keyGenerator.generateKeyPair();
         final PublicKey publicKey = keyPair.getPublic();
         final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
@@ -1336,10 +1338,10 @@ class PowerAuthControllerTest {
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
 
-        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null, null),
-                new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
+                new ClientEciesSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();

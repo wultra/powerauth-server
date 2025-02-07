@@ -27,11 +27,11 @@ import com.wultra.security.powerauth.app.server.service.model.request.Activation
 import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Test;
@@ -95,7 +95,7 @@ class ActivationServiceBehaviorTest {
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(publicKey);
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();
@@ -128,7 +128,7 @@ class ActivationServiceBehaviorTest {
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation with missing devicePublicKey
         final String activationCode = initActivationResponse.getActivationCode();
@@ -164,7 +164,7 @@ class ActivationServiceBehaviorTest {
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(publicKey);
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Create activation
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
@@ -190,7 +190,7 @@ class ActivationServiceBehaviorTest {
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Create activation with missing devicePublicKey
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
@@ -409,11 +409,11 @@ class ActivationServiceBehaviorTest {
         final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
         final String applicationSecret = applicationDetail.getVersions().get(0).getApplicationSecret();
 
-        final ClientEncryptor clientEncryptor = new EncryptorFactory().getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters(version, applicationKey, null, null),
-                new ClientEncryptorSecrets(masterPublicKey, applicationSecret));
-        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
+                new ClientEciesSecrets(masterPublicKey, applicationSecret));
+        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
 
         // Create activation
         final CreateActivationRequest request = new CreateActivationRequest();
@@ -475,8 +475,8 @@ class ActivationServiceBehaviorTest {
         activationServiceBehavior.commitActivation(commitActivationRequest);
     }
 
-    private ActivationLayer2Response decryptPayload(CreateActivationResponse response, ClientEncryptor clientEncryptor) throws Exception {
-        final EncryptedResponse encryptedResponse = new EncryptedResponse(response.getEncryptedData(), response.getMac(), response.getNonce(), response.getTimestamp());
+    private ActivationLayer2Response decryptPayload(CreateActivationResponse response, ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor) throws Exception {
+        final EciesEncryptedResponse encryptedResponse = new EciesEncryptedResponse(response.getEncryptedData(), response.getMac(), response.getNonce(), response.getTimestamp());
         final byte[] decryptedActivationResponsePayload = clientEncryptor.decryptResponse(encryptedResponse);
         return objectMapper.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
     }
@@ -490,7 +490,7 @@ class ActivationServiceBehaviorTest {
         return lookupRecoveryCodesResponse.getRecoveryCodes().get(0).getStatus();
     }
 
-    private EncryptedRequest buildPrepareActivationPayload(
+    private EciesEncryptedRequest buildPrepareActivationPayload(
             final ActivationLayer2Request requestL2,
             final GetApplicationDetailResponse applicationDetail) throws Exception {
 
@@ -500,15 +500,15 @@ class ActivationServiceBehaviorTest {
         final String applicationSecret = applicationDetail.getVersions().get(0).getApplicationSecret();
 
         // Encrypt payload
-        final ClientEncryptor clientEncryptor = new EncryptorFactory().getClientEncryptor(
+        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters(version, applicationKey, null, null),
-                new ClientEncryptorSecrets(masterPublicKey, applicationSecret));
+                new ClientEciesSecrets(masterPublicKey, applicationSecret));
         return clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
     }
 
     private RecoveryCodeActivationRequest buildRecoveryCodeActivationRequest(String recoveryCode, String puk, ActivationLayer2Request payload, GetApplicationDetailResponse detailResponse) throws Exception {
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(payload, detailResponse);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(payload, detailResponse);
 
         final RecoveryCodeActivationRequest recoveryCodeActivationRequest = new RecoveryCodeActivationRequest();
         recoveryCodeActivationRequest.setRecoveryCode(recoveryCode);
@@ -554,7 +554,7 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(publicKey);
         requestL2.setActivationOtp(otpToUse);
-        final EncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, applicationDetail);
+        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(requestL2, applicationDetail);
 
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();
