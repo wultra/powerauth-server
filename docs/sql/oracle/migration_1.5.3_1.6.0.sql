@@ -2,10 +2,6 @@
 -- Add unique constraint to pa_operation_template.template_name
 ALTER TABLE pa_operation_template ADD CONSTRAINT pa_operation_template_template_name_uk UNIQUE (template_name);
 
--- Changeset powerauth-java-server/1.6.x/20231103-add-activation-name-history.xml::1::Lubos Racansky
--- Add activation_name column to pa_activation_history
-ALTER TABLE pa_activation_history ADD activation_name VARCHAR2(255);
-
 -- Changeset powerauth-java-server/1.6.x/20231106-add-foreign-keys.xml::1::Jan Pesek
 ALTER TABLE pa_operation_application ADD CONSTRAINT pa_operation_application_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application (id);
 
