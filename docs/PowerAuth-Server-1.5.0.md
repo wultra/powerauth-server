@@ -115,6 +115,27 @@ CREATE TABLE PA_UNIQUE_VALUE (
 CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
 ```
 
+
+### Add activation_name Column to pa_activation_history
+
+Add a new column `activation_name` to the `pa_activation_history` table.
+Since it is possible to change the activation name, it is recorded in the history.
+
+
+#### PostgreSQL
+
+```sql
+ALTER TABLE pa_activation_history ADD activation_name VARCHAR(255);
+```
+
+
+#### Oracle
+
+```sql
+ALTER TABLE pa_activation_history ADD activation_name VARCHAR2(255);
+```
+
+
 ### Drop MySQL Support
 
 Since version `1.5.0`, MySQL database is not supported anymore.
