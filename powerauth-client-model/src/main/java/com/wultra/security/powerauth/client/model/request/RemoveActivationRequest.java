@@ -37,7 +37,4 @@ public class RemoveActivationRequest {
     @Schema(description = "External user identifier")
     private String externalUserId;
 
-    @Schema(description = "Whether recovery codes should be revoked")
-    private boolean revokeRecoveryCodes;
-
 }

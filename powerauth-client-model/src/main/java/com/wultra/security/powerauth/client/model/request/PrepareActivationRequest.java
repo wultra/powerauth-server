@@ -39,9 +39,6 @@ public class PrepareActivationRequest {
     @NotBlank(message = "Application key must not be empty when preparing activation")
     private String applicationKey;
 
-    @Schema(description = "Whether recovery codes should be generated")
-    private boolean generateRecoveryCodes;
-
     @Schema(description = "Identifier of the temporary key for encryption")
     private String temporaryKeyId;
 

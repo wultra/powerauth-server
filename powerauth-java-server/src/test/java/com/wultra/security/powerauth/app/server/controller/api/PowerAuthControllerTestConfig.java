@@ -37,7 +37,6 @@ import java.util.UUID;
 @Data
 public class PowerAuthControllerTestConfig {
 
-    protected static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
     protected static final String USER_ID = "test-user";
     protected static final String DATA = "A2";
     protected static final String CALLBACK_NAME = UUID.randomUUID().toString();

@@ -157,7 +157,6 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         try {
             final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
             removeActivationRequest.setActivationId(activationId);
-            removeActivationRequest.setRevokeRecoveryCodes(true);
             removeActivationRequest.setExternalUserId(null);
             activations.removeActivation(removeActivationRequest);
         } catch (GenericServiceException e) {

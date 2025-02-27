@@ -64,7 +64,6 @@ class ActivationServiceBehaviorTest {
     private ActivationServiceBehavior tested;
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
-    private final RecoveryServiceBehavior recoveryServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
@@ -73,9 +72,8 @@ class ActivationServiceBehaviorTest {
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, RecoveryServiceBehavior recoveryServiceBehavior, ActivationServiceBehavior activationServiceBehavior) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
-        this.recoveryServiceBehavior = recoveryServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
     }
 
@@ -103,7 +101,6 @@ class ActivationServiceBehaviorTest {
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
-        request.setGenerateRecoveryCodes(false);
         request.setProtocolVersion(version);
         request.setApplicationKey(applicationKey);
         request.setMac(encryptedRequest.getMac());
@@ -137,7 +134,6 @@ class ActivationServiceBehaviorTest {
 
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
-        request.setGenerateRecoveryCodes(false);
         request.setProtocolVersion(version);
         request.setApplicationKey(applicationKey);
         request.setMac(encryptedRequest.getMac());
@@ -173,7 +169,6 @@ class ActivationServiceBehaviorTest {
         request.setApplicationKey(applicationKey);
         request.setUserId(userId);
         request.setProtocolVersion(version);
-        request.setGenerateRecoveryCodes(false);
         request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         request.setNonce(encryptedRequest.getNonce());
         request.setTimestamp(encryptedRequest.getTimestamp());
@@ -200,7 +195,6 @@ class ActivationServiceBehaviorTest {
             request.setApplicationKey(applicationKey);
             request.setUserId(userId);
             request.setProtocolVersion(version);
-            request.setGenerateRecoveryCodes(false);
             request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
             request.setNonce(encryptedRequest.getNonce());
             request.setTimestamp(encryptedRequest.getTimestamp());
@@ -209,59 +203,6 @@ class ActivationServiceBehaviorTest {
             tested.createActivation(request);
         });
 
-        assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
-    }
-
-    @Test
-    void testCreateActivationUsingRecoveryCode() throws Exception {
-        // Create application
-        final GetApplicationDetailResponse detailResponse = createApplication();
-
-        // Create activation with recovery code
-        final ActivationLayer2Response responsePayload = createActivationAndGetResponsePayload(detailResponse);
-
-        // Generate public key for a new client device
-        final String publicKeyBytes = generatePublicKey();
-
-        // Build createActivation request payload
-        final ActivationLayer2Request activationLayer2Request = new ActivationLayer2Request();
-        activationLayer2Request.setDevicePublicKey(publicKeyBytes);
-
-        // Create activation using recovery code
-        final String recoveryCode = responsePayload.getActivationRecovery().getRecoveryCode();
-        final String puk = responsePayload.getActivationRecovery().getPuk();
-        final RecoveryCodeActivationRequest recoveryCodeActivationRequest =
-                buildRecoveryCodeActivationRequest(recoveryCode, puk, activationLayer2Request, detailResponse);
-
-        // Create activation
-        final RecoveryCodeActivationResponse recoveryCodeActivationResponse = tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest);
-
-        // Check new activation was created
-        assertNotEquals(responsePayload.getActivationId(), recoveryCodeActivationResponse.getActivationId());
-
-        // Check used recovery code is revoked
-        final RecoveryCodeStatus recoveryCodeStatus = getRecoveryCodeStatus(userId, responsePayload.getActivationId(), detailResponse.getApplicationId());
-        assertEquals(RecoveryCodeStatus.REVOKED, recoveryCodeStatus);
-    }
-
-    @Test
-    void testCreateActivationUsingRecoveryCodeWithInvalidPayload() throws Exception {
-        // Create application
-        final GetApplicationDetailResponse detailResponse = createApplication();
-
-        // Create activation with recovery code
-        final ActivationLayer2Response responsePayload = createActivationAndGetResponsePayload(detailResponse);
-
-        // Build createActivation request payload, now omit device public key
-        final ActivationLayer2Request activationLayer2Request = new ActivationLayer2Request();
-
-        // Create activation using recovery code
-        final RecoveryCodeActivationRequest recoveryCodeActivationRequest = buildRecoveryCodeActivationRequest(responsePayload.getActivationRecovery().getRecoveryCode(),
-                responsePayload.getActivationRecovery().getPuk(), activationLayer2Request, detailResponse);
-
-        // Create activation with missing devicePublicKey
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-                tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest));
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
@@ -394,10 +335,6 @@ class ActivationServiceBehaviorTest {
     private ActivationLayer2Response createActivationAndGetResponsePayload(GetApplicationDetailResponse applicationDetail) throws Exception {
         final String applicationId = applicationDetail.getApplicationId();
 
-        // Set recovery config
-        enableRecoveryCodesGeneration(applicationId);
-        assertTrue(isRecoveryCodeGenerationEnabled(applicationId));
-
         // Generate public key for a client device
         final String publicKeyBytes = generatePublicKey();
 
@@ -421,7 +358,6 @@ class ActivationServiceBehaviorTest {
         request.setApplicationKey(applicationKey);
         request.setUserId(userId);
         request.setProtocolVersion(version);
-        request.setGenerateRecoveryCodes(true);
         request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         request.setNonce(encryptedRequest.getNonce());
         request.setTimestamp(encryptedRequest.getTimestamp());
@@ -437,29 +373,7 @@ class ActivationServiceBehaviorTest {
         assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationId));
 
         // Decrypt createActivation response payload
-        final ActivationLayer2Response responsePayload = decryptPayload(createActivationResponse, clientEncryptor);
-
-        // Check recovery was created
-        assertNotNull(responsePayload.getActivationRecovery());
-
-        // Check recovery code is active
-        assertEquals(RecoveryCodeStatus.ACTIVE, getRecoveryCodeStatus(userId, activationId, applicationDetail.getApplicationId()));
-
-        return responsePayload;
-    }
-
-    private void enableRecoveryCodesGeneration(String applicationId) throws Exception {
-        final UpdateRecoveryConfigRequest updateRecoveryConfigRequest = new UpdateRecoveryConfigRequest();
-        updateRecoveryConfigRequest.setApplicationId(applicationId);
-        updateRecoveryConfigRequest.setActivationRecoveryEnabled(true);
-        recoveryServiceBehavior.updateRecoveryConfig(updateRecoveryConfigRequest);
-    }
-
-    private boolean isRecoveryCodeGenerationEnabled(String applicationId) throws Exception {
-        final GetRecoveryConfigRequest getRecoveryConfigRequest = new GetRecoveryConfigRequest();
-        getRecoveryConfigRequest.setApplicationId(applicationId);
-        final GetRecoveryConfigResponse recoveryConfigResponse = recoveryServiceBehavior.getRecoveryConfig(getRecoveryConfigRequest);
-        return recoveryConfigResponse.isActivationRecoveryEnabled();
+        return decryptPayload(createActivationResponse, clientEncryptor);
     }
 
     private String generatePublicKey() throws Exception {
@@ -482,15 +396,6 @@ class ActivationServiceBehaviorTest {
         return objectMapper.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
     }
 
-    private RecoveryCodeStatus getRecoveryCodeStatus(String userId, String activationId, String applicationId) throws Exception {
-        final LookupRecoveryCodesRequest lookupRecoveryCodesRequest = new LookupRecoveryCodesRequest();
-        lookupRecoveryCodesRequest.setUserId(userId);
-        lookupRecoveryCodesRequest.setActivationId(activationId);
-        lookupRecoveryCodesRequest.setApplicationId(applicationId);
-        final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = recoveryServiceBehavior.lookupRecoveryCodes(lookupRecoveryCodesRequest);
-        return lookupRecoveryCodesResponse.getRecoveryCodes().get(0).getStatus();
-    }
-
     private EciesEncryptedRequest buildPrepareActivationPayload(
             final ActivationLayer2Request requestL2,
             final GetApplicationDetailResponse applicationDetail) throws Exception {
@@ -506,23 +411,6 @@ class ActivationServiceBehaviorTest {
                 new EncryptorParameters(version, applicationKey, null, null),
                 new ClientEciesSecrets(masterPublicKey, applicationSecret));
         return clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
-    }
-
-    private RecoveryCodeActivationRequest buildRecoveryCodeActivationRequest(String recoveryCode, String puk, ActivationLayer2Request payload, GetApplicationDetailResponse detailResponse) throws Exception {
-        final EciesEncryptedRequest encryptedRequest = buildPrepareActivationPayload(payload, detailResponse);
-
-        final RecoveryCodeActivationRequest recoveryCodeActivationRequest = new RecoveryCodeActivationRequest();
-        recoveryCodeActivationRequest.setRecoveryCode(recoveryCode);
-        recoveryCodeActivationRequest.setPuk(puk);
-        recoveryCodeActivationRequest.setApplicationKey(detailResponse.getVersions().get(0).getApplicationKey());
-        recoveryCodeActivationRequest.setProtocolVersion(version);
-        recoveryCodeActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
-        recoveryCodeActivationRequest.setMac(encryptedRequest.getMac());
-        recoveryCodeActivationRequest.setNonce(encryptedRequest.getNonce());
-        recoveryCodeActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
-        recoveryCodeActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-
-        return recoveryCodeActivationRequest;
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
@@ -562,7 +450,6 @@ class ActivationServiceBehaviorTest {
         final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
-        request.setGenerateRecoveryCodes(false);
         request.setProtocolVersion(version);
         request.setApplicationKey(applicationKey);
         request.setMac(encryptedRequest.getMac());

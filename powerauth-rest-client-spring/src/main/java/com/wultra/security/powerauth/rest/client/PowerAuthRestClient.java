@@ -31,7 +31,6 @@ import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
-import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
@@ -155,15 +154,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
             if (error == null || error.getResponseObject() == null) {
                 throw new PowerAuthClientException("Invalid response object");
             }
-            if ("ERR_RECOVERY".equals(error.getResponseObject().getCode())) {
-                // In case of special recovery errors, return PowerAuthErrorRecovery which includes additional information about recovery
-                final TypeReference<ObjectResponse<PowerAuthErrorRecovery>> PowerAuthErrorRecovery = new TypeReference<>(){};
-                final ObjectResponse<PowerAuthErrorRecovery> errorRecovery = objectMapper.readValue(ex.getResponse(), PowerAuthErrorRecovery);
-                if (errorRecovery == null || errorRecovery.getResponseObject() == null) {
-                    throw new PowerAuthClientException("Invalid response object for recovery");
-                }
-                throw new PowerAuthClientException(errorRecovery.getResponseObject().getMessage(), ex, errorRecovery.getResponseObject());
-            }
             throw new PowerAuthClientException(error.getResponseObject().getMessage(), ex, error.getResponseObject());
         } catch (IOException ex2) {
             // Parsing failed, return a regular error
@@ -263,11 +253,10 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
-        request.setGenerateRecoveryCodes(shouldGenerateRecoveryCodes);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
@@ -402,15 +391,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
-        return removeActivation(activationId, externalUserId, false);
-    }
-
-    @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws PowerAuthClientException {
         final RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         return removeActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1071,158 +1054,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
-        return createRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/create", request, queryParams, httpHeaders, CreateRecoveryCodeResponse.class);
-    }
-
-    @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(String applicationId, String userId, Long pukCount) throws PowerAuthClientException {
-        final CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
-        request.setApplicationId(applicationId);
-        request.setUserId(userId);
-        request.setPukCount(pukCount);
-        return createRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
-        return confirmRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/confirm", request, queryParams, httpHeaders, ConfirmRecoveryCodeResponse.class);
-    }
-
-    @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac, String nonce, String protocolVersion,
-                                                           Long timestamp) throws PowerAuthClientException {
-        final ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setEncryptedData(encryptedData);
-        request.setMac(mac);
-        request.setNonce(nonce);
-        request.setProtocolVersion(protocolVersion);
-        request.setTimestamp(timestamp);
-        return confirmRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
-        return lookupRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/lookup", request, queryParams, httpHeaders, LookupRecoveryCodesResponse.class);
-    }
-
-    @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, String applicationId,
-                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
-        final LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
-        request.setUserId(userId);
-        request.setActivationId(activationId);
-        request.setApplicationId(applicationId);
-        request.setRecoveryCodeStatus(recoveryCodeStatus);
-        request.setRecoveryPukStatus(recoveryPukStatus);
-        return lookupRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
-        return revokeRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/revoke", request, queryParams, httpHeaders, RevokeRecoveryCodesResponse.class);
-    }
-
-    @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException {
-        final RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
-        request.getRecoveryCodeIds().addAll(recoveryCodeIds);
-        return revokeRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
-        return createActivationUsingRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/activation/recovery/create", request, queryParams, httpHeaders, RecoveryCodeActivationResponse.class);
-    }
-
-    @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce,
-                                                                            String protocolVersion, Long timestamp) throws PowerAuthClientException {
-        final RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
-        request.setRecoveryCode(recoveryCode);
-        request.setPuk(puk);
-        request.setApplicationKey(applicationKey);
-        if (maxFailureCount != null) {
-            request.setMaxFailureCount(maxFailureCount);
-        }
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setEncryptedData(encryptedData);
-        request.setMac(mac);
-        request.setNonce(nonce);
-        request.setProtocolVersion(protocolVersion);
-        request.setTimestamp(timestamp);
-        return createActivationUsingRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
-        return getRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/config/detail", request, queryParams, httpHeaders, GetRecoveryConfigResponse.class);
-    }
-
-    @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(String applicationId) throws PowerAuthClientException {
-        final GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
-        request.setApplicationId(applicationId);
-        return getRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
-        return updateRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/config/update", request, queryParams, httpHeaders, UpdateRecoveryConfigResponse.class);
-    }
-
-    @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, boolean activationRecoveryEnabled, boolean recoveryPostcardEnabled, boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
-        final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
-        request.setApplicationId(applicationId);
-        request.setActivationRecoveryEnabled(activationRecoveryEnabled);
-        request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
-        request.setAllowMultipleRecoveryCodes(allowMultipleRecoveryCodes);
-        request.setRemotePostcardPublicKey(remoteRecoveryPublicKeyBase64);
-        return updateRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override

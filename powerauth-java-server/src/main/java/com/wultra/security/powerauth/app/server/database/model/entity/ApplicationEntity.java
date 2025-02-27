@@ -76,12 +76,6 @@ public class ApplicationEntity implements Serializable {
     private final List<CallbackUrlEntity> callbacks = new ArrayList<>();
 
     /**
-     * The list of recovery codes.
-     */
-    @OneToMany(mappedBy = "application")
-    private final List<RecoveryCodeEntity> recoveryCodes = new ArrayList<>();
-
-    /**
      * No-arg constructor.
      */
     public ApplicationEntity() {
@@ -125,7 +119,6 @@ public class ApplicationEntity implements Serializable {
                 ", roles=" + roles +
                 ", versions=" + versions +
                 ", callbacks=" + callbacks +
-                ", recoveryCodes=" + recoveryCodes +
                 '}';
     }
 }

@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.i18n;
 
-import com.wultra.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -80,17 +79,6 @@ public class LocalizationProvider {
     public RollbackingServiceException buildRollbackingExceptionForCode(String code) {
         final String message = getLocalizedErrorMessage(code);
         return new RollbackingServiceException(code, message);
-    }
-
-    /**
-     * Build activation recovery exception for given error code and locale with current recovery PUK index parameter.
-     * @param code Error code.
-     * @param currentRecoveryPukIndex Current recovery PUK index.
-     * @return Activation recovery exception.
-     */
-    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, int currentRecoveryPukIndex) {
-        final String message = getLocalizedErrorMessage(code);
-        return new ActivationRecoveryException(code, message, currentRecoveryPukIndex);
     }
 
 }

@@ -29,7 +29,6 @@
 - [Deploying PowerAuth Admin on JBoss/Wildfly](./Admin-Deploying-Wildfly.md)
 - [Setting Up LDAP Authentication](./Setting-Up-LDAP-Authentication.md)
 - [Setting Up AD Authentication](./Setting-Up-Active-Directory-Authentication.md)
-- [Configuration of Activation Recovery](./Activation-Recovery.md)
 - [Configuration Properties](./Configuration-Properties-Admin.md)
 
 **Advanced Topics**

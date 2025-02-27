@@ -107,24 +107,6 @@ public class ActivationController {
     }
 
     /**
-     * Create activation using recovery code.
-     *
-     * @param request Create activation using recovery code request.
-     * @return Create activation using recovery response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PostMapping("/recovery/create")
-    public ObjectResponse<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@Valid @RequestBody ObjectRequest<RecoveryCodeActivationRequest> request) throws Exception {
-        final RecoveryCodeActivationRequest req = request.getRequestObject();
-        logger.info("action: createActivationUsingRecoveryCode, state: initiated, applicationKey: {}", req.getApplicationKey());
-        logger.debug("action: createActivationUsingRecoveryCode, state: initiated, request: {}", request);
-        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(req));
-        logger.info("action: createActivationUsingRecoveryCode, state: succeeded");
-        logger.debug("action: createActivationUsingRecoveryCode, state: succeeded, response: {}", response);
-        return response;
-    }
-
-    /**
      * Update activation OTP.
      *
      * @param request Update activation OTP request.
