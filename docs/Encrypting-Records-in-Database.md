@@ -12,7 +12,7 @@ As a basic security measure, we suggest using data encryption support of your da
 
 ## Additional Record Encryption
 
-To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys and recovery PUKs in the database using an application level record encryption.
+To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys in the database using an application level record encryption.
 
 ### Enabling Record Encryption
 
@@ -42,7 +42,7 @@ Pseudo-code for the encryption and decryption routines is following:
 public byte[] encrypt(byte[] orig, SecretKey derivedDbEncryptionKey) {
     byte[] iv = Bytes.random(16);
     byte[] encrypted = aes.encrypt(orig, iv, derivedDbEncryptionKey);
-    byte[] record = iv.append(encrypted)
+    byte[] record = iv.append(encrypted);
     return record;
 }
 
@@ -60,34 +60,6 @@ In order to achieve a consistency between activation record and encrypted server
 public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
     // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
     byte[] index = (userId + "&" + activationId).getBytes();
-    // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
-    return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
-}
-```
-
-### Note on Recovery PUK Encryption Cryptography
-
-The Recovery PUKs are encrypted using the same `encrypt` and `decrypt` methods as described above, however the secret key derivation index parameters differ:
-
-```java
-public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId, String userId, String recoveryCode, long pukIndex) {
-    // Use concatenated application ID, user ID, recovery code and PUK index bytes as index for KDF_INTERNAL
-    byte[] index = (applicationId + "&" + userId + "&" + recoveryCode + "&" + pukIndex).getBytes(StandardCharsets.UTF_8);
-    // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
-    return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
-}
-```
-
-Note that PUK values are hashed using the Argon2i hashing algorithm before optional encryption. Raw PUK values are never stored in PowerAuth database.
-
-### Note on Recovery Private Key Encryption Cryptography
-
-The recovery postcard private keys are encrypted using the same `encrypt` and `decrypt` methods as described above, however the secret key derivation index parameters differ:
-
-```java
-public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId) {
-    // Use application ID bytes as index for KDF_INTERNAL
-    byte[] index = String.valueOf(applicationId).getBytes(StandardCharsets.UTF_8);
     // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
     return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
 }
