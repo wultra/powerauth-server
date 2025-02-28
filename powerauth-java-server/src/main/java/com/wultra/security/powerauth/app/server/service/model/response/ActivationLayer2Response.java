@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.model.response;
 
-import com.wultra.security.powerauth.app.server.service.model.ActivationRecovery;
-
 /**
  * Response object for activation layer 2 response.
  *
@@ -30,7 +28,6 @@ public class ActivationLayer2Response {
     private String activationId;
     private String serverPublicKey;
     private String ctrData;
-    private ActivationRecovery activationRecovery;
 
     /**
      * No-arg constructor.
@@ -43,13 +40,11 @@ public class ActivationLayer2Response {
      * @param activationId Activation identifier.
      * @param serverPublicKey Server public key.
      * @param ctrData Counter data.
-     * @param activationRecovery Activation recovery data.
      */
-    public ActivationLayer2Response(String activationId, String serverPublicKey, String ctrData, ActivationRecovery activationRecovery) {
+    public ActivationLayer2Response(String activationId, String serverPublicKey, String ctrData) {
         this.activationId = activationId;
         this.serverPublicKey = serverPublicKey;
         this.ctrData = ctrData;
-        this.activationRecovery = activationRecovery;
     }
 
     /**
@@ -100,19 +95,4 @@ public class ActivationLayer2Response {
         this.ctrData = ctrData;
     }
 
-    /**
-     * Get activation recovery information.
-     * @return Activation recovery information.
-     */
-    public ActivationRecovery getActivationRecovery() {
-        return activationRecovery;
-    }
-
-    /**
-     * Set activation recovery information.
-     * @param activationRecovery Activation recovery information.
-     */
-    public void setActivationRecovery(ActivationRecovery activationRecovery) {
-        this.activationRecovery = activationRecovery;
-    }
 }

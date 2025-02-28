@@ -43,9 +43,6 @@ public class CreateActivationRequest {
     @Future(message = "The activation expiration timestamp must be in the future when creating activation")
     private Date timestampActivationExpire;
 
-    @Schema(description = "Whether recovery codes should be generated")
-    private boolean generateRecoveryCodes;
-
     @Schema(description = "Maximum number of failures for the activation")
     @Positive(message = "Maximum failure count must be positive when creating activation")
     private Long maxFailureCount;

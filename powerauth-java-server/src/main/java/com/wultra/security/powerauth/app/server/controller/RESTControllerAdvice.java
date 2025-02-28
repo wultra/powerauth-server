@@ -20,9 +20,7 @@ package com.wultra.security.powerauth.app.server.controller;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
-import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -48,23 +46,6 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 @Slf4j
 public class RESTControllerAdvice {
-
-    /**
-     * Resolver for Activation Recovery Exception.
-     * @param ex Activation Recovery Exception.
-     * @return Activation recovery error.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = TelemetryReportException.class)
-    public @ResponseBody ObjectResponse<PowerAuthError> handleUnknownTelemetryReportNameException(TelemetryReportException ex) {
-        logger.error("Error occurred while processing the request: {}", ex.getMessage());
-        logger.debug("Exception details:", ex);
-        final PowerAuthError error = new PowerAuthError();
-        error.setCode("ERROR_TELEMETRY");
-        error.setMessage(ex.getMessage());
-        error.setLocalizedMessage(ex.getLocalizedMessage());
-        return new ObjectResponse<>("ERROR", error);
-    }
 
     /**
      * Handle all service exceptions using the same error format. Response has a status code 400 Bad Request.
@@ -119,28 +100,10 @@ public class RESTControllerAdvice {
     }
 
     /**
-     * Resolver for Activation Recovery Exception.
-     * @param ex Activation Recovery Exception.
-     * @return Activation recovery error.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = ActivationRecoveryException.class)
-    public @ResponseBody ObjectResponse<PowerAuthError> returnActivationRecoveryError(ActivationRecoveryException ex) {
-        logger.error("Error occurred while processing the request: {}", ex.getMessage());
-        logger.debug("Exception details:", ex);
-        final PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
-        error.setCode("ERR_RECOVERY");
-        error.setMessage(ex.getMessage());
-        error.setLocalizedMessage(ex.getLocalizedMessage());
-        error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
-        return new ObjectResponse<>("ERROR", error);
-    }
-
-    /**
      * Resolver for validation exception.
      *
      * @param ex Exception.
-     * @return Activation recovery error.
+     * @return Activation invalid request error.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler
@@ -157,23 +120,6 @@ public class RESTControllerAdvice {
         error.setCode(ServiceError.INVALID_REQUEST);
         error.setMessage(message);
         error.setLocalizedMessage(message);
-        return new ObjectResponse<>("ERROR", error);
-    }
-
-    /**
-     * Resolver for HTTP request message errors.
-     * @param ex Exception for HTTP message not readable.
-     * @return Error for HTTP request.
-     */
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = HttpMessageNotReadableException.class)
-    public @ResponseBody ObjectResponse<PowerAuthError> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        logger.error("Error occurred while processing the request: {}", ex.getMessage());
-        logger.debug("Exception details:", ex);
-        final PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
-        error.setCode("ERROR_HTTP_REQUEST");
-        error.setMessage(ex.getMessage());
-        error.setLocalizedMessage(ex.getLocalizedMessage());
         return new ObjectResponse<>("ERROR", error);
     }
 

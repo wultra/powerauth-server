@@ -199,7 +199,6 @@ public interface PowerAuthClient {
      *
      * @param activationCode                Activation code.
      * @param applicationKey                Application key.
-     * @param shouldGenerateRecoveryCodes   Flag indicating if recovery codes should be generated. Note that generating recovery codes may be globally disabled at the PowerAuth Server.
      * @param ephemeralPublicKey            Ephemeral key for ECIES.
      * @param encryptedData                 Encrypted data for ECIES.
      * @param mac                           Mac of key and data for ECIES.
@@ -210,7 +209,7 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     @Deprecated
-    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey,
+    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey,
                                                 String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
@@ -424,17 +423,6 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException;
-
-    /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server interface.
-     *
-     * @param activationId        Activation ID of activation to be removed.
-     * @param externalUserId      User ID of user who removed the activation. Use null value if activation owner caused the change.
-     * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
-     * @return {@link RemoveActivationResponse}
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws PowerAuthClientException;
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
@@ -1477,242 +1465,6 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException;
-
-    /**
-     * Create recovery code.
-     *
-     * @param request Create recovery code request.
-     * @return Create recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException;
-
-    /**
-     * Create recovery code.
-     *
-     * @param request Create recovery code request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Create recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Create recovery code for user.
-     *
-     * @param applicationId Application ID.
-     * @param userId        User ID.
-     * @param pukCount      Number of PUKs to create.
-     * @return Create recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CreateRecoveryCodeResponse createRecoveryCode(String applicationId, String userId, Long pukCount) throws PowerAuthClientException;
-
-    /**
-     * Confirm recovery code.
-     *
-     * @param request Confirm recovery code request.
-     * @return Confirm recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException;
-
-    /**
-     * Confirm recovery code.
-     *
-     * @param request Confirm recovery code request.
-     * @return Confirm recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Confirm recovery code.
-     *
-     * @deprecated use {@link #confirmRecoveryCode(ConfirmRecoveryCodeRequest)}
-     *
-     * @param activationId       Activation ID.
-     * @param applicationKey     Application key.
-     * @param ephemeralPublicKey Ephemeral key for ECIES.
-     * @param encryptedData      Encrypted data for ECIES.
-     * @param mac                MAC of key and data for ECIES.
-     * @param nonce              Nonce for ECIES.
-     * @param protocolVersion    Crypto protocol version.
-     * @param timestamp          Unix timestamp in milliseconds for ECIES.
-     * @return Confirm recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    @Deprecated
-    ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                    String encryptedData, String mac, String nonce,
-                                                    String protocolVersion, Long timestamp) throws PowerAuthClientException;
-
-    /**
-     * Lookup recovery codes.
-     *
-     * @param request Lookup recovery codes request.
-     * @return Lookup recovery codes response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException;
-
-    /**
-     * Lookup recovery codes.
-     *
-     * @param request Lookup recovery codes request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Lookup recovery codes response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Lookup recovery codes.
-     *
-     * @param userId             User ID.
-     * @param activationId       Activation ID.
-     * @param applicationId      Application ID.
-     * @param recoveryCodeStatus Recovery code status.
-     * @param recoveryPukStatus  Recovery PUK status.
-     * @return Lookup recovery codes response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, String applicationId,
-                                                    RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException;
-
-    /**
-     * Revoke recovery codes.
-     *
-     * @param request Revoke recovery codes request.
-     * @return Revoke recovery codes response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException;
-
-    /**
-     * Revoke recovery codes.
-     *
-     * @param request Revoke recovery codes request.
-     * @return Revoke recovery codes response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Revoke recovery codes.
-     *
-     * @param recoveryCodeIds Identifiers of recovery codes to revoke.
-     * @return Revoke recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException;
-
-    /**
-     * Create activation using recovery code.
-     *
-     * @param request Create activation using recovery code request.
-     * @return Create activation using recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException;
-
-    /**
-     * Create activation using recovery code.
-     *
-     * @param request Create activation using recovery code request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Create activation using recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Create activation using recovery code.
-     *
-     * @deprecated use {@link #createActivationUsingRecoveryCode(RecoveryCodeActivationRequest)}
-     *
-     * @param recoveryCode       Recovery code.
-     * @param puk                Recovery PUK.
-     * @param applicationKey     Application key.
-     * @param maxFailureCount    Maximum failure count.
-     * @param ephemeralPublicKey Ephemeral key for ECIES.
-     * @param encryptedData      Encrypted data for ECIES.
-     * @param mac                MAC of key and data for ECIES.
-     * @param nonce              Nonce for ECIES.
-     * @param protocolVersion    Crypto protocol version.
-     * @param timestamp          Unix timestamp in milliseconds for ECIES.
-     * @return Create activation using recovery code response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    @Deprecated
-    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce,
-                                                                     String protocolVersion, Long timestamp) throws PowerAuthClientException;
-
-    /**
-     * Get recovery configuration.
-     *
-     * @param request Get recovery configuration request.
-     * @return Get recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException;
-
-    /**
-     * Get recovery configuration.
-     *
-     * @param request Get recovery configuration request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Get recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Get recovery configuration.
-     *
-     * @param applicationId Application ID.
-     * @return Get recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetRecoveryConfigResponse getRecoveryConfig(String applicationId) throws PowerAuthClientException;
-
-    /**
-     * Update recovery configuration.
-     *
-     * @param request Update recovery configuration request.
-     * @return Update recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException;
-
-    /**
-     * Update recovery configuration.
-     *
-     * @param request Update recovery configuration request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Update recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Update recovery configuration.
-     *
-     * @param applicationId                 Application ID.
-     * @param activationRecoveryEnabled     Whether activation recovery is enabled.
-     * @param recoveryPostcardEnabled       Whether recovery postcard is enabled.
-     * @param allowMultipleRecoveryCodes    Whether multiple recovery codes are allowed.
-     * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote key.
-     * @return Update recovery configuration response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, boolean activationRecoveryEnabled, boolean recoveryPostcardEnabled, boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
 
     /**
      * List activation flags.

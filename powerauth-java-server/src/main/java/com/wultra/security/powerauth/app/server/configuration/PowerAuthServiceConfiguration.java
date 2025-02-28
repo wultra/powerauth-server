@@ -109,13 +109,6 @@ public class PowerAuthServiceConfiguration {
     private int activationGenerateActivationCodeIterations;
 
     /**
-     * When a duplicate recovery code is encountered, how many times generate a new one.
-     */
-    @Value("${powerauth.service.crypto.generateRecoveryCodeIterations}")
-    @Min(1)
-    private int generateRecoveryCodeIterations;
-
-    /**
      * When a duplicate operation ID is encountered, how many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateOperationIterations}")
@@ -243,14 +236,6 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
-
-    /**
-     * How many failed usages of recovery code block the recovery code. The maximum supported value is 64.
-     */
-    @Value("${powerauth.service.recovery.maxFailedAttempts}")
-    @Min(0)
-    @Max(64)
-    private long recoveryMaxFailedAttempts;
 
     /**
      * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.
@@ -426,22 +411,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setActivationGenerateActivationCodeIterations(int activationGenerateActivationCodeIterations) {
         this.activationGenerateActivationCodeIterations = activationGenerateActivationCodeIterations;
-    }
-
-    /**
-     * Get number of recovery code generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getGenerateRecoveryCodeIterations() {
-        return generateRecoveryCodeIterations;
-    }
-
-    /**
-     * Set number of recovery code generation attempts in case of collision.
-     * @param generateRecoveryCodeIterations Retry iteration count (10, by default).
-     */
-    public void setGenerateRecoveryCodeIterations(int generateRecoveryCodeIterations) {
-        this.generateRecoveryCodeIterations = generateRecoveryCodeIterations;
     }
 
     /**
@@ -700,22 +669,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
-    }
-
-    /**
-     * Get default number of maximum failed attempts for recovery codes.
-     * @return Maximum failed attempts for recovery codes (5, by default).
-     */
-    public long getRecoveryMaxFailedAttempts() {
-        return recoveryMaxFailedAttempts;
-    }
-
-    /**
-     * Set default number of maximum failed attempts for recovery codes.
-     * @param recoveryMaxFailedAttempts Maximum failed attempts for recovery codes (5, by default).
-     */
-    public void setRecoveryMaxFailedAttempts(long recoveryMaxFailedAttempts) {
-        this.recoveryMaxFailedAttempts = recoveryMaxFailedAttempts;
     }
 
     /**

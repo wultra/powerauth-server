@@ -383,7 +383,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
      */
     private void removeActivationInternal(final ActivationRecordEntity activation) {
         activation.setActivationStatus(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED);
-        // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
         activationHistory.saveActivationAndLogChange(activation, null);
         callbacks.notifyCallbackListenersOnActivationChange(activation);
     }

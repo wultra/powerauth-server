@@ -266,48 +266,6 @@
                 </c:otherwise>
             </c:choose>
         </div>
-
-        <c:if test="${not empty recoveryCodes}">
-            <c:forEach items="${recoveryCodes}" var="item">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Recovery Code</h3>
-                    </div>
-                    <div class="panel-body gray">
-                        <table class="w100">
-                            <tr>
-                                <td>
-                                    <p>
-                                        Activation Code<br>
-                                        <span class="black"><c:out value="${item.recoveryCodeMasked}"/></span>
-                                    </p>
-                                </td>
-                                <td>
-                                    <p>
-                                        Status<br>
-                                        <jsp:include page="recoveryCodeStatusSnippet.jsp">
-                                            <jsp:param value="${item.status}" name="status"/>
-                                        </jsp:include>
-                                    </p>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <c:if test="${item.status != 'REVOKED'}">
-                        <div class="panel-footer">
-                            <form action="${pageContext.request.contextPath}/activation/recovery/revoke/do.submit"
-                                  method="POST" class="pull-right action-revoke">
-                                    <input type="hidden" name="activationId" value="<c:out value="${item.activationId}"/>"/>
-                                    <input type="hidden" name="recoveryCodeId" value="<c:out value="${item.recoveryCodeId}"/>"/>
-                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                    <input type="submit" value="Revoke" class="btn btn-danger"/>
-                            </form>
-                            <div class="clearfix"></div>
-                        </div>
-                    </c:if>
-                </div>
-            </c:forEach>
-        </c:if>
     </div>
 
     <div class="col-md-8">

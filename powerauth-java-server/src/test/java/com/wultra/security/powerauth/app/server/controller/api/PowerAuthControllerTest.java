@@ -727,47 +727,6 @@ class PowerAuthControllerTest {
     }
 
     /**
-     * Tests the complete lifecycle of recovery codes in the PowerAuth Server, including creation, lookup, and revocation.
-     *
-     * <p>The test follows these steps:</p>
-     * <ol>
-     *   <li>Creates a set of recovery codes for a specific user and verifies the successful creation and the expected attributes of the response, such as the number of PUks and the user ID.</li>
-     *   <li>Looks up the created recovery codes using the user's ID and activation ID, ensuring the correct status of the recovery codes and PUks.</li>
-     *   <li>Revokes the created recovery codes and confirms their successful revocation.</li>
-     * </ol>
-     *
-     * <p>This test ensures that the PowerAuth Server can correctly handle the entire process of managing recovery codes, from creation to revocation, providing the expected responses at each step.</p>
-     *
-     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
-     */
-    @Test
-    void testRecoveryCodeCreateLookupRevoke() throws Exception {
-        final CreateRecoveryCodeRequest createRecoveryCodeRequest = new CreateRecoveryCodeRequest();
-        createRecoveryCodeRequest.setApplicationId(config.getApplicationId());
-        createRecoveryCodeRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
-        createRecoveryCodeRequest.setPukCount(2L);
-
-        final CreateRecoveryCodeResponse createRecoveryCodeResponse = powerAuthClient.createRecoveryCode(createRecoveryCodeRequest);
-        assertThat(createRecoveryCodeResponse.getPuks(), hasSize(2));
-        assertEquals(PowerAuthControllerTestConfig.USER_ID, createRecoveryCodeResponse.getUserId());
-
-        final LookupRecoveryCodesRequest lookupRecoveryCodesRequest = new LookupRecoveryCodesRequest();
-        lookupRecoveryCodesRequest.setActivationId(config.getActivationId());
-        lookupRecoveryCodesRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
-        lookupRecoveryCodesRequest.setRecoveryCodeStatus(RecoveryCodeStatus.CREATED);
-        lookupRecoveryCodesRequest.setRecoveryPukStatus(RecoveryPukStatus.VALID);
-
-        final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = powerAuthClient.lookupRecoveryCodes(lookupRecoveryCodesRequest);
-        assertThat(lookupRecoveryCodesResponse.getRecoveryCodes(), hasSize(greaterThan(0)));
-
-        final RevokeRecoveryCodesRequest revokeRecoveryCodesRequest = new RevokeRecoveryCodesRequest();
-        revokeRecoveryCodesRequest.setRecoveryCodeIds(List.of(createRecoveryCodeResponse.getRecoveryCodeId()));
-
-        final RevokeRecoveryCodesResponse revokeRecoveryCodesResponse = powerAuthClient.revokeRecoveryCodes(revokeRecoveryCodesRequest);
-        assertTrue(revokeRecoveryCodesResponse.isRevoked());
-    }
-
-    /**
      * Tests the generation of non-personalized offline signature payloads in the PowerAuth Server.
      *
      * <p>The test executes the following steps:</p>
@@ -1150,7 +1109,7 @@ class PowerAuthControllerTest {
      * <p>
      * This method checks for the existence of an application and its version. If not present,
      * it creates them and sets relevant fields in the test configuration. It also ensures the
-     * application version is supported and sets up activation recovery settings.
+     * application version is supported.
      *
      * @throws Exception if any error occurs during application creation or setup
      */
@@ -1192,16 +1151,6 @@ class PowerAuthControllerTest {
             config.setApplicationSecret(versionResponse.getApplicationSecret());
         } else {
             powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
-        }
-        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
-        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
-            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
-            request.setApplicationId(config.getApplicationId());
-            request.setActivationRecoveryEnabled(true);
-            request.setRecoveryPostcardEnabled(true);
-            request.setAllowMultipleRecoveryCodes(false);
-            request.setRemotePostcardPublicKey(PowerAuthControllerTestConfig.PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
-            powerAuthClient.updateRecoveryConfig(request);
         }
     }
 
