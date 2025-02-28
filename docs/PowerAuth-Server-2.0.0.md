@@ -23,3 +23,13 @@ Following error codes are no longer used:
 | ERR0027    | Recovery code was not found.                                                                                       | An action was attempted on a recovery code which does not exist. |
 | ERR0028    | Invalid recovery code.                                                                                             | Used combination of recovery code and PUK is invalid. |
 | ERR0029    | Invalid recovery configuration.                                                                                    | Recovery code configuration is missing or incomplete. |
+
+Following endpoints are no longer available:
+
+- `POST /rest/v3/recovery/revoke`
+- `POST /rest/v3/recovery/lookup`
+- `POST /rest/v3/recovery/create`
+- `POST /rest/v3/recovery/confirm`
+- `POST /rest/v3/recovery/config/update`
+- `POST /rest/v3/recovery/config/detail`
+- `POST /rest/v3/activation/recovery/create`
