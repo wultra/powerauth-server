@@ -155,7 +155,8 @@ CREATE TABLE pa_activation_history
     event_reason       VARCHAR(255),
     external_user_id   VARCHAR(255),
     timestamp_created  TIMESTAMP (6) NOT NULL,
-    activation_version INTEGER
+    activation_version INTEGER,
+    activation_name    VARCHAR(255)
 );
 
 --

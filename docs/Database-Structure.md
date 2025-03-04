@@ -53,10 +53,11 @@ CREATE TABLE pa_application
 
 #### Columns
 
-| Name | Type | Info | Note                                                  |
-|------|------|---------|-------------------------------------------------------|
-| id | BIGINT(20) | autoincrement | Unique application record ID.                         |
-| name | VARCHAR(255) | - | Application identifier, for example "mobile-banking". |
+| Name  | Type         | Info          | Note                                                  |
+|-------|--------------|---------------|-------------------------------------------------------|
+| id    | BIGINT(20)   | autoincrement | Unique application record ID.                         |
+| name  | VARCHAR(255) | -             | Application identifier, for example "mobile-banking". |
+| roles | VARCHAR(255) | -             | Application roles a JSON array.                       |
 <!-- end -->
 
 <!-- begin database table pa_application_version -->
@@ -132,34 +133,35 @@ CREATE TABLE pa_activation
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| activation_id  | VARCHAR(37) | primary key, UUID (level 4) | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca". |
-| activation_code | VARCHAR(255) | index | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA". |
-| activation_otp | VARCHAR(255) | - | Activation OTP value |
-| activation_otp_validation | INT(11) | - | Activation OTP validation, can be one of following values:<br><br>0 - NONE<br>1 - ON_KEY_EXCHANGE<br>2 - ON_COMMIT |
-| activation_status  | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
-| blocked_reason | VARCHAR(255) | - | Reason why activation is blocked (used when activation_status = 4, BLOCKED). |
-| activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
-| application_id  | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
-| user_id  | VARCHAR(255) | index | Associated user ID. |
-| extras  | TEXT | - | Any application specific information. |
-| counter  | BIGINT(20) | - | Activation counter. |
-| ctr_data | VARCHAR(255) | - | Activation hash based counter data. |
-| device_public_key_base64  | TEXT | - | Device public key, encoded in Base64 encoding. |
-| failed_attempts  | BIGINT(20) | - | Number of failed signature verification attempts. |
-| max_failed_attempts | BIGINT(20) | - | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
-| server_private_key_base64 | TEXT | - | Server private key, encoded as Base64 |
-| server_private_key_encryption | INT(11) | - | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC)
-| server_public_key_base64 | TEXT | - | Server public key, encoded as Base64 |
-| master_keypair_id | BIGINT(20) | foreign key: pa\_master\_keypair.id | Master Key Pair identifier, used during the activation process |
-| timestamp_created | DATETIME | - | Timestamp of the record creation. |
-| timestamp_activation_expire | DATETIME | - | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED. |
-| timestamp_last_used | DATETIME | - | Timestamp of the last signature verification attempt. |
-| timestamp_last_change | DATETIME | - | Timestamp of the last signature verification attempt. |
-| version | BIGINT(2) | - | Cryptography protocol version. |
-| platform | VARCHAR(255) | - | User device platform. |
-| device_info | VARCHAR(255) | - | User device information. |
+| Name                          | Type         | Info                                | Note                                                                                                                                                                               |
+|-------------------------------|--------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| activation_id                 | VARCHAR(37)  | primary key, UUID (level 4)         | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca".                                                                                |
+| activation_code               | VARCHAR(255) | index                               | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA".                    |
+| activation_otp                | VARCHAR(255) | -                                   | Activation OTP value                                                                                                                                                               |
+| activation_otp_validation     | INT(11)      | -                                   | Activation OTP validation, can be one of following values:<br><br>0 - NONE<br>1 - ON_KEY_EXCHANGE<br>2 - ON_COMMIT                                                                 |
+| activation_status             | INT(11)      | -                                   | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED                                            |
+| blocked_reason                | VARCHAR(255) | -                                   | Reason why activation is blocked (used when activation_status = 4, BLOCKED).                                                                                                       |
+| activation_name               | VARCHAR(255  | -                                   | Name of the activation, typically a name of the client device, for example "John's iPhone 6"                                                                                       |
+| application_id                | BIGINT(20)   | foreign key: pa\_application.id     | Associated application ID.                                                                                                                                                         |
+| user_id                       | VARCHAR(255) | index                               | Associated user ID.                                                                                                                                                                |
+| extras                        | TEXT         | -                                   | Any application specific information.                                                                                                                                              |
+| counter                       | BIGINT(20)   | -                                   | Activation counter.                                                                                                                                                                |
+| ctr_data                      | VARCHAR(255) | -                                   | Activation hash based counter data.                                                                                                                                                |
+| device_public_key_base64      | TEXT         | -                                   | Device public key, encoded in Base64 encoding.                                                                                                                                     |
+| failed_attempts               | BIGINT(20)   | -                                   | Number of failed signature verification attempts.                                                                                                                                  |
+| max_failed_attempts           | BIGINT(20)   | -                                   | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
+| server_private_key_base64     | TEXT         | -                                   | Server private key, encoded as Base64                                                                                                                                              |
+| server_private_key_encryption | INT(11)      | -                                   | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC)                                                                                               
+| server_public_key_base64      | TEXT         | -                                   | Server public key, encoded as Base64                                                                                                                                               |
+| master_keypair_id             | BIGINT(20)   | foreign key: pa\_master\_keypair.id | Master Key Pair identifier, used during the activation process                                                                                                                     |
+| timestamp_created             | DATETIME     | -                                   | Timestamp of the record creation.                                                                                                                                                  |
+| timestamp_activation_expire   | DATETIME     | -                                   | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED.                                             |
+| timestamp_last_used           | DATETIME     | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
+| timestamp_last_change         | DATETIME     | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
+| version                       | BIGINT(2)    | -                                   | Cryptography protocol version.                                                                                                                                                     |
+| platform                      | VARCHAR(255) | -                                   | User device platform.                                                                                                                                                              |
+| device_info                   | VARCHAR(255) | -                                   | User device information.                                                                                                                                                           |
+| flags                         | VARCHAR(255) | -                                   | Activation flags as a JSON array.                                                                                                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
@@ -241,6 +243,7 @@ CREATE TABLE pa_signature_audit
 | note                | TEXT         | -                                          | Additional information about the validation result.                       |
 | timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
 | version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
+| signature_version   | VARCHAR(255) | -                                          | PowerAuth signature version.                                              |
 <!-- end -->
 
 <!-- begin database table pa_integration -->
@@ -348,7 +351,8 @@ CREATE TABLE pa_activation_history
     event_reason       VARCHAR(255),
     external_user_id   VARCHAR(255),
     timestamp_created  TIMESTAMP (6) NOT NULL,
-    activation_version INTEGER
+    activation_version INTEGER,
+    activation_name    VARCHAR(255)
 );
 ```
 
@@ -461,16 +465,17 @@ CREATE TABLE pa_recovery_config (
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| id | INT(37) | primary key | Unique record ID. |
-| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
-| activation_recovery_enabled | INT(1) | - | Whether activation recovery is enabled. |
-| recovery_postcard_enabled | INT(1) | - | Whether recovery postcard is enabled. |
-| allow_multiple_recovery_codes | INT(1) | - | Whether multiple recovery codes are allowed per user. |
-| postcard_private_key_base64 | VARCHAR(255) | - | Base64 encoded EC server private key for recovery postcard. |
-| postcard_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC server public key for recovery postcard. |
-| remote_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC printing center public key for recovery postcard. |
+| Name                          | Type         | Info                            | Note                                                                |
+|-------------------------------|--------------|---------------------------------|---------------------------------------------------------------------|
+| id                            | INT(37)      | primary key                     | Unique record ID.                                                   |
+| application_id                | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                             |
+| activation_recovery_enabled   | INT(1)       | -                               | Whether activation recovery is enabled.                             |
+| recovery_postcard_enabled     | INT(1)       | -                               | Whether recovery postcard is enabled.                               |
+| allow_multiple_recovery_codes | INT(1)       | -                               | Whether multiple recovery codes are allowed per user.               |
+| postcard_private_key_base64   | VARCHAR(255) | -                               | Base64 encoded EC server private key for recovery postcard.         |
+| postcard_public_key_base64    | VARCHAR(255) | -                               | Base64 encoded EC server public key for recovery postcard.          |
+| remote_public_key_base64      | VARCHAR(255) | -                               | Base64 encoded EC printing center public key for recovery postcard. |
+| postcard_priv_key_encryption  | INT(1)       | -                               | Private key encryption mode; 0 for no-encryption, 1 for AES_HMAC.   |
 <!-- end -->
 
 <!-- begin database table pa_operation -->
@@ -509,8 +514,9 @@ CREATE TABLE pa_operation (
 |---------------------|--------------|-------------|-------------------------------------------------------------------------------------------------|
 | id                  | varchar(37)  | primary key | Unique operation ID.                                                                            |
 | user_id             | varchar(255) | -           | Related user ID.                                                                                |
-| template_id         | bigint       | -           | Template ID used for creating the operation.                                                    |
+| template_name       | varchar(255) | -           | Template name used for creating the operation.                                                  |
 | external_id         | varchar(255) | -           | Identifier in external system.                                                                  |
+| activation_flag     | varchar(255) | -           | Activation flag.
 | operation_type      | varchar(255) | -           | Name of the type of operation.                                                                  |
 | data                | text         | -           | Data of the operation that enter the final signature.                                           |
 | parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                            |
@@ -582,4 +588,28 @@ CREATE TABLE pa_operation_application (
 |------|------|---------|------|
 | application_id | bigint | part of primary key | Related application ID. |
 | operation_id | varchar(37)  | part of primary key | Related operation ID. |
+<!-- end -->
+
+<!-- begin database table pa_unique_value -->
+### Unique Value
+
+Table stores unique values sent in requests, so that replay attacks are prevented.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_unique_value (
+    unique_value      VARCHAR(255) NOT NULL PRIMARY KEY,
+    type              INTEGER NOT NULL,
+    timestamp_expires TIMESTAMP NOT NULL
+);
+```
+
+#### Columns
+
+| Name              | Type         | Info        | Note                                                                               |
+|-------------------|--------------|-------------|------------------------------------------------------------------------------------|
+| unique_value      | varchar(255) | primary key | Unique value.                                                                      |
+| type              | integer      | -           | Value type, 0 - MAC_TOKEN, 1 - ECIES_APPLICATION_SCOPE, 2 - ECIES_ACTIVATION_SCOPE |
+| timestamp_expires | timestamp    | -           | Timestamp when the value expires.                                                  |
 <!-- end -->
