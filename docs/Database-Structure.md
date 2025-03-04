@@ -57,7 +57,7 @@ CREATE TABLE pa_application
 |-------|--------------|---------------|-------------------------------------------------------|
 | id    | BIGINT(20)   | autoincrement | Unique application record ID.                         |
 | name  | VARCHAR(255) | -             | Application identifier, for example "mobile-banking". |
-| roles | VARCHAR(255) | -             | Application roles a JSON array.                       |
+| roles | VARCHAR(255) | -             | Application roles as a JSON array.                    |
 <!-- end -->
 
 <!-- begin database table pa_application_version -->
