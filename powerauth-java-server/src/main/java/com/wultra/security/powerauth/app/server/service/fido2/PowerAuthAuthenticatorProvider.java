@@ -25,11 +25,12 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -47,14 +48,11 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 /**
@@ -76,10 +74,10 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final CallbackUrlBehavior callbacks;
     private final AuditingServiceBehavior audit;
     private final ActivationQueryService activationQueryService;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     private final LocalizationProvider localizationProvider;
 
-    private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
@@ -192,14 +190,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();
-            PublicKey devicePublicKey = null;
-            try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-            } catch (InvalidKeySpecException ex) {
-                logger.warn("Invalid public key, activation ID: {}, {}", activation.getActivationId(), ex.getMessage());
-                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
-                handleInvalidPublicKey(activation);
-            }
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activation.getActivationId(), new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
@@ -208,8 +200,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
             // Update the activation record
             activation.setActivationStatus(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE);
-            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(authenticatorDetail.getActivationName());
             activation.setExternalId(authenticatorDetail.getCredentialId());
             activation.setExtras(objectMapper.writeValueAsString(authenticatorDetail.getExtras()));

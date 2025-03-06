@@ -20,10 +20,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
-import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
@@ -35,13 +31,17 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
+import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
+import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,12 +57,12 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class AuditingServiceBehavior {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
     private final ActivationRepository activationRepository;
-    private final LocalizationProvider localizationProvider;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -73,15 +73,6 @@ public class AuditingServiceBehavior {
 
     // Generic auditing capability
     private final Audit audit;
-
-    @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, ActivationRepository activationRepository, LocalizationProvider localizationProvider, KeyValueMapConverter keyValueMapConverter, Audit audit) {
-        this.signatureAuditRepository = signatureAuditRepository;
-        this.activationRepository = activationRepository;
-        this.localizationProvider = localizationProvider;
-        this.keyValueMapConverter = keyValueMapConverter;
-        this.audit = audit;
-    }
 
     /**
      * Log information with specified level, message, audit details, and message args.

@@ -19,47 +19,52 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.converter.*;
+import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
+import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
+import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
+import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
-import com.wultra.security.powerauth.app.server.database.model.entity.*;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.*;
-import com.wultra.security.powerauth.app.server.database.repository.*;
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
-import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
 import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -72,11 +77,6 @@ import org.springframework.util.StringUtils;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,7 +89,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ActivationServiceBehavior {
 
     /**
@@ -105,23 +105,17 @@ public class ActivationServiceBehavior {
 
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     private final LocalizationProvider localizationProvider;
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final PowerAuthPageableConfiguration powerAuthPageableConfiguration;
 
-    private final ReplayVerificationService replayVerificationService;
-
-    private final ActivationContextValidator activationValidator;
-
     private final ActivationQueryService activationQueryService;
 
     private final ApplicationRepository applicationRepository;
     private final ActivationRepository activationRepository;
-    private final MasterKeyPairRepository masterKeyPairRepository;
-    private final ApplicationVersionRepository applicationVersionRepository;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -130,10 +124,7 @@ public class ActivationServiceBehavior {
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     // Helper classes
-    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final ObjectMapper objectMapper;
-    private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
@@ -482,19 +473,9 @@ public class ActivationServiceBehavior {
                     // Use random nonce in case that challenge was provided.
                     final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
-                    // Activation signature
-                    final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-                    if (masterKeyPairEntity == null) {
-                        logger.error("Missing key pair for application ID: {}", applicationId);
-                        // Rollback is not required, database is not used for writing
-                        throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                    }
-                    final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                    final byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterPrivateKeyBase64);
-                    final byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(
-                            activation.getActivationCode(),
-                            keyConvertor.convertBytesToPrivateKey(EcCurve.P256, masterPrivateKeyBytes)
-                    );
+                    // TODO - obtain algorithm from application configuration for v4
+                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(null);
+                    final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activation.getActivationCode().getBytes(StandardCharsets.UTF_8), applicationId);
 
                     // return the data
                     final GetActivationStatusResponse response = new GetActivationStatusResponse();
@@ -553,11 +534,7 @@ public class ActivationServiceBehavior {
                     // the real encryptedStatusBlob value.
                     if (devicePublicKeyBase64 != null) {
 
-                        final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
-                        final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(devicePublicKeyBase64));
-                        final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverPublicKeyBase64));
-
-                        final SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
+                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(null).generateSharedSecretKey(activationId);
                         final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         final String ctrDataBase64 = activation.getCtrDataBase64();
@@ -603,7 +580,7 @@ public class ActivationServiceBehavior {
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
                             case 3 ->
-                                    activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
+                                    activationFingerPrint = cryptographyServiceFactory.getService(null).generateActivationFingerprint(activationId);
                             default -> {
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
                                 // Rollback is not required, database is not used for writing
@@ -683,10 +660,6 @@ public class ActivationServiceBehavior {
                 response.setVersion(0L);
                 return response;
             }
-        } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
             /// Rollback is not required, database is not used for writing
@@ -764,17 +737,6 @@ public class ActivationServiceBehavior {
             // Generate hash from activation OTP
             final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
-            // Fetch the latest master private key
-            final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationEntity.getId());
-            if (masterKeyPair == null) {
-                GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                // Rollback is not required, error occurs before writing to database
-                logger.error("No master key pair found for application ID: {}", applicationId);
-                throw ex;
-            }
-            final byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterKeyPair.getMasterKeyPrivateBase64());
-            final PrivateKey masterPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, masterPrivateKeyBytes);
-
             // Generate new activation data, generate a unique activation ID
             String activationId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
@@ -808,17 +770,13 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
-
             // Compute activation signature
-            final byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationCode, masterPrivateKey);
+            // TODO - obtain algorithm from application configuration for v4
+            final CryptographyService cryptographyService = cryptographyServiceFactory.getService(null);
+            final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activationCode.getBytes(StandardCharsets.UTF_8), applicationId);
 
             // Encode the signature
             final String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
-
-            // Generate server key pair
-            final KeyPair serverKeyPair = powerAuthServerActivation.generateServerKeyPair();
-            final byte[] serverKeyPrivateBytes = keyConvertor.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
-            final byte[] serverKeyPublicBytes = keyConvertor.convertPublicKeyToBytes(EcCurve.P256, serverKeyPair.getPublic());
 
             // Store the new activation
             final ActivationRecordEntity activation = new ActivationRecordEntity();
@@ -838,10 +796,14 @@ public class ActivationServiceBehavior {
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
-            activation.setApplication(masterKeyPair.getApplication());
-            activation.setMasterKeyPair(masterKeyPair);
+            activation.setApplication(applicationEntity);
+            activation.setMasterKeyPair(cryptographyService.getMasterKeyPair(applicationId).getMasterKeyPair());
+            // Server private and public keys are updated in the next step
+            // TODO - revise this
+            activation.setServerPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
+            activation.setServerPrivateKeyBase64("");
+            activation.setServerPublicKeyBase64("");
             activation.setMaxFailedAttempts(maxAttempt);
-            activation.setServerPublicKeyBase64(Base64.getEncoder().encodeToString(serverKeyPublicBytes));
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
             activation.setTimestampLastUsed(timestamp);
@@ -852,13 +814,12 @@ public class ActivationServiceBehavior {
                 activation.getFlags().addAll(flags);
             }
 
-            // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
-            final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
-            activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
-
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+
+            // Generate server key pair
+            // TODO - v4 support
+            cryptographyService.generateDeviceKeyPair(activationId);
 
             // Return the server response
             final InitActivationResponse response = new InitActivationResponse();
@@ -869,14 +830,6 @@ public class ActivationServiceBehavior {
             response.setApplicationId(activation.getApplication().getId());
 
             return response;
-        } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -933,9 +886,9 @@ public class ActivationServiceBehavior {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
             final String protocolVersion = request.getProtocolVersion();
-            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
+            // TODO - v4 support
             final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
@@ -945,73 +898,18 @@ public class ActivationServiceBehavior {
                     request.getTimestamp()
             );
 
-            // Validate encrypted request
-            if (!encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
-                logger.warn("Invalid request parameters in prepareActivation method");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Get current timestamp
             final Date timestamp = new Date();
 
-            // Find application by application key
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, activation code: {}", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
-            final ApplicationEntity application = applicationVersion.getApplication();
-            if (application == null) {
-                logger.warn("Application does not exist, activation code: {}", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
-            final String applicationId = application.getId();
-
-            if (encryptedRequest.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
-                        new Date(encryptedRequest.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        null,
-                        protocolVersion);
-            }
-
-            final PrivateKey privateKey;
-            if (temporaryKeyId != null) {
-                // Get temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
-            } else {
-                // Get master server private key
-                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-                if (masterKeyPairEntity == null) {
-                    logger.error("Missing key pair for application ID: {}", applicationId);
-                    // Rollback is not required, error occurs before writing to database
-                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                }
-
-                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
-            }
-
-            // Get server encryptor
-            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
-                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
-            );
-
             // Decrypt activation data
-            final byte[] activationData = serverEncryptor.decryptRequest(encryptedRequest);
+            final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            final ApplicationEntity application = decryptionResult.getApplication();
 
             // Convert JSON data to activation layer 2 request object
             final ActivationLayer2Request layer2Request;
             try {
-                layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
+                layer2Request = objectMapper.readValue(decryptionResult.getDecryptedData(), ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation code: {}", activationCode);
                 // Rollback is not required, error occurs before writing to database
@@ -1029,7 +927,7 @@ public class ActivationServiceBehavior {
             // Fetch the current activation by activation code
             final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
-            ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, states, timestamp).orElseThrow(() -> {
+            ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(application.getId(), activationCode, states, timestamp).orElseThrow(() -> {
                 logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database
                 return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -1058,14 +956,8 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
-            PublicKey devicePublicKey = null;
-            try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-            } catch (InvalidKeySpecException ex) {
-                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
-                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
-                handleInvalidPublicKey(activation);
-            }
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1074,8 +966,6 @@ public class ActivationServiceBehavior {
 
             // Update the activation record
             activation.setActivationStatus(activationStatus);
-            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
@@ -1098,7 +988,8 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
+            // TODO - v4 support
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -1108,17 +999,13 @@ public class ActivationServiceBehavior {
             final PrepareActivationResponse response = new PrepareActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
-            response.setApplicationId(applicationId);
+            response.setApplicationId(application.getId());
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
             response.setNonce(encryptedResponse.getNonce());
             response.setTimestamp(encryptedResponse.getTimestamp());
             response.setActivationStatus(activationStatusConverter.convert(activationStatus));
             return response;
-        } catch (InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EncryptorException | JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -1165,9 +1052,9 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
             final String protocolVersion = request.getProtocolVersion();
-            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
+            // TODO - v4 support
             final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
@@ -1177,32 +1064,14 @@ public class ActivationServiceBehavior {
                     request.getTimestamp()
             );
 
-            // Validate encrypted request
-            if (!encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
-                logger.warn("Invalid request parameters in createActivation method");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             // Get current timestamp
             final Date timestamp = new Date();
 
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            // If there is no such activation version or activation version is unsupported, exit
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, application key: {}", applicationKey);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
-            final ApplicationEntity application = applicationVersion.getApplication();
-            // If there is no such application, exit
-            if (application == null) {
-                logger.warn("Application is incorrect, application key: {}", applicationKey);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
-
-            final String applicationId = application.getId();
+            // Decrypt activation data
+            // TODO - v4 support
+            final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            final ApplicationEntity application = decryptionResult.getApplication();
 
             // Prepare activation OTP mode
             final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
@@ -1210,7 +1079,7 @@ public class ActivationServiceBehavior {
             // Create an activation record and obtain the activation database record
             final InitActivationRequest initRequest = new InitActivationRequest();
             initRequest.setProtocol(ActivationProtocol.POWERAUTH);
-            initRequest.setApplicationId(applicationId);
+            initRequest.setApplicationId(application.getId());
             initRequest.setUserId(userId);
             initRequest.setMaxFailureCount(maxFailureCount);
             initRequest.setTimestampActivationExpire(activationExpireTimestamp);
@@ -1230,42 +1099,8 @@ public class ActivationServiceBehavior {
 
             validateCreatedActivation(activation, application, true);
 
-            if (encryptedRequest.getTimestamp() != null) {
-                // Check request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
-                        new Date(encryptedRequest.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        null,
-                        protocolVersion);
-            }
-
-            final PrivateKey privateKey;
-            if (temporaryKeyId != null) {
-                // Get temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
-            } else {
-                // Get master server private key
-                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-                if (masterKeyPairEntity == null) {
-                    logger.error("Missing key pair for application ID: {}", applicationId);
-                    // Master key pair is missing, rollback this transaction
-                    throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                }
-                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
-            }
-
-            // Get server encryptor
-            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
-                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
-            );
-
             // Decrypt activation data
-            final byte[] activationData = serverEncryptor.decryptRequest(encryptedRequest);
+            final byte[] activationData = decryptionResult.getDecryptedData();
 
             // Convert JSON data to activation layer 2 request object
             ActivationLayer2Request layer2Request;
@@ -1287,14 +1122,8 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
-            PublicKey devicePublicKey;
-            try {
-                devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-            } catch (InvalidKeySpecException ex) {
-                logger.warn("Device public key is invalid, activation ID: {}", activationId);
-                // Device public key is invalid, rollback this transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1303,8 +1132,6 @@ public class ActivationServiceBehavior {
 
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
-            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
@@ -1329,23 +1156,20 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseData);
+            // TODO - v4 support
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
 
             // Generate encrypted response
             final CreateActivationResponse response = new CreateActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
-            response.setApplicationId(applicationId);
+            response.setApplicationId(application.getId());
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
             response.setNonce(encryptedResponse.getNonce());
             response.setTimestamp(encryptedResponse.getTimestamp());
             response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return response;
-        } catch (InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback transaction to avoid data inconsistency because of cryptography errors
-            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EncryptorException | JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback transaction to avoid data inconsistency because of cryptography errors

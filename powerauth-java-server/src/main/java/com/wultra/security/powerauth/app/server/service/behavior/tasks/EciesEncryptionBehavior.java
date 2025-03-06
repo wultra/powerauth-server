@@ -17,49 +17,27 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
-import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
-import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.SecretKey;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.Date;
 
 /**
  * Behavior class implementing the ECIES service logic.
@@ -73,22 +51,13 @@ import java.util.Date;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class EciesEncryptionBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
-    private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
-    private final ApplicationVersionRepository applicationVersionRepository;
-    private final MasterKeyPairRepository masterKeyPairRepository;
-
-    // Helper classes
-    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Obtain ECIES decryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
@@ -108,7 +77,7 @@ public class EciesEncryptionBehavior {
                 return getEciesDecryptorParametersForApplication(request);
             } else {
                 // Activation scope
-                return getEciesDecryptorParametersForActivation(request, keyConvertor);
+                return getEciesDecryptorParametersForActivation(request);
             }
         } catch (GenericServiceException ex) {
             // already logged
@@ -130,87 +99,28 @@ public class EciesEncryptionBehavior {
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
-        try {
-            // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
-            if (request.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
-                        new Date(request.getTimestamp()),
-                        request.getEphemeralPublicKey(),
-                        request.getNonce(),
-                        null,
-                        request.getProtocolVersion());
-            }
-
-            final String temporaryKeyId = request.getTemporaryKeyId();
-            final PrivateKey privateKey;
-            if (temporaryKeyId != null) {
-                // Get the temporary private key
-                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, request.getApplicationKey(), request.getActivationId());
-            } else {
-                // Get master private key
-                final ApplicationEntity application = applicationVersion.getApplication();
-                final String applicationId = application.getId();
-                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-                if (masterKeyPairEntity == null) {
-                    logger.error("Missing key pair for application ID: {}", applicationId);
-                    // Rollback is not required, database is not used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                }
-
-                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
-            }
-
-            // Build encryptor to derive shared info
-            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> encryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.APPLICATION_SCOPE_GENERIC,
-                    new EncryptorParameters(request.getProtocolVersion(), applicationVersion.getApplicationKey(), null, temporaryKeyId),
-                    new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
-            );
-            // Calculate secrets for the external encryptor
-            final EncryptorSecrets encryptorSecrets = encryptor.deriveSecretsForExternalEncryptor(
-                    new EciesEncryptedRequest(
-                            request.getTemporaryKeyId(),
-                            request.getEphemeralPublicKey(),
-                            null,
-                            null,
-                            request.getNonce(),
-                            request.getTimestamp()
-                    )
-            );
-            if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
-                // ECIES V3.0, V3.1, V3.2
-                final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-                response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
-                response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
-                return response;
-            }
-            logger.error("Unsupported EncryptorSecrets object");
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-
-        } catch (InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (EncryptorException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        // TODO - v4 support
+        final EncryptedRequest encryptedRequest = new EciesEncryptedRequest(
+                request.getTemporaryKeyId(),
+                request.getEphemeralPublicKey(),
+                null,
+                null,
+                request.getNonce(),
+                request.getTimestamp()
+        );
+        final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(null).deriveSecrets(encryptedRequest, context);
+        // TODO - v4 support
+        if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
+            // ECIES V3.0, V3.1, V3.2
+            final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
+            return response;
         }
+        logger.error("Unsupported EncryptorSecrets object");
+        // Rollback is not required, database is not used for writing
+        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
     }
 
     /**
@@ -220,116 +130,47 @@ public class EciesEncryptionBehavior {
      * @return ECIES decryptor parameters for activation scope.
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
-    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request, KeyConvertor keyConversion) throws GenericServiceException {
-
+    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request) throws GenericServiceException {
         final String temporaryKeyId = request.getTemporaryKeyId();
-        final String applicationKey = request.getApplicationKey();
         final String activationId = request.getActivationId();
         final String ephemeralPublicKey = request.getEphemeralPublicKey();
         final Long timestamp = request.getTimestamp();
         final String nonce = request.getNonce();
-        final String protocolVersion = request.getProtocolVersion();
 
-        try {
-            // Lookup the activation
-            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
-                logger.info("Activation does not exist, activation ID: {}", activationId);
-                // Rollback is not required, database is not used for writing
-                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            });
+        // Lookup the activation
+        final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
+            logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, database is not used for writing
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
-            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            if (timestamp != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
-                        new Date(timestamp),
+        activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+
+        final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.ACTIVATION_SCOPE_GENERIC);
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(null).deriveSecrets(
+                new EciesEncryptedRequest(
+                        temporaryKeyId,
                         ephemeralPublicKey,
+                        null,
+                        null,
                         nonce,
-                        activation.getActivationId(),
-                        protocolVersion);
-            }
-
-            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
-
-            // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, application key: {}", applicationKey);
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
-            // Check that application key from request belongs to same application as activation ID from request
-            if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
-                logger.warn("Application version does not match, application key: {}", request.getApplicationKey());
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
-            // Get the server private key, decrypt it if required
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
-
-            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
-
-            // Get temporary or server key, depending on availability
-            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
-
-            // Build encryptor to derive shared info
-            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> encryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.ACTIVATION_SCOPE_GENERIC,
-                    new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), temporaryKeyId),
-                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
-            );
-            // Calculate secrets for the external encryptor. The request object may not contain encrypted data and mac.
-            final EncryptorSecrets encryptorSecrets = encryptor.deriveSecretsForExternalEncryptor(
-                    new EciesEncryptedRequest(
-                            temporaryKeyId,
-                            ephemeralPublicKey,
-                            null,
-                            null,
-                            nonce,
-                            timestamp
-                    )
-            );
-            if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
-                // ECIES V3.0, V3.1, V3.2
-                final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-                response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
-                response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
-                return response;
-            }
-            logger.error("Unsupported EncryptorSecrets object");
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EncryptorException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                        timestamp
+                ),
+                context
+        );
+        // TODO - v4 support
+        if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
+            // ECIES V3.0, V3.1, V3.2
+            final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
+            return response;
         }
+        logger.error("Unsupported EncryptorSecrets object");
+        // Rollback is not required, database is not used for writing
+        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
     }
 
 }

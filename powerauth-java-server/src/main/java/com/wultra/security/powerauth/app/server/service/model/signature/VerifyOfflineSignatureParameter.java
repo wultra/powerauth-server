@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,13 +14,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.model.signature;
 
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -42,7 +42,6 @@ public class VerifyOfflineSignatureParameter {
     private List<KeyValue> additionalInfo;
     private String dataString;
     private Integer expectedComponentLength;
-    private KeyConvertor keyConversionUtilities;
 
     private String proximityCheckSeed;
     private Duration proximityCheckStepLength;

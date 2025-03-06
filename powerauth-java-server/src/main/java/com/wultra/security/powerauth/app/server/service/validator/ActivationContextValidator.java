@@ -17,7 +17,7 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.validator;
 
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;

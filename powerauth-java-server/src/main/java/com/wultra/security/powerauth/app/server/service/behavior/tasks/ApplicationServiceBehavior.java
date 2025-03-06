@@ -17,35 +17,30 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.Application;
-import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,15 +52,16 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ApplicationServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
 
-    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private final ApplicationRepository applicationRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Get application details by ID.
@@ -207,23 +203,12 @@ public class ApplicationServiceBehavior {
             application.setId(applicationId);
             application = applicationRepository.save(application);
 
-            final KeyGenerator keyGen = new KeyGenerator();
-            final KeyPair kp = keyGen.generateKeyPair(EcCurve.P256);
-            final PrivateKey privateKey = kp.getPrivate();
-            final PublicKey publicKey = kp.getPublic();
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(null).generateMasterKeyPair(applicationId);
 
             // Use cryptography methods before writing to database to avoid rollbacks
-            final byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-            final byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
-
-            // Generate the default master key pair
-            final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
-            keyPair.setApplication(application);
-            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
-            keyPair.setTimestampCreated(new Date());
-            keyPair.setName(applicationId + " Default Keypair");
-            masterKeyPairRepository.save(keyPair);
+            final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
+            final byte[] applicationSecretBytes = KEY_GENERATOR.generateRandomBytes(16);
 
             // Create the default application version
             final ApplicationVersionEntity version = new ApplicationVersionEntity();

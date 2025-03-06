@@ -19,54 +19,41 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
+import com.wultra.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
+import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
-import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
-import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
-import com.wultra.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
-import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import com.wultra.security.powerauth.crypto.server.vault.PowerAuthServerVault;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 /**
@@ -82,25 +69,20 @@ import java.util.*;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class VaultUnlockServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ApplicationVersionRepository applicationVersionRepository;
 
     // Helper classes
-    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
     private final ObjectMapper objectMapper;
-    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     /**
      * Method to retrieve the vault unlock key. Before calling this method, it is assumed that
@@ -122,7 +104,6 @@ public class VaultUnlockServiceBehavior {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
-            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
             final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
@@ -145,11 +126,6 @@ public class VaultUnlockServiceBehavior {
                 }
             }
 
-            if (!encryptorFactory.getRequestResponseValidator(signatureVersion).validateEncryptedRequest(encryptedRequest)) {
-                logger.warn("Invalid encrypted request parameters in method vaultUnlock");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             // Lookup the activation
             final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
@@ -176,47 +152,15 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
-            if (encryptedRequest.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
-                        new Date(encryptedRequest.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        activationId,
-                        signatureVersion);
-            }
-
-            // Get the server private key, decrypt it if required
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
-
-            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
-
-            // Get temporary or server key, depending on availability
-            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
-
-            // Get server encryptor
-            final ServerEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> serverEncryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.VAULT_UNLOCK,
-                    new EncryptorParameters(signatureVersion, applicationKey, activationId, temporaryKeyId),
-                    new ServerEciesSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
-            );
             // Decrypt request to obtain vault unlock reason
-            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
+            // TODO - v4 support
+            final EncryptionContext context = new EncryptionContext(signatureVersion, applicationKey, activationId, EncryptorId.VAULT_UNLOCK);
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload vaultUnlockRequest;
             try {
-                vaultUnlockRequest = objectMapper.readValue(decryptedData, VaultUnlockRequestPayload.class);
+                vaultUnlockRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), VaultUnlockRequestPayload.class);
             } catch (IOException ex) {
                 logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
                 // Return response with invalid signature flag when request format is not valid
@@ -255,7 +199,7 @@ public class VaultUnlockServiceBehavior {
 
             if (signatureResponse.isSignatureValid()) {
                 // Store encrypted vault unlock key in response
-                final byte[] encryptedVaultEncryptionKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey);
+                final byte[] encryptedVaultEncryptionKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(decryptionResult.getServerPrivateKey(), decryptionResult.getDevicePublicKey());
                 final String encryptedVaultEncryptionKey = Base64.getEncoder().encodeToString(encryptedVaultEncryptionKeyBytes);
                 responsePayload.setEncryptedVaultEncryptionKey(encryptedVaultEncryptionKey);
             }
@@ -264,7 +208,8 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final EciesEncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(reponsePayloadBytes);
+            // TODO - v4 support
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(reponsePayloadBytes);
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
@@ -274,12 +219,6 @@ public class VaultUnlockServiceBehavior {
             response.setTimestamp(encryptedResponse.getTimestamp());
             response.setSignatureValid(signatureResponse.isSignatureValid());
             return response;
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database.
-            // The only possible error could occur while generating ECIES response after signature validation,
-            // however this logic is well tested and should not fail.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database.

@@ -21,13 +21,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.core.http.common.headers.UserAgent;
-import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationListResponse;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -41,18 +34,26 @@ import com.wultra.security.powerauth.app.server.database.repository.OperationRep
 import com.wultra.security.powerauth.app.server.database.repository.OperationTemplateRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.persistence.OperationQueryService;
+import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
@@ -113,31 +115,6 @@ public class OperationServiceBehavior {
          * @return True in case the operation can be approved, false to fail operation approval.
          */
         boolean operationShouldFail(OperationEntity operationEntity, OperationApproveRequest request);
-    }
-
-    @Autowired
-    public OperationServiceBehavior(
-            CallbackUrlBehavior callbackUrlBehavior, OperationRepository operationRepository,
-            OperationTemplateRepository templateRepository,
-            ApplicationRepository applicationRepository,
-            ActivationRepository activationRepository, OperationQueryService operationQueryService, ActivationQueryService activationQueryService,
-            AuditingServiceBehavior audit,
-            PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration) {
-        this.callbackUrlBehavior = callbackUrlBehavior;
-        this.operationRepository = operationRepository;
-        this.templateRepository = templateRepository;
-        this.applicationRepository = applicationRepository;
-        this.operationQueryService = operationQueryService;
-        this.activationQueryService = activationQueryService;
-        this.audit = audit;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.activationRepository = activationRepository;
-        this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
     }
 
     @Transactional

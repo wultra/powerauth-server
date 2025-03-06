@@ -19,6 +19,23 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
+import com.wultra.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
+import com.wultra.security.powerauth.app.server.converter.CallbackUrlTypeConverter;
+import com.wultra.security.powerauth.app.server.database.model.entity.*;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
+import com.wultra.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
+import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
+import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
+import com.wultra.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
+import com.wultra.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
+import com.wultra.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.util.TransactionUtils;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
@@ -29,23 +46,6 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
-import com.wultra.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
-import com.wultra.security.powerauth.app.server.converter.CallbackUrlTypeConverter;
-import com.wultra.security.powerauth.app.server.database.model.entity.*;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
-import com.wultra.security.powerauth.app.server.database.repository.CallbackUrlRepository;
-import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
-import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
-import com.wultra.security.powerauth.app.server.service.callbacks.model.CachedRestClient;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
-import com.wultra.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
-import com.wultra.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
-import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
-import com.wultra.security.powerauth.app.server.service.util.TransactionUtils;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,8 +65,8 @@ import java.util.stream.Collectors;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
-@AllArgsConstructor
 @Slf4j
+@AllArgsConstructor
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,27 +14,31 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.model.crypto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
+import lombok.ToString;
 
-import java.time.Duration;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
- * Parameter object.
+ * Temporary key result.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Builder
-@Getter
-public class OfflineSignatureParameter {
+@Data
+public class TemporaryKeyResult {
 
-    private String activationId;
-    private String data;
-    private String nonce;
-    private String proximityCheckSeed;
-    private Duration proximityCheckStepLength;
+    @ToString.Exclude
+    private byte[] secretKeyBytes;
+
+    @ToString.Exclude
+    private PrivateKey privateKey;
+
+    private PublicKey publicKey;
+
 }

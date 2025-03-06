@@ -17,12 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
-import com.wultra.security.powerauth.client.model.request.CreateApplicationConfigRequest;
-import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveApplicationConfigRequest;
-import com.wultra.security.powerauth.client.model.response.CreateApplicationConfigResponse;
-import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -32,6 +26,12 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ApplicationConfigService;
+import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationConfigRequest;
+import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveApplicationConfigRequest;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationConfigResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -18,20 +18,20 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
 import com.wultra.security.powerauth.app.server.converter.OperationTemplateConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import com.wultra.security.powerauth.app.server.database.repository.OperationTemplateRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDetailRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
+import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,22 +44,12 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class OperationTemplateServiceBehavior {
 
     private final OperationTemplateRepository templateRepository;
     private final OperationTemplateConverter operationTemplateConverter;
     private LocalizationProvider localizationProvider;
-
-    @Autowired
-    public OperationTemplateServiceBehavior(OperationTemplateRepository templateRepository, OperationTemplateConverter operationTemplateConverter) {
-        this.templateRepository = templateRepository;
-        this.operationTemplateConverter = operationTemplateConverter;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
 
     /**
      * Return the list of all templates in the system.
