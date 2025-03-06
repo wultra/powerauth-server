@@ -56,12 +56,12 @@ import java.util.Optional;
 public class ApplicationServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
-
-    private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private final ApplicationRepository applicationRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+
+    private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
     /**
      * Get application details by ID.
