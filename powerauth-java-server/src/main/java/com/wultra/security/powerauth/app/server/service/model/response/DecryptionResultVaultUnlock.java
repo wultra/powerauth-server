@@ -19,28 +19,28 @@
 
 package com.wultra.security.powerauth.app.server.service.model.response;
 
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 /**
- * Decryption result.
+ * Decryption result for vault unlock.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class DecryptionResult {
+public class DecryptionResultVaultUnlock extends DecryptionResult {
 
-    private byte[] decryptedData;
-    private ApplicationEntity application;
-    private ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor;
+    private PrivateKey serverPrivateKey;
+    private PublicKey devicePublicKey;
 
 }

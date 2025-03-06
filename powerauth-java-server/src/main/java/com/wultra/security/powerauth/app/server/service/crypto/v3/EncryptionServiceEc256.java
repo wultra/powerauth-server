@@ -33,6 +33,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
@@ -162,16 +163,20 @@ public class EncryptionServiceEc256 implements EncryptionService {
         } else {
             privateKey = serverPrivateKey;
         }
-        final DecryptionResult decryptionResult = new DecryptionResult();
+        final DecryptionResult decryptionResult;
+        if (encryptorId == EncryptorId.VAULT_UNLOCK) {
+            DecryptionResultVaultUnlock decryptionResultVaultUnlock = new DecryptionResultVaultUnlock();
+            decryptionResultVaultUnlock.setServerPrivateKey(serverPrivateKey);
+            decryptionResultVaultUnlock.setDevicePublicKey(devicePublicKey);
+            decryptionResult = decryptionResultVaultUnlock;
+        } else {
+            decryptionResult = new DecryptionResult();
+        }
         decryptionResult.setServerEncryptor(ENCRYPTOR_FACTORY.getServerEncryptor(
                 encryptorId,
                 new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), eciesRequest.getTemporaryKeyId()),
                 new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
         ));
-        if (encryptorId == EncryptorId.VAULT_UNLOCK) {
-            decryptionResult.setServerPrivateKey(serverPrivateKey);
-            decryptionResult.setDevicePublicKey(devicePublicKey);
-        }
         decryptionResult.setApplication(applicationVersion.getApplication());
         return decryptionResult;
     }

@@ -31,7 +31,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
-import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
@@ -155,7 +155,7 @@ public class VaultUnlockServiceBehavior {
             // Decrypt request to obtain vault unlock reason
             // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(signatureVersion, applicationKey, activationId, EncryptorId.VAULT_UNLOCK);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload vaultUnlockRequest;
