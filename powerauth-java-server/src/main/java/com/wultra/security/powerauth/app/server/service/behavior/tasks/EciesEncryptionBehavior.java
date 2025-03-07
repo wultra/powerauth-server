@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -109,8 +110,8 @@ public class EciesEncryptionBehavior {
                 request.getTimestamp()
         );
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(null).deriveSecrets(encryptedRequest, context);
         // TODO - v4 support
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSecrets(encryptedRequest, context);
         if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
             // ECIES V3.0, V3.1, V3.2
             final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
@@ -149,7 +150,8 @@ public class EciesEncryptionBehavior {
         activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.ACTIVATION_SCOPE_GENERIC);
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(null).deriveSecrets(
+        // TODO - v4 support
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSecrets(
                 new EciesEncryptedRequest(
                         temporaryKeyId,
                         ephemeralPublicKey,

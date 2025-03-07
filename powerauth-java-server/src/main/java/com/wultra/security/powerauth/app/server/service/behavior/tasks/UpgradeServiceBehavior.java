@@ -45,6 +45,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -112,9 +113,9 @@ public class UpgradeServiceBehavior {
             // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
-            // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, activationId, EncryptorId.UPGRADE);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            // TODO - v4 support
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
 
             // Request is valid, generate hash based counter if it does not exist yet
             final String ctrDataBase64;

@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.client.model.request.SignECDSARequest;
 import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
 import com.wultra.security.powerauth.client.model.response.SignECDSAResponse;
 import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -82,7 +83,8 @@ public class AsymmetricSignatureServiceBehavior {
             }
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
-            final byte[] signature = cryptographyServiceFactory.getService(null).generateSignatureForActivation(dataRaw, activationId);
+            // TODO - v4 support
+            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(dataRaw, activationId);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
             final SignECDSAResponse response = new SignECDSAResponse();
@@ -130,7 +132,8 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytes = Base64.getDecoder().decode(signature);
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
-            final boolean matches = cryptographyServiceFactory.getService(null).verifySignatureForActivation(dataBytes, signatureBytesDER, activationId);
+            // TODO - v4 support
+            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(dataBytes, signatureBytesDER, activationId);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)

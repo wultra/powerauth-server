@@ -48,9 +48,10 @@ public class CryptographyServiceFactory {
      */
     public CryptographyService getService(SharedSecretAlgorithm algorithm) throws GenericServiceException{
         if (algorithm == null) {
-            return cryptographyServiceEc256;
+            throw new IllegalArgumentException("Missing shared secret algorithm");
         }
         return switch (algorithm) {
+            case EC_P256 -> cryptographyServiceEc256;
             case EC_P384 -> cryptographyServiceEc384;
             case EC_P384_ML_L3 -> cryptographyServiceV4Hybrid;
         };

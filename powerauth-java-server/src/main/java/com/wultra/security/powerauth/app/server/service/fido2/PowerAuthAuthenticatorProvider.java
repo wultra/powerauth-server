@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -191,7 +192,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();
             // TODO - v4 support
-            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activation.getActivationId(), new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation.getActivationId(), new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(ProtocolVersion.V33.getVersion());

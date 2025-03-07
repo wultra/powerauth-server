@@ -61,6 +61,7 @@ import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
@@ -473,8 +474,8 @@ public class ActivationServiceBehavior {
                     // Use random nonce in case that challenge was provided.
                     final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
-                    // TODO - obtain algorithm from application configuration for v4
-                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(null);
+                    // TODO - v4 support
+                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256);
                     final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activation.getActivationCode().getBytes(StandardCharsets.UTF_8), applicationId);
 
                     // return the data
@@ -534,7 +535,8 @@ public class ActivationServiceBehavior {
                     // the real encryptedStatusBlob value.
                     if (devicePublicKeyBase64 != null) {
 
-                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(null).generateSharedSecretKey(activationId);
+                        // TODO - v4 support
+                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activationId);
                         final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         final String ctrDataBase64 = activation.getCtrDataBase64();
@@ -580,8 +582,9 @@ public class ActivationServiceBehavior {
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
                             case 3 ->
-                                    activationFingerPrint = cryptographyServiceFactory.getService(null).generateActivationFingerprint(activationId);
+                                    activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activationId);
                             default -> {
+                                // TODO - v4 support
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
                                 // Rollback is not required, database is not used for writing
                                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
@@ -771,8 +774,8 @@ public class ActivationServiceBehavior {
             }
 
             // Compute activation signature
-            // TODO - obtain algorithm from application configuration for v4
-            final CryptographyService cryptographyService = cryptographyServiceFactory.getService(null);
+            // TODO - v4 support
+            final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256);
             final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activationCode.getBytes(StandardCharsets.UTF_8), applicationId);
 
             // Encode the signature
@@ -903,7 +906,8 @@ public class ActivationServiceBehavior {
 
             // Decrypt activation data
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            // TODO - v4 support
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
             final ApplicationEntity application = decryptionResult.getApplication();
 
             // Convert JSON data to activation layer 2 request object
@@ -957,7 +961,7 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1068,9 +1072,9 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Decrypt activation data
-            // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            // TODO - v4 support
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
             final ApplicationEntity application = decryptionResult.getApplication();
 
             // Prepare activation OTP mode
@@ -1123,7 +1127,7 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(null).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);

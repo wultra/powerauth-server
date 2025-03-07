@@ -47,6 +47,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -155,7 +156,7 @@ public class VaultUnlockServiceBehavior {
             // Decrypt request to obtain vault unlock reason
             // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(signatureVersion, applicationKey, activationId, EncryptorId.VAULT_UNLOCK);
-            final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload vaultUnlockRequest;

@@ -35,6 +35,7 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -204,7 +205,7 @@ public class ApplicationServiceBehavior {
             application = applicationRepository.save(application);
 
             // TODO - v4 support
-            cryptographyServiceFactory.getService(null).generateMasterKeyPair(applicationId);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateMasterKeyPair(applicationId);
 
             // Use cryptography methods before writing to database to avoid rollbacks
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);

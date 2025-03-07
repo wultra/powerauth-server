@@ -45,6 +45,7 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -163,7 +164,7 @@ public class OfflineSignatureServiceBehavior {
             final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             // TODO - v4 support
-            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(null).generateSignatureForActivation(signatureBase, activationId);
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(signatureBase, activationId);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
@@ -242,7 +243,7 @@ public class OfflineSignatureServiceBehavior {
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             // TODO - v4 support
-            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(null).generateSignatureForApplication(signatureBase, applicationId);
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForApplication(signatureBase, applicationId);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'

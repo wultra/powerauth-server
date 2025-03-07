@@ -39,6 +39,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import com.wultra.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import lombok.RequiredArgsConstructor;
@@ -229,7 +230,8 @@ public class SignatureSharedServiceBehavior {
     private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(null).generateSharedSecretKey(activation.getActivationId());
+        // TODO - v4 support
+        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activation.getActivationId());
 
         // Resolve signature version based on activation version and request
         final Integer signatureVersion = resolveSignatureVersion(activation, signatureData.getForcedSignatureVersion());

@@ -51,6 +51,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import lombok.AllArgsConstructor;
@@ -291,7 +292,7 @@ public class TokenBehavior {
 
             // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(version, applicationKey, activationId, EncryptorId.CREATE_TOKEN);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(null).decryptRequest(encryptedRequest, context);
+            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
 
             // Generate unique token ID.
             String tokenId = null;

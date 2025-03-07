@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicK
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTemporaryPublicKeyResponse;
 import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,8 @@ public class TemporaryKeyBehavior {
     @Transactional
     public TemporaryPublicKeyResponse requestTemporaryKey(TemporaryPublicKeyRequest request) throws GenericServiceException {
         final String jwt = request.getJwt();
-        final String signedJwt = cryptographyServiceFactory.getService(null).requestTemporaryKey(jwt);
+        // TODO - v4 support
+        final String signedJwt = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).requestTemporaryKey(jwt);
 
         final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
         response.setJwt(signedJwt);
