@@ -1,3 +1,12 @@
+-- *********************************************************************
+-- Update Database Script
+-- *********************************************************************
+-- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
+-- Ran at: 10.03.25 6:57
+-- Against: null@offline:oracle
+-- Liquibase version: 4.31.1
+-- *********************************************************************
+
 -- Changeset powerauth-java-server/1.4.x/20230322-audit.xml::1::Lubos Racansky
 -- Create a new table audit_log
 CREATE TABLE audit_log (audit_log_id VARCHAR2(36) NOT NULL, application_name VARCHAR2(256) NOT NULL, audit_level VARCHAR2(32) NOT NULL, audit_type VARCHAR2(256), timestamp_created TIMESTAMP DEFAULT sysdate, message CLOB NOT NULL, exception_message CLOB, stack_trace CLOB, param CLOB, calling_class VARCHAR2(256) NOT NULL, thread_name VARCHAR2(256) NOT NULL, version VARCHAR2(256), build_time TIMESTAMP, CONSTRAINT PK_AUDIT_LOG PRIMARY KEY (audit_log_id));
@@ -301,3 +310,55 @@ ALTER TABLE pa_operation ADD CONSTRAINT pa_operation_activation_id_fk FOREIGN KE
 ALTER TABLE pa_operation MODIFY user_id NULL;
 
 -- Changeset powerauth-java-server/1.6.x/20231212-add-tag-1.6.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::1::Roman Strobl
+-- Add external_id column
+ALTER TABLE pa_activation ADD external_id VARCHAR2(255);
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::2::Roman Strobl
+-- Add protocol column
+ALTER TABLE pa_activation ADD protocol VARCHAR2(32) DEFAULT 'powerauth';
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
+ALTER TABLE pa_activation MODIFY extras VARCHAR2(4000);
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
+UPDATE pa_activation SET protocol = 'powerauth' WHERE protocol is null;
+
+-- Changeset powerauth-java-server/1.7.x/20240530-protocol-not-null.xml::5::Lubos Racansky
+-- Make column pa_activation.protocol not-null.
+ALTER TABLE pa_activation MODIFY protocol NOT NULL;
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
+-- Create a new table pa_application_config
+CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, config_key VARCHAR2(255) NOT NULL, config_values CLOB, CONSTRAINT PK_PA_APPLICATION_CONFIG PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
+-- Create a new index on pa_application_config(config_key)
+CREATE INDEX pa_app_config_key_idx ON pa_application_config(config_key);
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::3::Lubos Racansky
+-- Create a new sequence pa_app_conf_seq
+CREATE SEQUENCE pa_app_conf_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+
+-- Changeset powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml::1::Jan Pesek
+-- Create a new table pa_fido2_authenticator
+CREATE TABLE pa_fido2_authenticator (aaguid VARCHAR2(255) NOT NULL, description VARCHAR2(255) NOT NULL, signature_type VARCHAR2(255) NOT NULL, CONSTRAINT PK_PA_FIDO2_AUTHENTICATOR PRIMARY KEY (aaguid));
+
+-- Changeset powerauth-java-server/1.7.x/20240222-add-tag-1.7.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::1::Jan Pesek
+-- Drop index on pa_operation(timestamp_expires, status).
+DROP INDEX pa_operation_status_exp;
+
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::2::Jan Pesek
+-- Create a new index on pa_operation(status, timestamp_expires).
+CREATE INDEX pa_operation_status_exp ON pa_operation(status, timestamp_expires);
+
+-- Changeset powerauth-java-server/1.8.x/20240517-fido2-authenticator-transports.xml::1::Jan Pesek
+-- Add transports column in pa_fido2_authenticator table.
+ALTER TABLE pa_fido2_authenticator ADD transports VARCHAR2(255);
+
+-- Changeset powerauth-java-server/1.8.x/20240529-add-status-reason.xml::1::Lubos Racansky
+-- Add status_reason column to pa_operation table.
+ALTER TABLE pa_operation ADD status_reason VARCHAR2(32);
+
+-- Changeset powerauth-java-server/1.8.x/20240625-add-tag-1.8.0.xml::1::Lubos Racansky
