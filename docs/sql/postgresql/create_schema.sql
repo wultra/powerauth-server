@@ -1,3 +1,12 @@
+-- *********************************************************************
+-- Update Database Script
+-- *********************************************************************
+-- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
+-- Ran at: 10.03.25 7:07
+-- Against: null@offline:postgresql
+-- Liquibase version: 4.31.1
+-- *********************************************************************
+
 -- Changeset powerauth-java-server/1.4.x/20230322-audit.xml::1::Lubos Racansky
 -- Create a new table audit_log
 CREATE TABLE audit_log (audit_log_id VARCHAR(36) NOT NULL, application_name VARCHAR(256) NOT NULL, audit_level VARCHAR(32) NOT NULL, audit_type VARCHAR(256), timestamp_created TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(), message TEXT NOT NULL, exception_message TEXT, stack_trace TEXT, param TEXT, calling_class VARCHAR(256) NOT NULL, thread_name VARCHAR(256) NOT NULL, version VARCHAR(256), build_time TIMESTAMP WITHOUT TIME ZONE, CONSTRAINT audit_log_pkey PRIMARY KEY (audit_log_id));
@@ -84,7 +93,7 @@ CREATE TABLE pa_master_keypair (id INTEGER NOT NULL, application_id INTEGER NOT 
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::12::Lubos Racansky
 -- Create a new table pa_activation
-CREATE TABLE pa_activation (activation_id VARCHAR(37) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_name VARCHAR(255), activation_code VARCHAR(255), activation_status INTEGER NOT NULL, activation_otp VARCHAR(255), activation_otp_validation INTEGER DEFAULT 0 NOT NULL, blocked_reason VARCHAR(255), counter INTEGER NOT NULL, ctr_data VARCHAR(255), device_public_key_base64 VARCHAR(255), extras VARCHAR(255), platform VARCHAR(255), device_info VARCHAR(255), flags VARCHAR(255), failed_attempts INTEGER NOT NULL, max_failed_attempts INTEGER DEFAULT 5 NOT NULL, server_private_key_base64 VARCHAR(255) NOT NULL, server_private_key_encryption INTEGER DEFAULT 0 NOT NULL, server_public_key_base64 VARCHAR(255) NOT NULL, timestamp_activation_expire TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, master_keypair_id INTEGER, version INTEGER DEFAULT 2, CONSTRAINT pa_activation_pkey PRIMARY KEY (activation_id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_activation (activation_id VARCHAR(37) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_name VARCHAR(255), activation_code VARCHAR(255), activation_status INTEGER NOT NULL, activation_otp VARCHAR(255), activation_otp_validation INTEGER DEFAULT 0 NOT NULL, blocked_reason VARCHAR(255), counter INTEGER NOT NULL, ctr_data VARCHAR(255), device_public_key_base64 VARCHAR(255), extras VARCHAR(255), platform VARCHAR(255), device_info VARCHAR(255), flags VARCHAR(255), failed_attempts INTEGER NOT NULL, max_failed_attempts INTEGER DEFAULT 5 NOT NULL, server_private_key_base64 VARCHAR(255) NOT NULL, server_private_key_encryption INTEGER DEFAULT 0 NOT NULL, server_public_key_base64 VARCHAR(255) NOT NULL, timestamp_activation_expire TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, master_keypair_id INTEGER, version INTEGER DEFAULT 2, CONSTRAINT pa_activation_pkey PRIMARY KEY (activation_id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id));
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::13::Lubos Racansky
 -- Create a new table pa_application_version
@@ -112,7 +121,7 @@ CREATE TABLE pa_activation_history (id BIGINT NOT NULL, activation_id VARCHAR(37
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::19::Lubos Racansky
 -- Create a new table pa_recovery_code
-CREATE TABLE pa_recovery_code (id BIGINT NOT NULL, recovery_code VARCHAR(23) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_id VARCHAR(37), status INTEGER NOT NULL, failed_attempts INTEGER DEFAULT 0 NOT NULL, max_failed_attempts INTEGER DEFAULT 10 NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, CONSTRAINT pa_recovery_code_pkey PRIMARY KEY (id), CONSTRAINT recovery_code_activation_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id), CONSTRAINT recovery_code_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_recovery_code (id BIGINT NOT NULL, recovery_code VARCHAR(23) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_id VARCHAR(37), status INTEGER NOT NULL, failed_attempts INTEGER DEFAULT 0 NOT NULL, max_failed_attempts INTEGER DEFAULT 10 NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, CONSTRAINT pa_recovery_code_pkey PRIMARY KEY (id), CONSTRAINT recovery_code_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT recovery_code_activation_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::20::Lubos Racansky
 -- Create a new table pa_recovery_puk
@@ -301,3 +310,114 @@ ALTER TABLE pa_operation ADD CONSTRAINT pa_operation_activation_id_fk FOREIGN KE
 ALTER TABLE pa_operation ALTER COLUMN  user_id DROP NOT NULL;
 
 -- Changeset powerauth-java-server/1.6.x/20231212-add-tag-1.6.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::1::Roman Strobl
+-- Add external_id column
+ALTER TABLE pa_activation ADD external_id VARCHAR(255);
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::2::Roman Strobl
+-- Add protocol column
+ALTER TABLE pa_activation ADD protocol VARCHAR(32) DEFAULT 'powerauth';
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
+ALTER TABLE pa_activation ALTER COLUMN extras TYPE VARCHAR(4000) USING (extras::VARCHAR(4000));
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
+UPDATE pa_activation SET protocol = 'powerauth' WHERE protocol is null;
+
+-- Changeset powerauth-java-server/1.7.x/20240530-protocol-not-null.xml::5::Lubos Racansky
+-- Make column pa_activation.protocol not-null.
+ALTER TABLE pa_activation ALTER COLUMN  protocol SET NOT NULL;
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
+-- Create a new table pa_application_config
+CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, config_key VARCHAR(255) NOT NULL, config_values TEXT, CONSTRAINT pa_application_config_pkey PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
+-- Create a new index on pa_application_config(config_key)
+CREATE INDEX pa_app_config_key_idx ON pa_application_config(config_key);
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::3::Lubos Racansky
+-- Create a new sequence pa_app_conf_seq
+CREATE SEQUENCE  IF NOT EXISTS pa_app_conf_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+
+-- Changeset powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml::1::Jan Pesek
+-- Create a new table pa_fido2_authenticator
+CREATE TABLE pa_fido2_authenticator (aaguid VARCHAR(255) NOT NULL, description VARCHAR(255) NOT NULL, signature_type VARCHAR(255) NOT NULL, CONSTRAINT pa_fido2_authenticator_pkey PRIMARY KEY (aaguid));
+
+-- Changeset powerauth-java-server/1.7.x/20240222-add-tag-1.7.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::1::Jan Pesek
+-- Drop index on pa_operation(timestamp_expires, status).
+DROP INDEX pa_operation_status_exp;
+
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::2::Jan Pesek
+-- Create a new index on pa_operation(status, timestamp_expires).
+CREATE INDEX pa_operation_status_exp ON pa_operation(status, timestamp_expires);
+
+-- Changeset powerauth-java-server/1.8.x/20240517-fido2-authenticator-transports.xml::1::Jan Pesek
+-- Add transports column in pa_fido2_authenticator table.
+ALTER TABLE pa_fido2_authenticator ADD transports VARCHAR(255);
+
+-- Changeset powerauth-java-server/1.8.x/20240529-add-status-reason.xml::1::Lubos Racansky
+-- Add status_reason column to pa_operation table.
+ALTER TABLE pa_operation ADD status_reason VARCHAR(32);
+
+-- Changeset powerauth-java-server/1.8.x/20240625-add-tag-1.8.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.9.x/20240718-add-temporary-keys.xml::1::Petr Dvorak
+-- Create a new table pa_temporary_key
+CREATE TABLE pa_temporary_key (id VARCHAR(37) NOT NULL, application_key VARCHAR(32) NOT NULL, activation_id VARCHAR(37), private_key_encryption INTEGER DEFAULT 0 NOT NULL, private_key_base64 VARCHAR(255) NOT NULL, public_key_base64 VARCHAR(255) NOT NULL, timestamp_expires TIMESTAMP WITHOUT TIME ZONE NOT NULL, CONSTRAINT pa_temporary_key_pkey PRIMARY KEY (id), CONSTRAINT pa_temporary_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+
+-- Changeset powerauth-java-server/1.9.x/20240718-add-temporary-keys.xml::2::Petr Dvorak
+-- Create a new index on pa_temporary_key(timestamp_expires)
+CREATE INDEX pa_temporary_key_ts_key_idx ON pa_temporary_key(timestamp_expires);
+
+-- Changeset powerauth-java-server/1.9.x/20240723-configuration-encryption.xml::1::Lubos Racansky
+-- Add encryption_mode column to pa_application_config table.
+ALTER TABLE pa_application_config ADD encryption_mode VARCHAR(255) DEFAULT 'NO_ENCRYPTION' NOT NULL;
+
+-- Changeset powerauth-java-server/1.9.x/20240906-configuration-encryption.xml::1::Lubos Racansky
+-- Add encryption_mode column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD encryption_mode VARCHAR(255) DEFAULT 'NO_ENCRYPTION' NOT NULL;
+
+-- Changeset powerauth-java-server/1.9.x/20240910-commit-phase.xml::1::Roman Strobl
+-- Add commit_phase column to pa_activation table.
+ALTER TABLE pa_activation ADD commit_phase INTEGER DEFAULT 0;
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::1::Jan Pesek
+-- Create a new table pa_callback_event
+CREATE TABLE pa_application_callback_event (id BIGINT NOT NULL, application_callback_id VARCHAR(37) NOT NULL, callback_data TEXT NOT NULL, status VARCHAR(32) NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT NOW() NOT NULL, timestamp_last_call TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_next_call TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_delete_after TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_rerun_after TIMESTAMP(6) WITHOUT TIME ZONE, attempts INTEGER DEFAULT 0 NOT NULL, idempotency_key VARCHAR(36) NOT NULL, CONSTRAINT pa_application_callback_event_pkey PRIMARY KEY (id));
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::2::Jan Pesek
+-- Add max_attempts column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD max_attempts INTEGER;
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::3::Jan Pesek
+-- Add initial_backoff column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD initial_backoff VARCHAR(64);
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::4::Jan Pesek
+-- Add retention_period column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD retention_period VARCHAR(64);
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::5::Jan Pesek
+-- Create a new index on pa_application_callback_event(status).
+CREATE INDEX pa_app_cb_event_status_idx ON pa_application_callback_event(status);
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::6::Jan Pesek
+-- Create a new index on pa_application_callback_event(timestamp_delete_after).
+CREATE INDEX pa_app_cb_event_ts_del_idx ON pa_application_callback_event(timestamp_delete_after);
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::7::Jan Pesek
+-- Create a new sequence pa_app_callback_event_seq
+CREATE SEQUENCE  IF NOT EXISTS pa_app_callback_event_seq START WITH 1 INCREMENT BY 50 CACHE 20;
+
+-- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::10::Jan Pesek
+-- Add enabled column to pa_application_callback table.
+ALTER TABLE pa_application_callback ADD enabled BOOLEAN DEFAULT TRUE NOT NULL;
+
+-- Changeset powerauth-java-server/1.9.x/20241010-rest-client-caching.xml::1::Jan Pesek
+-- Add columns timestamp_last_updated and timestamp_created to pa_application_callback table
+ALTER TABLE pa_application_callback ADD timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE DEFAULT NOW() NOT NULL;
+
+ALTER TABLE pa_application_callback ADD timestamp_last_updated TIMESTAMP(6) WITHOUT TIME ZONE;
+
+-- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky
