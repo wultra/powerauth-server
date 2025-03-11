@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("encryptorControllerV4")
-@RequestMapping("/rest/v4/encrypt")
+@RequestMapping("/rest/v4/encryptor")
 @Tag(name = "PowerAuth Encryptor Controller (V4)")
 @Validated
 @Slf4j
@@ -61,7 +61,7 @@ public class EncryptorController {
      * @return Response with AEAD encryptor parameters.
      * @throws Exception In case the service throws exception.
      */
-    @PostMapping("/decryptor")
+    @PostMapping
     public ObjectResponse<GetEncryptorResponse> getEncryptor(@Valid @RequestBody ObjectRequest<GetEncryptorRequest> request) throws Exception {
         final GetEncryptorRequest req = request.getRequestObject();
         logger.info("action: getEncryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
