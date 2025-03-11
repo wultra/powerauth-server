@@ -296,15 +296,16 @@ public class OfflineSignatureServiceBehavior {
     }
 
     /**
-         * Verify offline signature implementation.
-         * @param request parameter object
-         * @return Verify offline signature response.
-         * @throws InvalidKeySpecException In case a key specification is invalid.
-         * @throws InvalidKeyException In case a key is invalid.
-         * @throws GenericServiceException In case of a business logic error.
-         * @throws GenericCryptoException In case of a cryptography error.
-         * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
-         */
+     * Verify offline signature implementation.
+     *
+     * @param request parameter object
+     * @return Verify offline signature response.
+     * @throws InvalidKeySpecException In case a key specification is invalid.
+     * @throws InvalidKeyException     In case a key is invalid.
+     * @throws GenericServiceException In case of a business logic error.
+     * @throws GenericCryptoException  In case of a cryptography error.
+     * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
+     */
     private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(final VerifyOfflineSignatureParameter request)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = request.getActivationId();
