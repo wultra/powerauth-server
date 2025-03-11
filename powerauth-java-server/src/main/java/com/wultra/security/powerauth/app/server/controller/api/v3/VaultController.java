@@ -22,6 +22,8 @@ package com.wultra.security.powerauth.app.server.controller.api.v3;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.VaultUnlockServiceBehavior;
+import com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest;
+import com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -59,11 +61,11 @@ public class VaultController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/unlock")
-    public ObjectResponse<com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse> unlockVault(@Valid @RequestBody ObjectRequest<com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest> request) throws Exception {
-        final com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest req = request.getRequestObject();
+    public ObjectResponse<VaultUnlockResponse> unlockVault(@Valid @RequestBody ObjectRequest<VaultUnlockRequest> request) throws Exception {
+        final VaultUnlockRequest req = request.getRequestObject();
         logger.info("action: unlockVault, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: unlockVault, state: initiated, request: {}", request);
-        final ObjectResponse<com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse> response = new ObjectResponse<>(service.unlockVault(req));
+        final ObjectResponse<VaultUnlockResponse> response = new ObjectResponse<>(service.unlockVault(req));
         logger.info("action: unlockVault, state: succeeded");
         logger.debug("action: unlockVault, state: succeeded, response: {}", response);
         return response;
