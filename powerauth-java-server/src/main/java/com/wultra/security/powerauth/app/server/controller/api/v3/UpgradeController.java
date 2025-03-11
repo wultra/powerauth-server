@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("updateControllerV3")
-@RequestMapping( "/rest/v3/upgrade")
+@RequestMapping("/rest/v3/upgrade")
 @Tag(name = "PowerAuth Upgrade Protocol Controller (V3)")
 @Validated
 @Slf4j
