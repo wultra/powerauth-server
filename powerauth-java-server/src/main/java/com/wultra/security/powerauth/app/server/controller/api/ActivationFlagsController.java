@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("activationFlagsController")
-@RequestMapping("/rest/v3/activation/flags")
-@Tag(name = "PowerAuth Activation Flags Controller (V3)")
+@RequestMapping({"/rest/v3/activation/flags", "/rest/v4/activation/flags"})
+@Tag(name = "PowerAuth Activation Flags Controller")
 @Validated
 @Slf4j
 public class ActivationFlagsController {

@@ -42,8 +42,8 @@ import java.util.Map;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController
-@RequestMapping("/rest/v3/telemetry")
-@Tag(name = "PowerAuth Telemetry Controller V3")
+@RequestMapping({"/rest/v3/telemetry", "/rest/v4/telemetry"})
+@Tag(name = "PowerAuth Telemetry Controller")
 @Validated
 @Slf4j
 public class TelemetryController {

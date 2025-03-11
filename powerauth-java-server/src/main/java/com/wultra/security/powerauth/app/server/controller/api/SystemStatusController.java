@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("systemStatusController")
-@RequestMapping("/rest/v3/status")
-@Tag(name = "PowerAuth System Status Controller (V3)")
+@RequestMapping({"/rest/v3/status", "/rest/v4/status"})
+@Tag(name = "PowerAuth System Status Controller")
 @Validated
 @Slf4j
 public class SystemStatusController {

@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationCallbackController")
-@RequestMapping("/rest/v3/application/callback")
-@Tag(name = "PowerAuth Application Callback Controller (V3)")
+@RequestMapping({"/rest/v3/application/callback", "/rest/v4/application/callback"})
+@Tag(name = "PowerAuth Application Callback Controller")
 @Validated
 @Slf4j
 public class ApplicationCallbackController {

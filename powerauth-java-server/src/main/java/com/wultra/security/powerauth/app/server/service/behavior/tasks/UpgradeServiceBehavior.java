@@ -34,9 +34,7 @@ import com.wultra.security.powerauth.app.server.service.model.response.UpgradeRe
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
-import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
-import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
@@ -81,7 +79,7 @@ public class UpgradeServiceBehavior {
      * @throws GenericServiceException In case upgrade fails.
      */
     @Transactional
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException{
+    public com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse startUpgrade(com.wultra.security.powerauth.client.model.request.v3.StartUpgradeRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
@@ -144,7 +142,7 @@ public class UpgradeServiceBehavior {
             // TODO - v4 support
             final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(payloadBytes);
 
-            final StartUpgradeResponse response = new StartUpgradeResponse();
+            final com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse response = new com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
             response.setNonce(encryptedResponse.getNonce());
@@ -182,7 +180,12 @@ public class UpgradeServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
 
+    @Transactional
+    public com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse startUpgrade(com.wultra.security.powerauth.client.model.request.v4.StartUpgradeRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse();
     }
 
     /**

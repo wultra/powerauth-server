@@ -35,8 +35,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("errorController")
-@RequestMapping("/rest/v3/error")
-@Tag(name = "PowerAuth Error Controller (V3)")
+@RequestMapping({"/rest/v3/error", "/rest/v4/error"})
+@Tag(name = "PowerAuth Error Controller")
 @Validated
 @Slf4j
 public class ErrorController {

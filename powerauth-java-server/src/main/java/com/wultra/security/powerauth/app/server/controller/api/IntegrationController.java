@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("integrationController")
-@RequestMapping("/rest/v3/integration")
-@Tag(name = "PowerAuth Integration Controller (V3)")
+@RequestMapping({"/rest/v3/integration", "/rest/v4/integration"})
+@Tag(name = "PowerAuth Integration Controller")
 @Validated
 @Slf4j
 public class IntegrationController {

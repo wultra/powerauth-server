@@ -42,8 +42,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RestController("operationsController")
-@RequestMapping("/rest/v3/operation")
-@Tag(name = "PowerAuth Operations Controller (V3)")
+@RequestMapping({"/rest/v3/operation", "/rest/v4/operation"})
+@Tag(name = "PowerAuth Operations Controller")
 @Validated
 @Slf4j
 public class OperationsController {

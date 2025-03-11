@@ -43,8 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationVersionsController")
-@RequestMapping("/rest/v3/application/version")
-@Tag(name = "PowerAuth Application Version Controller (V3)")
+@RequestMapping({"/rest/v3/application/version", "/rest/v4/application/version"})
+@Tag(name = "PowerAuth Application Version Controller")
 @Validated
 @Slf4j
 public class ApplicationVersionsController {

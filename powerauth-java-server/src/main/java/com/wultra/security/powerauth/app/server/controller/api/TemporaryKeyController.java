@@ -41,8 +41,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("temporaryKeyController")
-@RequestMapping("/rest/v3/keystore")
-@Tag(name = "PowerAuth ECIES Temporary Key Controller (V3)")
+@RequestMapping({"/rest/v3/keystore", "/rest/v4/keystore"})
+@Tag(name = "PowerAuth ECIES Temporary Key Controller")
 @Validated
 @Slf4j
 public class TemporaryKeyController {

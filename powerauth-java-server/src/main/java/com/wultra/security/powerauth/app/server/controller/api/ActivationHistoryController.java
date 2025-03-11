@@ -39,8 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("activationHistoryController")
-@RequestMapping("/rest/v3/activation/history")
-@Tag(name = "PowerAuth Activation History Controller (V3)")
+@RequestMapping({"/rest/v3/activation/history", "/rest/v4/activation/history"})
+@Tag(name = "PowerAuth Activation History Controller")
 @Validated
 @Slf4j
 public class ActivationHistoryController {

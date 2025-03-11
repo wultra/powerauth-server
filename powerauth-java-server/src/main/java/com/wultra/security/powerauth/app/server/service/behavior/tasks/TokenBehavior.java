@@ -38,10 +38,9 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
-import com.wultra.security.powerauth.client.model.response.CreateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -105,7 +104,7 @@ public class TokenBehavior {
      * @throws GenericServiceException In case a business error occurs.
      */
     @Transactional
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
+    public CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
@@ -137,6 +136,12 @@ public class TokenBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    @Transactional
+    public CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new CreateTokenResponse();
     }
 
     /**

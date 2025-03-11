@@ -28,10 +28,14 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
-import com.wultra.security.powerauth.client.model.request.SignECDSARequest;
-import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
-import com.wultra.security.powerauth.client.model.response.SignECDSAResponse;
-import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.client.model.request.v3.SignECDSARequest;
+import com.wultra.security.powerauth.client.model.request.v3.VerifyECDSASignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
+import com.wultra.security.powerauth.client.model.response.v3.SignECDSAResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -103,6 +107,11 @@ public class AsymmetricSignatureServiceBehavior {
 
     }
 
+    public SignAsymmetricResponse signData(SignAsymmetricRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new SignAsymmetricResponse();
+    }
+
     /**
      * Validate ECDSA signature for given data using public key associated with given activation ID.
      *
@@ -149,6 +158,14 @@ public class AsymmetricSignatureServiceBehavior {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
 
+    }
+
+    @Transactional
+    public VerifyAsymmetricSignatureResponse verifySignature(VerifyAsymmetricSignatureRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return VerifyAsymmetricSignatureResponse.builder()
+                .signatureValid(false)
+                .build();
     }
 
     /**
