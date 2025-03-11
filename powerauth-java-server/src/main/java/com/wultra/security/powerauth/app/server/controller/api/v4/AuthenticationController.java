@@ -98,11 +98,11 @@ public class AuthenticationController {
     @PostMapping("/offline/personalized/create")
     public ObjectResponse<CreatePersonalizedOfflineAuthPayloadResponse> createPersonalizedOfflineAuthPayload(@Valid @RequestBody ObjectRequest<CreatePersonalizedOfflineAuthPayloadRequest> request) throws Exception {
         final CreatePersonalizedOfflineAuthPayloadRequest req = request.getRequestObject();
-        logger.info("action: createPersonalizedOfflineSignaturePayload, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: initiated, request: {}", request);
+        logger.info("action: createPersonalizedOfflineAuthPayload, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: createPersonalizedOfflineAuthPayload, state: initiated, request: {}", request);
         final ObjectResponse<CreatePersonalizedOfflineAuthPayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineAuthPayload(req));
-        logger.info("action: createPersonalizedOfflineSignaturePayload, state: succeeded");
-        logger.debug("action: createPersonalizedOfflineSignaturePayload, state: succeeded, response: {}", response);
+        logger.info("action: createPersonalizedOfflineAuthPayload, state: succeeded");
+        logger.debug("action: createPersonalizedOfflineAuthPayload, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -116,11 +116,11 @@ public class AuthenticationController {
     @PostMapping("/offline/non-personalized/create")
     public ObjectResponse<CreateNonPersonalizedOfflineAuthPayloadResponse> createNonPersonalizedOfflineAuthPayload(@Valid @RequestBody ObjectRequest<CreateNonPersonalizedOfflineAuthPayloadRequest> request) throws Exception {
         final CreateNonPersonalizedOfflineAuthPayloadRequest req = request.getRequestObject();
-        logger.info("action: createNonPersonalizedOfflineSignaturePayload, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: initiated, request: {}", request);
+        logger.info("action: createNonPersonalizedOfflineAuthPayload, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: createNonPersonalizedOfflineAuthPayload, state: initiated, request: {}", request);
         final ObjectResponse<CreateNonPersonalizedOfflineAuthPayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createNonPersonalizedOfflineAuthPayload(req));
-        logger.info("action: createNonPersonalizedOfflineSignaturePayload, state: succeeded");
-        logger.debug("action: createNonPersonalizedOfflineSignaturePayload, state: succeeded, response: {}", response);
+        logger.info("action: createNonPersonalizedOfflineAuthPayload, state: succeeded");
+        logger.debug("action: createNonPersonalizedOfflineAuthPayload, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -134,11 +134,11 @@ public class AuthenticationController {
     @PostMapping("/offline/verify")
     public ObjectResponse<VerifyOfflineAuthResponse> verifyOfflineAuthentication(@Valid @RequestBody ObjectRequest<VerifyOfflineAuthRequest> request) throws Exception {
         final VerifyOfflineAuthRequest req = request.getRequestObject();
-        logger.info("action: verifyOfflineSignature, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: verifyOfflineSignature, state: initiated, request: {}", request);
+        logger.info("action: verifyOfflineAuthentication, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: verifyOfflineAuthentication, state: initiated, request: {}", request);
         final ObjectResponse<VerifyOfflineAuthResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(req));
-        logger.info("action: verifyOfflineSignature, state: succeeded, signatureValid: {}", response.getResponseObject().isAuthenticationValid());
-        logger.debug("action: verifyOfflineSignature, state: succeeded, response: {}", response);
+        logger.info("action: verifyOfflineAuthentication, state: succeeded, signatureValid: {}", response.getResponseObject().isAuthenticationValid());
+        logger.debug("action: verifyOfflineAuthentication, state: succeeded, response: {}", response);
         return response;
     }
 

@@ -63,11 +63,11 @@ public class AsymmetricSignatureController {
     @PostMapping("/sign")
     public ObjectResponse<SignAsymmetricResponse> signData(@Valid @RequestBody ObjectRequest<SignAsymmetricRequest> request) throws Exception {
         final SignAsymmetricRequest req = request.getRequestObject();
-        logger.info("action: signDataWithECDSA, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: signDataWithECDSA, state: initiated, request: {}", request);
+        logger.info("action: signData, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: signData, state: initiated, request: {}", request);
         final ObjectResponse<SignAsymmetricResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.signData(req));
-        logger.info("action: signDataWithECDSA, state: succeeded");
-        logger.debug("action: signDataWithECDSA, state: succeeded, response: {}", response);
+        logger.info("action: signData, state: succeeded");
+        logger.debug("action: signData, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -79,13 +79,13 @@ public class AsymmetricSignatureController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/verify")
-    public ObjectResponse<VerifyAsymmetricSignatureResponse> verifyECDSASignature(@Valid @RequestBody ObjectRequest<VerifyAsymmetricSignatureRequest> request) throws Exception {
+    public ObjectResponse<VerifyAsymmetricSignatureResponse> verifySignature(@Valid @RequestBody ObjectRequest<VerifyAsymmetricSignatureRequest> request) throws Exception {
         final VerifyAsymmetricSignatureRequest req = request.getRequestObject();
-        logger.info("action: verifyECDSASignature, state: initiated, activationId: {}", req.getActivationId());
-        logger.debug("action: verifyECDSASignature, state: initiated, request: {}", request);
+        logger.info("action: verifySignature, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: verifySignature, state: initiated, request: {}", request);
         final ObjectResponse<VerifyAsymmetricSignatureResponse> response = new ObjectResponse<>("OK", asymmetricSignatureService.verifySignature(req));
-        logger.info("action: verifyECDSASignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
-        logger.debug("action: verifyECDSASignature, state: succeeded, response: {}", response);
+        logger.info("action: verifySignature, state: succeeded, signatureValid: {}", response.getResponseObject().isSignatureValid());
+        logger.debug("action: verifySignature, state: succeeded, response: {}", response);
         return response;
     }
 
