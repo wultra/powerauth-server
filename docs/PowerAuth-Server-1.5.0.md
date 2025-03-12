@@ -86,7 +86,7 @@ ALTER TABLE PA_OPERATION_TEMPLATE ADD COLUMN PROXIMITY_CHECK_ENABLED NUMBER(1, 0
 
 ### Added Table for Detecting Replay Attacks
 
-A new table `pa_unique_values` was added to store unique values sent in requests, so that replay attacks are prevented.
+A new table `pa_unique_value` was added to store unique values sent in requests, so that replay attacks are prevented.
 
 #### PostgreSQL
 
