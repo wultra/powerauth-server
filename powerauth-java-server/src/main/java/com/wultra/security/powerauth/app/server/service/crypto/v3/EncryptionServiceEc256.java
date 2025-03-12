@@ -79,15 +79,15 @@ public class EncryptionServiceEc256 implements EncryptionService {
 
     public DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException {
         try {
-            final ApplicationVersionEntity applicationVersion = findApplicationVersion(applicationKey);
-            final ActivationRecordEntity activation = findActivation(activationId);
-
             // Validate encrypted request
             if (validateRequest && !ENCRYPTOR_FACTORY.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
                 logger.warn("Invalid encrypted request parameters");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
+
+            final ApplicationVersionEntity applicationVersion = findApplicationVersion(applicationKey);
+            final ActivationRecordEntity activation = findActivation(activationId);
 
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
             final UniqueValueType uniqueValueType = switch (encryptorId) {
