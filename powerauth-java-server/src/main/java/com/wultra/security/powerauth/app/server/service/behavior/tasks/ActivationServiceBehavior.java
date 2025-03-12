@@ -811,7 +811,6 @@ public class ActivationServiceBehavior {
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
-            // Generate server key pair
             // TODO - v4 support
             cryptographyService.generateDeviceKeyPair(activationId);
 
