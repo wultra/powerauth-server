@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.fido2.model.entity.*;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface CryptographyService {
+public interface Fido2CryptographyService {
 
     /**
      * Verify signature for a registration.

@@ -475,8 +475,11 @@ public class ActivationServiceBehavior {
                     final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
                     // TODO - v4 support
-                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256);
-                    final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activation.getActivationCode().getBytes(StandardCharsets.UTF_8), applicationId);
+                    final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
+                            .generateSignatureForApplication(
+                                    activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
+                                    applicationId
+                            );
 
                     // return the data
                     final GetActivationStatusResponse response = new GetActivationStatusResponse();
@@ -766,8 +769,11 @@ public class ActivationServiceBehavior {
 
             // Compute activation signature
             // TODO - v4 support
-            final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256);
-            final byte[] activationSignature = cryptographyService.generateSignatureForApplication(activationCode.getBytes(StandardCharsets.UTF_8), applicationId);
+            final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
+                    .generateSignatureForApplication(
+                            activationCode.getBytes(StandardCharsets.UTF_8),
+                            applicationId
+                    );
 
             // Encode the signature
             final String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
