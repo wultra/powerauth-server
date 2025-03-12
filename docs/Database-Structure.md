@@ -91,7 +91,7 @@ Stores activations. Activation is a unit associating signature / transport and e
 | extras                        | VARCHAR(255)  | -                                   | Any application specific information.                                                                                                                                              |
 | platform                      | VARCHAR(255)  | -                                   | User device platform.                                                                                                                                                              |
 | device_info                   | VARCHAR(255)  | -                                   | User device information.                                                                                                                                                           |
-| flags                         | VARCHAR(255)  | -                                   | Activation flags.                                                                                                                                                                  |
+| flags                         | VARCHAR(255)  | -                                   | Activation flags as a JSON array.                                                                                                                                                  |
 | external_id                   | VARCHAR(255)  | -                                   | External identifier related to the activation.                                                                                                                                     |
 | protocol                      | VARCHAR(32)   | -                                   | Security protocol: `powerauth` (default) or `fido2`.                                                                                                                               |
 | failed_attempts               | BIGINT(20)    | -                                   | Number of failed signature verification attempts.                                                                                                                                  |
@@ -105,7 +105,6 @@ Stores activations. Activation is a unit associating signature / transport and e
 | timestamp_last_used           | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | timestamp_last_change         | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | version                       | BIGINT(2)     | -                                   | Cryptography protocol version.                                                                                                                                                     |
-| flags                         | VARCHAR(255)  | -                                   | Activation flags as a JSON array.                                                                                                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
@@ -306,7 +305,7 @@ Table stores operations, i.e., the login attempts or payment approvals, that are
 | timestamp_created   | timestamp    | -           | Timestamp of when the operation was created.                                                                                     |
 | timestamp_expires   | timestamp    | -           | Timestamp of when the operation will expire.                                                                                     |
 | timestamp_finalized | timestamp    | -           | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.).                                  |
-| risk_flages         | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| risk_flags          | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
 | totp_seed           | varchar(24)  | -           | Optional TOTP seed used for proximity check, base64 encoded.                                                                     |
 | activation_id       | varchar(37)  | -           | Activation ID, a foreign key.                                                                                                    |
 <!-- end -->
@@ -327,7 +326,7 @@ Table stores operation templates that are used while creating the operations.
 | signature_type          | varchar(255) | -           | Comma-separated list of allowed signature types.                                 |
 | max_failure_count       | bigint       | -           | Maximum allowed number of failed attempts when approving the operation.          |
 | expiration              | bigint       | -           | Operation expiration in seconds (300 = 5 minutes).                               |
-| risk_flages             | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| risk_flags              | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
 | proximity_check_enabled | boolean      | -           | Whether proximity check is enabled and TOTP seed should be generated.            |
 <!-- end -->
 
