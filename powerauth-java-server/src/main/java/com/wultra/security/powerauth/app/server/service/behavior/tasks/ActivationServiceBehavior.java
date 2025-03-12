@@ -513,15 +513,6 @@ public class ActivationServiceBehavior {
                     // Get the server private and device public keys to compute the transport key
                     final String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
 
-                    // Get the server public key for the fingerprint
-                    final String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
-
-                    // Decrypt server private key (depending on encryption mode)
-                    final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-                    final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-                    final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-                    final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-
                     // If an activation was turned to REMOVED directly from CREATED state,
                     // there is no device public key in the database - we need to handle
                     // that case by defaulting the encryptedStatusBlob to random value...
