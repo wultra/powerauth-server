@@ -878,7 +878,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException If invalid values are provided.
      */
     @Transactional
-    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
+    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest request) throws GenericServiceException {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
