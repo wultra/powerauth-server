@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.server.controller.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.client.model.response.v3.*;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
+import com.wultra.security.powerauth.rest.client.v3.PowerAuthRestClient;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;

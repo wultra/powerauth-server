@@ -16,7 +16,7 @@
 
 package com.wultra.security.app.admin.controller;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse;
 import com.wultra.security.app.admin.configuration.PowerAuthWebServiceConfiguration;
