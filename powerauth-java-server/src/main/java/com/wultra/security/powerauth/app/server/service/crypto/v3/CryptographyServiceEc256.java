@@ -76,9 +76,7 @@ public class CryptographyServiceEc256 implements CryptographyService {
 
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
-    private final ApplicationRepository applicationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ActivationQueryService activationQueryService;
     private final TemporaryKeyServiceEc256 temporaryKeyService;
     private final EncryptionServiceEc256 encryptionService;
 
@@ -88,21 +86,19 @@ public class CryptographyServiceEc256 implements CryptographyService {
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Override
-    public void generateMasterKeyPair(String applicationId) throws GenericServiceException {
+    public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
             final KeyGenerator keyGen = new KeyGenerator();
             final KeyPair kp = keyGen.generateKeyPair(EcCurve.P256);
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
-            final ApplicationEntity application = findApplication(applicationId);
-
             final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
             keyPair.setApplication(application);
             keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
             keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
             keyPair.setTimestampCreated(new Date());
-            keyPair.setName(applicationId + " Default Keypair");
+            keyPair.setName(application.getId() + " Default Keypair");
             masterKeyPairRepository.save(keyPair);
         } catch (CryptoProviderException e) {
             logger.error("Could not generate keypair", e);
@@ -111,10 +107,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(String applicationId) throws GenericServiceException {
-        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+    public BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
+        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
-            logger.error("Missing key pair for application ID: {}", applicationId);
+            logger.error("Missing key pair for application ID: {}", application.getId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
@@ -134,9 +130,7 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public SecretKey generateSharedSecretKey(String activationId) throws GenericServiceException {
-        final ActivationRecordEntity activation = findActivation(activationId);
-
+    public SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -159,9 +153,8 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public void generateDeviceKeyPair(String activationId) throws GenericServiceException {
+    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = findActivation(activationId);
             final KeyPair serverKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
 
             final byte[] serverKeyPrivateBytes = KEY_CONVERTOR.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
@@ -170,7 +163,7 @@ public class CryptographyServiceEc256 implements CryptographyService {
             activation.setServerPublicKeyBase64(Base64.getEncoder().encodeToString(serverKeyPublicBytes));
 
             // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
-            final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activationId);
+            final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activation.getActivationId());
             activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
             activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
         } catch (CryptoProviderException e) {
@@ -180,9 +173,8 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public void storeDevicePublicKey(String activationId, BasePublicKey devicePublicKey) throws GenericServiceException {
+    public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = findActivation(activationId);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             final PublicKey ecPublicKey = ((EcPublicKey) devicePublicKey).getEcPublicKey();
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, ecPublicKey)));
@@ -193,14 +185,13 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public String generateActivationFingerprint(String activationId) throws GenericServiceException {
+    public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = findActivation(activationId);
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final ECPublicKey devicePublicKey = (ECPublicKey) KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
             final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(activation.getServerPublicKeyBase64());
             final ECPublicKey serverPublicKey = (ECPublicKey) KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
-            return ECPublicKeyFingerprint.compute(devicePublicKey, serverPublicKey, activationId, ActivationVersion.VERSION_3);
+            return ECPublicKeyFingerprint.compute(devicePublicKey, serverPublicKey, activation.getActivationId(), ActivationVersion.VERSION_3);
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.error("Could not calculate activation fingerprint", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -208,9 +199,9 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public byte[] generateSignatureForApplication(byte[] data, String applicationId) throws GenericServiceException {
+    public byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException {
         try {
-            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(applicationId);
+            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(application);
             return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, data, keyPair.getEcKeyPair().getPrivate());
         } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
             logger.error("Invalid keypair", e);
@@ -219,14 +210,13 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public byte[] generateSignatureForActivation(byte[] data, String activationId) throws GenericServiceException {
+    public byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = findActivation(activationId);
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
             final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Sign data with the private key
@@ -238,9 +228,8 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public boolean verifySignatureForActivation(byte[] data, byte[] signature, String activationId) throws GenericServiceException {
+    public boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = findActivation(activationId);
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyData);
             return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, data, signature, devicePublicKey);
@@ -293,28 +282,6 @@ public class CryptographyServiceEc256 implements CryptographyService {
     @Override
     public String requestTemporaryKey(String jwt) throws GenericServiceException {
         return temporaryKeyService.requestTemporaryKey(jwt);
-    }
-
-    private ApplicationEntity findApplication(String applicationId) throws GenericServiceException {
-        if (applicationId == null) {
-            return null;
-        }
-        return applicationRepository.findById(applicationId).orElseThrow(() -> {
-            logger.info("Application does not exist, application ID: {}", applicationId);
-            // Rollback is not required, database is not used for writing
-            return localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        });
-    }
-
-    private ActivationRecordEntity findActivation(String activationId) throws GenericServiceException {
-        if (activationId == null) {
-            return null;
-        }
-        return activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
-            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        });
     }
 
 }

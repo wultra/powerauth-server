@@ -480,7 +480,7 @@ public class ActivationServiceBehavior {
                     final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
                             .generateSignatureForApplication(
                                     activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                                    applicationId
+                                    application
                             );
 
                     // return the data
@@ -532,7 +532,7 @@ public class ActivationServiceBehavior {
                     if (devicePublicKeyBase64 != null) {
 
                         // TODO - v4 support
-                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activationId);
+                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activation);
                         final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         final String ctrDataBase64 = activation.getCtrDataBase64();
@@ -578,7 +578,7 @@ public class ActivationServiceBehavior {
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
                             case 3 ->
-                                    activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activationId);
+                                    activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
                             default -> {
                                 // TODO - v4 support
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
@@ -709,7 +709,7 @@ public class ActivationServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
-            final ApplicationEntity applicationEntity = applicationEntityOptional.get();
+            final ApplicationEntity application = applicationEntityOptional.get();
 
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
@@ -774,7 +774,7 @@ public class ActivationServiceBehavior {
             final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
                     .generateSignatureForApplication(
                             activationCode.getBytes(StandardCharsets.UTF_8),
-                            applicationId
+                            application
                     );
 
             // Encode the signature
@@ -799,13 +799,12 @@ public class ActivationServiceBehavior {
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
-            activation.setApplication(applicationEntity);
+            activation.setApplication(application);
             activation.setMasterKeyPair(masterKeyPairEntity);
             // Server private and public keys are updated in the next step
-            // TODO - revise this
-            activation.setServerPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
-            activation.setServerPrivateKeyBase64("");
-            activation.setServerPublicKeyBase64("");
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activation);
+
             activation.setMaxFailedAttempts(maxAttempt);
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
@@ -819,9 +818,6 @@ public class ActivationServiceBehavior {
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-
-            // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activationId);
 
             // Return the server response
             final InitActivationResponse response = new InitActivationResponse();
@@ -960,7 +956,7 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1126,7 +1122,7 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activationId, new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);

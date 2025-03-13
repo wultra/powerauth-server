@@ -84,7 +84,7 @@ public class AsymmetricSignatureServiceBehavior {
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
             // TODO - v4 support
-            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(dataRaw, activationId);
+            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(dataRaw, activation);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
             final SignECDSAResponse response = new SignECDSAResponse();
@@ -133,7 +133,7 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
             // TODO - v4 support
-            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(dataBytes, signatureBytesDER, activationId);
+            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(dataBytes, signatureBytesDER, activation);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)

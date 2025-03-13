@@ -19,6 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
@@ -39,82 +41,82 @@ public interface CryptographyService {
     /**
      * Generate a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
      *
-     * @param applicationId Application ID.
+     * @param application Application.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void generateMasterKeyPair(String applicationId) throws GenericServiceException;
+    void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Get a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
      *
-     * @param applicationId Application ID.
+     * @param application Application.
      * @return Key pair.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    BaseKeyPair getMasterKeyPair(String applicationId) throws GenericServiceException;
+    BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate shared secret key.
-     * @param activationId ActivationId.
+     * @param activation Activation.
      * @return Shared secret key.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    SecretKey generateSharedSecretKey(String activationId) throws GenericServiceException;
+    SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Generate a key pair for an activation. The key pair can be composite in case of a hybrid algorithm.
      *
-     * @param activationId Activation ID.
+     * @param activation Activation.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void generateDeviceKeyPair(String activationId) throws GenericServiceException;
+    void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Store a device public key for an activation.
-     * @param activationId Activation ID.
+     * @param activation Activation.
      * @param devicePublicKey Device public key.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void storeDevicePublicKey(String activationId, BasePublicKey devicePublicKey) throws GenericServiceException;
+    void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException;
 
     /**
      * Generate an activation fingerprint.
-     * @param activationId Activation ID.
+     * @param activation Activation.
      * @return Activation fingerprint.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    String generateActivationFingerprint(String activationId) throws GenericServiceException;
+    String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Generate an asymmetric signature for an application.
      *
      * @param data Data to sign.
-     * @param applicationId Application identifier.
+     * @param application Application identifier.
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    byte[] generateSignatureForApplication(byte[] data, String applicationId) throws GenericServiceException;
+    byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate an asymmetric signature for an activation.
      *
      * @param data Data to sign.
-     * @param activationId Activation identifier.
+     * @param activation Activation identifier.
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    byte[] generateSignatureForActivation(byte[] data, String activationId) throws GenericServiceException;
+    byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Verify an asymmetric signature for an activation.
      *
      * @param data Data used for calculating signature.
      * @param signature Signature.
-     * @param activationId Activation identifier.
+     * @param activation Activation.
      * @return True in case signature is valid, false otherwise.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    boolean verifySignatureForActivation(byte[] data, byte[] signature, String activationId) throws GenericServiceException;
+    boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Decrypt an encrypted request using server encryptor.

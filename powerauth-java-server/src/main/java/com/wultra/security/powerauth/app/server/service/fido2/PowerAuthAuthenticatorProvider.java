@@ -192,7 +192,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation.getActivationId(), new EcPublicKey(devicePublicKeyBytes));
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(ProtocolVersion.V33.getVersion());

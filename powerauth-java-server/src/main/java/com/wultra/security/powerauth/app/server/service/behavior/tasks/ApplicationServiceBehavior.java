@@ -205,7 +205,7 @@ public class ApplicationServiceBehavior {
             application = applicationRepository.save(application);
 
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateMasterKeyPair(applicationId);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateMasterKeyPair(application);
 
             // Use cryptography methods before writing to database to avoid rollbacks
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
