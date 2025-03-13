@@ -29,7 +29,7 @@ import lombok.ToString;
 import java.math.BigInteger;
 
 /**
- * Model class representing request for offline authorization code verification (V4).
+ * Model class representing request for offline authentication code verification (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
