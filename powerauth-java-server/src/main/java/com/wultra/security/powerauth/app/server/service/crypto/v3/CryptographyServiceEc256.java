@@ -126,7 +126,7 @@ public class CryptographyServiceEc256 implements CryptographyService {
             final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
             final PublicKey publicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, masterPublicKeyBytes);
             final KeyPair keyPair = new KeyPair(publicKey, privateKey);
-            return EcKeyPair.builder().masterKeyPair(masterKeyPairEntity).ecKeyPair(keyPair).build();
+            return EcKeyPair.builder().ecKeyPair(keyPair).build();
         } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException e) {
             logger.error("Invalid keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);

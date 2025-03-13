@@ -29,12 +29,14 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
+import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -114,6 +116,7 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
 
+    private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationRepository applicationRepository;
     private final ActivationRepository activationRepository;
     private final CryptographyServiceFactory cryptographyServiceFactory;
@@ -122,7 +125,6 @@ public class ActivationServiceBehavior {
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     // Helper classes
     private final ObjectMapper objectMapper;
@@ -777,6 +779,7 @@ public class ActivationServiceBehavior {
 
             // Encode the signature
             final String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
+            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation
             final ActivationRecordEntity activation = new ActivationRecordEntity();
@@ -797,7 +800,7 @@ public class ActivationServiceBehavior {
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
             activation.setApplication(applicationEntity);
-            activation.setMasterKeyPair(cryptographyService.getMasterKeyPair(applicationId).getMasterKeyPair());
+            activation.setMasterKeyPair(masterKeyPairEntity);
             // Server private and public keys are updated in the next step
             // TODO - revise this
             activation.setServerPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
@@ -818,7 +821,7 @@ public class ActivationServiceBehavior {
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // TODO - v4 support
-            cryptographyService.generateDeviceKeyPair(activationId);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activationId);
 
             // Return the server response
             final InitActivationResponse response = new InitActivationResponse();
