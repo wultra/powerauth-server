@@ -144,6 +144,12 @@ public class EncryptionServiceEc256 implements EncryptionService {
     }
 
     private DecryptionResult decryptInActivationScope(EciesEncryptedRequest eciesRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, ActivationRecordEntity activation, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException, GenericCryptoException, InvalidKeyException {
+        // Check that application key from request belongs to same application as activation ID from request
+        if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
+            logger.warn("Application version does not match, application key: {}", applicationVersion.getApplicationKey());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
         final PrivateKey privateKey;
         final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
         final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
