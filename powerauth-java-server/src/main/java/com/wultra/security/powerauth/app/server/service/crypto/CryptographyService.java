@@ -72,6 +72,13 @@ public interface CryptographyService {
     void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
+     * Convert a device public key.
+     * @param devicePublicKey Device public key bytes.
+     * @throws GenericServiceException In case of a cryptography error.
+     */
+    BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException;
+
+    /**
      * Store a device public key for an activation.
      * @param activation Activation.
      * @param devicePublicKey Device public key.

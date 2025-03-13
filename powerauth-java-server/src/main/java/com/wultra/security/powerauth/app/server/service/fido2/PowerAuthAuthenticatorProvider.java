@@ -26,9 +26,10 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
-import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
@@ -100,7 +101,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             request.setProtocols(Set.of(ActivationProtocol.FIDO2));
             request.setApplicationId(applicationId);
             request.setUserId(userId);
-            request.setActivationStatuses(Set.of(com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.ACTIVE, com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.BLOCKED));
+            request.setActivationStatuses(Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
             request.setPageNumber(pageIndex);
             request.setPageSize(1000);
             GetActivationListForUserResponse activationList = activations.getActivationList(request);
@@ -192,7 +193,15 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
+            BasePublicKey devicePublicKey = null;
+            try {
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
@@ -312,7 +321,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         return Optional.of(authenticatorDetail);
     }
 
-    private static com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus convert(final com.wultra.security.powerauth.client.model.enumeration.ActivationStatus source) {
+    private static com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus convert(final ActivationStatus source) {
         if (source == null) {
             return null;
         }

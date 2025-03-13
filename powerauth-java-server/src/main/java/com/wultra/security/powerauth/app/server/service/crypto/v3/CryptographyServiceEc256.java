@@ -177,6 +177,20 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
+    public BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException {
+        try {
+            final PublicKey convertedPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKey);
+            return EcPublicKey.builder().ecPublicKey(convertedPublicKey).build();
+        } catch (InvalidKeySpecException e) {
+            logger.error("Invalid device public key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
+            logger.error("Key conversion failed", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+    }
+
+    @Override
     public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         try {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form

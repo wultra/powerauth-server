@@ -24,26 +24,22 @@ import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
@@ -52,7 +48,10 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
@@ -879,7 +878,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException If invalid values are provided.
      */
     @Transactional
-    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest request) throws GenericServiceException {
+    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
@@ -950,13 +949,21 @@ public class ActivationServiceBehavior {
             validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
             // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
+            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
             final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
+            BasePublicKey devicePublicKey = null;
+            try {
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1030,7 +1037,7 @@ public class ActivationServiceBehavior {
     }
 
     @Transactional
-    public com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest request) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest request) throws GenericServiceException {
         // TODO - v4 support
         return new PrepareActivationResponse();
     }
@@ -1048,7 +1055,7 @@ public class ActivationServiceBehavior {
          * @throws GenericServiceException       In case create activation fails
          */
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
-    public com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest request) throws GenericServiceException {
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         try {
             // Get request parameters
             final String userId = request.getUserId();
@@ -1128,7 +1135,15 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
+            BasePublicKey devicePublicKey = null;
+            try {
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1165,7 +1180,7 @@ public class ActivationServiceBehavior {
             final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
 
             // Generate encrypted response
-            final com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse response = new com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse();
+            final CreateActivationResponse response = new CreateActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
             response.setApplicationId(application.getId());
@@ -1248,7 +1263,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
 
             // Check the commit phase
-            if (activation.getCommitPhase() != com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
+            if (activation.getCommitPhase() != CommitPhase.ON_COMMIT) {
                 logger.info("Invalid commit phase during commit for activation ID: {}, commit phase: {}", activationId, activation.getCommitPhase());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);

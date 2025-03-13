@@ -19,15 +19,11 @@
 
 package com.wultra.security.powerauth.app.server.service.model.crypto;
 
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 
 /**
  * EC public key wrapper.
@@ -35,19 +31,10 @@ import java.security.spec.InvalidKeySpecException;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Slf4j
+@SuperBuilder
 public class EcPublicKey extends BasePublicKey {
-
-    private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
-
-    public EcPublicKey(byte[] publicKeyBytes) {
-        try {
-            // TODO - v4 support
-            this.ecPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, publicKeyBytes);
-        } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException e) {
-            logger.warn("Invalid public key", e);
-        }
-    }
 
     @ToString.Exclude
     @Getter

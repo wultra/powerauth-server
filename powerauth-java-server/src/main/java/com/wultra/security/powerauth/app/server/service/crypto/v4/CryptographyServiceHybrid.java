@@ -64,6 +64,12 @@ public class CryptographyServiceHybrid implements CryptographyService {
     }
 
     @Override
+    public BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
     public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         // TODO
     }
