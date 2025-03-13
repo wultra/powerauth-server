@@ -66,10 +66,10 @@ public class AuthenticationController {
     private final AuditingServiceBehavior auditingService;
 
     /**
-     * Verify signature.
+     * Verify authentication code.
      *
-     * @param request Verify signature request.
-     * @return Verify signature response.
+     * @param request Verify authentication code request.
+     * @return Verify authentication code response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/verify")
@@ -84,10 +84,10 @@ public class AuthenticationController {
     }
 
     /**
-     * Create personalized offline signature data.
+     * Create personalized offline authentication data.
      *
-     * @param request Create personalized offline signature data request.
-     * @return Create personalized offline signature data response.
+     * @param request Create personalized offline authentication data request.
+     * @return Create personalized offline authentication data response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/offline/personalized/create")
@@ -102,10 +102,10 @@ public class AuthenticationController {
     }
 
     /**
-     * Create non-personalized offline signaure data.
+     * Create non-personalized offline authentication data.
      *
-     * @param request Create non-personalized offline signature data request.
-     * @return Create non-personalized offline signature data response.
+     * @param request Create non-personalized offline authentication data request.
+     * @return Create non-personalized offline authentication data response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/offline/non-personalized/create")
@@ -120,10 +120,10 @@ public class AuthenticationController {
     }
 
     /**
-     * Verify offline signature.
+     * Verify offline authentication.
      *
-     * @param request Verify offline signature request.
-     * @return Verify offline signature response.
+     * @param request Verify offline authentication request.
+     * @return Verify offline authentication response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/offline/verify")
