@@ -32,7 +32,7 @@ import lombok.ToString;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class GetEncryptorRequest {
+public class ExtractEncryptorRequest {
 
     @Schema(description = "Activation identifier")
     private String activationId;

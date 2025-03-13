@@ -26,9 +26,9 @@ import com.wultra.security.powerauth.app.server.service.model.request.Encryption
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRequest;
-import com.wultra.security.powerauth.client.model.request.v4.GetEncryptorRequest;
+import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
 import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
-import com.wultra.security.powerauth.client.model.response.v4.GetEncryptorResponse;
+import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
@@ -95,9 +95,9 @@ public class EciesEncryptionBehavior {
     }
 
     @Transactional
-    public GetEncryptorResponse getEncryptor(GetEncryptorRequest request) throws GenericServiceException {
+    public ExtractEncryptorResponse extractEncryptor(ExtractEncryptorRequest request) throws GenericServiceException {
         // TODO - v4 support
-        return new GetEncryptorResponse();
+        return new ExtractEncryptorResponse();
     }
 
     /**

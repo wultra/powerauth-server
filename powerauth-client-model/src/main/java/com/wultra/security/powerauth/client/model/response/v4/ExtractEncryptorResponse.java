@@ -28,7 +28,7 @@ import lombok.ToString;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class GetEncryptorResponse {
+public class ExtractEncryptorResponse {
 
     @ToString.Exclude
     private String secretKey;

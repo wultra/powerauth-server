@@ -22,8 +22,8 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.EciesEncryptionBehavior;
-import com.wultra.security.powerauth.client.model.request.v4.GetEncryptorRequest;
-import com.wultra.security.powerauth.client.model.response.v4.GetEncryptorResponse;
+import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
+import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -57,16 +57,16 @@ public class EncryptorController {
     /**
      * Create AEAD encryptor.
      *
-     * @param request Get AEAD encryptor parameters for given request.
+     * @param request Prepare the AEAD encryptor for given request.
      * @return Response with AEAD encryptor parameters.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping
-    public ObjectResponse<GetEncryptorResponse> getEncryptor(@Valid @RequestBody ObjectRequest<GetEncryptorRequest> request) throws Exception {
-        final GetEncryptorRequest req = request.getRequestObject();
+    public ObjectResponse<ExtractEncryptorResponse> extractEncryptor(@Valid @RequestBody ObjectRequest<ExtractEncryptorRequest> request) throws Exception {
+        final ExtractEncryptorRequest req = request.getRequestObject();
         logger.info("action: getEncryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: getEncryptor, state: initiated, request: {}", request);
-        final ObjectResponse<GetEncryptorResponse> response = new ObjectResponse<>(service.getEncryptor(req));
+        final ObjectResponse<ExtractEncryptorResponse> response = new ObjectResponse<>(service.extractEncryptor(req));
         logger.info("action: getEncryptor, state: succeeded");
         logger.debug("action: getEncryptor, state: succeeded, response: {}", response);
         return response;
