@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController("asymmetricSignatureControllerV4")
 @RequestMapping("/rest/v4/signature")
-@Tag(name = "PowerAuth Asymmetric Signature Controller")
+@Tag(name = "PowerAuth Asymmetric Signature Controller (V4)")
 @Validated
 @Slf4j
 public class AsymmetricSignatureController {
