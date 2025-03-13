@@ -106,6 +106,7 @@ Stores activations. Activation is a unit associating signature / transport and e
 | timestamp_last_used           | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | timestamp_last_change         | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | version                       | BIGINT(2)     | -                                   | Cryptography protocol version.                                                                                                                                                     |
+| commit_phase                  | INTEGER       | -                                   | When the activation is committed. Following values are supported: default ON_COMMIT(0), and ON_KEY_EXCHANGE(1).                                                                    |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
