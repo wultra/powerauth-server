@@ -23,7 +23,7 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * Model class representing response for signing data with ECDSA (V4).
+ * Model class representing response for signing data using asymmetric cryptography (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
