@@ -801,10 +801,6 @@ public class ActivationServiceBehavior {
             activation.setFailedAttempts(0L);
             activation.setApplication(application);
             activation.setMasterKeyPair(masterKeyPairEntity);
-            // Server private and public keys are updated in the next step
-            // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activation);
-
             activation.setMaxFailedAttempts(maxAttempt);
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
@@ -815,6 +811,9 @@ public class ActivationServiceBehavior {
             if (flags != null) {
                 activation.getFlags().addAll(flags);
             }
+
+            // TODO - v4 support
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activation);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
