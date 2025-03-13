@@ -54,10 +54,10 @@ public class AsymmetricSignatureController {
     }
 
     /**
-     * Calculate ECDSA signature.
+     * Calculate asymmetric signature.
      *
-     * @param request Calculate ECDSA signature request.
-     * @return Calculated ECDSA signature response.
+     * @param request Calculate asymmetric signature request.
+     * @return Calculated asymmetric signature response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/sign")
@@ -72,10 +72,10 @@ public class AsymmetricSignatureController {
     }
 
     /**
-     * Validate ECDSA signature.
+     * Validate asymmetric signature.
      *
-     * @param request Verify ECDSA signature request.
-     * @return Verify ECDSA signature response.
+     * @param request Verify asymmetric signature request.
+     * @return Verify asymmetric signature response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/verify")
