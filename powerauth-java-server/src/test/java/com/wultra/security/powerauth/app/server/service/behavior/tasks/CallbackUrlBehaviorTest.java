@@ -40,8 +40,8 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Map;
@@ -71,13 +71,13 @@ class CallbackUrlBehaviorTest {
     @Autowired
     private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
-    @MockBean
+    @MockitoBean
     private CallbackUrlEventService callbackUrlEventService;
 
     /**
      * Mock CleaningTask to avoid running scheduled job when mocking CallbackUrlEventService
      */
-    @MockBean
+    @MockitoBean
     private CleaningTask cleaningTask;
 
     @Test

@@ -29,6 +29,7 @@ import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -43,18 +44,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationConfigController")
-@RequestMapping("/rest/v3/application/config")
-@Tag(name = "PowerAuth Application Config Controller (V3)")
+@RequestMapping({"/rest/v3/application/config", "/rest/v4/application/config"})
+@Tag(name = "PowerAuth Application Config Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ApplicationConfigController {
 
     private final ApplicationConfigServiceBehavior service;
-
-    @Autowired
-    public ApplicationConfigController(ApplicationConfigServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Get application config.

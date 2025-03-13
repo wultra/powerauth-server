@@ -20,7 +20,7 @@ package com.wultra.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
-import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.powerauth.fido2.service.provider.Fido2CryptographyService;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -61,7 +61,7 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
 @Service
 @Slf4j
 @AllArgsConstructor
-public class PowerAuthCryptographyService implements CryptographyService {
+public class PowerAuthCryptographyService implements Fido2CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;

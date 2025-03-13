@@ -18,30 +18,28 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.KeyValue;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
 import com.wultra.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureResponse;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import com.wultra.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import lombok.RequiredArgsConstructor;
@@ -51,9 +49,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -77,43 +72,38 @@ public class SignatureSharedServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final ActivationRepository activationRepository;
 
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Verify online signature.
      * @param activation Activation used for signature verification.
      * @param signatureRequest Online signature verification request.
-     * @param keyConversionUtilities Key convertor.
      * @return Signature verification response.
      * @throws InvalidKeyException In case a key is invalid.
-     * @throws InvalidKeySpecException In case a key specification is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public SignatureResponse verifySignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    public SignatureResponse verifySignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         final List<SignatureType> signatureTypes = Collections.singletonList(signatureRequest.getSignatureType());
-        return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureTypes, keyConversionUtilities);
+        return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureTypes);
     }
 
     /**
      * Verify offline signature.
      * @param activation Activation used for signature verification.
      * @param signatureRequest Offline signature verification request.
-     * @param keyConversionUtilities Key convertor.
      * @return Signature verification response.
      * @throws InvalidKeyException In case a key is invalid.
-     * @throws InvalidKeySpecException In case a key specification is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public SignatureResponse verifySignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
-        return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureTypes(), keyConversionUtilities);
+    public SignatureResponse verifySignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+        return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureTypes());
     }
 
     /**
@@ -230,33 +220,17 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureData Data related to the signature.
      * @param signatureTypes Signature types to try to use for signature verification. List with one signature type is used for online signatures. List with multiple signature types is used for offline signatures.
-     * @param keyConversionUtilities Key convertor.
      * @return Signature verification response.
      * @throws InvalidKeyException In case a key is invalid.
-     * @throws InvalidKeySpecException In case a key specification is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-        // Get the server private and device public keys
-
-        // Decrypt server private key (depending on encryption mode)
-        final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-        final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-        final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-        final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-
-        // Decode the keys to byte[]
-        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-        final PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
-        final PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-
-        // Compute the master secret key
-        final SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
+        // TODO - v4 support
+        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activation);
 
         // Resolve signature version based on activation version and request
         final Integer signatureVersion = resolveSignatureVersion(activation, signatureData.getForcedSignatureVersion());

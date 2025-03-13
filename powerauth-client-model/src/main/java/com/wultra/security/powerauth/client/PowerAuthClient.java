@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.client;
 
+import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
@@ -24,8 +25,9 @@ import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.core.rest.model.base.response.Response;
+import com.wultra.security.powerauth.client.model.response.v3.*;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Duration;

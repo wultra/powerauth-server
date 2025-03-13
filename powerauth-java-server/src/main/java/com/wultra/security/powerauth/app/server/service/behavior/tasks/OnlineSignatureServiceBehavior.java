@@ -17,10 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.KeyValue;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
-import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -33,12 +29,17 @@ import com.wultra.security.powerauth.app.server.service.model.signature.OnlineSi
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyAuthRequest;
+import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyAuthResponse;
 import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +61,7 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class OnlineSignatureServiceBehavior {
 
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
@@ -70,7 +71,6 @@ public class OnlineSignatureServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     /**
      * Verify signature for given activation and provided data in online mode. Log every validation attempt in the audit log.
@@ -95,7 +95,7 @@ public class OnlineSignatureServiceBehavior {
             if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
                 forcedSignatureVersion = 3;
             }
-            return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConvertor);
+            return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -120,26 +120,33 @@ public class OnlineSignatureServiceBehavior {
         }
     }
 
+    @Transactional
+    public VerifyAuthResponse verifySignature(VerifyAuthRequest request, List<KeyValue> additionalInfo)
+            throws GenericServiceException {
+        // TODO - v4 support
+        return new VerifyAuthResponse();
+    }
+
     /**
      * Verify offline signature implementation.
-     * @param activationId Activation ID.
-     * @param signatureType Signature type to use for signature verification.
-     * @param signature Signature.
-     * @param signatureVersion Signature version.
-     * @param additionalInfo Additional information related to signature verification.
-     * @param dataString Signature data.
-     * @param applicationKey Application key.
+     *
+     * @param activationId           Activation ID.
+     * @param signatureType          Signature type to use for signature verification.
+     * @param signature              Signature.
+     * @param signatureVersion       Signature version.
+     * @param additionalInfo         Additional information related to signature verification.
+     * @param dataString             Signature data.
+     * @param applicationKey         Application key.
      * @param forcedSignatureVersion Forced signature version during upgrade.
-     * @param keyConversionUtilities Key convertor.
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
-     * @throws InvalidKeyException In case a key is invalid.
+     * @throws InvalidKeyException     In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
-     * @throws GenericCryptoException In case of a cryptography error.
+     * @throws GenericCryptoException  In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, String signatureVersion, List<KeyValue> additionalInfo,
-                                                        String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
+                                                        String dataString, String applicationKey, Integer forcedSignatureVersion)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -184,7 +191,7 @@ public class OnlineSignatureServiceBehavior {
                 return invalidStateResponse(activationId, activation.getActivationStatus());
             }
 
-            final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest, keyConversionUtilities);
+            final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest);
 
             // Check if the signature is valid
             if (verificationResponse.isSignatureValid()) {

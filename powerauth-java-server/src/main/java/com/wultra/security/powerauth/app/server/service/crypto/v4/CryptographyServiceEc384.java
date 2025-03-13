@@ -1,0 +1,119 @@
+/*
+ * PowerAuth Server and related software components
+ * Copyright (C) 2025 Wultra s.r.o.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+package com.wultra.security.powerauth.app.server.service.crypto.v4;
+
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+
+/**
+ * Cryptography Service V4 implementation based on EC curve P-384.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
+@Service
+public class CryptographyServiceEc384 implements CryptographyService {
+
+    @Override
+    public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
+        // TODO
+    }
+
+    @Override
+    public BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
+    }
+
+    @Override
+    public BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
+        // TODO
+    }
+
+    @Override
+    public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
+        return "";
+    }
+
+    @Override
+    public byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException {
+        // TODO
+        return new byte[0];
+    }
+
+    @Override
+    public byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
+        return new byte[0];
+    }
+
+    @Override
+    public boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
+        return false;
+    }
+
+    @Override
+    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public EncryptorSecrets deriveSecrets(EncryptedRequest request, EncryptionContext context) throws GenericServiceException {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public String requestTemporaryKey(String jwt) throws GenericServiceException {
+        // TODO
+        return "";
+    }
+
+}

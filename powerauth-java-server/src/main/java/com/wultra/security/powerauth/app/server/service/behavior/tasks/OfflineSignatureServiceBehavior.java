@@ -17,40 +17,41 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreateNonPersonalizedOfflineSignaturePayloadRequest;
-import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
-import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
-import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
-import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
-import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
-import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
-import com.wultra.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import com.wultra.security.powerauth.app.server.service.model.signature.*;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.v3.CreateNonPersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v3.CreatePersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v3.VerifyOfflineSignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v4.CreatePersonalizedOfflineAuthPayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyOfflineAuthRequest;
+import com.wultra.security.powerauth.client.model.response.v3.CreateNonPersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreatePersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyOfflineSignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthResponse;
 import com.wultra.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
-import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,8 +74,8 @@ import java.util.*;
  * @link <a href="https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md">Off-line Signature QR Code</a>
  */
 @Service
-@AllArgsConstructor
 @Slf4j
+@AllArgsConstructor
 public class OfflineSignatureServiceBehavior {
 
     private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
@@ -92,8 +92,7 @@ public class OfflineSignatureServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Verify signature for given activation and provided data in offline mode. Log every validation attempt in the audit log.
@@ -117,7 +116,7 @@ public class OfflineSignatureServiceBehavior {
             }
             final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getOfflineSignatureComponentLength();
 
-            final VerifyOfflineSignatureParameter signatureParameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
+            final VerifyOfflineSignatureParameter signatureParameter = convert(request, expectedComponentLength, allowedSignatureTypes);
             return verifyOfflineSignatureImpl(signatureParameter);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
@@ -143,6 +142,13 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
+    @Transactional
+    public VerifyOfflineAuthResponse verifyOfflineSignature(final VerifyOfflineAuthRequest request)
+            throws GenericServiceException {
+        // TODO - v4 support
+        return new VerifyOfflineAuthResponse();
+    }
+
     /**
      * Create personalized offline signature payload for displaying a QR code in offline mode.
      * @param request parameter object
@@ -166,21 +172,12 @@ public class OfflineSignatureServiceBehavior {
 
             final String nonce = fetchNonce(offlineSignatureParameter);
 
-            // Decrypt server private key (depending on encryption mode)
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-
-            // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(serverPrivateKeyBase64));
-
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             // {DATA} consist of data from request plus optional generated proximity TOTP value
-            final SignatureUtils signatureUtils = new SignatureUtils();
             final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(EcCurve.P256, signatureBase, privateKey);
+            // TODO - v4 support
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(signatureBase, activation);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
@@ -191,14 +188,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-        } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -213,6 +202,12 @@ public class OfflineSignatureServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    @Transactional
+    public CreatePersonalizedOfflineAuthPayloadResponse createPersonalizedOfflineAuthPayload(final CreatePersonalizedOfflineAuthPayloadRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new CreatePersonalizedOfflineAuthPayloadResponse();
     }
 
     private static String fetchDataAndTotp(OfflineSignatureParameter request, int digitsNumber) throws CryptoProviderException {
@@ -254,6 +249,7 @@ public class OfflineSignatureServiceBehavior {
                 logger.warn("No application found with ID: {}", applicationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
+            final ApplicationEntity application = applicationEntityOptional.get();
             final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPair == null) {
                 logger.error("No master key pair found for application ID: {}", applicationId);
@@ -264,14 +260,10 @@ public class OfflineSignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             final String nonce = Base64.getEncoder().encodeToString(nonceBytes);
 
-            // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
-            final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(keyPrivateBase64));
-
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
-            final SignatureUtils signatureUtils = new SignatureUtils();
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(EcCurve.P256, signatureBase, privateKey);
+            // TODO - v4 support
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForApplication(signatureBase, application);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
@@ -282,14 +274,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-        } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -306,14 +290,21 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
+    @Transactional
+    public CreateNonPersonalizedOfflineAuthPayloadResponse createNonPersonalizedOfflineAuthPayload(CreateNonPersonalizedOfflineAuthPayloadRequest request) throws GenericServiceException {
+        // TODO
+        return new CreateNonPersonalizedOfflineAuthPayloadResponse();
+    }
+
     /**
      * Verify offline signature implementation.
+     *
      * @param request parameter object
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
-     * @throws InvalidKeyException In case a key is invalid.
+     * @throws InvalidKeyException     In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
-     * @throws GenericCryptoException In case of a cryptography error.
+     * @throws GenericCryptoException  In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(final VerifyOfflineSignatureParameter request)
@@ -344,7 +335,7 @@ public class OfflineSignatureServiceBehavior {
             SignatureResponse verificationResponse = new SignatureResponse();
             OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest();
             for (OfflineSignatureRequest item : offlineSignatureRequests) {
-                verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, item, request.getKeyConversionUtilities());
+                verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, item);
                 offlineSignatureRequest = item;
                 if (verificationResponse.isSignatureValid()) {
                     break;
@@ -547,8 +538,7 @@ public class OfflineSignatureServiceBehavior {
     private static VerifyOfflineSignatureParameter convert(
             final VerifyOfflineSignatureRequest request,
             final int expectedComponentLength,
-            final List<SignatureType> allowedSignatureTypes,
-            final KeyConvertor keyConvertor) {
+            final List<SignatureType> allowedSignatureTypes) {
 
         final var builder = VerifyOfflineSignatureParameter.builder()
                 .activationId(request.getActivationId())
@@ -556,8 +546,7 @@ public class OfflineSignatureServiceBehavior {
                 .signature(request.getSignature())
                 .additionalInfo(new ArrayList<>())
                 .dataString(request.getData())
-                .expectedComponentLength(expectedComponentLength)
-                .keyConversionUtilities(keyConvertor);
+                .expectedComponentLength(expectedComponentLength);
 
         final var proximityCheck = request.getProximityCheck();
         if (proximityCheck != null) {
