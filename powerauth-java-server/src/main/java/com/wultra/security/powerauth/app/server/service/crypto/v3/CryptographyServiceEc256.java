@@ -25,7 +25,6 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -37,7 +36,6 @@ import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
-import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
@@ -123,7 +121,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
             final PublicKey publicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, masterPublicKeyBytes);
             final KeyPair keyPair = new KeyPair(publicKey, privateKey);
             return EcKeyPair.builder().ecKeyPair(keyPair).build();
-        } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException e) {
+        } catch (InvalidKeySpecException e) {
+            logger.error("Invalid key format", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Invalid keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
@@ -146,9 +147,12 @@ public class CryptographyServiceEc256 implements CryptographyService {
 
             // Compute the master secret key
             return SERVER_KEY_FACTORY.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
-        } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException e) {
+            logger.error("Invalid keypair", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Key conversion failed", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
     }
 
@@ -192,7 +196,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
             final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(activation.getServerPublicKeyBase64());
             final ECPublicKey serverPublicKey = (ECPublicKey) KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
             return ECPublicKeyFingerprint.compute(devicePublicKey, serverPublicKey, activation.getActivationId(), ActivationVersion.VERSION_3);
-        } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
+        } catch (InvalidKeySpecException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not calculate activation fingerprint", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
@@ -221,7 +228,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
 
             // Sign data with the private key
             return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, data, serverPrivateKey);
-        } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException | InvalidKeySpecException e) {
+        } catch (InvalidKeyException | InvalidKeySpecException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not generate signature", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
@@ -233,7 +243,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyData);
             return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, data, signature, devicePublicKey);
-        } catch (CryptoProviderException | GenericCryptoException | InvalidKeySpecException | InvalidKeyException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not verify signature", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
