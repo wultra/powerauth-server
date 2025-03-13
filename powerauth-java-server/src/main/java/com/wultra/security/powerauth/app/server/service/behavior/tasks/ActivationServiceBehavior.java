@@ -24,26 +24,22 @@ import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
@@ -955,7 +951,15 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
+            BasePublicKey devicePublicKey = null;
+            try {
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
@@ -1121,7 +1125,15 @@ public class ActivationServiceBehavior {
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, new EcPublicKey(devicePublicKeyBytes));
+            BasePublicKey devicePublicKey = null;
+            try {
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
