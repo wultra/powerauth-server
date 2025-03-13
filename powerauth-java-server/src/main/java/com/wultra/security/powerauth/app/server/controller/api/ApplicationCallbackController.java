@@ -28,6 +28,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,18 +43,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationCallbackController")
-@RequestMapping("/rest/v3/application/callback")
-@Tag(name = "PowerAuth Application Callback Controller (V3)")
+@RequestMapping({"/rest/v3/application/callback", "/rest/v4/application/callback"})
+@Tag(name = "PowerAuth Application Callback Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ApplicationCallbackController {
 
     private final CallbackUrlBehavior service;
-
-    @Autowired
-    public ApplicationCallbackController(CallbackUrlBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Create a new callback.

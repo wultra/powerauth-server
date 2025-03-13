@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Telemetry
 import com.wultra.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,18 +43,14 @@ import java.util.Map;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController
-@RequestMapping("/rest/v3/telemetry")
-@Tag(name = "PowerAuth Telemetry Controller V3")
+@RequestMapping({"/rest/v3/telemetry", "/rest/v4/telemetry"})
+@Tag(name = "PowerAuth Telemetry Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class TelemetryController {
 
     private final TelemetryServiceBehavior telemetryServiceBehavior;
-
-    @Autowired
-    public TelemetryController(TelemetryServiceBehavior telemetryServiceBehavior) {
-        this.telemetryServiceBehavior = telemetryServiceBehavior;
-    }
 
     @PostMapping("report")
     public ObjectResponse<TelemetryReportResponse> report(@Valid @RequestBody ObjectRequest<TelemetryReportRequest> request) throws TelemetryReportException {

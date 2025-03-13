@@ -37,10 +37,8 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.VaultUnlockRequest;
-import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
-import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
-import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
+import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequest;
+import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
@@ -96,7 +94,7 @@ public class VaultUnlockServiceBehavior {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     @Transactional
-    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
+    public com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest request) throws GenericServiceException {
         try {
             // Get request data
             final String activationId = request.getActivationId();
@@ -133,7 +131,7 @@ public class VaultUnlockServiceBehavior {
             // Check if the activation is in correct state
             if (activationOptional.isEmpty() || activationOptional.get().getActivationStatus() != ActivationStatus.ACTIVE) {
                 // Return response with invalid signature flag when activation is not valid
-                VaultUnlockResponse response = new VaultUnlockResponse();
+                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
@@ -148,7 +146,7 @@ public class VaultUnlockServiceBehavior {
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Return response with invalid signature flag when application version is not valid
-                VaultUnlockResponse response = new VaultUnlockResponse();
+                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
@@ -165,7 +163,7 @@ public class VaultUnlockServiceBehavior {
             } catch (IOException ex) {
                 logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
                 // Return response with invalid signature flag when request format is not valid
-                VaultUnlockResponse response = new VaultUnlockResponse();
+                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
@@ -213,7 +211,7 @@ public class VaultUnlockServiceBehavior {
             final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(reponsePayloadBytes);
 
             // Return vault unlock response, set signature validity
-            final VaultUnlockResponse response = new VaultUnlockResponse();
+            final com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
             response.setNonce(encryptedResponse.getNonce());
@@ -256,4 +254,9 @@ public class VaultUnlockServiceBehavior {
         }
     }
 
+    @Transactional
+    public com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.model.request.v4.VaultUnlockRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse();
+    }
 }

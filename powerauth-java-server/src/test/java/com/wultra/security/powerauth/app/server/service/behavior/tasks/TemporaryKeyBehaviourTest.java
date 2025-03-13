@@ -25,6 +25,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -34,6 +35,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
+import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;

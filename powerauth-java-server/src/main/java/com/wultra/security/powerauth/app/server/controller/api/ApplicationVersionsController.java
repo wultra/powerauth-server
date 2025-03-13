@@ -29,6 +29,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -43,18 +44,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationVersionsController")
-@RequestMapping("/rest/v3/application/version")
-@Tag(name = "PowerAuth Application Version Controller (V3)")
+@RequestMapping({"/rest/v3/application/version", "/rest/v4/application/version"})
+@Tag(name = "PowerAuth Application Version Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ApplicationVersionsController {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
-
-    @Autowired
-    public ApplicationVersionsController(ApplicationServiceBehavior applicationServiceBehavior) {
-        this.applicationServiceBehavior = applicationServiceBehavior;
-    }
 
     /**
      * Create application version.

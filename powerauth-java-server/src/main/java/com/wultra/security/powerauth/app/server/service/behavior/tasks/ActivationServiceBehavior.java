@@ -48,7 +48,11 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
@@ -874,7 +878,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException If invalid values are provided.
      */
     @Transactional
-    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
+    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest request) throws GenericServiceException {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
@@ -945,7 +949,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
             // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_KEY_EXCHANGE;
+            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
             final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Extract the device public key from request
@@ -998,7 +1002,7 @@ public class ActivationServiceBehavior {
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Generate response object
-            final PrepareActivationResponse response = new PrepareActivationResponse();
+            final com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse response = new com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
             response.setApplicationId(application.getId());
@@ -1032,18 +1036,24 @@ public class ActivationServiceBehavior {
         }
     }
 
-    /**
-     * Create activation with given parameters.
-     *
-     * <p><b>PowerAuth protocol versions:</b>
-     * <ul>
-     *     <li>3.0</li>
-     * </ul>
-     *
-     * @param request Encrypted activation request.
-     * @return ECIES encrypted activation information
-     * @throws GenericServiceException       In case create activation fails
-     */
+    @Transactional
+    public PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new PrepareActivationResponse();
+    }
+
+        /**
+         * Create activation with given parameters.
+         *
+         * <p><b>PowerAuth protocol versions:</b>
+         * <ul>
+         *     <li>3.0</li>
+         * </ul>
+         *
+         * @param request Encrypted activation request.
+         * @return ECIES encrypted activation information
+         * @throws GenericServiceException       In case create activation fails
+         */
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         try {
@@ -1204,6 +1214,12 @@ public class ActivationServiceBehavior {
         }
     }
 
+    @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
+    public com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse();
+    }
+
     /**
      * Commit activation with given ID.
      *
@@ -1247,7 +1263,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
 
             // Check the commit phase
-            if (activation.getCommitPhase() != com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase.ON_COMMIT) {
+            if (activation.getCommitPhase() != CommitPhase.ON_COMMIT) {
                 logger.info("Invalid commit phase during commit for activation ID: {}, commit phase: {}", activationId, activation.getCommitPhase());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);

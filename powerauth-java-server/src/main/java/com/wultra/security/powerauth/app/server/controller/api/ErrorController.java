@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.response.GetErrorCodeListRespo
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ErrorCodeBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -35,18 +36,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("errorController")
-@RequestMapping("/rest/v3/error")
-@Tag(name = "PowerAuth Error Controller (V3)")
+@RequestMapping({"/rest/v3/error", "/rest/v4/error"})
+@Tag(name = "PowerAuth Error Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ErrorController {
 
     private final ErrorCodeBehavior service;
-
-    @Autowired
-    public ErrorController(ErrorCodeBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Return the list of error codes.

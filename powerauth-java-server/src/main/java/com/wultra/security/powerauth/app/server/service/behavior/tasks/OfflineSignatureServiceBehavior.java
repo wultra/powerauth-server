@@ -33,12 +33,18 @@ import com.wultra.security.powerauth.app.server.service.model.signature.*;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreateNonPersonalizedOfflineSignaturePayloadRequest;
-import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
-import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
-import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
-import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
-import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse;
+import com.wultra.security.powerauth.client.model.request.v3.CreateNonPersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v3.CreatePersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v3.VerifyOfflineSignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v4.CreatePersonalizedOfflineAuthPayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyOfflineAuthRequest;
+import com.wultra.security.powerauth.client.model.response.v3.CreateNonPersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreatePersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyOfflineSignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthResponse;
 import com.wultra.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -136,6 +142,13 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
+    @Transactional
+    public VerifyOfflineAuthResponse verifyOfflineSignature(final VerifyOfflineAuthRequest request)
+            throws GenericServiceException {
+        // TODO - v4 support
+        return new VerifyOfflineAuthResponse();
+    }
+
     /**
      * Create personalized offline signature payload for displaying a QR code in offline mode.
      * @param request parameter object
@@ -189,6 +202,12 @@ public class OfflineSignatureServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    @Transactional
+    public CreatePersonalizedOfflineAuthPayloadResponse createPersonalizedOfflineAuthPayload(final CreatePersonalizedOfflineAuthPayloadRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new CreatePersonalizedOfflineAuthPayloadResponse();
     }
 
     private static String fetchDataAndTotp(OfflineSignatureParameter request, int digitsNumber) throws CryptoProviderException {
@@ -271,14 +290,21 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
+    @Transactional
+    public CreateNonPersonalizedOfflineAuthPayloadResponse createNonPersonalizedOfflineAuthPayload(CreateNonPersonalizedOfflineAuthPayloadRequest request) throws GenericServiceException {
+        // TODO
+        return new CreateNonPersonalizedOfflineAuthPayloadResponse();
+    }
+
     /**
      * Verify offline signature implementation.
+     *
      * @param request parameter object
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
-     * @throws InvalidKeyException In case a key is invalid.
+     * @throws InvalidKeyException     In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
-     * @throws GenericCryptoException In case of a cryptography error.
+     * @throws GenericCryptoException  In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(final VerifyOfflineSignatureParameter request)
