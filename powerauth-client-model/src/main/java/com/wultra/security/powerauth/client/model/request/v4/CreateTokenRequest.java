@@ -28,7 +28,7 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * Model class representing request for creating HMAC token (V4).
+ * Model class representing request for creating MAC token (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
