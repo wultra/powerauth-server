@@ -25,9 +25,9 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.TokenBeha
 import com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
-import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;

@@ -139,9 +139,9 @@ public class TokenBehavior {
     }
 
     @Transactional
-    public CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest request) throws GenericServiceException {
+    public com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest request) throws GenericServiceException {
         // TODO - v4 support
-        return new CreateTokenResponse();
+        return new com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse();
     }
 
     /**
