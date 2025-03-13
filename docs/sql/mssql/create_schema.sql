@@ -1,3 +1,12 @@
+-- *********************************************************************
+-- Update Database Script
+-- *********************************************************************
+-- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
+-- Ran at: 10.03.25 6:58
+-- Against: null@offline:mssql
+-- Liquibase version: 4.31.1
+-- *********************************************************************
+
 -- Changeset powerauth-java-server/1.4.x/20230322-audit.xml::1::Lubos Racansky
 -- Create a new table audit_log
 CREATE TABLE audit_log (audit_log_id varchar(36) NOT NULL, application_name varchar(256) NOT NULL, audit_level varchar(32) NOT NULL, audit_type varchar(256), timestamp_created datetime2 CONSTRAINT DF_audit_log_timestamp_created DEFAULT GETDATE(), message varchar (max) NOT NULL, exception_message varchar (max), stack_trace varchar (max), param varchar (max), calling_class varchar(256) NOT NULL, thread_name varchar(256) NOT NULL, version varchar(256), build_time datetime2, CONSTRAINT PK_AUDIT_LOG PRIMARY KEY (audit_log_id));
@@ -50,47 +59,47 @@ GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::1::Lubos Racansky
 -- Create a new sequence pa_application_seq
-CREATE SEQUENCE pa_application_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_application_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::2::Lubos Racansky
 -- Create a new sequence pa_application_version_seq
-CREATE SEQUENCE pa_application_version_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_application_version_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::3::Lubos Racansky
 -- Create a new sequence pa_master_keypair_seq
-CREATE SEQUENCE pa_master_keypair_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_master_keypair_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::4::Lubos Racansky
 -- Create a new sequence pa_signature_audit_seq
-CREATE SEQUENCE pa_signature_audit_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_signature_audit_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::5::Lubos Racansky
 -- Create a new sequence pa_activation_history_seq
-CREATE SEQUENCE pa_activation_history_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_activation_history_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::6::Lubos Racansky
 -- Create a new sequence pa_recovery_code_seq
-CREATE SEQUENCE pa_recovery_code_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_recovery_code_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::7::Lubos Racansky
 -- Create a new sequence pa_recovery_puk_seq
-CREATE SEQUENCE pa_recovery_puk_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_recovery_puk_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::8::Lubos Racansky
 -- Create a new sequence pa_recovery_config_seq
-CREATE SEQUENCE pa_recovery_config_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_recovery_config_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::9::Lubos Racansky
 -- Create a new sequence pa_operation_template_seq
-CREATE SEQUENCE pa_operation_template_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE pa_operation_template_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::10::Lubos Racansky
@@ -105,7 +114,7 @@ GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::12::Lubos Racansky
 -- Create a new table pa_activation
-CREATE TABLE pa_activation (activation_id varchar(37) NOT NULL, application_id int NOT NULL, user_id varchar(255) NOT NULL, activation_name varchar(255), activation_code varchar(255), activation_status int NOT NULL, activation_otp varchar(255), activation_otp_validation int CONSTRAINT DF_pa_activation_activation_otp_validation DEFAULT 0 NOT NULL, blocked_reason varchar(255), counter int NOT NULL, ctr_data varchar(255), device_public_key_base64 varchar(255), extras varchar(255), platform varchar(255), device_info varchar(255), flags varchar(255), failed_attempts int NOT NULL, max_failed_attempts int CONSTRAINT DF_pa_activation_max_failed_attempts DEFAULT 5 NOT NULL, server_private_key_base64 varchar(255) NOT NULL, server_private_key_encryption int CONSTRAINT DF_pa_activation_server_private_key_encryption DEFAULT 0 NOT NULL, server_public_key_base64 varchar(255) NOT NULL, timestamp_activation_expire datetime2(6) NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_used datetime2(6) NOT NULL, timestamp_last_change datetime2(6), master_keypair_id int, version int CONSTRAINT DF_pa_activation_version DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_activation (activation_id varchar(37) NOT NULL, application_id int NOT NULL, user_id varchar(255) NOT NULL, activation_name varchar(255), activation_code varchar(255), activation_status int NOT NULL, activation_otp varchar(255), activation_otp_validation int CONSTRAINT DF_pa_activation_activation_otp_validation DEFAULT 0 NOT NULL, blocked_reason varchar(255), counter int NOT NULL, ctr_data varchar(255), device_public_key_base64 varchar(255), extras varchar(255), platform varchar(255), device_info varchar(255), flags varchar(255), failed_attempts int NOT NULL, max_failed_attempts int CONSTRAINT DF_pa_activation_max_failed_attempts DEFAULT 5 NOT NULL, server_private_key_base64 varchar(255) NOT NULL, server_private_key_encryption int CONSTRAINT DF_pa_activation_server_private_key_encryption DEFAULT 0 NOT NULL, server_public_key_base64 varchar(255) NOT NULL, timestamp_activation_expire datetime2(6) NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_used datetime2(6) NOT NULL, timestamp_last_change datetime2(6), master_keypair_id int, version int CONSTRAINT DF_pa_activation_version DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id));
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::13::Lubos Racansky
@@ -377,3 +386,68 @@ ALTER TABLE pa_operation ALTER COLUMN user_id varchar(255) NULL;
 GO
 
 -- Changeset powerauth-java-server/1.6.x/20231212-add-tag-1.6.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::1::Roman Strobl
+-- Add external_id column
+ALTER TABLE pa_activation ADD external_id varchar(255);
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::2::Roman Strobl
+-- Add protocol column
+ALTER TABLE pa_activation ADD protocol varchar(32) CONSTRAINT DF_pa_activation_protocol DEFAULT 'powerauth';
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
+ALTER TABLE pa_activation ALTER COLUMN extras varchar(4000);
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
+UPDATE pa_activation SET protocol = 'powerauth' WHERE protocol is null;
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240530-protocol-not-null.xml::5::Lubos Racansky
+-- Make column pa_activation.protocol not-null.
+ALTER TABLE pa_activation ALTER COLUMN protocol varchar(32) NOT NULL;
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
+-- Create a new table pa_application_config
+CREATE TABLE pa_application_config (id int NOT NULL, application_id int NOT NULL, config_key varchar(255) NOT NULL, config_values varchar (max), CONSTRAINT PK_PA_APPLICATION_CONFIG PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
+-- Create a new index on pa_application_config(config_key)
+CREATE NONCLUSTERED INDEX pa_app_config_key_idx ON pa_application_config(config_key);
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::3::Lubos Racansky
+-- Create a new sequence pa_app_conf_seq
+CREATE SEQUENCE pa_app_conf_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml::1::Jan Pesek
+-- Create a new table pa_fido2_authenticator
+CREATE TABLE pa_fido2_authenticator (aaguid varchar(255) NOT NULL, description varchar(255) NOT NULL, signature_type varchar(255) NOT NULL, CONSTRAINT PK_PA_FIDO2_AUTHENTICATOR PRIMARY KEY (aaguid));
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240222-add-tag-1.7.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::1::Jan Pesek
+-- Drop index on pa_operation(timestamp_expires, status).
+DROP INDEX pa_operation_status_exp ON pa_operation;
+GO
+
+-- Changeset powerauth-java-server/1.8.x/20240424-index-expire-status.xml::2::Jan Pesek
+-- Create a new index on pa_operation(status, timestamp_expires).
+CREATE NONCLUSTERED INDEX pa_operation_status_exp ON pa_operation(status, timestamp_expires);
+GO
+
+-- Changeset powerauth-java-server/1.8.x/20240517-fido2-authenticator-transports.xml::1::Jan Pesek
+-- Add transports column in pa_fido2_authenticator table.
+ALTER TABLE pa_fido2_authenticator ADD transports varchar(255);
+GO
+
+-- Changeset powerauth-java-server/1.8.x/20240529-add-status-reason.xml::1::Lubos Racansky
+-- Add status_reason column to pa_operation table.
+ALTER TABLE pa_operation ADD status_reason varchar(32);
+GO
+
+-- Changeset powerauth-java-server/1.8.x/20240625-add-tag-1.8.0.xml::1::Lubos Racansky
