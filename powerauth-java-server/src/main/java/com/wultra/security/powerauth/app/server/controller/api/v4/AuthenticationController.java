@@ -36,6 +36,7 @@ import com.wultra.security.powerauth.client.model.response.v4.VerifyAuthResponse
 import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 @RestController("authenticationControllerV4")
 @RequestMapping("/rest/v4/auth")
 @Tag(name = "PowerAuth Authentication Controller (V4)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class AuthenticationController {
@@ -62,13 +64,6 @@ public class AuthenticationController {
     private final OnlineSignatureServiceBehavior onlineSignatureService;
     private final OfflineSignatureServiceBehavior offlineSignatureService;
     private final AuditingServiceBehavior auditingService;
-
-    @Autowired
-    public AuthenticationController(OnlineSignatureServiceBehavior onlineSignatureService, OfflineSignatureServiceBehavior offlineSignatureService, AuditingServiceBehavior auditingService) {
-        this.onlineSignatureService = onlineSignatureService;
-        this.offlineSignatureService = offlineSignatureService;
-        this.auditingService = auditingService;
-    }
 
     /**
      * Verify signature.

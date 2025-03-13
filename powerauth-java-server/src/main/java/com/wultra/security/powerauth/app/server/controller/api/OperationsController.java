@@ -27,6 +27,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -44,16 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("operationsController")
 @RequestMapping({"/rest/v3/operation", "/rest/v4/operation"})
 @Tag(name = "PowerAuth Operations Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class OperationsController {
 
     private final OperationServiceBehavior service;
-
-    @Autowired
-    public OperationsController(OperationServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Create a new operation.

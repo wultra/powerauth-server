@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse
 import com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -44,16 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("updateControllerV3")
 @RequestMapping("/rest/v3/upgrade")
 @Tag(name = "PowerAuth Upgrade Protocol Controller (V3)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class UpgradeController {
 
     private final UpgradeServiceBehavior service;
-
-    @Autowired
-    public UpgradeController(UpgradeServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Start upgrade process.

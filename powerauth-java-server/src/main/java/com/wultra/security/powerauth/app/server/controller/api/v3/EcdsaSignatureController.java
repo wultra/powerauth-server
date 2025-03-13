@@ -28,6 +28,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.AsymmetricSignatureServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,16 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("ecdsaSignatureControllerV3")
 @RequestMapping("/rest/v3/signature/ecdsa")
 @Tag(name = "PowerAuth ECDSA Signature Controller (V3)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class EcdsaSignatureController {
 
     private final AsymmetricSignatureServiceBehavior asymmetricSignatureService;
-
-    @Autowired
-    public EcdsaSignatureController(AsymmetricSignatureServiceBehavior asymmetricSignatureService) {
-        this.asymmetricSignatureService = asymmetricSignatureService;
-    }
 
     /**
      * Calculate ECDSA signature.

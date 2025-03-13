@@ -27,6 +27,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -43,16 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("temporaryKeyController")
 @RequestMapping({"/rest/v3/keystore", "/rest/v4/keystore"})
 @Tag(name = "PowerAuth ECIES Temporary Key Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class TemporaryKeyController {
 
     private final TemporaryKeyBehavior service;
-
-    @Autowired
-    public TemporaryKeyController(TemporaryKeyBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Create temporary key.

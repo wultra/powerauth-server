@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.client.model.request.v4.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,16 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("vaultControllerV4")
 @RequestMapping("/rest/v4/vault")
 @Tag(name = "PowerAuth Vault Controller (V4)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class VaultController {
 
     private final VaultUnlockServiceBehavior service;
-
-    @Autowired
-    public VaultController(VaultUnlockServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Unlock vault.

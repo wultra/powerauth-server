@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.response.GetSystemStatusRespon
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.SystemStatusBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -37,16 +38,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("systemStatusController")
 @RequestMapping({"/rest/v3/status", "/rest/v4/status"})
 @Tag(name = "PowerAuth System Status Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class SystemStatusController {
 
     private final SystemStatusBehavior service;
-
-    @Autowired
-    public SystemStatusController(SystemStatusBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Return system status.

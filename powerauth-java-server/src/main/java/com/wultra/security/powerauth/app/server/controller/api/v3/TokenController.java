@@ -30,6 +30,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.TokenBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -46,16 +47,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("tokenControllerV3")
 @RequestMapping("/rest/v3/token")
 @Tag(name = "PowerAuth Token Controller (V3)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class TokenController {
 
     private final TokenBehavior service;
-
-    @Autowired
-    public TokenController(TokenBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Create a token.

@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.client.model.response.v4.CreateActivationRe
 import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -45,16 +46,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("activationControllerV4")
 @RequestMapping("/rest/v4/activation")
 @Tag(name = "PowerAuth Activation Controller (V4)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ActivationController {
 
     private final ActivationServiceBehavior activationServiceBehavior;
-
-    @Autowired
-    public ActivationController(ActivationServiceBehavior activationServiceBehavior) {
-        this.activationServiceBehavior = activationServiceBehavior;
-    }
 
     /**
      * Init activation.

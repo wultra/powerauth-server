@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResp
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -42,16 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("asymmetricSignatureControllerV4")
 @RequestMapping("/rest/v4/signature")
 @Tag(name = "PowerAuth Asymmetric Signature Controller (V4)")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class AsymmetricSignatureController {
 
     private final AsymmetricSignatureServiceBehavior asymmetricSignatureService;
-
-    @Autowired
-    public AsymmetricSignatureController(AsymmetricSignatureServiceBehavior asymmetricSignatureService) {
-        this.asymmetricSignatureService = asymmetricSignatureService;
-    }
 
     /**
      * Calculate asymmetric signature.

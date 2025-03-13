@@ -30,6 +30,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -46,16 +47,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("applicationController")
 @RequestMapping({"/rest/v3/application", "/rest/v4/application"})
 @Tag(name = "PowerAuth Application Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ApplicationController {
 
     private final ApplicationServiceBehavior applicationService;
-
-    @Autowired
-    public ApplicationController( ApplicationServiceBehavior applicationService) {
-        this.applicationService = applicationService;
-    }
 
     /**
      * Get the list of applications.

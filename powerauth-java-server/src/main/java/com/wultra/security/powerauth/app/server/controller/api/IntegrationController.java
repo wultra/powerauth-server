@@ -28,6 +28,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.IntegrationBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -44,16 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("integrationController")
 @RequestMapping({"/rest/v3/integration", "/rest/v4/integration"})
 @Tag(name = "PowerAuth Integration Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class IntegrationController {
 
     private final IntegrationBehavior service;
-
-    @Autowired
-    public IntegrationController(IntegrationBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Create integration request.

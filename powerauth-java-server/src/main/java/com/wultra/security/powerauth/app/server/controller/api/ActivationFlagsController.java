@@ -28,6 +28,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationFlagsServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -44,16 +45,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("activationFlagsController")
 @RequestMapping({"/rest/v3/activation/flags", "/rest/v4/activation/flags"})
 @Tag(name = "PowerAuth Activation Flags Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ActivationFlagsController {
 
     private final ActivationFlagsServiceBehavior service;
-
-    @Autowired
-    public ActivationFlagsController(ActivationFlagsServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * List activation flags.
