@@ -134,8 +134,12 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
             final SignedJWT signedJWT = new SignedJWT(header, claimsSet);
             signedJWT.sign(signer);
             return signedJWT.serialize();
+        } catch (ParseException | JOSEException e) {
+            logger.error("Temporary key request is invalid", e);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException |
-                 InvalidKeyException | ParseException | JOSEException e) {
+                 InvalidKeyException e) {
             logger.error("Temporary key request failed", e);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

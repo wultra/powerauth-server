@@ -157,7 +157,7 @@ public class EciesEncryptionBehavior {
 
         activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
-        final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.ACTIVATION_SCOPE_GENERIC);
+        final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), activationId, EncryptorId.ACTIVATION_SCOPE_GENERIC);
         // TODO - v4 support
         final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSecrets(
                 new EciesEncryptedRequest(

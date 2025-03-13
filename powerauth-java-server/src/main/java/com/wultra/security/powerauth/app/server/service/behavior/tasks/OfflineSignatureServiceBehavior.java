@@ -177,7 +177,7 @@ public class OfflineSignatureServiceBehavior {
             final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             // TODO - v4 support
-            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(signatureBase, activationId);
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(signatureBase, activation);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
@@ -249,6 +249,7 @@ public class OfflineSignatureServiceBehavior {
                 logger.warn("No application found with ID: {}", applicationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
+            final ApplicationEntity application = applicationEntityOptional.get();
             final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPair == null) {
                 logger.error("No master key pair found for application ID: {}", applicationId);
@@ -262,7 +263,7 @@ public class OfflineSignatureServiceBehavior {
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             // TODO - v4 support
-            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForApplication(signatureBase, applicationId);
+            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForApplication(signatureBase, application);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'

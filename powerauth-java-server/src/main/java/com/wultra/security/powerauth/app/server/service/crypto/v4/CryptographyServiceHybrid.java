@@ -19,6 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
@@ -39,70 +41,72 @@ import javax.crypto.SecretKey;
 @Service
 public class CryptographyServiceHybrid implements CryptographyService {
 
-
     @Override
-    public void generateMasterKeyPair(String applicationId) {
+    public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         // TODO
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(String applicationId) {
+    public BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         // TODO
         return null;
     }
 
     @Override
-    public SecretKey generateSharedSecretKey(String activationId) throws GenericServiceException {
+    public SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
         return null;
     }
 
     @Override
-    public void generateDeviceKeyPair(String activationId) throws GenericServiceException {
+    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         // TODO
     }
 
     @Override
-    public void storeDevicePublicKey(String activationId, BasePublicKey devicePublicKey) throws GenericServiceException {
+    public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         // TODO
     }
 
     @Override
-    public String generateActivationFingerprint(String activationId) throws GenericServiceException {
+    public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
+        // TODO
         return "";
     }
 
     @Override
-    public byte[] generateSignatureForApplication(byte[] data, String applicationId) throws GenericServiceException {
+    public byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException {
         // TODO
         return new byte[0];
     }
 
     @Override
-    public byte[] generateSignatureForActivation(byte[] data, String activationId) throws GenericServiceException {
+    public byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
         // TODO
         return new byte[0];
     }
 
     @Override
-    public boolean verifySignatureForActivation(byte[] data, byte[] signature, String activationId) throws GenericServiceException {
+    public boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
         // TODO
         return false;
     }
 
     @Override
-    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) {
+    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
         // TODO
         return null;
     }
 
     @Override
-    public EncryptorSecrets deriveSecrets(EncryptedRequest request, EncryptionContext context) {
+    public EncryptorSecrets deriveSecrets(EncryptedRequest request, EncryptionContext context) throws GenericServiceException {
         // TODO
         return null;
     }
 
     @Override
     public String requestTemporaryKey(String jwt) throws GenericServiceException {
+        // TODO
         return "";
     }
 

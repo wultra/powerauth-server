@@ -32,6 +32,4 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public abstract class BaseKeyPair {
 
-    private MasterKeyPairEntity masterKeyPair;
-
 }
