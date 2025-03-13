@@ -138,8 +138,11 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
             logger.error("Temporary key request is invalid", e);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        } catch (InvalidKeySpecException | CryptoProviderException | GenericCryptoException |
-                 InvalidKeyException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException e) {
+            logger.error("Invalid key", e);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Temporary key request failed", e);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -156,7 +159,11 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
     public PrivateKey temporaryPrivateKey(String id, String appKey) throws GenericServiceException {
         try {
             return temporaryPrivateKey(id, appKey, null);
-        } catch (InvalidKeySpecException | CryptoProviderException e) {
+        } catch (InvalidKeySpecException e) {
+            logger.error("Invalid key", e);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException e) {
             logger.error("Temporary key request failed", e);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

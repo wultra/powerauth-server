@@ -111,8 +111,10 @@ public class EncryptionServiceEc256 implements EncryptionService {
             } else {
                 return decryptInActivationScope(eciesRequest, protocolVersion, applicationVersion, activation, encryptorId);
             }
-        } catch (EncryptorException | InvalidKeySpecException | CryptoProviderException | GenericCryptoException |
-                 InvalidKeyException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EncryptorException | CryptoProviderException | GenericCryptoException e) {
             logger.error("Decryption failed", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
