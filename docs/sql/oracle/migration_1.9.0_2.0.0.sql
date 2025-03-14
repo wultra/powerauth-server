@@ -16,13 +16,13 @@ ALTER TABLE pa_activation ADD shared_secret CLOB;
 
 ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT '0';
 
--- Changeset powerauth-java-server/2.0.x/20250314-crypto4-master-keys.xml::1::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250317-crypto4-master-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 keys to pa_master_keypair table
 ALTER TABLE pa_master_keypair ADD master_private_keys CLOB;
 
 ALTER TABLE pa_master_keypair ADD master_public_keys CLOB;
 
--- Changeset powerauth-java-server/2.0.x/20250314-crypto4-dynamic-keys.xml::1::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250318-crypto4-dynamic-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 dynamic keys to pa_activation table
 ALTER TABLE pa_activation ADD biometric_factor_enabled BOOLEAN DEFAULT 0;
 
