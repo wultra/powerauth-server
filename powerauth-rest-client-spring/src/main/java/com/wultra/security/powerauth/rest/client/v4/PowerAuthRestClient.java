@@ -113,7 +113,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     /**
-     * Call the PowerAuth v3 API.
+     * Call the PowerAuth v4 API.
      *
      * @param path Path of the endpoint.
      * @param request Request object.
