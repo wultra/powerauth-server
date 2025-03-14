@@ -514,7 +514,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public VerifyAsymmetricSignatureResponse verifyAsymmetricSignature(VerifyAsymmetricSignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV4RestApi("/asymmetric/verify", request, queryParams, httpHeaders, VerifyAsymmetricSignatureResponse.class);
+        return callV4RestApi("/dsa/verify", request, queryParams, httpHeaders, VerifyAsymmetricSignatureResponse.class);
     }
 
     @Override
