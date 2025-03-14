@@ -30,7 +30,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,9 +39,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
-@RestController("asymmetricSignatureControllerV4")
-@RequestMapping("/rest/v4/signature")
-@Tag(name = "PowerAuth Asymmetric Signature Controller (V4)")
+@RestController("dsaControllerV4")
+@RequestMapping("/rest/v4/dsa")
+@Tag(name = "DSA Signature Controller (V4)")
 @AllArgsConstructor
 @Validated
 @Slf4j

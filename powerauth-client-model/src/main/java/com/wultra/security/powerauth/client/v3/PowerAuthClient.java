@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.client;
+package com.wultra.security.powerauth.client.v3;
 
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.entity.Activation;
@@ -35,14 +36,14 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * PowerAuth client interface.
+ * PowerAuth client interface (V3).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public interface PowerAuthClient {
 
     /**
-     * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
+     * Call the getSystemStatus method of the PowerAuth Server interface.
      *
      * @return {@link GetSystemStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
@@ -50,7 +51,7 @@ public interface PowerAuthClient {
     GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException;
 
     /**
-     * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
+     * Call the getSystemStatus method of the PowerAuth Server interface.
      *
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
@@ -60,7 +61,7 @@ public interface PowerAuthClient {
     GetSystemStatusResponse getSystemStatus(MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getErrorList method of the PowerAuth 3.0 Server interface.
+     * Call the getErrorList method of the PowerAuth Server interface.
      *
      * @param request {@link GetErrorCodeListRequest} instance
      * @return {@link GetErrorCodeListResponse}
@@ -69,7 +70,7 @@ public interface PowerAuthClient {
     GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the getErrorList method of the PowerAuth 3.0 Server interface.
+     * Call the getErrorList method of the PowerAuth Server interface.
      *
      * @param request {@link GetErrorCodeListRequest} instance
      * @param queryParams HTTP query parameters.
@@ -80,7 +81,7 @@ public interface PowerAuthClient {
     GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
+     * Call the getSystemStatus method of the PowerAuth Server interface.
      *
      * @param language ISO code for language.
      * @return {@link GetSystemStatusResponse}
@@ -89,7 +90,7 @@ public interface PowerAuthClient {
     GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @param request {@link InitActivationRequest} instance
      * @return {@link InitActivationResponse}
@@ -98,7 +99,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @param request {@link InitActivationRequest} instance
      * @param queryParams HTTP query parameters.
@@ -109,7 +110,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(InitActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @param userId        User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
@@ -119,7 +120,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(String userId, String applicationId) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      * 
      * @deprecated use {@link #initActivation(String, String, CommitPhase, String)}
      *
@@ -134,7 +135,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @param userId        User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
@@ -146,7 +147,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(String userId, String applicationId, CommitPhase commitPhase, String otp) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @param userId                    User ID for which a new CREATED activation should be created.
      * @param applicationId             Application ID for which a new CREATED activation should be created.
@@ -158,7 +159,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException;
 
     /**
-     * Call the initActivation method of the PowerAuth 3.0 Server interface.
+     * Call the initActivation method of the PowerAuth Server interface.
      *
      * @deprecated use {@link #initActivation(InitActivationRequest)}
      *
@@ -175,7 +176,7 @@ public interface PowerAuthClient {
     InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
                                           ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
+     * Call the prepareActivation method of the PowerAuth Server interface.
      *
      * @param request {@link PrepareActivationRequest} instance
      * @return {@link PrepareActivationResponse}
@@ -184,7 +185,7 @@ public interface PowerAuthClient {
     PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
+     * Call the prepareActivation method of the PowerAuth Server interface.
      *
      * @param request {@link PrepareActivationRequest} instance
      * @param queryParams HTTP query parameters.
@@ -195,7 +196,7 @@ public interface PowerAuthClient {
     PrepareActivationResponse prepareActivation(PrepareActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
+     * Call the prepareActivation method of the PowerAuth Server interface.
      * 
      * @deprecated use {@link #prepareActivation(PrepareActivationRequest)}
      *
@@ -257,7 +258,7 @@ public interface PowerAuthClient {
     UpdateActivationNameResponse updateActivationName(UpdateActivationNameRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the createActivation method of the PowerAuth 3.0 Server interface.
+     * Call the createActivation method of the PowerAuth Server interface.
      *
      * @deprecated use {@link #createActivation(CreateActivationRequest)}
      *
@@ -312,7 +313,7 @@ public interface PowerAuthClient {
     UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException;
 
     /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server interface.
+     * Call the commitActivation method of the PowerAuth Server interface.
      *
      * @param request {@link CommitActivationRequest} instance
      * @return {@link CommitActivationResponse}
@@ -321,7 +322,7 @@ public interface PowerAuthClient {
     CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server interface.
+     * Call the commitActivation method of the PowerAuth Server interface.
      *
      * @param request {@link CommitActivationRequest} instance
      * @param queryParams HTTP query parameters.
@@ -332,7 +333,7 @@ public interface PowerAuthClient {
     CommitActivationResponse commitActivation(CommitActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server interface.
+     * Call the commitActivation method of the PowerAuth Server interface.
      *
      * @param activationId   Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
@@ -342,7 +343,7 @@ public interface PowerAuthClient {
     CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException;
 
     /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server interface.
+     * Call the commitActivation method of the PowerAuth Server interface.
      *
      * @param activationId   Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
@@ -353,7 +354,7 @@ public interface PowerAuthClient {
     CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationStatus method of the PowerAuth Server interface.
      *
      * @param request {@link GetActivationStatusRequest} instance
      * @return {@link GetActivationStatusResponse}
@@ -362,7 +363,7 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationStatus method of the PowerAuth Server interface.
      *
      * @param request {@link GetActivationStatusRequest} instance
      * @param queryParams HTTP query parameters.
@@ -373,7 +374,7 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server interface. This method should be used only
+     * Call the getActivationStatus method of the PowerAuth Server interface. This method should be used only
      * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
      * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
      * method instead.
@@ -385,7 +386,7 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server interface. The method should be used to
+     * Call the getActivationStatus method of the PowerAuth Server interface. The method should be used to
      * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
      * contains an encrypted activation status blob.
      *
@@ -397,7 +398,7 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException;
 
     /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server interface.
+     * Call the removeActivation method of the PowerAuth Server interface.
      *
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}
@@ -406,7 +407,7 @@ public interface PowerAuthClient {
     RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server interface.
+     * Call the removeActivation method of the PowerAuth Server interface.
      *
      * @param request {@link RemoveActivationRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -417,7 +418,7 @@ public interface PowerAuthClient {
     RemoveActivationResponse removeActivation(RemoveActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server interface.
+     * Call the removeActivation method of the PowerAuth Server interface.
      *
      * @param activationId   Activation ID of activation to be removed.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
@@ -427,7 +428,7 @@ public interface PowerAuthClient {
     RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationListForUser method of the PowerAuth Server interface.
      *
      * @param request {@link GetActivationListForUserRequest} instance
      * @return {@link GetActivationListForUserResponse}
@@ -436,7 +437,7 @@ public interface PowerAuthClient {
     GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationListForUser method of the PowerAuth Server interface.
      *
      * @param request {@link GetActivationListForUserRequest} instance
      * @param queryParams HTTP query parameters.
@@ -447,7 +448,7 @@ public interface PowerAuthClient {
     GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationListForUser method of the PowerAuth Server interface.
      * This method will fetch the first page (page 0) of activations for the user, with a page size of 100.
      *
      * @param userId User ID to fetch the activations for.
@@ -457,7 +458,7 @@ public interface PowerAuthClient {
     List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException;
 
     /**
-     * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
+     * Call the lookupActivations method of the PowerAuth Server interface.
      *
      * @param request {@link LookupActivationsRequest} instance
      * @return {@link LookupActivationsResponse}
@@ -466,7 +467,7 @@ public interface PowerAuthClient {
     LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
+     * Call the lookupActivations method of the PowerAuth Server interface.
      *
      * @param request {@link LookupActivationsRequest} instance
      * @param queryParams HTTP query parameters.
@@ -477,7 +478,7 @@ public interface PowerAuthClient {
     LookupActivationsResponse lookupActivations(LookupActivationsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
+     * Call the lookupActivations method of the PowerAuth Server interface.
      *
      * @param userIds                 User IDs to be used in the activations query.
      * @param applicationIds          Application IDs to be used in the activations query (optional).
@@ -491,7 +492,7 @@ public interface PowerAuthClient {
     List<Activation> lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
-     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
+     * Call the updateStatusForActivations method of the PowerAuth Server interface.
      *
      * @param request {@link UpdateStatusForActivationsRequest} instance
      * @return {@link UpdateStatusForActivationsResponse}
@@ -500,7 +501,7 @@ public interface PowerAuthClient {
     UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
+     * Call the updateStatusForActivations method of the PowerAuth Server interface.
      *
      * @param request {@link UpdateStatusForActivationsRequest} instance
      * @param queryParams HTTP query parameters.
@@ -511,7 +512,7 @@ public interface PowerAuthClient {
     UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
+     * Call the updateStatusForActivations method of the PowerAuth Server interface.
      *
      * @param activationIds    Identifiers of activations whose status should be updated.
      * @param activationStatus Activation status to be used.
@@ -521,7 +522,7 @@ public interface PowerAuthClient {
     UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException;
 
     /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifySignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifySignatureRequest} instance.
      * @return {@link VerifySignatureResponse}
@@ -530,7 +531,7 @@ public interface PowerAuthClient {
     VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifySignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifySignatureRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -541,7 +542,7 @@ public interface PowerAuthClient {
     VerifySignatureResponse verifySignature(VerifySignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifySignature method of the PowerAuth Server interface.
      *
      * @param activationId           Activation ID of activation to be used for authentication.
      * @param applicationKey         Application Key of an application related to the activation.
@@ -556,7 +557,7 @@ public interface PowerAuthClient {
     VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Integer forcedSignatureVersion) throws PowerAuthClientException;
 
     /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
@@ -565,7 +566,7 @@ public interface PowerAuthClient {
     CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -576,7 +577,7 @@ public interface PowerAuthClient {
     CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param activationId Activation ID.
      * @param data         Data for offline signature.
@@ -586,7 +587,7 @@ public interface PowerAuthClient {
     CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException;
 
     /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
@@ -595,7 +596,7 @@ public interface PowerAuthClient {
     CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -606,7 +607,7 @@ public interface PowerAuthClient {
     CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth Server interface.
      *
      * @param applicationId Application ID.
      * @param data          Data for offline signature.
@@ -616,7 +617,7 @@ public interface PowerAuthClient {
     CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(String applicationId, String data) throws PowerAuthClientException;
 
     /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifyOfflineSignatureRequest} instance.
      * @return {@link VerifyOfflineSignatureResponse}
@@ -625,7 +626,7 @@ public interface PowerAuthClient {
     VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException;
 
     /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifyOfflineSignatureRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -636,7 +637,7 @@ public interface PowerAuthClient {
     VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth Server interface.
      *
      * @param activationId  Activation ID.
      * @param data          Data for signature.
@@ -648,7 +649,7 @@ public interface PowerAuthClient {
     VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException;
 
     /**
-     * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
+     * Call the vaultUnlock method of the PowerAuth Server interface.
      *
      * @param request {@link VaultUnlockRequest} instance
      * @return {@link VaultUnlockResponse}
@@ -657,7 +658,7 @@ public interface PowerAuthClient {
     VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
+     * Call the vaultUnlock method of the PowerAuth Server interface.
      *
      * @param request {@link VaultUnlockRequest} instance
      * @param queryParams HTTP query parameters.
@@ -668,7 +669,7 @@ public interface PowerAuthClient {
     VaultUnlockResponse unlockVault(VaultUnlockRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
+     * Call the vaultUnlock method of the PowerAuth Server interface.
      *
      * @deprecated use {@link #unlockVault(VaultUnlockRequest)}
      *
@@ -693,7 +694,7 @@ public interface PowerAuthClient {
                                     Long timestamp) throws PowerAuthClientException;
 
     /**
-     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifyECDSASignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifyECDSASignatureRequest} instance.
      * @return {@link VerifyECDSASignatureResponse}
@@ -702,7 +703,7 @@ public interface PowerAuthClient {
     VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifyECDSASignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifyECDSASignatureRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -713,7 +714,7 @@ public interface PowerAuthClient {
     VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
+     * Call the verifyECDSASignature method of the PowerAuth Server interface.
      *
      * @param activationId Activation ID of activation to be used for authentication.
      * @param data         Data that were signed by ECDSA algorithm.
@@ -724,7 +725,7 @@ public interface PowerAuthClient {
     VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException;
 
     /**
-     * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server interface.
+     * Call the getSignatureAuditLog method of the PowerAuth Server interface.
      *
      * @param request {@link SignatureAuditRequest} instance.
      * @return {@link SignatureAuditResponse}
@@ -733,7 +734,7 @@ public interface PowerAuthClient {
     SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server interface.
+     * Call the getSignatureAuditLog method of the PowerAuth Server interface.
      *
      * @param request {@link SignatureAuditRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -744,7 +745,7 @@ public interface PowerAuthClient {
     SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server interface and get
+     * Call the verifySignature method of the PowerAuth Server interface and get
      * signature audit log for all application of a given user.
      *
      * @param userId       User ID to query the audit log against.
@@ -756,7 +757,7 @@ public interface PowerAuthClient {
     List<SignatureAuditItem> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server interface and get
+     * Call the verifySignature method of the PowerAuth Server interface and get
      * signature audit log for a single application.
      *
      * @param userId        User ID to query the audit log against.
@@ -769,7 +770,7 @@ public interface PowerAuthClient {
     List<SignatureAuditItem> getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationHistory method of the PowerAuth Server interface.
      *
      * @param request {@link ActivationHistoryRequest} instance.
      * @return {@link ActivationHistoryResponse}
@@ -778,7 +779,7 @@ public interface PowerAuthClient {
     ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationHistory method of the PowerAuth Server interface.
      *
      * @param request {@link ActivationHistoryRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -789,7 +790,7 @@ public interface PowerAuthClient {
     ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
+     * Call the getActivationHistory method of the PowerAuth Server interface.
      *
      * @param activationId Activation ID.
      * @param startingDate Limit the results to given starting date (= "newer than").
@@ -800,7 +801,7 @@ public interface PowerAuthClient {
     List<ActivationHistoryItem> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
-     * Call the blockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the blockActivation method of the PowerAuth Server interface.
      *
      * @param request {@link BlockActivationRequest} instance.
      * @return {@link BlockActivationResponse}
@@ -809,7 +810,7 @@ public interface PowerAuthClient {
     BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the blockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the blockActivation method of the PowerAuth Server interface.
      *
      * @param request {@link BlockActivationRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -820,7 +821,7 @@ public interface PowerAuthClient {
     BlockActivationResponse blockActivation(BlockActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the blockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the blockActivation method of the PowerAuth Server interface.
      *
      * @param activationId   Activation ID of activation to be blocked.
      * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
@@ -831,7 +832,7 @@ public interface PowerAuthClient {
     BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException;
 
     /**
-     * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the unblockActivation method of the PowerAuth Server interface.
      *
      * @param request {@link UnblockActivationRequest} instance.
      * @return {@link UnblockActivationResponse}
@@ -840,7 +841,7 @@ public interface PowerAuthClient {
     UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException;
 
     /**
-     * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the unblockActivation method of the PowerAuth Server interface.
      *
      * @param request {@link UnblockActivationRequest} instance.
      * @param queryParams HTTP query parameters.
@@ -851,7 +852,7 @@ public interface PowerAuthClient {
     UnblockActivationResponse unblockActivation(UnblockActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
+     * Call the unblockActivation method of the PowerAuth Server interface.
      *
      * @param activationId   Activation ID of activation to be unblocked.
      * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
