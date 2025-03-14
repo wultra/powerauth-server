@@ -22,6 +22,8 @@
                 <columnExists tableName="pa_activation" columnName="server_private_keys" />
                 <columnExists tableName="pa_activation" columnName="server_private_keys_encryption" />
                 <columnExists tableName="pa_activation" columnName="server_public_keys" />
+                <columnExists tableName="pa_activation" columnName="shared_secret" />
+                <columnExists tableName="pa_activation" columnName="shared_secret_encryption" />
             </not>
         </preConditions>
         <comment>Add new columns for crypto4 keys to pa_activation table</comment>
@@ -30,6 +32,8 @@
             <column name="server_private_keys" type="clob"/>
             <column name="server_private_keys_encryption" type="integer" defaultValue="0"/>
             <column name="server_public_keys" type="clob"/>
+            <column name="shared_secret" type="clob"/>
+            <column name="shared_secret_encryption" type="integer" defaultValue="0"/>
         </addColumn>
     </changeSet>
 

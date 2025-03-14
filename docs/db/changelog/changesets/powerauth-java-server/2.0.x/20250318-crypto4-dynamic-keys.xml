@@ -13,7 +13,7 @@
                 <columnExists tableName="pa_activation" columnName="knowledge_factor_key_next" />
             </not>
         </preConditions>
-        <comment>Add columns for crypto4 keys to pa_activation table</comment>
+        <comment>Add columns for crypto4 dynamic keys to pa_activation table</comment>
         <addColumn tableName="pa_activation">
             <column name="biometric_factor_enabled" type="boolean" defaultValueBoolean="false"/>
             <column name="biometric_factor_key" type="varchar(255)"/>

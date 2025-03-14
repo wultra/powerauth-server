@@ -1,8 +1,41 @@
-# Migration from 1.10.x to 2.0.0
+# Migration from 1.9.x to 2.0.0
 
-### Updated Package Names
+## Database Changes
+
+For convenience, you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](./sql/postgresql/migration_1.9.0_2.0.0.sql)
+- [Oracle script](./sql/oracle/migration_1.9.0_2.0.0.sql)
+- [MSSQL script](./sql/mssql/migration_1.9.0_2.0.0.sql)
+
+### Added new columns for cryptography protocol version 4
+
+Following columns were added for keys used in cryptography protocol version 4:
+
+* A new column `device_public_keys` has been added to the `pa_activation` table to store device public keys for new cryptography algorithms.
+* A new column `server_private_keys` has been added to the `pa_activation` table to store server private keys for new cryptography algorithms.
+* A new column `server_private_keys_encryption` has been added to the `pa_activation` table to configure encryption of private keys.
+* A new column `server_public_keys` has been added to the `pa_activation` table to store server public keys for new cryptography algorithms.
+* A new column `shared_secret` has been added to the `pa_activation` table to store share secret for new cryptography algorithms.
+* A new column `shared_secret_encryption` has been added to the `pa_activation` table to configure encryption of shared secret values.
+* A new column `master_private_keys` has been added to the `pa_master_keypair` table to store master private keys for new cryptography algorithms.
+* A new column `master_public_keys` has been added to the `pa_master_keypair` table to store master public keys for new cryptography algorithms.
+
+Following columns were added for dynamic keys used in cryptography protocol version 4:
+
+* A new column `biometric_factor_enabled` has been added to the `pa_activation` table to track whether biometric factor is enabled.
+* A new column `biometric_factor_key` has been added to the `pa_activation` table to store current biometric factor key.
+* A new column `biometric_factor_key_next` has been added to the `pa_activation` table to store next biometric factor key.
+* A new column `knowledge_factor_key` has been added to the `pa_activation` table to store current knowledge factor key.
+* A new column `knowledge_factor_key_next` has been added to the `pa_activation` table to store next knowledge factor key.
+
+## Updated Package Names
 
 Package names in Java code have been updated from historical `io.getlime` to `com.wultra`. Please update package imports in your source code which uses any `io.getlime` packages from PowerAuth server.
+
+## REST API Changes
 
 ### Updated Validations in REST API
 

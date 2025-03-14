@@ -421,3 +421,38 @@ ALTER TABLE pa_application_callback ADD timestamp_created TIMESTAMP(6) DEFAULT s
 ALTER TABLE pa_application_callback ADD timestamp_last_updated TIMESTAMP(6);
 
 -- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/2.0.x/20250314-crypto4-pqc.xml::1::Roman Strobl
+-- Add column crypto_algorithm to pa_activation table
+ALTER TABLE pa_activation ADD crypto_algorithm VARCHAR2(32);
+
+-- Changeset powerauth-java-server/2.0.x/20250314-crypto4-pqc.xml::2::Roman Strobl
+-- Add new columns for crypto4 keys to pa_activation table
+ALTER TABLE pa_activation ADD device_public_keys CLOB;
+
+ALTER TABLE pa_activation ADD server_private_keys CLOB;
+
+ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT '0';
+
+ALTER TABLE pa_activation ADD server_public_keys CLOB;
+
+ALTER TABLE pa_activation ADD shared_secret CLOB;
+
+ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT '0';
+
+-- Changeset powerauth-java-server/2.0.x/20250314-crypto4-master-keys.xml::1::Roman Strobl
+-- Add columns for crypto4 keys to pa_master_keypair table
+ALTER TABLE pa_master_keypair ADD master_private_keys CLOB;
+
+ALTER TABLE pa_master_keypair ADD master_public_keys CLOB;
+
+-- Changeset powerauth-java-server/2.0.x/20250314-crypto4-dynamic-keys.xml::1::Roman Strobl
+-- Add columns for crypto4 dynamic keys to pa_activation table
+ALTER TABLE pa_activation ADD biometric_factor_enabled BOOLEAN DEFAULT 0;
+
+ALTER TABLE pa_activation ADD biometric_factor_key VARCHAR2(255);
+
+ALTER TABLE pa_activation ADD biometric_factor_key_next VARCHAR2(255);
+
+ALTER TABLE pa_activation ADD knowledge_factor_key VARCHAR2(255);
+
+ALTER TABLE pa_activation ADD knowledge_factor_key_next VARCHAR2(255);
