@@ -28,10 +28,11 @@ Stores applications used in the PowerAuth Server.
 
 #### Columns
 
-| Name   | Type         | Info          | Note                                                  |
-|--------|--------------|---------------|-------------------------------------------------------|
-| id     | BIGINT(20)   | autoincrement | Unique application record ID.                         |
-| name   | VARCHAR(255) | -             | Application identifier, for example "mobile-banking". |
+| Name  | Type         | Info          | Note                                                  |
+|-------|--------------|---------------|-------------------------------------------------------|
+| id    | BIGINT(20)   | autoincrement | Unique application record ID.                         |
+| name  | VARCHAR(255) | -             | Application identifier, for example "mobile-banking". |
+| roles | VARCHAR(255) | -             | Application roles as a JSON array.                    |
 <!-- end -->
 
 <!-- begin database table pa_application_version -->
@@ -91,20 +92,21 @@ Stores activations. Activation is a unit associating signature / transport and e
 | extras                        | VARCHAR(4000) | -                                   | Any application specific information.                                                                                                                                              |
 | platform                      | VARCHAR(255)  | -                                   | User device platform.                                                                                                                                                              |
 | device_info                   | VARCHAR(255)  | -                                   | User device information.                                                                                                                                                           |
-| flags                         | VARCHAR(255)  | -                                   | Activation flags.                                                                                                                                                                  |
+| flags                         | VARCHAR(255)  | -                                   | Activation flags as a JSON array.                                                                                                                                                  |
 | external_id                   | VARCHAR(255)  | -                                   | External identifier related to the activation.                                                                                                                                     |
 | protocol                      | VARCHAR(32)   | -                                   | Security protocol: `powerauth` (default) or `fido2`.                                                                                                                               |
 | failed_attempts               | BIGINT(20)    | -                                   | Number of failed signature verification attempts.                                                                                                                                  |
 | max_failed_attempts           | BIGINT(20)    | -                                   | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
-| server_private_key_base64     | TEXT          | -                                   | Server private key, encoded as Base64                                                                                                                                              |
+| server_private_key_base64     | VARCHAR(255)  | -                                   | Server private key, encoded as Base64                                                                                                                                              |
 | server_private_key_encryption | INT(11)       | -                                   | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC)                                                                                               |
-| server_public_key_base64      | TEXT          | -                                   | Server public key, encoded as Base64                                                                                                                                               |
+| server_public_key_base64      | VARCHAR(255)  | -                                   | Server public key, encoded as Base64                                                                                                                                               |
 | master_keypair_id             | BIGINT(20)    | foreign key: pa\_master\_keypair.id | Master Key Pair identifier, used during the activation process                                                                                                                     |
 | timestamp_created             | DATETIME      | -                                   | Timestamp of the record creation.                                                                                                                                                  |
 | timestamp_activation_expire   | DATETIME      | -                                   | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED.                                             |
 | timestamp_last_used           | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | timestamp_last_change         | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
 | version                       | BIGINT(2)     | -                                   | Cryptography protocol version.                                                                                                                                                     |
+| commit_phase                  | INTEGER       | -                                   | When the activation is committed. Following values are supported: default ON_COMMIT(0), and ON_KEY_EXCHANGE(1).                                                                    |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
@@ -148,6 +150,7 @@ Stores the records with values used for attempts for the signature validation.
 | note                | TEXT         | -                                          | Additional information about the validation result.                       |
 | timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
 | version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
+| signature_version   | VARCHAR(255) | -                                          | PowerAuth signature version.                                              |
 <!-- end -->
 
 <!-- begin database table pa_integration -->
@@ -222,6 +225,7 @@ Stores a log of activation changes.
 | external_user_id   | VARCHAR(255) | -                                         | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created  | DATETIME     | -                                         | Timestamp of the record creation.                                                                                                                                               |
 | activation_version | INT(2)       | -                                         | Activation version                                                                                                                                                              |
+| activation_name    | VARCHAR(255  | -                                         | Activation name.                                                                                                                                                                |
 <!-- end -->
 
 <!-- begin database table pa_recovery_code -->
@@ -281,6 +285,7 @@ Stores configuration of activation recovery and recovery postcards.
 | postcard_private_key_base64   | VARCHAR(255) | -                               | Base64 encoded EC server private key for recovery postcard.         |
 | postcard_public_key_base64    | VARCHAR(255) | -                               | Base64 encoded EC server public key for recovery postcard.          |
 | remote_public_key_base64      | VARCHAR(255) | -                               | Base64 encoded EC printing center public key for recovery postcard. |
+| postcard_priv_key_encryption  | INT(1)       | -                               | Private key encryption mode; 0 for no-encryption, 1 for AES_HMAC.   |
 <!-- end -->
 
 <!-- begin database table pa_operation -->
@@ -294,11 +299,13 @@ Table stores operations, i.e., the login attempts or payment approvals, that are
 |---------------------|--------------|-------------|----------------------------------------------------------------------------------------------------------------------------------|
 | id                  | varchar(37)  | primary key | Unique operation ID.                                                                                                             |
 | user_id             | varchar(255) | -           | Related user ID.                                                                                                                 |
-| template_id         | bigint       | -           | Template ID used for creating the operation.                                                                                     |
+| template_name       | varchar(255) | -           | Template name used for creating the operation.                                                                                   |
 | external_id         | varchar(255) | -           | Identifier in external system.                                                                                                   |
+| activation_flag     | varchar(255) | -           | Activation flag.                                                                                                                 |
 | operation_type      | varchar(255) | -           | Name of the type of operation.                                                                                                   |
 | data                | text         | -           | Data of the operation that enter the final signature.                                                                            |
 | parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                                                             |
+| additional_data     | text         | -           | Allow storing operation context.                                                                                                 |
 | status              | integer      | -           | Status of the operation.                                                                                                         |
 | status_reason       | varchar(32)  | -           | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
 | signature_type      | varchar(255) | -           | Comma-separated list of allowed signature types.                                                                                 |
@@ -307,8 +314,9 @@ Table stores operations, i.e., the login attempts or payment approvals, that are
 | timestamp_created   | timestamp    | -           | Timestamp of when the operation was created.                                                                                     |
 | timestamp_expires   | timestamp    | -           | Timestamp of when the operation will expire.                                                                                     |
 | timestamp_finalized | timestamp    | -           | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.).                                  |
-| risk_flages         | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| risk_flags          | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
 | totp_seed           | varchar(24)  | -           | Optional TOTP seed used for proximity check, base64 encoded.                                                                     |
+| activation_id       | varchar(37)  | -           | Activation ID, a foreign key.                                                                                                    |
 <!-- end -->
 
 <!-- begin database table pa_operation_template -->
@@ -327,7 +335,7 @@ Table stores operation templates that are used while creating the operations.
 | signature_type          | varchar(255) | -           | Comma-separated list of allowed signature types.                                 |
 | max_failure_count       | bigint       | -           | Maximum allowed number of failed attempts when approving the operation.          |
 | expiration              | bigint       | -           | Operation expiration in seconds (300 = 5 minutes).                               |
-| risk_flages             | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| risk_flags              | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
 | proximity_check_enabled | boolean      | -           | Whether proximity check is enabled and TOTP seed should be generated.            |
 <!-- end -->
 
@@ -396,4 +404,18 @@ Table stores Callback URL Events to monitor processing of the callbacks.
 | timestamp_rerun_after   | timestamp   | -           | Timestamp after which the Callback URL Event in processing state will be rerun.          |
 | attempts                | integer     | -           | Number of dispatch attempts made for the Callback URL Event.                             |
 | idempotency_key         | varchar(36) | -           | Idempotency key associated with the Callback URL Event.                                  |
+<!-- end -->
+
+<!-- begin database table pa_unique_value -->
+### Unique Value
+
+Table stores unique values sent in requests, so that replay attacks are prevented.
+
+#### Columns
+
+| Name              | Type         | Info        | Note                                                                               |
+|-------------------|--------------|-------------|------------------------------------------------------------------------------------|
+| unique_value      | varchar(255) | primary key | Unique value.                                                                      |
+| type              | integer      | -           | Value type, 0 - MAC_TOKEN, 1 - ECIES_APPLICATION_SCOPE, 2 - ECIES_ACTIVATION_SCOPE |
+| timestamp_expires | timestamp    | -           | Timestamp when the value expires.                                                  |
 <!-- end -->
