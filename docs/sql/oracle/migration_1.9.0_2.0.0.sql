@@ -12,7 +12,7 @@ ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT '0'
 
 ALTER TABLE pa_activation ADD server_public_keys CLOB;
 
-ALTER TABLE pa_activation ADD shared_secret CLOB;
+ALTER TABLE pa_activation ADD shared_secret VARCHAR2(255);
 
 ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT '0';
 

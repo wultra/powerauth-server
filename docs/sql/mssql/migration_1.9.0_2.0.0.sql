@@ -17,7 +17,7 @@ GO
 ALTER TABLE pa_activation ADD server_public_keys varchar(MAX);
 GO
 
-ALTER TABLE pa_activation ADD shared_secret varchar(MAX);
+ALTER TABLE pa_activation ADD shared_secret varchar(255);
 GO
 
 ALTER TABLE pa_activation ADD shared_secret_encryption int CONSTRAINT DF_pa_activation_shared_secret_encryption DEFAULT 0;
