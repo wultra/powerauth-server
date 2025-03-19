@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20250317-crypto4-master-keys.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_master_keypair" columnName="master_private_keys" />
+                <columnExists tableName="pa_master_keypair" columnName="master_public_keys" />
+            </not>
+        </preConditions>
+        <comment>Add columns for crypto4 keys to pa_master_keypair table</comment>
+        <addColumn tableName="pa_master_keypair">
+            <column name="master_private_keys" type="clob"/>
+            <column name="master_public_keys" type="clob"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
