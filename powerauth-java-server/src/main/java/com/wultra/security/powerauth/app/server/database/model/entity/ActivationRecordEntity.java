@@ -23,9 +23,11 @@ import com.wultra.security.powerauth.app.server.database.model.converter.Activat
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.*;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -220,6 +222,81 @@ public class ActivationRecordEntity implements Serializable {
     private EncryptionMode serverPrivateKeyEncryption;
 
     /**
+     * Cryptography algorithm used for shared secret computation.
+     */
+    @Column(name = "crypto_algorithm")
+    @Enumerated(EnumType.STRING)
+    private SharedSecretAlgorithm cryptoAlgorithm;
+
+    /**
+     * Device public keys for newer cryptography algorithms serialized into JSON.
+     */
+    @Column(name = "device_public_keys", columnDefinition = "CLOB")
+    private String devicePublicKeys;
+
+    /**
+     * Server private keys for newer cryptography algorithms serialized into JSON.
+     */
+    @Column(name = "server_private_keys", columnDefinition = "CLOB")
+    private String serverPrivateKeys;
+
+    /**
+     * Mode of server private keys encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     */
+    @Column(name = "server_private_keys_encryption")
+    @Enumerated
+    private EncryptionMode serverPrivateKeysEncryption;
+
+    /**
+     * Server public keys for newer cryptography algorithms serialized into JSON.
+     */
+    @Column(name = "server_public_keys", columnDefinition = "CLOB")
+    private String serverPublicKeys;
+
+    /**
+     * Pre-computed shared secret.
+     */
+    @Column(name = "shared_secret")
+    private String sharedSecret;
+
+    /**
+     * Mode of shared secret encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     */
+    @Column(name = "shared_secret_encryption")
+    @Enumerated
+    private EncryptionMode sharedSecretEncryption;
+
+    /**
+     * Whether biometric factor is enabled.
+     */
+    @Column(name = "biometric_factor_enabled")
+    private Boolean biometricFactorEnabled;
+
+    /**
+     * Current biometry factor key.
+     */
+    @Column(name = "biometric_factor_key")
+    private String biometricFactorKey;
+
+    /**
+     * Next biometry factor key.
+     */
+    @Column(name = "biometric_factor_key_next")
+    private String biometricFactorKeyNext;
+
+    /**
+     * Current knowledge factor key.
+     */
+    @Column(name = "knowledge_factor_key")
+    private String knowledgeFactorKey;
+
+    /**
+     * Next knowledge factor key.
+     */
+    @Column(name = "knowledge_factor_key_next")
+    private String knowledgeFactorKeyNext;
+
+    /**
      * PowerAuth protocol major version for activation.
      */
     // Version must be nullable, it is not known yet during init activation step
@@ -251,35 +328,7 @@ public class ActivationRecordEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 71 * hash + Objects.hashCode(this.activationId);
-        hash = 71 * hash + Objects.hashCode(this.activationCode);
-        hash = 71 * hash + Objects.hashCode(this.activationOtpValidation);
-        hash = 71 * hash + Objects.hashCode(this.activationOtp);
-        hash = 71 * hash + Objects.hashCode(this.userId);
-        hash = 71 * hash + Objects.hashCode(this.activationName);
-        hash = 71 * hash + Objects.hashCode(this.extras);
-        hash = 71 * hash + Objects.hashCode(this.platform);
-        hash = 71 * hash + Objects.hashCode(this.deviceInfo);
-        hash = 71 * hash + Objects.hashCode(this.flags);
-        hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyBase64);
-        hash = 71 * hash + Objects.hashCode(this.serverPublicKeyBase64);
-        hash = 71 * hash + Objects.hashCode(this.devicePublicKeyBase64);
-        hash = 71 * hash + Objects.hashCode(this.counter);
-        hash = 71 * hash + Objects.hashCode(this.ctrDataBase64);
-        hash = 71 * hash + Objects.hashCode(this.failedAttempts);
-        hash = 71 * hash + Objects.hashCode(this.maxFailedAttempts);
-        hash = 71 * hash + Objects.hashCode(this.timestampCreated);
-        hash = 71 * hash + Objects.hashCode(this.timestampActivationExpire);
-        hash = 71 * hash + Objects.hashCode(this.timestampLastUsed);
-        hash = 71 * hash + Objects.hashCode(this.timestampLastChange);
-        hash = 71 * hash + Objects.hashCode(this.activationStatus);
-        hash = 71 * hash + Objects.hashCode(this.blockedReason);
-        hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyEncryption);
-        hash = 71 * hash + Objects.hashCode(this.application);
-        hash = 71 * hash + Objects.hashCode(this.masterKeyPair);
-        hash = 71 * hash + Objects.hashCode(this.version);
-        return hash;
+        return Objects.hash(activationCode);
     }
 
     @Override
@@ -287,92 +336,11 @@ public class ActivationRecordEntity implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || !this.getClass().equals(ProxyUtils.getUserClass(obj))) {
             return false;
         }
         final ActivationRecordEntity other = (ActivationRecordEntity) obj;
-        if (!Objects.equals(this.activationCode, other.activationCode)) {
-            return false;
-        }
-        if (this.activationOtpValidation != other.activationOtpValidation) {
-            return false;
-        }
-        if (!Objects.equals(this.activationOtp, other.activationOtp)) {
-            return false;
-        }
-        if (!Objects.equals(this.userId, other.userId)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationName, other.activationName)) {
-            return false;
-        }
-        if (!Objects.equals(this.extras, other.extras)) {
-            return false;
-        }
-        if (!Objects.equals(this.platform, other.platform)) {
-            return false;
-        }
-        if (!Objects.equals(this.deviceInfo, other.deviceInfo)) {
-            return false;
-        }
-        if (!Objects.equals(this.flags, other.flags)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationId, other.activationId)) {
-            return false;
-        }
-        if (!Objects.equals(this.serverPrivateKeyBase64, other.serverPrivateKeyBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.serverPublicKeyBase64, other.serverPublicKeyBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.devicePublicKeyBase64, other.devicePublicKeyBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.counter, other.counter)) {
-            return false;
-        }
-        if (!Objects.equals(this.ctrDataBase64, other.ctrDataBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.failedAttempts, other.failedAttempts)) {
-            return false;
-        }
-        if (!Objects.equals(this.maxFailedAttempts, other.maxFailedAttempts)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampActivationExpire, other.timestampActivationExpire)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampLastUsed, other.timestampLastUsed)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampLastChange, other.timestampLastChange)) {
-            return false;
-        }
-        if (this.activationStatus != other.activationStatus) {
-            return false;
-        }
-        if (!Objects.equals(this.blockedReason, other.blockedReason)) {
-            return false;
-        }
-        if (!Objects.equals(this.serverPrivateKeyEncryption, other.serverPrivateKeyEncryption)) {
-            return false;
-        }
-        if (!Objects.equals(this.application, other.application)) {
-            return false;
-        }
-        if (!Objects.equals(this.masterKeyPair, other.masterKeyPair)) {
-            return false;
-        }
-        return Objects.equals(this.version, other.version);
+        return Objects.equals(this.activationCode, other.activationCode);
     }
 
     @Override

@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,6 +68,25 @@ public class MasterKeyPairEntity implements Serializable {
     private String masterKeyPublicBase64;
 
     /**
+     * Master private keys for newer cryptography algorithms serialized to JSON.
+     */
+    @Column(name = "master_private_keys", columnDefinition = "CLOB")
+    private String masterPrivateKeys;
+
+    /**
+     * Mode of master private keys encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     */
+    @Column(name = "masterprivate_keys_encryption")
+    @Enumerated
+    private EncryptionMode masterPrivateKeysEncryption;
+
+    /**
+     * Master public keys for newer cryptography algorithms serialized to JSON.
+     */
+    @Column(name = "master_public_keys", columnDefinition = "CLOB")
+    private String masterPublicKeys;
+
+    /**
      * Master key pair created timestamp.
      */
     @Column(name = "timestamp_created", nullable = false)
@@ -85,6 +105,9 @@ public class MasterKeyPairEntity implements Serializable {
         hash = 37 * hash + Objects.hashCode(this.name);
         hash = 37 * hash + Objects.hashCode(this.masterKeyPrivateBase64);
         hash = 37 * hash + Objects.hashCode(this.masterKeyPublicBase64);
+        hash = 37 * hash + Objects.hashCode(this.masterPrivateKeys);
+        hash = 37 * hash + Objects.hashCode(this.masterPrivateKeysEncryption);
+        hash = 37 * hash + Objects.hashCode(this.masterPublicKeys);
         hash = 37 * hash + Objects.hashCode(this.timestampCreated);
         hash = 37 * hash + Objects.hashCode(this.application);
         return hash;
@@ -111,6 +134,15 @@ public class MasterKeyPairEntity implements Serializable {
         if (!Objects.equals(this.masterKeyPublicBase64, other.masterKeyPublicBase64)) {
             return false;
         }
+        if (!Objects.equals(this.masterPrivateKeys, other.masterPrivateKeys)) {
+            return false;
+        }
+        if (!Objects.equals(this.masterPrivateKeysEncryption, other.masterPrivateKeysEncryption)) {
+            return false;
+        }
+        if (!Objects.equals(this.masterPublicKeys, other.masterPublicKeys)) {
+            return false;
+        }
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
@@ -122,7 +154,6 @@ public class MasterKeyPairEntity implements Serializable {
         return "MasterKeyPairEntity{"
                 + "id=" + id
                 + ", name=" + name
-                + ", masterKeyPublic=" + masterKeyPublicBase64
                 + ", timestampCreated=" + timestampCreated
                 + ", application=" + application.getRid()
                 + '}';

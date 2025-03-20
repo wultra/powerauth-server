@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server;
+package com.wultra.security.powerauth.app.server.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -64,7 +64,7 @@ class ServerPrivateKeyConverterTest {
     @Test
     void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
-        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes,USER_ID, ACTIVATION_ID);
+        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
         assertNotEquals(SERVER_PRIVATE_KEY_PLAIN, serverPrivateKeyEncrypted.serverPrivateKeyBase64());
 
