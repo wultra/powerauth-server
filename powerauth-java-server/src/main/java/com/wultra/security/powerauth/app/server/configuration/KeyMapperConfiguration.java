@@ -35,6 +35,8 @@ import java.security.PublicKey;
 
 /**
  * Object mapper configuration for serialization and deserialization of keys.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Configuration
 public class KeyMapperConfiguration {
