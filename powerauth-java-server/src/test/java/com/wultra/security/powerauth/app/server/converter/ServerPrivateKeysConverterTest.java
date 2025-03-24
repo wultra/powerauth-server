@@ -127,12 +127,7 @@ class ServerPrivateKeysConverterTest {
 
         assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
 
-        try {
-            final PrivateKeyRegistry decryptedPrivateKeys = privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            assertFalse(Arrays.equals(SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8), privateKeysConverter.serialize(decryptedPrivateKeys)));
-        } catch (GenericServiceException ex) {
-            assertEquals("Generic cryptography error occurred.", ex.getMessage());
-        }
+        assertThrows(GenericServiceException.class, () -> privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
     }
 
 }

@@ -93,12 +93,7 @@ class SharedSecretConverterTest {
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
 
-        try {
-            String decryptedSharedSecretBase64 = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            assertNotEquals(decryptedSharedSecretBase64, SHARED_SECRET_BASE64);
-        } catch (GenericServiceException ex) {
-            assertEquals("Generic cryptography error occurred.", ex.getMessage());
-        }
+        assertThrows(GenericServiceException.class, () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
     }
 
 }
