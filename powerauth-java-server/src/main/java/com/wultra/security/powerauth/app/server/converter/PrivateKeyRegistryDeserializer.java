@@ -80,22 +80,15 @@ public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyR
         try {
             return switch (algorithm) {
                 case EC_P256, EC_P384 -> {
-                    if (keyType != KeyType.ECDSA) {
-                        throw new IOException("Unsupported key type: " + keyType + " for algorithm " + algorithm);
+                    if (keyType == KeyType.ECDSA) {
+                        yield KEY_CONVERTOR_EC.convertBytesToPrivateKey(getCurve(algorithm), encodedKey);
                     }
-                    yield KEY_CONVERTOR_EC.convertBytesToPrivateKey(getCurve(algorithm), encodedKey);
+                    throw new IOException("Unsupported key type: " + keyType + " for algorithm " + algorithm);
                 }
-                case EC_P384_ML_L3 -> {
-                    switch (keyType) {
-                        case ECDSA -> {
-                            yield KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, encodedKey);
-                        }
-                        case MLDSA -> {
-                            yield KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(encodedKey);
-                        }
-                        default -> throw new IOException("Unsupported key type: " + keyType + " for algorithm " + algorithm);
-                    }
-                }
+                case EC_P384_ML_L3 -> switch (keyType) {
+                    case ECDSA -> KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, encodedKey);
+                    case MLDSA -> KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(encodedKey);
+                };
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug("Key conversion failed: {}", e.getMessage(), e);

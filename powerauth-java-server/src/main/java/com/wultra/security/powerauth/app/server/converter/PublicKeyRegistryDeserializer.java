@@ -55,12 +55,12 @@ public class PublicKeyRegistryDeserializer extends JsonDeserializer<PublicKeyReg
         final JsonNode root = jsonParser.getCodec().readTree(jsonParser);
         final PublicKeyRegistry keyRegistry = new PublicKeyRegistry();
 
-        final JsonNode privateKeysNode = root.get("publicKeys");
-        final Iterator<String> algorithmNames = privateKeysNode.fieldNames();
+        final JsonNode publicKeysNode = root.get("publicKeys");
+        final Iterator<String> algorithmNames = publicKeysNode.fieldNames();
         while (algorithmNames.hasNext()) {
             final String algorithmName = algorithmNames.next();
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(algorithmName);
-            final JsonNode algorithmNode = privateKeysNode.get(algorithmName);
+            final JsonNode algorithmNode = publicKeysNode.get(algorithmName);
             if (algorithmNode == null || algorithmNode.isEmpty()) {
                 continue;
             }
@@ -80,22 +80,15 @@ public class PublicKeyRegistryDeserializer extends JsonDeserializer<PublicKeyReg
         try {
             return switch (algorithm) {
                 case EC_P256, EC_P384 -> {
-                    if (keyType != KeyType.ECDSA) {
-                        throw new IOException("Unsupported key type: " + keyType + " for algorithm: " + algorithm);
+                    if (keyType == KeyType.ECDSA) {
+                        yield KEY_CONVERTOR_EC.convertBytesToPublicKey(getCurve(algorithm), encodedKey);
                     }
-                    yield KEY_CONVERTOR_EC.convertBytesToPublicKey(getCurve(algorithm), encodedKey);
+                    throw new IOException("Unsupported key type: " + keyType + " for algorithm: " + algorithm);
                 }
-                case EC_P384_ML_L3 -> {
-                    switch (keyType) {
-                        case ECDSA -> {
-                            yield KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, encodedKey);
-                        }
-                        case MLDSA -> {
-                            yield KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
-                        }
-                        default -> throw new IOException("Unsupported key type: " + keyType + " for algorithm: " + algorithm);
-                    }
-                }
+                case EC_P384_ML_L3 -> switch (keyType) {
+                    case ECDSA -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, encodedKey);
+                    case MLDSA -> KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
+                };
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug(e.getMessage(), e);
