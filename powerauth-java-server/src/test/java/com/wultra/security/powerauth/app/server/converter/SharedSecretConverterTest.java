@@ -93,7 +93,8 @@ class SharedSecretConverterTest {
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
 
-        assertThrows(GenericServiceException.class, () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
+        assertEquals("Generic cryptography error occurred.", exception.getMessage());
     }
 
 }

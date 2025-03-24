@@ -85,8 +85,9 @@ class ServerPrivateKeyConverterTest {
         final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
             serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID));
+        assertEquals("Generic cryptography error occurred.", exception.getMessage());
     }
 
     @Test
