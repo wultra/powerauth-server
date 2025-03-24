@@ -44,15 +44,8 @@ public class PublicKeyRegistry {
      * @return Optional public key.
      */
     public Optional<PublicKey> getPublicKey(SharedSecretAlgorithm algorithm, KeyType keyType) {
-        final Map<KeyType, PublicKey> keysForAlgorithm = publicKeys.get(algorithm);
-        if (keysForAlgorithm == null || keysForAlgorithm.isEmpty()) {
-            return Optional.empty();
-        }
-        final PublicKey publicKey = keysForAlgorithm.get(keyType);
-        if (publicKey == null) {
-            return Optional.empty();
-        }
-        return Optional.of(publicKey);
+        return Optional.ofNullable(publicKeys.get(algorithm))
+                .map(keysByKeyTypes -> keysByKeyTypes.get(keyType));
     }
 
     /**
@@ -62,14 +55,8 @@ public class PublicKeyRegistry {
      * @param key Public key to store.
      */
     public void storePublicKey(SharedSecretAlgorithm algorithm, KeyType keyType, PublicKey key) {
-        Map<KeyType, PublicKey> keysForAlgorithm = publicKeys.get(algorithm);
-        if (keysForAlgorithm == null) {
-            keysForAlgorithm = new LinkedHashMap<>();
-            keysForAlgorithm.put(keyType, key);
-            publicKeys.put(algorithm, keysForAlgorithm);
-        } else {
-            keysForAlgorithm.put(keyType, key);
-        }
+        publicKeys.computeIfAbsent(algorithm, k -> new LinkedHashMap<>())
+                .put(keyType, key);
     }
 
     @Override
