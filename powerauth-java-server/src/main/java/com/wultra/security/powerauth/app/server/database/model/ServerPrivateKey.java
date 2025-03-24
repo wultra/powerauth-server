@@ -28,4 +28,9 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
  */
 public record ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
 
+    @Override
+    public String toString() {
+        return "ServerPrivateKey{encryptionMode=" + encryptionMode + "}";
+    }
+
 }

@@ -29,4 +29,9 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
  */
 public record SharedSecret(EncryptionMode encryptionMode, String sharedSecretBase64) {
 
+    @Override
+    public String toString() {
+        return "SharedSecret{encryptionMode=" + encryptionMode + "}";
+    }
+
 }
