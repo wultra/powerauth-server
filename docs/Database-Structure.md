@@ -127,16 +127,17 @@ Stores master key pairs associated with applications and used during the activat
 
 #### Columns
 
-| Name                      | Type         | Info                            | Note                                                                   |
-|---------------------------|--------------|---------------------------------|------------------------------------------------------------------------|
-| id                        | BIGINT(20)   | primary key, autoincrement      | Unique master key pair ID.                                             |
-| application_id            | BIGINT(20)   | foreign key: pa\_application.id | Associated application ID.                                             |
-| name                      | VARCHAR(255) | -                               | Name of the key pair.                                                  |
-| master_key_private_base64 | VARCHAR(255) | -                               | Private key encoded as Base64                                          |
-| master_key_public_base64  | VARCHAR(255) | -                               | Public key encoded as Base64                                           |
-| master_private_keys       | TEXT         | -                               | Private keys used for newer cryptography algorithms serialized as JSON |
-| master_public_keys        | TEXT         | -                               | Public keys used for newer cryptography algorithms serialized as JSON  |
-| timestamp_created         | DATETIME     | -                               | Timestamp of creation.                                                 |
+| Name                           | Type         | Info                            | Note                                                                   |
+|--------------------------------|--------------|---------------------------------|------------------------------------------------------------------------|
+| id                             | BIGINT(20)   | primary key, autoincrement      | Unique master key pair ID.                                             |
+| application_id                 | BIGINT(20)   | foreign key: pa\_application.id | Associated application ID.                                             |
+| name                           | VARCHAR(255) | -                               | Name of the key pair.                                                  |
+| master_key_private_base64      | VARCHAR(255) | -                               | Private key encoded as Base64                                          |
+| master_key_public_base64       | VARCHAR(255) | -                               | Public key encoded as Base64                                           |
+| master_private_keys            | TEXT         | -                               | Private keys used for newer cryptography algorithms serialized as JSON |
+| master_private_keys_encryption | INT(11)      | -                               | Encryption indicator (0 = no encryption, 1 = AES_HMAC).                |
+| master_public_keys             | TEXT         | -                               | Public keys used for newer cryptography algorithms serialized as JSON  |
+| timestamp_created              | DATETIME     | -                               | Timestamp of creation.                                                 |
 <!-- end -->
 
 <!-- begin database table pa_signature_audit -->
@@ -395,6 +396,8 @@ Table stores details about temporary key pairs used for data encryption.
 | private_key_encryption | integer      | -                                                      | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC). |
 | private_key_base64     | varchar(255) | -                                                      | Temporary private key encoded as Base64.                                              |
 | public_key_base64      | varchar(255) | -                                                      | Temporary public key encoded as Base64.                                               |
+| secret_key_base64      | VARCHAR(255) | -                                                      | Base64-encoded secret key.                                                            |
+| secret_key_encryption  | INT(11)      | -                                                      | Encryption indicator (0 = no encryption, 1 = AES_HMAC).                               |
 | timestamp_expires      | timestamp    | index                                                  | Timestamp of when the temporary key pair expires.                                     |
 
 <!-- begin database table pa_application_callback_event -->

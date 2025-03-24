@@ -28,6 +28,9 @@ GO
 ALTER TABLE pa_master_keypair ADD master_private_keys varchar(MAX);
 GO
 
+ALTER TABLE pa_master_keypair ADD master_private_keys_encryption int CONSTRAINT DF_pa_master_keypair_master_private_keys_encryption DEFAULT 0;
+GO
+
 ALTER TABLE pa_master_keypair ADD master_public_keys varchar(MAX);
 GO
 
@@ -48,3 +51,10 @@ GO
 ALTER TABLE pa_activation ADD knowledge_factor_key_next varchar(255);
 GO
 
+-- Changeset powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml::1::Roman Strobl
+-- Add columns for crypto4 shared secret storage to pa_temporary_key table
+ALTER TABLE pa_activation ADD secret_key_base64 varchar(255);
+GO
+
+ALTER TABLE pa_activation ADD secret_key_encryption int CONSTRAINT DF_pa_activation_secret_key_encryption DEFAULT 0;
+GO

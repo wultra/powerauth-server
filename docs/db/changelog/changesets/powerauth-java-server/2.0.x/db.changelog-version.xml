@@ -6,5 +6,6 @@
     <include file="20250314-crypto4-pqc.xml" relativeToChangelogFile="true" />
     <include file="20250317-crypto4-master-keys.xml" relativeToChangelogFile="true" />
     <include file="20250318-crypto4-dynamic-keys.xml" relativeToChangelogFile="true" />
+    <include file="20250320-crypto4-temporary-keys.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
