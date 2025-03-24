@@ -89,7 +89,6 @@ class MasterPrivateKeysConverterTest {
         final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, APPLICATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
         assertNotEquals(MASTER_PRIVATE_KEYS_JSON, privateKeysEncrypted.privateKeysBase64());
-        System.out.println(privateKeysEncrypted.privateKeysBase64());
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, APPLICATION_ID);
         final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
         assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA).get());
