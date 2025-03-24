@@ -83,7 +83,7 @@ public class PublicKeysConverter {
      * @return Byte array with serialized JSON.
      * @throws JsonProcessingException In case conversion fails.
      */
-    public byte[] serialize(final PublicKeyRegistry source) throws JsonProcessingException {
+    byte[] serialize(final PublicKeyRegistry source) throws JsonProcessingException {
         return objectMapper.writeValueAsBytes(source);
     }
 

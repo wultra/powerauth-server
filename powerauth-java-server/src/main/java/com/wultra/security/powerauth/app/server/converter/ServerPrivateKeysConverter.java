@@ -89,7 +89,7 @@ public class ServerPrivateKeysConverter {
         return new PrivateKeys(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
     }
 
-    public byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
+    byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
         return objectMapper.writeValueAsBytes(source);
     }
 
