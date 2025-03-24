@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.server.database.model;
 
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.security.PublicKey;
 import java.util.*;
@@ -31,6 +32,7 @@ import java.util.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
+@ToString
 public class PublicKeyRegistry {
 
     final Map<SharedSecretAlgorithm, Map<KeyType, PublicKey>> publicKeys = new LinkedHashMap<>();
@@ -83,10 +85,4 @@ public class PublicKeyRegistry {
         return Objects.hashCode(publicKeys);
     }
 
-    @Override
-    public String toString() {
-        return "PublicKeyKeyRegistry{" +
-                "publicKeys=" + publicKeys +
-                '}';
-    }
 }
