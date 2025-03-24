@@ -81,7 +81,7 @@ class ServerPrivateKeysConverterTest {
         final byte[] ecdsaPrivateKeyActualBytes = KEY_CONVERTOR_EC.convertPrivateKeyToBytes(ecdsaPrivateKeyActual.get());
         final Optional<PrivateKey> mlDsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA);
         assertFalse(mlDsaPrivateKeyActual.isEmpty());
-        final byte[] mlDsaPrivateKeyActualBytes = mlDsaPrivateKeyActual.get().getEncoded();
+        final byte[] mlDsaPrivateKeyActualBytes = KEY_CONVERTOR_PQC_DSA.convertPrivateKeyToBytes(mlDsaPrivateKeyActual.get());
         assertEquals(ECDSA_PRIVATE_KEY, Base64.getEncoder().encodeToString(ecdsaPrivateKeyActualBytes));
         assertEquals(MLDSA_PRIVATE_KEY, Base64.getEncoder().encodeToString(mlDsaPrivateKeyActualBytes));
     }
