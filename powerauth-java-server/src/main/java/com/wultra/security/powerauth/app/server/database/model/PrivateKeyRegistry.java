@@ -42,15 +42,8 @@ public class PrivateKeyRegistry {
      * @return Optional private key.
      */
     public Optional<PrivateKey> getPrivateKey(SharedSecretAlgorithm algorithm, KeyType keyType) {
-        final Map<KeyType, PrivateKey> keysForAlgorithm = privateKeys.get(algorithm);
-        if (keysForAlgorithm == null || keysForAlgorithm.isEmpty()) {
-            return Optional.empty();
-        }
-        final PrivateKey privateKey = keysForAlgorithm.get(keyType);
-        if (privateKey == null) {
-            return Optional.empty();
-        }
-        return Optional.of(privateKey);
+        return Optional.ofNullable(privateKeys.get(algorithm))
+                .map(keysByKeyTypes -> keysByKeyTypes.get(keyType));
     }
 
     /**
@@ -60,14 +53,8 @@ public class PrivateKeyRegistry {
      * @param key Private key to store.
      */
     public void storePrivateKey(SharedSecretAlgorithm algorithm, KeyType keyType, PrivateKey key) {
-        Map<KeyType, PrivateKey> keysForAlgorithm = privateKeys.get(algorithm);
-        if (keysForAlgorithm == null) {
-            keysForAlgorithm = new LinkedHashMap<>();
-            keysForAlgorithm.put(keyType, key);
-            privateKeys.put(algorithm, keysForAlgorithm);
-        } else {
-            keysForAlgorithm.put(keyType, key);
-        }
+        privateKeys.computeIfAbsent(algorithm, k -> new LinkedHashMap<>())
+                .put(keyType, key);
     }
 
     @Override
@@ -85,8 +72,7 @@ public class PrivateKeyRegistry {
 
     @Override
     public String toString() {
-        return "PrivateKeyRegistry{" +
-                "privateKeys=" + privateKeys +
-                '}';
+        return "PrivateKeyRegistry";
     }
+
 }
