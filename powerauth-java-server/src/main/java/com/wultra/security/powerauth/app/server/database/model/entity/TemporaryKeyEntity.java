@@ -89,7 +89,7 @@ public class TemporaryKeyEntity implements Serializable {
     /**
      * Mode of secret key encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
      */
-    @Column(name = "secret_key_encryption")
+    @Column(name = "secret_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode secretKeyEncryption;
 
