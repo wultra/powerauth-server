@@ -38,6 +38,6 @@ ALTER TABLE pa_activation ADD knowledge_factor_key_next VARCHAR(255);
 
 -- Changeset powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 shared secret storage to pa_temporary_key table
-ALTER TABLE pa_activation ADD secret_key_base64 VARCHAR(255);
+ALTER TABLE pa_temporary_key ADD secret_key_base64 VARCHAR(255);
 
-ALTER TABLE pa_activation ADD secret_key_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_temporary_key ADD secret_key_encryption INTEGER DEFAULT 0;

@@ -11,7 +11,7 @@
             </not>
         </preConditions>
         <comment>Add columns for crypto4 shared secret storage to pa_temporary_key table</comment>
-        <addColumn tableName="pa_activation">
+        <addColumn tableName="pa_temporary_key">
             <column name="secret_key_base64" type="varchar(255)"/>
             <column name="secret_key_encryption" type="integer" defaultValue="0"/>
         </addColumn>
