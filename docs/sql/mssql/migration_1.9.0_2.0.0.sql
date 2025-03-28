@@ -11,7 +11,7 @@ GO
 ALTER TABLE pa_activation ADD server_private_keys varchar(MAX);
 GO
 
-ALTER TABLE pa_activation ADD server_private_keys_encryption int CONSTRAINT DF_pa_activation_server_private_keys_encryption DEFAULT 0;
+ALTER TABLE pa_activation ADD server_private_keys_encryption int CONSTRAINT DF_pa_activation_server_private_keys_encryption DEFAULT 0 NOT NULL;
 GO
 
 ALTER TABLE pa_activation ADD server_public_keys varchar(MAX);
@@ -20,7 +20,7 @@ GO
 ALTER TABLE pa_activation ADD shared_secret varchar(255);
 GO
 
-ALTER TABLE pa_activation ADD shared_secret_encryption int CONSTRAINT DF_pa_activation_shared_secret_encryption DEFAULT 0;
+ALTER TABLE pa_activation ADD shared_secret_encryption int CONSTRAINT DF_pa_activation_shared_secret_encryption DEFAULT 0 NOT NULL;
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20250317-crypto4-master-keys.xml::1::Roman Strobl
@@ -28,7 +28,7 @@ GO
 ALTER TABLE pa_master_keypair ADD master_private_keys varchar(MAX);
 GO
 
-ALTER TABLE pa_master_keypair ADD master_private_keys_encryption int CONSTRAINT DF_pa_master_keypair_master_private_keys_encryption DEFAULT 0;
+ALTER TABLE pa_master_keypair ADD master_private_keys_encryption int CONSTRAINT DF_pa_master_keypair_master_private_keys_encryption DEFAULT 0 NOT NULL;
 GO
 
 ALTER TABLE pa_master_keypair ADD master_public_keys varchar(MAX);
@@ -56,6 +56,5 @@ GO
 ALTER TABLE pa_temporary_key ADD secret_key_base64 varchar(255);
 GO
 
-ALTER TABLE pa_temporary_key ADD secret_key_encryption int CONSTRAINT DF_pa_temporary_key_secret_key_encryption DEFAULT 0;
+ALTER TABLE pa_temporary_key ADD secret_key_encryption int CONSTRAINT DF_pa_temporary_key_secret_key_encryption DEFAULT 0 NOT NULL;
 GO
-

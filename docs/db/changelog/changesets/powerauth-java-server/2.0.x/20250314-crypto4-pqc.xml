@@ -30,10 +30,14 @@
         <addColumn tableName="pa_activation">
             <column name="device_public_keys" type="clob"/>
             <column name="server_private_keys" type="clob"/>
-            <column name="server_private_keys_encryption" type="integer" defaultValue="0"/>
+            <column name="server_private_keys_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
             <column name="server_public_keys" type="clob"/>
             <column name="shared_secret" type="varchar(255)"/>
-            <column name="shared_secret_encryption" type="integer" defaultValue="0"/>
+            <column name="shared_secret_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
         </addColumn>
     </changeSet>
 

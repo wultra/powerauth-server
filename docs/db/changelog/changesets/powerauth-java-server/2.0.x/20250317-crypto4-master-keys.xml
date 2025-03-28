@@ -14,7 +14,9 @@
         <comment>Add columns for crypto4 keys to pa_master_keypair table</comment>
         <addColumn tableName="pa_master_keypair">
             <column name="master_private_keys" type="clob"/>
-            <column name="master_private_keys_encryption" type="integer" defaultValue="0"/>
+            <column name="master_private_keys_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
             <column name="master_public_keys" type="clob"/>
         </addColumn>
     </changeSet>
