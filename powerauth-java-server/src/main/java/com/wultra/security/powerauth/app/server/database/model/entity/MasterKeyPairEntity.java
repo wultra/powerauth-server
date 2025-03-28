@@ -76,7 +76,7 @@ public class MasterKeyPairEntity implements Serializable {
     /**
      * Mode of master private keys encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
      */
-    @Column(name = "master_private_keys_encryption")
+    @Column(name = "master_private_keys_encryption", nullable = false)
     @Enumerated
     private EncryptionMode masterPrivateKeysEncryption;
 

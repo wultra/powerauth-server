@@ -8,19 +8,19 @@ ALTER TABLE pa_activation ADD device_public_keys TEXT;
 
 ALTER TABLE pa_activation ADD server_private_keys TEXT;
 
-ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT 0 NOT NULL;
 
 ALTER TABLE pa_activation ADD server_public_keys TEXT;
 
 ALTER TABLE pa_activation ADD shared_secret VARCHAR(255);
 
-ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT 0 NOT NULL;
 
 -- Changeset powerauth-java-server/2.0.x/20250317-crypto4-master-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 keys to pa_master_keypair table
 ALTER TABLE pa_master_keypair ADD master_private_keys TEXT;
 
-ALTER TABLE pa_master_keypair ADD master_private_keys_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_master_keypair ADD master_private_keys_encryption INTEGER DEFAULT 0 NOT NULL;
 
 ALTER TABLE pa_master_keypair ADD master_public_keys TEXT;
 
@@ -38,6 +38,6 @@ ALTER TABLE pa_activation ADD knowledge_factor_key_next VARCHAR(255);
 
 -- Changeset powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 shared secret storage to pa_temporary_key table
-ALTER TABLE pa_activation ADD secret_key_base64 VARCHAR(255);
+ALTER TABLE pa_temporary_key ADD secret_key_base64 VARCHAR(255);
 
-ALTER TABLE pa_activation ADD secret_key_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_temporary_key ADD secret_key_encryption INTEGER DEFAULT 0 NOT NULL;

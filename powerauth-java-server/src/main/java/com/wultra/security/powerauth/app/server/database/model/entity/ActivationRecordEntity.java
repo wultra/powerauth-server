@@ -243,7 +243,7 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Mode of server private keys encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
      */
-    @Column(name = "server_private_keys_encryption")
+    @Column(name = "server_private_keys_encryption", nullable = false)
     @Enumerated
     private EncryptionMode serverPrivateKeysEncryption;
 
@@ -262,7 +262,7 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Mode of shared secret encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
      */
-    @Column(name = "shared_secret_encryption")
+    @Column(name = "shared_secret_encryption", nullable = false)
     @Enumerated
     private EncryptionMode sharedSecretEncryption;
 
