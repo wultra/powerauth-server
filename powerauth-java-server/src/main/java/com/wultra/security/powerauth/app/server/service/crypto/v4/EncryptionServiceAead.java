@@ -161,6 +161,7 @@ public class EncryptionServiceAead extends EncryptionService {
         final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
         // Get application secret and transport key used in sharedInfo2 parameter of AEAD secrets
+        // TODO - update sharedInfo2 calculation for crypto4 after server key factory is updated
         final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
         final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
 
