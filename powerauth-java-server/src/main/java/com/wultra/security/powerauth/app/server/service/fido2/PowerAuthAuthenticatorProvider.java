@@ -25,6 +25,7 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.client.model.entity.Activation;
@@ -195,7 +196,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);

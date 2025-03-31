@@ -19,17 +19,31 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service for handling encryption.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public interface EncryptionService {
+@Slf4j
+@AllArgsConstructor
+public abstract class EncryptionService {
+
+    private final LocalizationProvider localizationProvider;
+    private final ApplicationVersionRepository applicationVersionRepository;
+    private final ActivationQueryService activationQueryService;
 
     /**
      * Decrypt an encrypted request.
@@ -42,6 +56,39 @@ public interface EncryptionService {
      * @return Decryption result.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException;
+    public abstract DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException;
 
+    /**
+     * Helper method for finding application version by application key during decryption.
+     * @param applicationKey Application key.
+     * @return Application version entity.
+     * @throws GenericServiceException In case application version does not exist, or it is not supported.
+     */
+    protected ApplicationVersionEntity findApplicationVersion(String applicationKey) throws GenericServiceException {
+        // Find application by application key
+        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
+        if (applicationVersion == null || !applicationVersion.getSupported() || applicationVersion.getApplication() == null) {
+            logger.warn("Application version is incorrect, application key: {}", applicationKey);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+        return applicationVersion;
+    }
+
+    /**
+     * Helper method for finding activation during decryption.
+     * @param activationId Activation ID.
+     * @return Activation entity.
+     * @throws GenericServiceException In case activation does not exist.
+     */
+    protected ActivationRecordEntity findActivation(String activationId) throws GenericServiceException {
+        if (activationId == null) {
+            return null;
+        }
+        return activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
+            logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, database is not used for writing
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
+    }
 }

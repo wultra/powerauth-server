@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
@@ -25,15 +26,13 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
-import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
-import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,11 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Base64;
 
 /**
- * Behavior class implementing the ECIES service logic.
+ * Behavior class implementing the AEAD encryption service logic.
  *
  * <p><b>PowerAuth protocol versions:</b>
  * <ul>
- *     <li>3.0</li>
+ *     <li>4.0</li>
  * </ul>
  *
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -55,7 +54,7 @@ import java.util.Base64;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class EciesEncryptionBehavior {
+public class EncryptionBehaviorAead {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
@@ -63,24 +62,23 @@ public class EciesEncryptionBehavior {
     private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
-     * Obtain ECIES decryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
-     * This interface doesn't allow keys derivation, it only provides ECIES decryptor parameters used for generic
-     * encryption (sharedInfo1 = /pa/generic/**).
+     * Extract AEAD encryptor parameters to allow decryption of AEAD-encrypted messages on intermediate server.
      * <p>
-     * If activationId is not present, then it creates ECIES decryptor for application scope.
-     * If activationId is present, then it creates ECIES decryptor for activation scope.
-     *
-     * @return ECIES decryptor parameters.
+     * If activationId is not present, then it creates AEAD encryptor for application scope.
+     * If activationId is present, then it creates AEAD encryptor for activation scope.
+     * @param request Extract encryptor parameters request.
+     * @return Extract encryptor parameters response.
+     * @throws GenericServiceException In case encryptor parameters could not be extracted.
      */
     @Transactional
-    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
+    public ExtractEncryptorResponse extractEncryptor(ExtractEncryptorRequest request) throws GenericServiceException {
         try {
             if (request.getActivationId() == null) {
                 // Application scope
-                return getEciesDecryptorParametersForApplication(request);
+                return extractEncryptorParametersForApplication(request);
             } else {
                 // Activation scope
-                return getEciesDecryptorParametersForActivation(request);
+                return extractEncryptorParametersForActivation(request);
             }
         } catch (GenericServiceException ex) {
             // already logged
@@ -94,37 +92,21 @@ public class EciesEncryptionBehavior {
         }
     }
 
-    @Transactional
-    public ExtractEncryptorResponse extractEncryptor(ExtractEncryptorRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new ExtractEncryptorResponse();
-    }
-
-    /**
-     * Get ECIES decryptor parameters for application scope.
-     *
-     * @param request Request to get ECIES decryptor parameters.
-     * @return ECIES decryptor parameters for application scope.
-     * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
-     */
-    private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        final EncryptedRequest encryptedRequest = new EciesEncryptedRequest(
+    private ExtractEncryptorResponse extractEncryptorParametersForApplication(ExtractEncryptorRequest request) throws GenericServiceException {
+        final EncryptedRequest encryptedRequest = new AeadEncryptedRequest(
                 request.getTemporaryKeyId(),
-                request.getEphemeralPublicKey(),
-                null,
                 null,
                 request.getNonce(),
                 request.getTimestamp()
         );
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
-        // TODO - v4 support
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSecrets(encryptedRequest, context);
-        if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
-            // ECIES V3.0, V3.1, V3.2
-            final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-            response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
-            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
+
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSecrets(encryptedRequest, context);
+        if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
+            // AEAD in V4
+            final ExtractEncryptorResponse response = new ExtractEncryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(aeadSecrets.getEnvelopeKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(aeadSecrets.getSharedInfo2()));
             return response;
         }
         logger.error("Unsupported EncryptorSecrets object");
@@ -132,17 +114,9 @@ public class EciesEncryptionBehavior {
         throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
     }
 
-    /**
-     * Get ECIES decryptor parameters for activation scope.
-     *
-     * @param request Request to get ECIES decryptor parameters.
-     * @return ECIES decryptor parameters for activation scope.
-     * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
-     */
-    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request) throws GenericServiceException {
+    private ExtractEncryptorResponse extractEncryptorParametersForActivation(ExtractEncryptorRequest request) throws GenericServiceException {
         final String temporaryKeyId = request.getTemporaryKeyId();
         final String activationId = request.getActivationId();
-        final String ephemeralPublicKey = request.getEphemeralPublicKey();
         final Long timestamp = request.getTimestamp();
         final String nonce = request.getNonce();
 
@@ -158,24 +132,20 @@ public class EciesEncryptionBehavior {
         activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), activationId, EncryptorId.ACTIVATION_SCOPE_GENERIC);
-        // TODO - v4 support
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSecrets(
-                new EciesEncryptedRequest(
+        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSecrets(
+                new AeadEncryptedRequest(
                         temporaryKeyId,
-                        ephemeralPublicKey,
-                        null,
                         null,
                         nonce,
                         timestamp
                 ),
                 context
         );
-        // TODO - v4 support
-        if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
-            // ECIES V3.0, V3.1, V3.2
-            final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-            response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
-            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
+        if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
+            // AEAD V4.0
+            final ExtractEncryptorResponse response = new ExtractEncryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(aeadSecrets.getEnvelopeKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(aeadSecrets.getSharedInfo2()));
             return response;
         }
         logger.error("Unsupported EncryptorSecrets object");

@@ -17,28 +17,19 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v4;
 
-import com.wultra.security.powerauth.client.model.entity.v4.SharedSecretRequest;
 import lombok.Data;
-import lombok.ToString;
-
-import java.security.PrivateKey;
 
 /**
- * Temporary key result.
+ * Model class for shared secret response.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class TemporaryKeyResult {
+public class SharedSecretResponse {
 
-    @ToString.Exclude
-    private byte[] secretKeyBytes;
-
-    @ToString.Exclude
-    private PrivateKey privateKey;
-
-    private SharedSecretRequest sharedSecretRequest;
-
+    private String ecdhe;
+    private String mlkem;
+    
 }

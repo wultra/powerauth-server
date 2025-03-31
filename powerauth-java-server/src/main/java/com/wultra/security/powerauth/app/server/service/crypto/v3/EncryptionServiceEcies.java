@@ -48,8 +48,8 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -62,21 +62,29 @@ import java.util.Date;
 
 @Service
 @Slf4j
-@AllArgsConstructor
-public class EncryptionServiceEc256 implements EncryptionService {
+public class EncryptionServiceEcies extends EncryptionService {
 
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ReplayVerificationService replayVerificationService;
-    private final ApplicationVersionRepository applicationVersionRepository;
     private final LocalizationProvider localizationProvider;
-    private final TemporaryKeyServiceEc256 temporaryKeyService;
+    private final TemporaryKeyServiceEcies temporaryKeyService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ActivationQueryService activationQueryService;
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
+    @Autowired
+    public EncryptionServiceEcies(MasterKeyPairRepository masterKeyPairRepository, ReplayVerificationService replayVerificationService, ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceEcies temporaryKeyService, ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationQueryService activationQueryService) {
+        super(localizationProvider, applicationVersionRepository, activationQueryService);
+        this.masterKeyPairRepository = masterKeyPairRepository;
+        this.replayVerificationService = replayVerificationService;
+        this.localizationProvider = localizationProvider;
+        this.temporaryKeyService = temporaryKeyService;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
+    @Override
     public DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException {
         try {
             // Validate encrypted request
@@ -123,7 +131,7 @@ public class EncryptionServiceEc256 implements EncryptionService {
     private DecryptionResult decryptInApplicationScope(EciesEncryptedRequest eciesRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException {
         final PrivateKey privateKey;
         if (eciesRequest.getTemporaryKeyId() != null) {
-            privateKey = temporaryKeyService.temporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey());
+            privateKey = temporaryKeyService.extractTemporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), null);
         } else {
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
             if (masterKeyPairEntity == null) {
@@ -167,7 +175,7 @@ public class EncryptionServiceEc256 implements EncryptionService {
         final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
 
         if (eciesRequest.getTemporaryKeyId() != null) {
-            privateKey = temporaryKeyService.temporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), activation.getActivationId());
+            privateKey = temporaryKeyService.extractTemporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), activation.getActivationId());
         } else {
             privateKey = serverPrivateKey;
         }
@@ -187,28 +195,6 @@ public class EncryptionServiceEc256 implements EncryptionService {
         ));
         decryptionResult.setApplication(applicationVersion.getApplication());
         return decryptionResult;
-    }
-
-    private ApplicationVersionEntity findApplicationVersion(String applicationKey) throws GenericServiceException {
-        // Find application by application key
-        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-        if (applicationVersion == null || !applicationVersion.getSupported() || applicationVersion.getApplication() == null) {
-            logger.warn("Application version is incorrect, application key: {}", applicationKey);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-        }
-        return applicationVersion;
-    }
-
-    private ActivationRecordEntity findActivation(String activationId) throws GenericServiceException {
-        if (activationId == null) {
-            return null;
-        }
-        return activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
-            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        });
     }
 
 }

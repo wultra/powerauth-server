@@ -22,7 +22,7 @@ package com.wultra.security.powerauth.app.server.task;
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
+import com.wultra.security.powerauth.app.server.service.persistence.TemporaryKeyPersistenceService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayPersistenceService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class CleaningTask {
 
     private final ActivationServiceBehavior activationServiceBehavior;
 
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
+    private final TemporaryKeyPersistenceService temporaryKeyPersistenceService;
 
     private final CallbackUrlEventService callbackUrlEventService;
 
@@ -88,7 +88,7 @@ public class CleaningTask {
     public void expireTemporaryKeys() {
         LockAssert.assertLocked();
         logger.debug("Calling scheduled expiration of temporary keys");
-        temporaryKeyBehavior.expireTemporaryKeys();
+        temporaryKeyPersistenceService.expireTemporaryKeys();
     }
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvents:3000}")

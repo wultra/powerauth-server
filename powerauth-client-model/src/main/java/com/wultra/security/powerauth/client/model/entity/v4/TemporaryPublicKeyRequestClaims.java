@@ -17,24 +17,23 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v4;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.SuperBuilder;
-
-import java.security.PublicKey;
+import lombok.ToString;
 
 /**
- * Hybrid public key wrapper.
+ * Class used for holding the request claims (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-public class HybridPublicKey extends BasePublicKey {
+public class TemporaryPublicKeyRequestClaims {
 
-    private PublicKey ecPublicKey;
-    private PublicKey mlPublicKey;
+    private String applicationKey;
+    private String activationId;
+    @ToString.Exclude
+    private String challenge;
+    private SharedSecretRequest sharedSecretRequest;
+
 }

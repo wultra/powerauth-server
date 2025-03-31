@@ -41,9 +41,11 @@ class SharedSecretConverterTest {
 
     private static final String SHARED_SECRET_BASE64 = "G9Pa9bVMtZMTH04QQ+69yvaLGqeKFFan3bsfluA10qiYbc/kEsJK0oFINkyc19MMo1mr53BnrSpZ3IZre0MZVpxhq15cjDHJJ6lk/Q3dO8w=";
 
-    private static final String SHARED_SECRET_ENCRYPTED = "KzfTnYq9toTVkmJleGrx03u2XZX1ky9CBOSU/hP/TKOoZpwSawcIzzvhevYfVTRrw58CtumNsLPkEn0NNXDrUc1PdVpbF0FEo1cTVNvItoWe5LRQYEvMddBrQ/W/bpX0MlVWjTVQj2mZDhlaC7DHIQ==";
+    private static final String SHARED_SECRET_ENCRYPTED = "NRyCX0zwu5Idd5i2mwsvs/RL9uVnZE7sVyvurjeNcIf6ZwhYsl/TbuLrHFL03FicXjhv17n729jHIh341zi9iOJcr3RDKBo3jWGC6TxiPBvU7OlH+Sd3KfcsZ4QSO68OJQvhD4eSN9uhXjdajn+x6w==";
 
-    private static final String USER_ID = "test";
+    private static final String KEY_ID = "c2079c74-9650-43f9-93d3-5f5af7181ecd";
+
+    private static final String APP_KEY = "Z19gyYaW5kb521fYWN0aXZ==";
 
     private static final String ACTIVATION_ID = "015286e0-e1c5-4ee1-8d1b-c6947cab0a56";
 
@@ -53,7 +55,7 @@ class SharedSecretConverterTest {
     @Test
     void testFromDbValueNoEncryption() throws Exception {
         final SharedSecret sharedSecret = new SharedSecret(EncryptionMode.NO_ENCRYPTION, SHARED_SECRET_BASE64);
-        final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecret, USER_ID, ACTIVATION_ID);
+        final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecret, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(SHARED_SECRET_BASE64, sharedSecretActual);
     }
@@ -61,40 +63,58 @@ class SharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, USER_ID, ACTIVATION_ID);
+        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertNotEquals(SHARED_SECRET_BASE64, sharedSecretEncrypted.sharedSecretBase64());
 
-        final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, ACTIVATION_ID);
+        final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, sharedSecretActual);
     }
 
     @Test
     void testFromDbValueEncryption() throws Exception {
         final SharedSecret sharedSecretEncrypted = new SharedSecret(EncryptionMode.AES_HMAC, SHARED_SECRET_ENCRYPTED);
-        final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, ACTIVATION_ID);
+        final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, result);
     }
 
     @Test
-    void testEncryptionAndDecryptionDifferentUserFail() throws Exception {
+    void testEncryptionAndDecryptionDifferentKeyIdFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, USER_ID, ACTIVATION_ID);
-
+        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "test2", ACTIVATION_ID));
+                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "1839c333-f61a-4be0-8d34-75b7cb79ab76", APP_KEY, ACTIVATION_ID));
     }
 
     @Test
-    void testEncryptionAndDecryptionDifferentActivationFailServerSharedSecretConverter() throws Exception {
+    void testEncryptionAndDecryptionDifferentAppKeyFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, USER_ID, ACTIVATION_ID);
+        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
+        assertThrows(GenericServiceException.class, () ->
+                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, "UNfS0VZX3JhbmRvbQ==", ACTIVATION_ID));
+    }
 
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
-        assertEquals("Generic cryptography error occurred.", exception.getMessage());
+    @Test
+    void testEncryptionAndDecryptionDifferentActivationIdFail() throws Exception {
+        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
+        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+
+        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
+        assertThrows(GenericServiceException.class, () ->
+                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, "01e9deb4-a0e0-4204-b8a6-925e76b7b3d3"));
+    }
+
+    @Test
+    void testEncryptionAndDecryptionNoActivationIdFail() throws Exception {
+        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
+        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+
+        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
+        assertThrows(GenericServiceException.class, () ->
+                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, null));
     }
 
 }

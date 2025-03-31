@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseC
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -957,7 +958,7 @@ public class ActivationServiceBehavior {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
@@ -1137,7 +1138,7 @@ public class ActivationServiceBehavior {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);

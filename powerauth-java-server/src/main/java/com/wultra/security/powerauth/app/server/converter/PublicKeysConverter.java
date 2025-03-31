@@ -57,7 +57,7 @@ public class PublicKeysConverter {
             final byte[] data = convertFromBase64(serverPublicKeysBase64);
             return deserialize(data);
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn("Deserialization failed", e);
             throw new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, e.getMessage());
         }
     }
@@ -72,7 +72,7 @@ public class PublicKeysConverter {
         try {
             return convertToBase64(serialize(publicKeys));
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn("Serialization failed", e);
             throw new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, e.getMessage());
         }
     }

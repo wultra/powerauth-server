@@ -7,7 +7,7 @@ import com.wultra.security.powerauth.app.server.converter.CallbackAuthentication
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 public final class CallbackUrlAuthenticationEncryptor {
 
     private CallbackAuthenticationConverter callbackAuthenticationConverter;
-    private EncryptionService encryptionService;
+    private DatabaseEncryptionService encryptionService;
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 

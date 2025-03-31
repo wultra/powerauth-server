@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.app.server.controller.api;
+package com.wultra.security.powerauth.app.server.controller.api.v3;
 
 import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
@@ -24,12 +24,11 @@ import com.wultra.security.powerauth.client.model.response.RemoveTemporaryPublic
 import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.TemporaryKeyBehaviorEcies;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,15 +40,15 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@RestController("temporaryKeyController")
-@RequestMapping({"/rest/v3/keystore", "/rest/v4/keystore"})
-@Tag(name = "PowerAuth ECIES Temporary Key Controller")
+@RestController("temporaryKeyControllerV3")
+@RequestMapping("/rest/v3/keystore")
+@Tag(name = "PowerAuth Temporary Key Controller (V3)")
 @AllArgsConstructor
 @Validated
 @Slf4j
 public class TemporaryKeyController {
 
-    private final TemporaryKeyBehavior service;
+    private final TemporaryKeyBehaviorEcies service;
 
     /**
      * Create temporary key.

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -23,6 +24,8 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
@@ -49,6 +52,7 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -68,6 +72,7 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -75,14 +80,14 @@ import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@link TemporaryKeyBehavior}.
+ * Test for {@link TemporaryKeyBehaviorEcies}, version 3 requests and responses.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-class TemporaryKeyBehaviourTest {
+class TemporaryKeyBehaviorTest {
 
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
@@ -90,14 +95,14 @@ class TemporaryKeyBehaviourTest {
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private static final PowerAuthServerKeyFactory PA_SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
+    private final TemporaryKeyBehaviorEcies temporaryKeyBehavior;
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
-    TemporaryKeyBehaviourTest(TemporaryKeyBehavior temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
@@ -132,10 +137,10 @@ class TemporaryKeyBehaviourTest {
         request.setJwt(jwtRequest);
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
-        final SignedJWT decodedJWT = SignedJWT.parse(request.getJwt());
+        final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
         final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyBase64();
         final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterPublicKeyBase64));
-        validateJwtSignature(decodedJWT, masterPublicKey);
+        assertTrue(validateJwtSignature(decodedJWT, masterPublicKey));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
         assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
@@ -187,7 +192,7 @@ class TemporaryKeyBehaviourTest {
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
         final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
-        validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId));
+        assertTrue(validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
         assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
@@ -254,13 +259,13 @@ class TemporaryKeyBehaviourTest {
     }
 
     private PublicKey getServerPublicKey(String activationId) throws Exception {
-        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).get();
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
         final String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
         return KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverPublicKeyBase64));
     }
 
     private SecretKey getMasterTransportKey(String activationId) throws Exception {
-        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).get();
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
         // Get the server private key, decrypt it if required
         final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
         final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();

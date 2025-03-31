@@ -19,15 +19,21 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto;
 
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
 
@@ -36,7 +42,12 @@ import javax.crypto.SecretKey;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public interface CryptographyService {
+@Slf4j
+@AllArgsConstructor
+public abstract class CryptographyService {
+
+    private final LocalizationProvider localizationProvider;
+    private final EncryptionService encryptionService;
 
     /**
      * Generate a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
@@ -44,7 +55,7 @@ public interface CryptographyService {
      * @param application Application.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
+    public abstract void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Get a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
@@ -53,7 +64,7 @@ public interface CryptographyService {
      * @return Key pair.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
+    public abstract BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate shared secret key.
@@ -61,7 +72,7 @@ public interface CryptographyService {
      * @return Shared secret key.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Generate a key pair for an activation. The key pair can be composite in case of a hybrid algorithm.
@@ -69,14 +80,15 @@ public interface CryptographyService {
      * @param activation Activation.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Convert a device public key.
+     * @param keyType Key type.
      * @param devicePublicKey Device public key bytes.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException;
+    public abstract BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException;
 
     /**
      * Store a device public key for an activation.
@@ -84,7 +96,7 @@ public interface CryptographyService {
      * @param devicePublicKey Device public key.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException;
+    public abstract void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException;
 
     /**
      * Generate an activation fingerprint.
@@ -92,7 +104,7 @@ public interface CryptographyService {
      * @return Activation fingerprint.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Generate an asymmetric signature for an application.
@@ -102,7 +114,7 @@ public interface CryptographyService {
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException;
+    public abstract byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate an asymmetric signature for an activation.
@@ -112,7 +124,7 @@ public interface CryptographyService {
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Verify an asymmetric signature for an activation.
@@ -123,7 +135,7 @@ public interface CryptographyService {
      * @return True in case signature is valid, false otherwise.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Decrypt an encrypted request using server encryptor.
@@ -133,24 +145,49 @@ public interface CryptographyService {
      * @return Decrypted data and context.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException;
+    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
+        try {
+            final DecryptionResult decryptionResult = encryptionService.decrypt(
+                    encryptedRequest,
+                    context.getProtocolVersion(),
+                    context.getApplicationKey(),
+                    context.getActivationId(),
+                    context.getEncryptorId(),
+                    true
+            );
+            final byte[] decrypted = decryptionResult.getServerEncryptor().decryptRequest(encryptedRequest);
+            decryptionResult.setDecryptedData(decrypted);
+            return decryptionResult;
+        } catch (EncryptorException e) {
+            logger.error("Decryption failed", e);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        }
+    }
 
     /**
      * Derive encryptor secrets.
      *
-     * @param request Encrypted request without encrypted data.
+     * @param encryptedRequest Encrypted request without encrypted data.
      * @param context Encryption context.
      * @return Encryptor secrets.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    EncryptorSecrets deriveSecrets(EncryptedRequest request, EncryptionContext context) throws GenericServiceException;
-
-    /**
-     * Request a temporary key.
-     * @param jwt Temporary key request in JWT format.
-     * @return Temporary key in JWT format.
-     * @throws GenericServiceException In case of a cryptography error.
-     */
-    String requestTemporaryKey(String jwt) throws GenericServiceException;
-
+    public EncryptorSecrets deriveSecrets(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
+        try {
+            final DecryptionResult decryptionResult = encryptionService.decrypt(
+                    encryptedRequest,
+                    context.getProtocolVersion(),
+                    context.getApplicationKey(),
+                    context.getActivationId(),
+                    context.getEncryptorId(),
+                    false
+            );
+            return decryptionResult.getServerEncryptor().deriveSecretsForExternalEncryptor(encryptedRequest);
+        } catch (EncryptorException e) {
+            logger.error("Decryption failed", e);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        }
+    }
 }

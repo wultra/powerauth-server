@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2025 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,31 +14,29 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v3;
 
-import com.wultra.security.powerauth.client.model.entity.v4.SharedSecretRequest;
 import lombok.Data;
 import lombok.ToString;
 
-import java.security.PrivateKey;
+import java.util.Date;
 
 /**
- * Temporary key result.
+ * Class for holding the temporary key response claims (V3).
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class TemporaryKeyResult {
+public class TemporaryPublicKeyResponseClaims {
 
+    private String applicationKey;
+    private String activationId;
     @ToString.Exclude
-    private byte[] secretKeyBytes;
-
-    @ToString.Exclude
-    private PrivateKey privateKey;
-
-    private SharedSecretRequest sharedSecretRequest;
+    private String challenge;
+    private String keyId;
+    private String publicKey;
+    private Date expiration;
 
 }

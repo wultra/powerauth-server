@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class EncryptionService {
+public class DatabaseEncryptionService {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final LocalizationProvider localizationProvider;
