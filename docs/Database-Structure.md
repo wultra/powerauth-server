@@ -225,7 +225,7 @@ Stores a log of activation changes.
 | external_user_id   | VARCHAR(255) | -                                         | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created  | DATETIME     | -                                         | Timestamp of the record creation.                                                                                                                                               |
 | activation_version | INT(2)       | -                                         | Activation version                                                                                                                                                              |
-| activation_name    | VARCHAR(255  | -                                         | Activation name.                                                                                                                                                                |
+| activation_name    | VARCHAR(255) | -                                         | Activation name.                                                                                                                                                                |
 <!-- end -->
 
 <!-- begin database table pa_recovery_code -->
