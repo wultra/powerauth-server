@@ -329,7 +329,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final EncryptionMode encryptionMode = masterKeyPairEntity.getMasterPrivateKeysEncryption();
                 final PrivateKeys masterPrivateKeys = new PrivateKeys(encryptionMode, masterPrivateKeysBase64);
                 final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(masterPrivateKeys, applicationVersionEntity.getApplication().getId());
-                final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA)
+                final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
                         .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
 
                 final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
@@ -358,11 +358,11 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
                 final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
                 final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
-                final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
                 final String devicePublicKeys = activation.getDevicePublicKeys();
                 final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
-                final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
                 // TODO - switch to a key derived with KMAC-256 after activation is implemented
                 final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
 

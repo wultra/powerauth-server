@@ -31,7 +31,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -56,51 +55,28 @@ public class PublicKeyRegistryDeserializer extends JsonDeserializer<PublicKeyReg
         final PublicKeyRegistry keyRegistry = new PublicKeyRegistry();
 
         final JsonNode publicKeysNode = root.get("publicKeys");
-        final Iterator<String> algorithmNames = publicKeysNode.fieldNames();
-        while (algorithmNames.hasNext()) {
-            final String algorithmName = algorithmNames.next();
-            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(algorithmName);
-            final JsonNode algorithmNode = publicKeysNode.get(algorithmName);
-            if (algorithmNode == null || algorithmNode.isEmpty()) {
-                continue;
-            }
-            final Iterator<String> keyTypeNames = algorithmNode.fieldNames();
-            while (keyTypeNames.hasNext()) {
-                final String keyTypeName = keyTypeNames.next();
-                final KeyType keyType = KeyType.valueOf(keyTypeName);
-                final byte[] encodedKey = algorithmNode.get(keyTypeName).binaryValue();
-                final PublicKey key = deserializePublicKey(algorithm, keyType, encodedKey);
-                keyRegistry.storePublicKey(algorithm, keyType, key);
-            }
+        final Iterator<String> keyTypeNames = publicKeysNode.fieldNames();
+        while (keyTypeNames.hasNext()) {
+            final String keyTypeName = keyTypeNames.next();
+            final KeyType keyType = KeyType.valueOf(keyTypeName);
+            final byte[] encodedKey = publicKeysNode.get(keyTypeName).binaryValue();
+            final PublicKey key = deserializePublicKey(keyType, encodedKey);
+            keyRegistry.storePublicKey(keyType, key);
         }
         return keyRegistry;
     }
 
-    private PublicKey deserializePublicKey(SharedSecretAlgorithm algorithm, KeyType keyType, byte[] encodedKey) throws IOException {
+    private PublicKey deserializePublicKey(KeyType keyType, byte[] encodedKey) throws IOException {
         try {
-            return switch (algorithm) {
-                case EC_P256, EC_P384 -> {
-                    if (keyType == KeyType.ECDSA) {
-                        yield KEY_CONVERTOR_EC.convertBytesToPublicKey(getCurve(algorithm), encodedKey);
-                    }
-                    throw new IOException("Unsupported key type: " + keyType + " for algorithm: " + algorithm);
-                }
-                case EC_P384_ML_L3 -> switch (keyType) {
-                    case ECDSA -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, encodedKey);
-                    case MLDSA -> KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
-                };
+            return switch (keyType) {
+                case ECDSA_P256 -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P256, encodedKey);
+                case ECDSA_P384 -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, encodedKey);
+                case MLDSA_65 -> KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug(e.getMessage(), e);
             throw new IOException(e);
         }
-    }
-
-    private EcCurve getCurve(SharedSecretAlgorithm algorithm) {
-        return switch (algorithm) {
-            case EC_P256 -> EcCurve.P256;
-            case EC_P384, EC_P384_ML_L3 -> EcCurve.P384;
-        };
     }
 
 }

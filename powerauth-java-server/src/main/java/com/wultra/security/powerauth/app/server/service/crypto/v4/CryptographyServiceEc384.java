@@ -39,7 +39,6 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -103,12 +102,12 @@ public class CryptographyServiceEc384 extends CryptographyService {
             }
 
             // Store ECDSA keypair in JSON format
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, privateKey);
+            privateKeyRegistry.storePrivateKey(KeyType.ECDSA_P384, privateKey);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
             keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
 
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, publicKey);
+            publicKeyRegistry.storePublicKey(KeyType.ECDSA_P384, publicKey);
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
 
@@ -138,12 +137,12 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
             // Store server public key in JSON format
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
-            serverPublicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, serverKeyPair.getPublic());
+            serverPublicKeys.storePublicKey(KeyType.ECDSA_P384, serverKeyPair.getPublic());
             activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
 
             // Store server private key in JSON format
             final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
-            serverPrivateKeys.storePrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, serverKeyPair.getPrivate());
+            serverPrivateKeys.storePrivateKey(KeyType.ECDSA_P384, serverKeyPair.getPrivate());
             final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
             activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
             activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
@@ -155,7 +154,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
-        if (keyType != KeyType.ECDSA) {
+        if (keyType != KeyType.ECDSA_P384) {
             throw new IllegalArgumentException("Unsupported key type: " + keyType);
         }
         try {
@@ -180,7 +179,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
         } else {
             publicKeys = new PublicKeyRegistry();
         }
-        publicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, ecPublicKey);
+        publicKeys.storePublicKey(KeyType.ECDSA_P384, ecPublicKey);
         activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
     }
 

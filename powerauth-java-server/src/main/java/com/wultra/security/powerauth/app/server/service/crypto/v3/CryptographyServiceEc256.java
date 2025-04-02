@@ -208,7 +208,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
 
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
-        if (keyType != KeyType.ECDSA) {
+        if (keyType != KeyType.ECDSA_P256) {
             throw new IllegalArgumentException("Unsupported key type: " + keyType);
         }
         try {

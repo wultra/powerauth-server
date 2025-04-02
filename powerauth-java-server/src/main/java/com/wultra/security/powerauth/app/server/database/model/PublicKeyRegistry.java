@@ -19,7 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.database.model;
 
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -35,28 +34,24 @@ import java.util.*;
 @ToString
 public class PublicKeyRegistry {
 
-    final Map<SharedSecretAlgorithm, Map<KeyType, PublicKey>> publicKeys = new LinkedHashMap<>();
+    final Map<KeyType, PublicKey> publicKeys = new LinkedHashMap<>();
 
     /**
      * Get a public key for given algorithm and key type.
-     * @param algorithm Shared secret algorithm.
      * @param keyType Key type.
      * @return Optional public key.
      */
-    public Optional<PublicKey> getPublicKey(SharedSecretAlgorithm algorithm, KeyType keyType) {
-        return Optional.ofNullable(publicKeys.get(algorithm))
-                .map(keysByKeyTypes -> keysByKeyTypes.get(keyType));
+    public Optional<PublicKey> getPublicKey(KeyType keyType) {
+        return Optional.ofNullable(publicKeys.get(keyType));
     }
 
     /**
      * Store a public key for given algorithm and key type.
-     * @param algorithm Shared secret algorithm.
      * @param keyType Key type.
-     * @param key Public key to store.
+     * @param publicKey Public key to store.
      */
-    public void storePublicKey(SharedSecretAlgorithm algorithm, KeyType keyType, PublicKey key) {
-        publicKeys.computeIfAbsent(algorithm, k -> new LinkedHashMap<>())
-                .put(keyType, key);
+    public void storePublicKey(KeyType keyType, PublicKey publicKey) {
+        publicKeys.put(keyType, publicKey);
     }
 
     @Override

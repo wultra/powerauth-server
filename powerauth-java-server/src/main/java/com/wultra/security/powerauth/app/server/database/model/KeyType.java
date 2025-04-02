@@ -24,7 +24,8 @@ package com.wultra.security.powerauth.app.server.database.model;
  */
 public enum KeyType {
 
-    ECDSA,
-    MLDSA
+    ECDSA_P256,
+    ECDSA_P384,
+    MLDSA_65
 
 }

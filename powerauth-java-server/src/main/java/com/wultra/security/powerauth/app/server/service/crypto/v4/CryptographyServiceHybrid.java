@@ -45,7 +45,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -109,21 +108,12 @@ public class CryptographyServiceHybrid extends CryptographyService {
             privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
 
-            // Store both key pairs in JSON format, however reuse the same keypair for ECDSA as for algorithm EC_P384
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> {
-                logger.warn("Missing private key for algorithm EC_P384");
-                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-            }));
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, privateKeyPqcDsa);
+            privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, privateKeyPqcDsa);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
             keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
 
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> {
-                logger.warn("Missing public key for algorithm EC_P384");
-                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-            }));
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, publicKeyPqcDsa);
+            publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, publicKeyPqcDsa);
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
 
@@ -154,14 +144,14 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
             // Store server public key in JSON format
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
-            serverPublicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, serverKeyPairEc.getPublic());
-            serverPublicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, serverKeyPairPqc.getPublic());
+            serverPublicKeys.storePublicKey(KeyType.ECDSA_P384, serverKeyPairEc.getPublic());
+            serverPublicKeys.storePublicKey(KeyType.MLDSA_65, serverKeyPairPqc.getPublic());
             activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
 
             // Store server private key in JSON format
             final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
-            serverPrivateKeys.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, serverKeyPairEc.getPrivate());
-            serverPrivateKeys.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, serverKeyPairPqc.getPrivate());
+            serverPrivateKeys.storePrivateKey(KeyType.ECDSA_P384, serverKeyPairEc.getPrivate());
+            serverPrivateKeys.storePrivateKey(KeyType.MLDSA_65, serverKeyPairPqc.getPrivate());
             final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
             activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
             activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
@@ -175,11 +165,11 @@ public class CryptographyServiceHybrid extends CryptographyService {
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
         try {
             switch (keyType) {
-                case ECDSA -> {
+                case ECDSA_P384 -> {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, devicePublicKey);
                     return EcPublicKey.builder().ecPublicKey(convertedPublicKey).build();
                 }
-                case MLDSA -> {
+                case MLDSA_65 -> {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(devicePublicKey);
                     return PqcPublicKey.builder().pqcPublicKey(convertedPublicKey).build();
                 }
@@ -205,7 +195,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             } else {
                 publicKeys = new PublicKeyRegistry();
             }
-            publicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, ecPublicKey);
+            publicKeys.storePublicKey(KeyType.ECDSA_P384, ecPublicKey);
             activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
             return;
         }
@@ -217,7 +207,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             } else {
                 publicKeys = new PublicKeyRegistry();
             }
-            publicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, pqcPublicKey);
+            publicKeys.storePublicKey(KeyType.MLDSA_65, pqcPublicKey);
             activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
             return;
         }
