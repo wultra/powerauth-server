@@ -55,7 +55,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Date;
 
 /**
  * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65.
@@ -90,50 +89,46 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
-            // Generate P-384 key pair
-            final KeyPair kp384 = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
-            final PrivateKey privateKey = kp384.getPrivate();
-            final PublicKey publicKey = kp384.getPublic();
-
             // Generate PQC key pair
             final KeyPair kpPqcDsa = PQC_DSA.generateKeyPair();
             final PrivateKey privateKeyPqcDsa = kpPqcDsa.getPrivate();
             final PublicKey publicKeyPqcDsa = kpPqcDsa.getPublic();
 
-            // Key pairs for multiple algorithms are stored for the same entity
+            // Key pairs for multiple algorithms are stored for the same entity in order:
+            // 1. EC_P256 (ECDSA keypair)
+            // 2. EC_P384 (ECDSA keypair)
+            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
             MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             final PrivateKeyRegistry privateKeyRegistry;
             final PublicKeyRegistry publicKeyRegistry;
             if (keyPair == null) {
-                keyPair = new MasterKeyPairEntity();
-                privateKeyRegistry = new PrivateKeyRegistry();
-                publicKeyRegistry = new PublicKeyRegistry();
-                // Store empty values for v3
-                keyPair.setMasterKeyPrivateBase64("");
-                keyPair.setMasterKeyPublicBase64("");
-                keyPair.setApplication(application);
-                keyPair.setName(application.getId() + " Default Keypair");
-                keyPair.setTimestampCreated(new Date());
-            } else {
-                final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
-                privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
-                publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
+                logger.error("Key pair generation called in invalid order");
+                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             }
+            final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
+            privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
+            publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
 
-            // Store private and public keys for EC curve P-384 in JSON format
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, privateKey);
+            // Store both key pairs in JSON format, however reuse the same keypair for ECDSA as for algorithm EC_P384
+            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> {
+                logger.warn("Missing private key for algorithm EC_P384");
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            }));
             privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, privateKeyPqcDsa);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
             keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
 
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, publicKey);
+            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> {
+                logger.warn("Missing public key for algorithm EC_P384");
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            }));
             publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, publicKeyPqcDsa);
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
 
             masterKeyPairRepository.save(keyPair);
-        } catch (CryptoProviderException | GenericCryptoException e) {
+        } catch (GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }

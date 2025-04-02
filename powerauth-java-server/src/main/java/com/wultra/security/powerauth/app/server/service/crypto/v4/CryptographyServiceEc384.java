@@ -49,7 +49,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Date;
 
 /**
  * Cryptography Service V4 implementation based on EC curve P-384.
@@ -87,27 +86,23 @@ public class CryptographyServiceEc384 extends CryptographyService {
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
-            // Key pairs for multiple algorithms are stored for the same entity
+            // Key pairs for multiple algorithms are stored for the same entity in order:
+            // 1. EC_P256 (ECDSA keypair)
+            // 2. EC_P384 (ECDSA keypair)
+            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
             MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             final PrivateKeyRegistry privateKeyRegistry;
             final PublicKeyRegistry publicKeyRegistry;
             if (keyPair == null) {
-                keyPair = new MasterKeyPairEntity();
-                privateKeyRegistry = new PrivateKeyRegistry();
-                publicKeyRegistry = new PublicKeyRegistry();
-                // Store empty values for v3
-                keyPair.setMasterKeyPrivateBase64("");
-                keyPair.setMasterKeyPublicBase64("");
-                keyPair.setApplication(application);
-                keyPair.setName(application.getId() + " Default Keypair");
-                keyPair.setTimestampCreated(new Date());
+                logger.error("Key pair generation called in invalid order");
+                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             } else {
                 final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
                 privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
                 publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
             }
 
-            // Store private and public keys for EC curve P-384 in JSON format
+            // Store ECDSA keypair in JSON format
             privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA, privateKey);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());

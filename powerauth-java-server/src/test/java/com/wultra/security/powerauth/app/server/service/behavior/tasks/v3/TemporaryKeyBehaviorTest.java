@@ -52,7 +52,6 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -72,7 +71,6 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -138,7 +136,7 @@ class TemporaryKeyBehaviorTest {
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
         final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
-        final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyBase64();
+        final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyP256();
         final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterPublicKeyBase64));
         assertTrue(validateJwtSignature(decodedJWT, masterPublicKey));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
