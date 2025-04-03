@@ -231,7 +231,7 @@ CREATE TABLE pa_signature_audit
 | id                  | BIGINT(20)   | primary key, autoincrement                 | Unique record ID.                                                         |
 | activation_id       | BIGINT(20)   | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
 | activation_counter  | BIGINT(20)   | -                                          | Activation counter at the moment of signature validation.                 |
-| activation_ctr_data | BIGINT(2)    | -                                          | Activation hash based counter data at the moment of signature validation. |
+| activation_ctr_data | VARCHAR(255) | -                                          | Activation hash based counter data at the moment of signature validation. |
 | activation_status   | INT(11)      | -                                          | Activation status at the moment of signature validation.                  |
 | additional_info     | VARCHAR(255) | -                                          | Additional information related to the signature request in JSON format.   |
 | data_base64         | TEXT         | -                                          | Data passed as the base for the signature, encoded as Base64.             |
@@ -239,8 +239,8 @@ CREATE TABLE pa_signature_audit
 | signature           | VARCHAR(255) | -                                          | Provided value of the signature.                                          |
 | signature_metadata  | TEXT         | -                                          | JSON with signature metadata related to the signature calculation.        |
 | signature_data_body | TEXT         | -                                          | Data used for the signature verification.                                 |
-| valid               | INT(11)      | -                                          | Flag indicating if the provided signature was valid.                      |
-| note                | TEXT         | -                                          | Additional information about the validation result.                       |
+| valid               | BOOLEAN      | -                                          | Flag indicating if the provided signature was valid.                      |
+| note                | VARCHAR(255) | -                                          | Additional information about the validation result.                       |
 | timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
 | version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
 | signature_version   | VARCHAR(255) | -                                          | PowerAuth signature version.                                              |
@@ -516,10 +516,11 @@ CREATE TABLE pa_operation (
 | user_id             | varchar(255) | -           | Related user ID.                                                                                |
 | template_name       | varchar(255) | -           | Template name used for creating the operation.                                                  |
 | external_id         | varchar(255) | -           | Identifier in external system.                                                                  |
-| activation_flag     | varchar(255) | -           | Activation flag.
+| activation_flag     | varchar(255) | -           | Activation flag.                                                                                |
 | operation_type      | varchar(255) | -           | Name of the type of operation.                                                                  |
 | data                | text         | -           | Data of the operation that enter the final signature.                                           |
 | parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                            |
+| additional_data     | text         | -           | Allow storing operation context.                                                                |
 | status              | integer      | -           | Status of the operation.                                                                        |
 | signature_type      | varchar(255) | -           | Comma-separated list of allowed signature types.                                                |
 | failure_count       | bigint       | -           | Number of already failed attempts to approve the operation.                                     |
