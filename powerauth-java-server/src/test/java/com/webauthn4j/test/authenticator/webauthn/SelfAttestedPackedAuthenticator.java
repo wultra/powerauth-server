@@ -40,7 +40,7 @@ public class SelfAttestedPackedAuthenticator extends WebAuthnModelAuthenticator 
         if (registrationEmulationOption.isSignatureOverrideEnabled()) {
             signature = registrationEmulationOption.getSignature();
         } else {
-            signature = TestDataUtil.calculateSignature(attestationStatementRequest.getCredentialKeyPair().getPrivate(), attestationStatementRequest.getSignedData());
+            signature = TestDataUtil.calculateSignature(attestationStatementRequest.getCredentialKeyPair(), attestationStatementRequest.getSignedData());
         }
 
         return new PackedAttestationStatement(COSEAlgorithmIdentifier.ES256, signature, null);
