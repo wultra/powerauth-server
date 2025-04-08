@@ -355,7 +355,7 @@ Table stores details about FIDO2 Authenticators.
 | aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
 | description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
 | signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
-| transport      | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
+| transports     | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
 <!-- end -->
 
 <!-- begin database table pa_unique_value -->
