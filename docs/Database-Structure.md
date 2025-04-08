@@ -364,7 +364,7 @@ Table stores details about FIDO2 Authenticators.
 | aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
 | description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
 | signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
-| transport      | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
+| transports     | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
 <!-- end -->
 
 <!-- begin database table pa_temporary_key -->
@@ -383,6 +383,7 @@ Table stores details about temporary key pairs used for data encryption.
 | private_key_base64     | varchar(255) | -                                                      | Temporary private key encoded as Base64.                                              |
 | public_key_base64      | varchar(255) | -                                                      | Temporary public key encoded as Base64.                                               |
 | timestamp_expires      | timestamp    | index                                                  | Timestamp of when the temporary key pair expires.                                     |
+<!-- end -->
 
 <!-- begin database table pa_application_callback_event -->
 ### Callback URL Events
