@@ -45,6 +45,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
 
 /**
  * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65.
@@ -88,6 +90,11 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
+            // Generate P-384 key pair
+            final KeyPair kp384 = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
+            final PrivateKey privateKey = kp384.getPrivate();
+            final PublicKey publicKey = kp384.getPublic();
+
             // Generate PQC key pair
             final KeyPair kpPqcDsa = PQC_DSA.generateKeyPair();
             final PrivateKey privateKeyPqcDsa = kpPqcDsa.getPrivate();
@@ -103,20 +110,20 @@ public class CryptographyServiceHybrid extends CryptographyService {
             if (keyPair == null) {
                 logger.error("Key pair generation called in invalid order");
                 throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            } else {
+                final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
+                privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
+                publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
             }
-            final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
-            privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
-            publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
 
+            // Store private and public keys for EC curve P-384 in JSON format
             privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, privateKeyPqcDsa);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
             keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-
             publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, publicKeyPqcDsa);
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
-
             masterKeyPairRepository.save(keyPair);
         } catch (GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
