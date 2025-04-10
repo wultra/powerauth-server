@@ -60,6 +60,11 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Date;
 
+/**
+ * Encryption service for ECIES (V3).
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @Service
 @Slf4j
 public class EncryptionServiceEcies extends EncryptionService {

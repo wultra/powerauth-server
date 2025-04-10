@@ -61,6 +61,11 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 
+/**
+ * Encryption service for AEAD (V4).
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @Service
 @Slf4j
 public class EncryptionServiceAead extends EncryptionService {
