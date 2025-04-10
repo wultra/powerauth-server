@@ -111,7 +111,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
 
-            // Store private and public keys for EC curve P-384 in JSON format
+            // Store private and public keys for ML-DSA in JSON format
             privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, privateKeyPqcDsa);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
