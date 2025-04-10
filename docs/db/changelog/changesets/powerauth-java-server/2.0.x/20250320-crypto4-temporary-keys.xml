@@ -19,4 +19,16 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="pa_temporary_key" columnName="private_key_base64" />
+                <columnExists tableName="pa_temporary_key" columnName="public_key_base64" />
+            </and>
+        </preConditions>
+        <comment>Change the temporary keypair columns to nullable in pa_temporary_key table</comment>
+        <dropNotNullConstraint tableName="pa_temporary_key" columnName="private_key_base64" columnDataType="varchar(255)" />
+        <dropNotNullConstraint tableName="pa_temporary_key" columnName="public_key_base64" columnDataType="varchar(255)" />
+    </changeSet>
+
 </databaseChangeLog>
