@@ -254,6 +254,32 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         if (requestClaims.getApplicationKey() == null && requestClaims.getActivationId() == null) {
             return "Either app key or activation ID must be specified.";
         }
+        if (requestClaims.getChallenge() == null) {
+            return "Challenge must be specified.";
+        }
+        if (requestClaims.getSharedSecretRequest() == null) {
+            return "Shared secret request must be specified.";
+        }
+        if (requestClaims.getSharedSecretRequest().getAlgorithm() == null) {
+            return "Shared secret algorithm must be specified.";
+        }
+        if (!SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            return "Invalid shared secret algorithm value.";
+        }
+        if (SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+                return "Shared secret ecdhe value must be specified for algorithm EC_P384.";
+            }
+        }
+        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+                return "Shared secret ecdhe value must be specified for algorithm EC_P384_ML_L3.";
+            }
+            if (requestClaims.getSharedSecretRequest().getMlkem() == null) {
+                return "Shared secret mlkem value must be specified for algorithm EC_P384_ML_L3.";
+            }
+        }
         return null;
     }
 
