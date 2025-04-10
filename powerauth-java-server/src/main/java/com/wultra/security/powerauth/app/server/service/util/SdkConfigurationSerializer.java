@@ -22,7 +22,9 @@ package com.wultra.security.powerauth.app.server.service.util;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Writer for serialized PowerAuth mobile SDK configuration.

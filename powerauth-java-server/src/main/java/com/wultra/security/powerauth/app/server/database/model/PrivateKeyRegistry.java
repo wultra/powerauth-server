@@ -22,7 +22,10 @@ package com.wultra.security.powerauth.app.server.database.model;
 import lombok.Getter;
 
 import java.security.PrivateKey;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Registry for storing private keys.

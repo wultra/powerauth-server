@@ -17,6 +17,9 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -33,14 +36,19 @@ import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.PublicKey;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -61,8 +69,11 @@ public class ApplicationServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final PublicKeysConverter publicKeysConverter;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
+    private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+    private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
 
     /**
      * Get application details by ID.
@@ -105,7 +116,34 @@ public class ApplicationServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64());
+            final String publicKeys = masterKeyPairEntity.getMasterPublicKeys();
+            final String publicKeyEc384;
+            final String publicKeyMldsa;
+            if (publicKeys != null) {
+                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(publicKeys);
+                final PublicKey publicKeyEc384Object = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                    logger.warn("Missing ECDSA key pair for application ID: {}", application.getId());
+                    // Rollback is not required, database is not used for writing
+                    return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                });
+                final PublicKey publicKeyMldsaObject = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                    logger.warn("Missing MLDSA key pair for application ID: {}", application.getId());
+                    // Rollback is not required, database is not used for writing
+                    return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                });
+                try {
+                    publicKeyEc384 = Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P384, publicKeyEc384Object));
+                    publicKeyMldsa = Base64.getEncoder().encodeToString(KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKeyMldsaObject));
+                } catch (CryptoProviderException | GenericCryptoException e) {
+                    logger.warn("Key conversion failed for application ID: {}", application.getId());
+                    // Rollback is not required, database is not used for writing
+                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+            } else {
+                publicKeyEc384 = null;
+                publicKeyMldsa = null;
+            }
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyEc384, publicKeyMldsa);
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
@@ -204,8 +242,10 @@ public class ApplicationServiceBehavior {
             application.setId(applicationId);
             application = applicationRepository.save(application);
 
-            // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateMasterKeyPair(application);
+            for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
+                // Generate key pairs for all supported algorithms
+                cryptographyServiceFactory.getService(algorithm).generateMasterKeyPair(application);
+            }
 
             // Use cryptography methods before writing to database to avoid rollbacks
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);

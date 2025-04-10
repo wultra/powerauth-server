@@ -23,7 +23,10 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.security.PublicKey;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Registry for storing public keys.
