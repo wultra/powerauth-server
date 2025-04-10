@@ -72,7 +72,7 @@ public class ApplicationServiceBehavior {
     private final PublicKeysConverter publicKeysConverter;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
-    private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+    private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
 
     /**
@@ -116,34 +116,32 @@ public class ApplicationServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final String publicKeys = masterKeyPairEntity.getMasterPublicKeys();
-            final String publicKeyEc384;
-            final String publicKeyMldsa;
-            if (publicKeys != null) {
-                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(publicKeys);
-                final PublicKey publicKeyEc384Object = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                    logger.warn("Missing ECDSA key pair for application ID: {}", application.getId());
-                    // Rollback is not required, database is not used for writing
-                    return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                });
-                final PublicKey publicKeyMldsaObject = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                    logger.warn("Missing MLDSA key pair for application ID: {}", application.getId());
-                    // Rollback is not required, database is not used for writing
-                    return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                });
-                try {
-                    publicKeyEc384 = Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P384, publicKeyEc384Object));
-                    publicKeyMldsa = Base64.getEncoder().encodeToString(KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKeyMldsaObject));
-                } catch (CryptoProviderException | GenericCryptoException e) {
-                    logger.warn("Key conversion failed for application ID: {}", application.getId());
-                    // Rollback is not required, database is not used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                }
-            } else {
-                publicKeyEc384 = null;
-                publicKeyMldsa = null;
+            String publicKeyEc384 = null;
+            String publicKeyMlDsa65 = null;
+            if (masterKeyPairEntity.getMasterPublicKeys() != null) {
+                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
+                publicKeyEc384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
+                        .map(publicKey -> {
+                            try {
+                                byte[] bytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey);
+                                return Base64.getEncoder().encodeToString(bytes);
+                            } catch (CryptoProviderException e) {
+                                logger.warn("Public key conversion failed", e);
+                                return null;
+                            }
+                        }).orElse(null);
+                publicKeyMlDsa65 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65)
+                        .map(publicKey -> {
+                            try {
+                                byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
+                                return Base64.getEncoder().encodeToString(bytes);
+                            } catch (GenericCryptoException e) {
+                                logger.warn("Public key conversion failed", e);
+                                return null;
+                            }
+                        }).orElse(null);
             }
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyEc384, publicKeyMldsa);
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyEc384, publicKeyMlDsa65);
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
