@@ -115,7 +115,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
             masterKeyPairRepository.save(keyPair);
-        } catch (GenericCryptoException | CryptoProviderException e) {
+        } catch (GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
