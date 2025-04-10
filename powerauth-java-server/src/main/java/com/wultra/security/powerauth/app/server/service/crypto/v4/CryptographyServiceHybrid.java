@@ -88,11 +88,6 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
-            // Generate P-384 key pair
-            final KeyPair kp384 = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
-            final PrivateKey privateKey = kp384.getPrivate();
-            final PublicKey publicKey = kp384.getPublic();
-
             // Generate PQC key pair
             final KeyPair kpPqcDsa = PQC_DSA.generateKeyPair();
             final PrivateKey privateKeyPqcDsa = kpPqcDsa.getPrivate();
