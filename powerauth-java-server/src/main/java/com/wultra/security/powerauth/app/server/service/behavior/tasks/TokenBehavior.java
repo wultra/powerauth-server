@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.TokenEntit
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.TokenRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -40,9 +40,9 @@ import com.wultra.security.powerauth.app.server.service.validator.ActivationCont
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
-import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
@@ -50,7 +50,6 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import lombok.AllArgsConstructor;
@@ -79,7 +78,7 @@ public class TokenBehavior {
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
     private final TokenRepository tokenRepository;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final EncryptionServiceEcies encryptionService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -297,7 +296,7 @@ public class TokenBehavior {
 
             // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(version, applicationKey, activationId, EncryptorId.CREATE_TOKEN);
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
+            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
 
             // Generate unique token ID.
             String tokenId = null;

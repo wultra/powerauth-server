@@ -187,7 +187,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
+    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             final KeyPair serverKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
 

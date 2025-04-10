@@ -71,13 +71,13 @@ public class TemporaryKeyEntity implements Serializable {
     /**
      * Temporary private key.
      */
-    @Column(name = "private_key_base64", nullable = false)
+    @Column(name = "private_key_base64")
     private String privateKeyBase64;
 
     /**
      * Temporary public key.
      */
-    @Column(name = "public_key_base64", nullable = false)
+    @Column(name = "public_key_base64")
     private String publicKeyBase64;
 
     /**

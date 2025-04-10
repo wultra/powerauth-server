@@ -72,7 +72,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -160,8 +159,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             final ResponseCryptogram sharedSecretResponse = deriveSharedSecret(temporaryKeyResult.getSharedSecretRequest(), algorithm);
 
             // Generate new key and store it
-            final KeyPair temporaryKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P384);
-            final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, temporaryKeyPair, sharedSecretResponse, algorithm);
+            final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, sharedSecretResponse, algorithm);
 
             // Built and return the response claims
             // TODO - add Dilithium signature using custom signer
@@ -254,6 +252,32 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         if (requestClaims.getApplicationKey() == null && requestClaims.getActivationId() == null) {
             return "Either app key or activation ID must be specified.";
         }
+        if (requestClaims.getChallenge() == null) {
+            return "Challenge must be specified.";
+        }
+        if (requestClaims.getSharedSecretRequest() == null) {
+            return "Shared secret request must be specified.";
+        }
+        if (requestClaims.getSharedSecretRequest().getAlgorithm() == null) {
+            return "Shared secret algorithm must be specified.";
+        }
+        if (!SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            return "Invalid shared secret algorithm value.";
+        }
+        if (SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+                return "Shared secret ecdhe value must be specified for algorithm EC_P384.";
+            }
+        }
+        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+                return "Shared secret ecdhe value must be specified for algorithm EC_P384_ML_L3.";
+            }
+            if (requestClaims.getSharedSecretRequest().getMlkem() == null) {
+                return "Shared secret mlkem value must be specified for algorithm EC_P384_ML_L3.";
+            }
+        }
         return null;
     }
 
@@ -271,19 +295,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 .build();
     }
 
-    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, KeyPair temporaryKeyPair, ResponseCryptogram responseCryptogram, SharedSecretAlgorithm algorithm) throws CryptoProviderException, GenericServiceException {
+    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, ResponseCryptogram responseCryptogram, SharedSecretAlgorithm algorithm) throws CryptoProviderException, GenericServiceException {
         // Prepare the parameters key pair
         final String keyId = UUID.randomUUID().toString();
         final String applicationKey = requestClaims.getApplicationKey();
         final String activationId = requestClaims.getActivationId();
         final String challenge = requestClaims.getChallenge();
-        final byte[] privateKeyBytes = KEY_CONVERTOR.convertPrivateKeyToBytes(temporaryKeyPair.getPrivate());
-        final String temporaryPublicKeyBase64 = Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P384, temporaryKeyPair.getPublic()));
         final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidity().toMillis()));
-
-        // Prepare encrypted temporary private key, if encryption is enabled
-        final ServerPrivateKey temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(
-                privateKeyBytes, keyId, applicationKey, activationId);
 
         // Prepare encrypted shard secret, if encryption is enabled
         final SharedSecret sharedSecretConverted = sharedSecretConverter.toDBValue(
@@ -294,9 +312,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         temporaryKeyEntity.setId(keyId);
         temporaryKeyEntity.setAppKey(applicationKey);
         temporaryKeyEntity.setActivationId(activationId);
-        temporaryKeyEntity.setPrivateKeyEncryption(temporaryPrivateKey.encryptionMode());
-        temporaryKeyEntity.setPrivateKeyBase64(temporaryPrivateKey.serverPrivateKeyBase64());
-        temporaryKeyEntity.setPublicKeyBase64(temporaryPublicKeyBase64);
+        // Temporary keypair is no longer stored for V4
+        temporaryKeyEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
+        temporaryKeyEntity.setPrivateKeyBase64(null);
+        temporaryKeyEntity.setPublicKeyBase64(null);
         temporaryKeyEntity.setSecretKeyEncryption(sharedSecretConverted.encryptionMode());
         temporaryKeyEntity.setSecretKeyBase64(sharedSecretConverted.sharedSecretBase64());
         temporaryKeyEntity.setTimestampExpires(expirationDate);

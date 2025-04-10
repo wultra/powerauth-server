@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -27,13 +27,14 @@ import com.wultra.security.powerauth.app.server.service.model.request.Encryption
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
+import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class EncryptionBehaviorAead {
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final EncryptionServiceAead encryptionService;
 
     /**
      * Extract AEAD encryptor parameters to allow decryption of AEAD-encrypted messages on intermediate server.
@@ -101,17 +102,8 @@ public class EncryptionBehaviorAead {
         );
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
 
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSecrets(encryptedRequest, context);
-        if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
-            // AEAD in V4
-            final ExtractEncryptorResponse response = new ExtractEncryptorResponse();
-            response.setSecretKey(Base64.getEncoder().encodeToString(aeadSecrets.getEnvelopeKey()));
-            response.setSharedInfo2(Base64.getEncoder().encodeToString(aeadSecrets.getSharedInfo2()));
-            return response;
-        }
-        logger.error("Unsupported EncryptorSecrets object");
-        // Rollback is not required, database is not used for writing
-        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(encryptedRequest, context);
+        return generateResponse(encryptorSecrets);
     }
 
     private ExtractEncryptorResponse extractEncryptorParametersForActivation(ExtractEncryptorRequest request) throws GenericServiceException {
@@ -132,7 +124,7 @@ public class EncryptionBehaviorAead {
         activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), activationId, EncryptorId.ACTIVATION_SCOPE_GENERIC);
-        final EncryptorSecrets encryptorSecrets = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSecrets(
+        final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(
                 new AeadEncryptedRequest(
                         temporaryKeyId,
                         null,
@@ -141,6 +133,10 @@ public class EncryptionBehaviorAead {
                 ),
                 context
         );
+        return generateResponse(encryptorSecrets);
+    }
+
+    private ExtractEncryptorResponse generateResponse(EncryptorSecrets encryptorSecrets) throws GenericServiceException {
         if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
             // AEAD V4.0
             final ExtractEncryptorResponse response = new ExtractEncryptorResponse();

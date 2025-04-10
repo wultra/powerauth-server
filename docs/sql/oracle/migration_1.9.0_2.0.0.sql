@@ -41,3 +41,9 @@ ALTER TABLE pa_activation ADD knowledge_factor_key_next VARCHAR2(255);
 ALTER TABLE pa_temporary_key ADD secret_key_base64 VARCHAR2(255);
 
 ALTER TABLE pa_temporary_key ADD secret_key_encryption INTEGER DEFAULT '0' NOT NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml::2::Roman Strobl
+-- Change the temporary keypair columns to nullable in pa_temporary_key table
+ALTER TABLE pa_temporary_key MODIFY private_key_base64 NULL;
+
+ALTER TABLE pa_temporary_key MODIFY public_key_base64 NULL;

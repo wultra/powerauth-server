@@ -137,7 +137,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
     }
 
     @Override
-    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
+    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             final KeyPair serverKeyPairEc = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
             final KeyPair serverKeyPairPqc = PQC_DSA.generateKeyPair();
@@ -187,8 +187,8 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         // The device public key is stored in JSON format in column device_public_keys
-        if (devicePublicKey instanceof EcPublicKey) {
-            final PublicKey ecPublicKey = ((EcPublicKey) devicePublicKey).getEcPublicKey();
+        if (devicePublicKey instanceof EcPublicKey ecDevicePublicKey) {
+            final PublicKey ecPublicKey = ecDevicePublicKey.getEcPublicKey();
             final PublicKeyRegistry publicKeys;
             if (activation.getDevicePublicKeys() != null) {
                 publicKeys = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
@@ -199,8 +199,8 @@ public class CryptographyServiceHybrid extends CryptographyService {
             activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
             return;
         }
-        if (devicePublicKey instanceof PqcPublicKey) {
-            final PublicKey pqcPublicKey = ((PqcPublicKey) devicePublicKey).getPqcPublicKey();
+        if (devicePublicKey instanceof PqcPublicKey pqcDevicePublicKey) {
+            final PublicKey pqcPublicKey = pqcDevicePublicKey.getPqcPublicKey();
             final PublicKeyRegistry publicKeys;
             if (activation.getDevicePublicKeys() != null) {
                 publicKeys = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
