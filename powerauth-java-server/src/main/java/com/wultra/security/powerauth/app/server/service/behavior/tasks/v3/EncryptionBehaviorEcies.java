@@ -115,16 +115,7 @@ public class EncryptionBehaviorEcies {
         );
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
         final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(encryptedRequest, context);
-        if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
-            // ECIES V3.0, V3.1, V3.2
-            final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-            response.setSecretKey(Base64.getEncoder().encodeToString(encryptorSecretsV3.getEnvelopeKey()));
-            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptorSecretsV3.getSharedInfo2Base()));
-            return response;
-        }
-        logger.error("Unsupported EncryptorSecrets object");
-        // Rollback is not required, database is not used for writing
-        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        return generateResponse(encryptorSecrets);
     }
 
     /**
@@ -164,6 +155,10 @@ public class EncryptionBehaviorEcies {
                 ),
                 context
         );
+        return generateResponse(encryptorSecrets);
+    }
+
+    private GetEciesDecryptorResponse generateResponse(EncryptorSecrets encryptorSecrets) throws GenericServiceException {
         if (encryptorSecrets instanceof ServerEciesSecrets encryptorSecretsV3) {
             // ECIES V3.0, V3.1, V3.2
             final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();

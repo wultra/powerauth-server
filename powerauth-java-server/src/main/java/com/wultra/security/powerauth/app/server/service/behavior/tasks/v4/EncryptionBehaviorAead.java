@@ -27,10 +27,12 @@ import com.wultra.security.powerauth.app.server.service.model.request.Encryption
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
+import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import lombok.AllArgsConstructor;
@@ -101,16 +103,7 @@ public class EncryptionBehaviorAead {
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), null, EncryptorId.APPLICATION_SCOPE_GENERIC);
 
         final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(encryptedRequest, context);
-        if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
-            // AEAD in V4
-            final ExtractEncryptorResponse response = new ExtractEncryptorResponse();
-            response.setSecretKey(Base64.getEncoder().encodeToString(aeadSecrets.getEnvelopeKey()));
-            response.setSharedInfo2(Base64.getEncoder().encodeToString(aeadSecrets.getSharedInfo2()));
-            return response;
-        }
-        logger.error("Unsupported EncryptorSecrets object");
-        // Rollback is not required, database is not used for writing
-        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        return generateResponse(encryptorSecrets);
     }
 
     private ExtractEncryptorResponse extractEncryptorParametersForActivation(ExtractEncryptorRequest request) throws GenericServiceException {
@@ -140,6 +133,10 @@ public class EncryptionBehaviorAead {
                 ),
                 context
         );
+        return generateResponse(encryptorSecrets);
+    }
+
+    private ExtractEncryptorResponse generateResponse(EncryptorSecrets encryptorSecrets) throws GenericServiceException {
         if (encryptorSecrets instanceof AeadSecrets aeadSecrets) {
             // AEAD V4.0
             final ExtractEncryptorResponse response = new ExtractEncryptorResponse();
