@@ -152,7 +152,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
     }
 
     @Override
-    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
+    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             final KeyPair serverKeyPairEc = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
             final KeyPair serverKeyPairPqc = PQC_DSA.generateKeyPair();

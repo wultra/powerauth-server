@@ -50,7 +50,6 @@ import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
@@ -814,7 +813,7 @@ public class ActivationServiceBehavior {
             }
 
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activation);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);

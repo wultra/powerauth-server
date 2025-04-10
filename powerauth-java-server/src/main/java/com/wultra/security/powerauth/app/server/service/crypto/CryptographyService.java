@@ -80,7 +80,7 @@ public abstract class CryptographyService {
      * @param activation Activation.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Convert a device public key.
