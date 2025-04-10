@@ -24,14 +24,8 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
-import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
-import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
-import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -137,57 +131,4 @@ public abstract class CryptographyService {
      */
     public abstract boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
 
-    /**
-     * Decrypt an encrypted request using server encryptor.
-     *
-     * @param encryptedRequest Encrypted request.
-     * @param context Encryption context.
-     * @return Decrypted data and context.
-     * @throws GenericServiceException In case of a cryptography error.
-     */
-    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
-        try {
-            final DecryptionResult decryptionResult = encryptionService.decrypt(
-                    encryptedRequest,
-                    context.getProtocolVersion(),
-                    context.getApplicationKey(),
-                    context.getActivationId(),
-                    context.getEncryptorId(),
-                    true
-            );
-            final byte[] decrypted = decryptionResult.getServerEncryptor().decryptRequest(encryptedRequest);
-            decryptionResult.setDecryptedData(decrypted);
-            return decryptionResult;
-        } catch (EncryptorException e) {
-            logger.error("Decryption failed", e);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-    }
-
-    /**
-     * Derive encryptor secrets.
-     *
-     * @param encryptedRequest Encrypted request without encrypted data.
-     * @param context Encryption context.
-     * @return Encryptor secrets.
-     * @throws GenericServiceException In case of a cryptography error.
-     */
-    public EncryptorSecrets deriveSecrets(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
-        try {
-            final DecryptionResult decryptionResult = encryptionService.decrypt(
-                    encryptedRequest,
-                    context.getProtocolVersion(),
-                    context.getApplicationKey(),
-                    context.getActivationId(),
-                    context.getEncryptorId(),
-                    false
-            );
-            return decryptionResult.getServerEncryptor().deriveSecretsForExternalEncryptor(encryptedRequest);
-        } catch (EncryptorException e) {
-            logger.error("Decryption failed", e);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-    }
 }
