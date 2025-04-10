@@ -160,9 +160,6 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
-        if (keyType != KeyType.ECDSA_P384 && keyType != KeyType.MLDSA_65) {
-            throw new IllegalArgumentException("Unsupported key type: " + keyType);
-        }
         try {
             switch (keyType) {
                 case ECDSA_P384 -> {
@@ -173,6 +170,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(devicePublicKey);
                     return PqcPublicKey.builder().pqcPublicKey(convertedPublicKey).build();
                 }
+                default -> throw new IllegalArgumentException("Unsupported key type: " + keyType);
             }
         } catch (InvalidKeySpecException e) {
             logger.error("Invalid device public key", e);
@@ -181,7 +179,6 @@ public class CryptographyServiceHybrid extends CryptographyService {
             logger.error("Key conversion failed", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
-        return null;
     }
 
     @Override
