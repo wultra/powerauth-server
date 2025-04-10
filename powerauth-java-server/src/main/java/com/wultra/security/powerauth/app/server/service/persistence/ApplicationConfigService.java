@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class ApplicationConfigService {
 
     private final ApplicationConfigRepository applicationConfigRepository;
     private final ListToJsonConverter listToJsonConverter;
-    private final EncryptionService encryptionService;
+    private final DatabaseEncryptionService encryptionService;
 
     /**
      * Find application configuration by application ID.

@@ -19,16 +19,33 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
+import com.wultra.security.powerauth.app.server.database.repository.TemporaryKeyRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.crypto.SecretKey;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Service for handling temporary keys.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public interface TemporaryKeyService {
+@AllArgsConstructor
+@Slf4j
+public abstract class TemporaryKeyService {
+
+    private final LocalizationProvider localizationProvider;
+    private final TemporaryKeyRepository temporaryKeyRepository;
 
     /**
      * Request a temporary key.
@@ -36,15 +53,59 @@ public interface TemporaryKeyService {
      * @return JWT temporary key response.
      * @throws GenericServiceException In case of cryptography error.
      */
-    String requestTemporaryKey(String jwt) throws GenericServiceException;
+    public abstract String requestTemporaryKey(String jwt) throws GenericServiceException;
 
     /**
-     * Fetch a temporary private key for given ID and application key.
+     * Fetch a temporary private key.
      * @param id Temporary key ID.
      * @param appKey Application key.
+     * @param activationId Activation ID.
      * @return Temporary private key.
      * @throws GenericServiceException In case of cryptography error.
      */
-    PrivateKey temporaryPrivateKey(String id, String appKey) throws GenericServiceException;
+    public abstract PrivateKey extractTemporaryPrivateKey(String id, String appKey, String activationId) throws GenericServiceException;
 
+    /**
+     * Fetch a temporary shared secret.
+     * @param id Temporary key ID.
+     * @param appKey Application key.
+     * @param activationId Activation ID.
+     * @return Temporary shared secret.
+     * @throws GenericServiceException In case of cryptography error.
+     */
+    public abstract SecretKey extractTemporarySharedSecret(String id, String appKey, String activationId) throws GenericServiceException;
+
+    /**
+     * Get the temporary private key, decrypt if required.
+     * @param id Key ID.
+     * @param appKey App key.
+     * @param activationId Activation ID.
+     * @return Temporary private key.
+     * @throws GenericServiceException In case some parameters did not match.
+     * @throws InvalidKeySpecException In case the private key could not be converted.
+     * @throws CryptoProviderException In case the crypto provider is not configured properly.
+     */
+    protected TemporaryKeyEntity fetchTemporaryKey(String id, String appKey, String activationId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException {
+        final Date currentTimestamp = new Date();
+        final Optional<TemporaryKeyEntity> temporaryKeyEntity = temporaryKeyRepository.findById(id);
+        if (temporaryKeyEntity.isEmpty()) {
+            logger.error("Missing temporary key pair with ID: {}", id);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
+        }
+        final TemporaryKeyEntity temporaryKey = temporaryKeyEntity.get();
+        if (temporaryKey.getTimestampExpires().before(currentTimestamp)) {
+            logger.error("Requesting expired temporary key pair with ID: {}", id);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
+        }
+        if (!Objects.equals(temporaryKey.getAppKey(), appKey) || !Objects.equals(temporaryKey.getActivationId(), activationId)) {
+            logger.error("Temporary key does not match request parameters, app key expected: {}, received: {}, activation ID expected: {}, received: {}",
+                    temporaryKey.getAppKey(), appKey,
+                    temporaryKey.getActivationId(), activationId);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
+        }
+        return temporaryKey;
+    }
 }

@@ -48,15 +48,14 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.TemporaryKeyResult;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifier16B;
-import com.wultra.security.powerauth.client.model.entity.TemporaryPublicKeyRequestClaims;
-import com.wultra.security.powerauth.client.model.entity.TemporaryPublicKeyResponseClaims;
+import com.wultra.security.powerauth.client.model.entity.v3.TemporaryPublicKeyRequestClaims;
+import com.wultra.security.powerauth.client.model.entity.v3.TemporaryPublicKeyResponseClaims;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -70,14 +69,13 @@ import java.text.ParseException;
 import java.util.*;
 
 /**
- * Service for handling temporary keys with EC curve P-256.
+ * Service for handling temporary keys with ECIES encryption on curve P-256.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
 @Slf4j
-@AllArgsConstructor
-public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
+public class TemporaryKeyServiceEcies extends TemporaryKeyService {
 
     private final ActivationRepository activationRepository;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -92,12 +90,25 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
+    public TemporaryKeyServiceEcies(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        super(localizationProvider, temporaryKeyRepository);
+        this.activationRepository = activationRepository;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.temporaryPrivateKeyConverter = temporaryPrivateKeyConverter;
+        this.temporaryKeyRepository = temporaryKeyRepository;
+        this.localizationProvider = localizationProvider;
+        this.applicationVersionRepository = applicationVersionRepository;
+        this.masterKeyPairRepository = masterKeyPairRepository;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
     /**
      * Request a temporary key.
      * @param jwt Temporary key request in JWT format.
      * @return Temporary key in JWT format.
      * @throws GenericServiceException In case of a cryptography error.
      */
+    @Override
     public String requestTemporaryKey(String jwt) throws GenericServiceException {
         try {
             final SignedJWT decodedJWT = SignedJWT.parse(jwt);
@@ -122,7 +133,8 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
             final Date currentTimestamp = new Date();
 
             // Generate new key and store it
-            final TemporaryPublicKeyResponseClaims responseClaims = generateAndStoreNewKey(requestClaims, currentTimestamp);
+            final KeyPair temporaryKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
+            final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, temporaryKeyPair);
 
             // Built and return the response claims
 
@@ -149,16 +161,16 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
         }
     }
 
-    /**
-     * Get the temporary private key, decrypt if required.
-     * @param id Key ID.
-     * @param appKey App key.
-     * @return Temporary private key.
-     * @throws GenericServiceException In case some parameters did not match.
-     */
-    public PrivateKey temporaryPrivateKey(String id, String appKey) throws GenericServiceException {
+    @Override
+    public PrivateKey extractTemporaryPrivateKey(String id, String appKey, String activationId) throws GenericServiceException {
         try {
-            return temporaryPrivateKey(id, appKey, null);
+            final TemporaryKeyEntity temporaryKey = fetchTemporaryKey(id, appKey, activationId);
+            final String serverPrivateKeyFromEntity = temporaryKey.getPrivateKeyBase64();
+            final EncryptionMode serverPrivateKeyEncryptionMode = temporaryKey.getPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
+            return KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
         } catch (InvalidKeySpecException e) {
             logger.error("Invalid key", e);
             // Rollback is not required, error occurs before writing to database
@@ -170,12 +182,27 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
         }
     }
 
-    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(SignedJWT source) throws ParseException {
+    @Override
+    public SecretKey extractTemporarySharedSecret(String id, String appKey, String activationId) throws GenericServiceException {
+        logger.error("Temporary shared secret extraction is not supported in cryptography protocol version 3");
+        // Rollback is not required, error occurs before writing to database
+        throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+    }
+
+    private TemporaryPublicKeyRequestClaims buildTemporaryKeyClaims(SignedJWT source) throws ParseException, GenericServiceException {
         final JWTClaimsSet jwtClaimsSet = source.getJWTClaimsSet();
         final TemporaryPublicKeyRequestClaims destination = new TemporaryPublicKeyRequestClaims();
-        destination.setApplicationKey(jwtClaimsSet.getStringClaim("applicationKey"));
-        destination.setActivationId(jwtClaimsSet.getStringClaim("activationId"));
-        destination.setChallenge(jwtClaimsSet.getStringClaim("challenge"));
+        final String applicationKey = jwtClaimsSet.getStringClaim("applicationKey");
+        final String activationId = jwtClaimsSet.getStringClaim("activationId");
+        final String challenge = jwtClaimsSet.getStringClaim("challenge");
+        if (applicationKey == null || challenge == null) {
+            logger.error("Temporary key request is invalid");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        destination.setApplicationKey(applicationKey);
+        destination.setActivationId(activationId);
+        destination.setChallenge(challenge);
         return destination;
     }
 
@@ -200,10 +227,69 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
                 .build();
     }
 
-    private TemporaryPublicKeyResponseClaims generateAndStoreNewKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp) throws CryptoProviderException, GenericServiceException {
 
-        // Generate a temporary key pair
-        final KeyPair temporaryKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
+
+    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
+        final String applicationKey = requestClaims.getApplicationKey();
+        if (applicationKey != null) {
+            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
+            if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final String applicationSecret = applicationVersionEntity.getApplicationSecret();
+            if (requestClaims.getActivationId() == null) {
+
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
+
+                final PrivateKey privateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
+
+                final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
+
+                final TemporaryKeyResult result = new TemporaryKeyResult();
+                result.setSecretKeyBytes(secretKeyBytes);
+                result.setPrivateKey(privateKey);
+                return result;
+            } else {
+
+                final Long appId = applicationVersionEntity.getApplication().getRid();
+
+                final Optional<ActivationRecordEntity> activationWithoutLock = activationRepository.findActivationWithoutLock(requestClaims.getActivationId());
+                if (activationWithoutLock.isEmpty()) {
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                }
+                final ActivationRecordEntity activation = activationWithoutLock.get();
+                if ((activation.getActivationStatus() != ActivationStatus.ACTIVE && activation.getActivationStatus() != ActivationStatus.BLOCKED)
+                        || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
+                        || !Objects.equals(appId, activation.getApplication().getRid())) {
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                }
+
+                final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
+                final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
+                final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
+                final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
+                final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
+                final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
+
+                final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+                final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
+                final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
+
+                final byte[] applicationSecretKeyBytes = Base64.getDecoder().decode(applicationSecret);
+                final SecretKey secretKey = KEY_GENERATOR.deriveSecretKeyHmac(transportKey, applicationSecretKeyBytes);
+                final byte[] secretKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(secretKey);
+
+                final TemporaryKeyResult result = new TemporaryKeyResult();
+                result.setSecretKeyBytes(secretKeyBytes);
+                result.setPrivateKey(serverPrivateKey);
+                return result;
+            }
+        } else {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+    }
+
+    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, KeyPair temporaryKeyPair) throws CryptoProviderException, GenericServiceException {
 
         // Prepare the parameters key pair
         final String keyId = UUID.randomUUID().toString();
@@ -231,6 +317,7 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
         temporaryKeyEntity.setPrivateKeyBase64(temporaryPrivateKey.serverPrivateKeyBase64());
         temporaryKeyEntity.setPublicKeyBase64(temporaryPublicKeyBase64);
         temporaryKeyEntity.setTimestampExpires(expirationDate);
+        temporaryKeyEntity.setSecretKeyEncryption(EncryptionMode.NO_ENCRYPTION);
         final TemporaryKeyEntity savedEntity = temporaryKeyRepository.save(temporaryKeyEntity);
 
         // Prepare and return the result
@@ -242,111 +329,6 @@ public class TemporaryKeyServiceEc256 implements TemporaryKeyService {
         result.setExpiration(savedEntity.getTimestampExpires());
         result.setChallenge(challenge);
         return result;
-    }
-
-    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
-        final String applicationKey = requestClaims.getApplicationKey();
-        if (applicationKey != null) {
-            final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
-            if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-            final String applicationSecret = applicationVersionEntity.getApplicationSecret();
-            if (requestClaims.getActivationId() == null) {
-
-                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
-
-                final PrivateKey privateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
-                final PublicKey publicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPublicBase64()));
-
-                final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
-
-                final TemporaryKeyResult result = new TemporaryKeyResult();
-                result.setSecretKeyBytes(secretKeyBytes);
-                result.setPrivateKey(privateKey);
-                result.setPublicKey(publicKey);
-                return result;
-            } else {
-
-                final Long appId = applicationVersionEntity.getApplication().getRid();
-
-                final Optional<ActivationRecordEntity> activationWithoutLock = activationRepository.findActivationWithoutLock(requestClaims.getActivationId());
-                if (activationWithoutLock.isEmpty()) {
-                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-                }
-                final ActivationRecordEntity activation = activationWithoutLock.get();
-                if ((activation.getActivationStatus() != ActivationStatus.ACTIVE && activation.getActivationStatus() != ActivationStatus.BLOCKED)
-                        || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
-                        || !Objects.equals(appId, activation.getApplication().getRid())) {
-                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-                }
-
-                final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
-                final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
-                final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
-                final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-                final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
-                final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
-
-                final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-                final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
-
-                final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-                final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
-                final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
-
-                final byte[] applicationSecretKeyBytes = Base64.getDecoder().decode(applicationSecret);
-                final SecretKey secretKey = KEY_GENERATOR.deriveSecretKeyHmac(transportKey, applicationSecretKeyBytes);
-                final byte[] secretKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(secretKey);
-
-                final TemporaryKeyResult result = new TemporaryKeyResult();
-                result.setSecretKeyBytes(secretKeyBytes);
-                result.setPrivateKey(serverPrivateKey);
-                result.setPublicKey(serverPublicKey);
-                return result;
-            }
-        } else {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-    }
-
-    /**
-     * Get the temporary private key, decrypt if required.
-     * @param id Key ID.
-     * @param appKey App key.
-     * @param activationId Activation ID.
-     * @return Temporary private key.
-     * @throws GenericServiceException In case some parameters did not match.
-     * @throws InvalidKeySpecException In case the private key could not be converted.
-     * @throws CryptoProviderException In case the crypto provider is not configured properly.
-     */
-    public PrivateKey temporaryPrivateKey(String id, String appKey, String activationId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException {
-        final Date currentTimestamp = new Date();
-        final Optional<TemporaryKeyEntity> temporaryKeyEntity = temporaryKeyRepository.findById(id);
-        if (temporaryKeyEntity.isEmpty()) {
-            logger.error("Missing temporary key pair with ID: {}", id);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
-        }
-        final TemporaryKeyEntity temporaryKey = temporaryKeyEntity.get();
-        if (temporaryKey.getTimestampExpires().before(currentTimestamp)) {
-            logger.error("Requesting expired temporary key pair with ID: {}", id);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
-        }
-        if (!Objects.equals(temporaryKey.getAppKey(), appKey) || !Objects.equals(temporaryKey.getActivationId(), activationId)) {
-            logger.error("Temporary key does not match request parameters, app key expected: {}, received: {}, activation ID expected: {}, received: {}",
-                    temporaryKey.getAppKey(), appKey,
-                    temporaryKey.getActivationId(), activationId);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_TEMPORARY_KEY);
-        }
-        final String serverPrivateKeyFromEntity = temporaryKey.getPrivateKeyBase64();
-        final EncryptionMode serverPrivateKeyEncryptionMode = temporaryKey.getPrivateKeyEncryption();
-        final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-        final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
-        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        return KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
     }
 
 }

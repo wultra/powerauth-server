@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
@@ -45,11 +45,11 @@ import java.util.function.Supplier;
 @Slf4j
 public class MasterPrivateKeysConverter {
 
-    private final EncryptionService encryptionService;
+    private final DatabaseEncryptionService encryptionService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public MasterPrivateKeysConverter(EncryptionService encryptionService, @Qualifier("privateKeyObjectMapper") ObjectMapper objectMapper) {
+    public MasterPrivateKeysConverter(DatabaseEncryptionService encryptionService, @Qualifier("privateKeyObjectMapper") ObjectMapper objectMapper) {
         this.encryptionService = encryptionService;
         this.objectMapper = objectMapper;
     }
@@ -67,8 +67,27 @@ public class MasterPrivateKeysConverter {
             final byte[] decrypted = encryptionService.decrypt(data, masterPrivateKeys.encryptionMode(), createEncryptionKeyProvider(applicationId));
             return deserialize(decrypted);
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn("Decryption failed", e);
             throw new GenericServiceException(ServiceError.DECRYPTION_FAILED, e.getMessage());
+        }
+    }
+
+    /**
+     * Convert master private keys to composite database value. Private key is encrypted
+     * in case master DB encryption key is configured in PA server configuration.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
+     * @param masterPrivateKeys Master private key registry.
+     * @param applicationId Application ID used for derivation of secret key.
+     * @return Private key as composite database value.
+     * @throws GenericServiceException Thrown when private keys encryption fails.
+     */
+    public PrivateKeys toDBValue(final PrivateKeyRegistry masterPrivateKeys, final String applicationId) throws GenericServiceException {
+        try {
+            return toDBValue(serialize(masterPrivateKeys), applicationId);
+        } catch (IOException e) {
+            logger.warn("Encryption failed", e);
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, e.getMessage());
         }
     }
 
@@ -82,7 +101,7 @@ public class MasterPrivateKeysConverter {
      * @return Private key as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    public PrivateKeys toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
+    PrivateKeys toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
         final EncryptableData encryptable = encryptionService.encrypt(masterPrivateKeysBytes, createEncryptionKeyProvider(applicationId));
         return new PrivateKeys(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
     }

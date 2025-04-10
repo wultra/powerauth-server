@@ -23,12 +23,11 @@ import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRe
 import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.EciesEncryptionBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.EncryptionBehaviorEcies;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EciesController {
 
-    private final EciesEncryptionBehavior service;
+    private final EncryptionBehaviorEcies service;
 
     /**
      * Create ECIES decryptor.

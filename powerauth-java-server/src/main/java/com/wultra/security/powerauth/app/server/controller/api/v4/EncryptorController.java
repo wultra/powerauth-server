@@ -21,14 +21,13 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.EciesEncryptionBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.EncryptionBehaviorAead;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controller managing the endpoints related to encryptor shared secret initialization.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RestController("encryptorControllerV4")
 @RequestMapping("/rest/v4/encryptor")
@@ -48,8 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class EncryptorController {
 
-    // TODO
-    private final EciesEncryptionBehavior service;
+    private final EncryptionBehaviorAead service;
 
     /**
      * Create AEAD encryptor.
@@ -61,11 +59,11 @@ public class EncryptorController {
     @PostMapping
     public ObjectResponse<ExtractEncryptorResponse> extractEncryptor(@Valid @RequestBody ObjectRequest<ExtractEncryptorRequest> request) throws Exception {
         final ExtractEncryptorRequest req = request.getRequestObject();
-        logger.info("action: getEncryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
-        logger.debug("action: getEncryptor, state: initiated, request: {}", request);
+        logger.info("action: extractEncryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.debug("action: extractEncryptor, state: initiated, request: {}", request);
         final ObjectResponse<ExtractEncryptorResponse> response = new ObjectResponse<>(service.extractEncryptor(req));
-        logger.info("action: getEncryptor, state: succeeded");
-        logger.debug("action: getEncryptor, state: succeeded, response: {}", response);
+        logger.info("action: extractEncryptor, state: succeeded");
+        logger.debug("action: extractEncryptor, state: succeeded, response: {}", response);
         return response;
     }
 

@@ -17,17 +17,19 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.crypto.v3;
+package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
+import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -41,15 +43,15 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorExc
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -57,26 +59,38 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
 import java.util.Date;
 
+/**
+ * Encryption service for AEAD (V4).
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @Service
 @Slf4j
-@AllArgsConstructor
-public class EncryptionServiceEc256 implements EncryptionService {
+public class EncryptionServiceAead extends EncryptionService {
 
-    private final MasterKeyPairRepository masterKeyPairRepository;
-    private final ReplayVerificationService replayVerificationService;
-    private final ApplicationVersionRepository applicationVersionRepository;
     private final LocalizationProvider localizationProvider;
-    private final TemporaryKeyServiceEc256 temporaryKeyService;
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ActivationQueryService activationQueryService;
+    private final TemporaryKeyServiceAead temporaryKeyService;
+    private final ReplayVerificationService replayVerificationService;
+    private final ServerPrivateKeysConverter serverPrivateKeysConverter;
+    private final PublicKeysConverter publicKeysConverter;
 
-    private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
+    private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
+    @Autowired
+    public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
+        super(localizationProvider, applicationVersionRepository, activationQueryService);
+        this.localizationProvider = localizationProvider;
+        this.temporaryKeyService = temporaryKeyService;
+        this.replayVerificationService = replayVerificationService;
+        this.serverPrivateKeysConverter = serverPrivateKeysConverter;
+        this.publicKeysConverter = publicKeysConverter;
+    }
+
+    @Override
     public DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException {
         try {
             // Validate encrypted request
@@ -89,27 +103,26 @@ public class EncryptionServiceEc256 implements EncryptionService {
             final ApplicationVersionEntity applicationVersion = findApplicationVersion(applicationKey);
             final ActivationRecordEntity activation = findActivation(activationId);
 
-            final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
+            final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
             final UniqueValueType uniqueValueType = switch (encryptorId) {
                 case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
                 case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN ->
                         UniqueValueType.ECIES_ACTIVATION_SCOPE;
             };
-            if (eciesRequest.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
+            if (aeadRequest.getTimestamp() != null) {
+                // Check AEAD request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         uniqueValueType,
-                        new Date(eciesRequest.getTimestamp()),
-                        eciesRequest.getEphemeralPublicKey(),
-                        eciesRequest.getNonce(),
-                        activation != null ? activation.getActivationId() : null,
+                        new Date(aeadRequest.getTimestamp()),
+                        null,
+                        aeadRequest.getNonce(),
+                        aeadRequest.getTemporaryKeyId(),
                         protocolVersion);
             }
-
             if (activation == null) {
-                return decryptInApplicationScope(eciesRequest, protocolVersion, applicationVersion, encryptorId);
+                return decryptInApplicationScope(aeadRequest, protocolVersion, applicationVersion, encryptorId);
             } else {
-                return decryptInActivationScope(eciesRequest, protocolVersion, applicationVersion, activation, encryptorId);
+                return decryptInActivationScope(aeadRequest, protocolVersion, applicationVersion, activation, encryptorId);
             }
         } catch (InvalidKeySpecException | InvalidKeyException e) {
             logger.error("Invalid key", e);
@@ -120,57 +133,43 @@ public class EncryptionServiceEc256 implements EncryptionService {
         }
     }
 
-    private DecryptionResult decryptInApplicationScope(EciesEncryptedRequest eciesRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException {
-        final PrivateKey privateKey;
-        if (eciesRequest.getTemporaryKeyId() != null) {
-            privateKey = temporaryKeyService.temporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey());
-        } else {
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationVersion.getApplication().getId());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            privateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(masterPrivateKeyBase64));
-        }
+    private DecryptionResult decryptInApplicationScope(AeadEncryptedRequest aeadRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException {
+        final SecretKey sharedSecret = temporaryKeyService.extractTemporarySharedSecret(aeadRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), null);
+        final byte[] sharedSecretBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(sharedSecret);
         final DecryptionResult decryptionResult = new DecryptionResult();
         decryptionResult.setServerEncryptor(ENCRYPTOR_FACTORY.getServerEncryptor(
                 encryptorId,
-                new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), null, eciesRequest.getTemporaryKeyId()),
-                new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret())
+                new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), null, aeadRequest.getTemporaryKeyId()),
+                new AeadSecrets(sharedSecretBytes, applicationVersion.getApplicationSecret())
         ));
         decryptionResult.setApplication(applicationVersion.getApplication());
         return decryptionResult;
     }
 
-    private DecryptionResult decryptInActivationScope(EciesEncryptedRequest eciesRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, ActivationRecordEntity activation, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException, GenericCryptoException, InvalidKeyException {
+    private DecryptionResult decryptInActivationScope(AeadEncryptedRequest aeadRequest, String protocolVersion, ApplicationVersionEntity applicationVersion, ActivationRecordEntity activation, EncryptorId encryptorId) throws GenericServiceException, InvalidKeySpecException, CryptoProviderException, EncryptorException, GenericCryptoException, InvalidKeyException {
         // Check that application key from request belongs to same application as activation ID from request
         if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
             logger.warn("Application version does not match, application key: {}", applicationVersion.getApplicationKey());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-        final PrivateKey privateKey;
-        final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-        final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-        final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-        final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-        final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
+        final SecretKey sharedSecret = temporaryKeyService.extractTemporarySharedSecret(aeadRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), activation.getActivationId());
 
-        // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-        final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-        final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyBytes);
+        final String serverPrivateKeys = activation.getServerPrivateKeys();
+        final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
+        final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
+        final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
+        final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+
+        final String devicePublicKeys = activation.getDevicePublicKeys();
+        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
+        final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+
+        // Get application secret and transport key used in sharedInfo2 parameter of AEAD secrets
+        // TODO - update sharedInfo2 calculation for crypto4 after server key factory is updated
         final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
         final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
 
-        if (eciesRequest.getTemporaryKeyId() != null) {
-            privateKey = temporaryKeyService.temporaryPrivateKey(eciesRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), activation.getActivationId());
-        } else {
-            privateKey = serverPrivateKey;
-        }
         final DecryptionResult decryptionResult;
         if (encryptorId == EncryptorId.VAULT_UNLOCK) {
             DecryptionResultVaultUnlock decryptionResultVaultUnlock = new DecryptionResultVaultUnlock();
@@ -182,33 +181,11 @@ public class EncryptionServiceEc256 implements EncryptionService {
         }
         decryptionResult.setServerEncryptor(ENCRYPTOR_FACTORY.getServerEncryptor(
                 encryptorId,
-                new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), eciesRequest.getTemporaryKeyId()),
-                new ServerEciesSecrets(privateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), aeadRequest.getTemporaryKeyId()),
+                new AeadSecrets(sharedSecret.getEncoded(), applicationVersion.getApplicationSecret(), transportKeyBytes)
         ));
         decryptionResult.setApplication(applicationVersion.getApplication());
         return decryptionResult;
-    }
-
-    private ApplicationVersionEntity findApplicationVersion(String applicationKey) throws GenericServiceException {
-        // Find application by application key
-        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-        if (applicationVersion == null || !applicationVersion.getSupported() || applicationVersion.getApplication() == null) {
-            logger.warn("Application version is incorrect, application key: {}", applicationKey);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-        }
-        return applicationVersion;
-    }
-
-    private ActivationRecordEntity findActivation(String activationId) throws GenericServiceException {
-        if (activationId == null) {
-            return null;
-        }
-        return activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
-            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        });
     }
 
 }

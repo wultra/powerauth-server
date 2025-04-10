@@ -19,8 +19,10 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v3;
 
+import com.wultra.security.powerauth.app.server.converter.MasterPrivateKeysConverter;
+import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -34,11 +36,6 @@ import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicK
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
-import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
-import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
-import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationVersion;
@@ -48,8 +45,8 @@ import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -68,15 +65,28 @@ import java.util.Date;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
-@AllArgsConstructor
 @Slf4j
-public class CryptographyServiceEc256 implements CryptographyService {
+public class CryptographyServiceEc256 extends CryptographyService {
 
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final TemporaryKeyServiceEc256 temporaryKeyService;
-    private final EncryptionServiceEc256 encryptionService;
+    private final MasterPrivateKeysConverter masterPrivateKeysConverter;
+    private final PublicKeysConverter publicKeysConverter;
+
+    @Autowired
+    public CryptographyServiceEc256(LocalizationProvider localizationProvider,
+                                    EncryptionServiceEcies encryptionService,
+                                    MasterKeyPairRepository masterKeyPairRepository,
+                                    LocalizationProvider localizationProvider1,
+                                    ServerPrivateKeyConverter serverPrivateKeyConverter, MasterPrivateKeysConverter masterPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
+        super(localizationProvider, encryptionService);
+        this.masterKeyPairRepository = masterKeyPairRepository;
+        this.localizationProvider = localizationProvider1;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.masterPrivateKeysConverter = masterPrivateKeysConverter;
+        this.publicKeysConverter = publicKeysConverter;
+    }
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
@@ -91,12 +101,26 @@ public class CryptographyServiceEc256 implements CryptographyService {
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
-            final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
+            // Key pairs for multiple algorithms are stored for the same entity
+            final PrivateKeyRegistry privateKeyRegistry;
+            final PublicKeyRegistry publicKeyRegistry;
+            MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            if (keyPair == null) {
+                keyPair = new MasterKeyPairEntity();
+                privateKeyRegistry = new PrivateKeyRegistry();
+                publicKeyRegistry = new PublicKeyRegistry();
+                keyPair.setTimestampCreated(new Date());
+                keyPair.setName(application.getId() + " Default Keypair");
+                // Store empty registries for V4
+                final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
+                keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
+                keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
+                final String masterPublicKeys = publicKeysConverter.toDBValue(publicKeyRegistry);
+                keyPair.setMasterPublicKeys(masterPublicKeys);
+            }
             keyPair.setApplication(application);
             keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
             keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
-            keyPair.setTimestampCreated(new Date());
-            keyPair.setName(application.getId() + " Default Keypair");
             masterKeyPairRepository.save(keyPair);
         } catch (CryptoProviderException e) {
             logger.error("Could not generate keypair", e);
@@ -157,7 +181,7 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public void generateDeviceKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
+    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             final KeyPair serverKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
 
@@ -177,7 +201,10 @@ public class CryptographyServiceEc256 implements CryptographyService {
     }
 
     @Override
-    public BasePublicKey convertDevicePublicKey(byte[] devicePublicKey) throws GenericServiceException {
+    public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA) {
+            throw new IllegalArgumentException("Unsupported key type: " + keyType);
+        }
         try {
             final PublicKey convertedPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKey);
             return EcPublicKey.builder().ecPublicKey(convertedPublicKey).build();
@@ -264,51 +291,6 @@ public class CryptographyServiceEc256 implements CryptographyService {
             logger.error("Could not verify signature", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
-    }
-
-    @Override
-    public DecryptionResult decryptRequest(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
-        try {
-            final DecryptionResult decryptionResult = encryptionService.decrypt(
-                    encryptedRequest,
-                    context.getProtocolVersion(),
-                    context.getApplicationKey(),
-                    context.getActivationId(),
-                    context.getEncryptorId(),
-                    true
-            );
-            final byte[] decrypted = decryptionResult.getServerEncryptor().decryptRequest(encryptedRequest);
-            decryptionResult.setDecryptedData(decrypted);
-            return decryptionResult;
-        } catch (EncryptorException e) {
-            logger.error("Decryption failed", e);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-    }
-
-    @Override
-    public EncryptorSecrets deriveSecrets(EncryptedRequest encryptedRequest, EncryptionContext context) throws GenericServiceException {
-        try {
-            final DecryptionResult decryptionResult = encryptionService.decrypt(
-                    encryptedRequest,
-                    context.getProtocolVersion(),
-                    context.getApplicationKey(),
-                    context.getActivationId(),
-                    context.getEncryptorId(),
-                    false
-            );
-            return decryptionResult.getServerEncryptor().deriveSecretsForExternalEncryptor(encryptedRequest);
-        } catch (EncryptorException e) {
-            logger.error("Decryption failed", e);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-    }
-
-    @Override
-    public String requestTemporaryKey(String jwt) throws GenericServiceException {
-        return temporaryKeyService.requestTemporaryKey(jwt);
     }
 
 }

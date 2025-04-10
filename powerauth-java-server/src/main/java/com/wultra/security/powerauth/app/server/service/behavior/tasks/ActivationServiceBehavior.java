@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseC
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -35,6 +36,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -49,7 +51,6 @@ import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
@@ -120,6 +121,7 @@ public class ActivationServiceBehavior {
     private final ApplicationRepository applicationRepository;
     private final ActivationRepository activationRepository;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final EncryptionServiceEcies encryptionService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -813,7 +815,7 @@ public class ActivationServiceBehavior {
             }
 
             // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateDeviceKeyPair(activation);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
@@ -901,7 +903,7 @@ public class ActivationServiceBehavior {
             // Decrypt activation data
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
             // TODO - v4 support
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
+            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final ApplicationEntity application = decryptionResult.getApplication();
 
             // Convert JSON data to activation layer 2 request object
@@ -957,7 +959,7 @@ public class ActivationServiceBehavior {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
@@ -1082,7 +1084,7 @@ public class ActivationServiceBehavior {
             // Decrypt activation data
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
             // TODO - v4 support
-            final DecryptionResult decryptionResult = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
+            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final ApplicationEntity application = decryptionResult.getApplication();
 
             // Prepare activation OTP mode
@@ -1137,7 +1139,7 @@ public class ActivationServiceBehavior {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);

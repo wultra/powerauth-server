@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -45,7 +46,6 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +77,7 @@ public class VaultUnlockServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final EncryptionServiceEcies encryptionService;
 
     // Helper classes
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
@@ -154,7 +155,7 @@ public class VaultUnlockServiceBehavior {
             // Decrypt request to obtain vault unlock reason
             // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(signatureVersion, applicationKey, activationId, EncryptorId.VAULT_UNLOCK);
-            final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).decryptRequest(encryptedRequest, context);
+            final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) encryptionService.decryptRequest(encryptedRequest, context);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload vaultUnlockRequest;

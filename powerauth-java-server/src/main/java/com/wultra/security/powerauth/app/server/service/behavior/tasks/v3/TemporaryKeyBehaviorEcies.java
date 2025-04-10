@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,64 +14,52 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.app.server.database.repository.TemporaryKeyRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.TemporaryKeyServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.persistence.TemporaryKeyPersistenceService;
 import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTemporaryPublicKeyResponse;
 import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-
 /**
- * Behavior class implementing the temporary key request related processes.
+ * Behavior class implementing the temporary key request related processes using ECIES encryption.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strob@wultra.com
  */
 @Service
 @Slf4j
 @AllArgsConstructor
-public class TemporaryKeyBehavior {
+public class TemporaryKeyBehaviorEcies {
 
-    private final TemporaryKeyRepository temporaryKeyRepository;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final TemporaryKeyPersistenceService temporaryKeyPersistenceService;
+    private final TemporaryKeyServiceEcies temporaryKeyServiceEcies;
 
     @Transactional
     public TemporaryPublicKeyResponse requestTemporaryKey(TemporaryPublicKeyRequest request) throws GenericServiceException {
-        final String jwt = request.getJwt();
-        // TODO - v4 support
-        final String signedJwt = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).requestTemporaryKey(jwt);
-
-        final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
-        response.setJwt(signedJwt);
-        return response;
+            final String jwt = request.getJwt();
+            final String signedJwt = temporaryKeyServiceEcies.requestTemporaryKey(jwt);
+            final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
+            response.setJwt(signedJwt);
+            return response;
     }
 
     @Transactional
     public RemoveTemporaryPublicKeyResponse removeTemporaryKey(RemoveTemporaryPublicKeyRequest requestObject) {
-        temporaryKeyRepository.deleteById(requestObject.getId());
+        temporaryKeyPersistenceService.removeTemporaryKey(requestObject.getId());
         final RemoveTemporaryPublicKeyResponse response = new RemoveTemporaryPublicKeyResponse();
         response.setRemoved(true);
         response.setId(requestObject.getId());
         return response;
-    }
-
-    // Tasks for scheduling
-    @Transactional
-    public void expireTemporaryKeys() {
-        final Date currentTimestamp = new Date();
-        final int expiredCount = temporaryKeyRepository.deleteExpiredKeys(currentTimestamp);
-        logger.debug("Removed {} expired temporary keys", expiredCount);
     }
 
 }

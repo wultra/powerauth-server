@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
@@ -45,18 +45,18 @@ import java.util.function.Supplier;
 @Slf4j
 public class ServerPrivateKeysConverter {
 
-    private final EncryptionService encryptionService;
+    private final DatabaseEncryptionService encryptionService;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public ServerPrivateKeysConverter(EncryptionService encryptionService, @Qualifier("privateKeyObjectMapper") ObjectMapper objectMapper) {
+    public ServerPrivateKeysConverter(DatabaseEncryptionService encryptionService, @Qualifier("privateKeyObjectMapper") ObjectMapper objectMapper) {
         this.encryptionService = encryptionService;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * Convert private keys from composite database value to object.
-     * @param privateKeys Private keys composite database value for private keys and encryption mode.
+     * Convert server private keys from composite database value to object.
+     * @param privateKeys Server private keys composite database value for private keys and encryption mode.
      * @param userId User ID used for derivation of secret key.
      * @param activationId Activation ID used for derivation of secret key.
      * @return Decrypted private keys.
@@ -68,8 +68,28 @@ public class ServerPrivateKeysConverter {
             final byte[] decrypted = encryptionService.decrypt(data, privateKeys.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
             return deserialize(decrypted);
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn("Decryption failed", e);
             throw new GenericServiceException(ServiceError.DECRYPTION_FAILED, e.getMessage());
+        }
+    }
+
+    /**
+     * Convert private keys to composite database value. Private keys are encrypted
+     * in case master DB encryption key is configured in PA server configuration.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
+     * @param serverPrivateKeys Server private key registry.
+     * @param userId User ID used for derivation of secret key.
+     * @param activationId Activation ID used for derivation of secret key.
+     * @return Private keys as composite database value.
+     * @throws GenericServiceException Thrown when private keys encryption fails.
+     */
+    public PrivateKeys toDBValue(final PrivateKeyRegistry serverPrivateKeys, final String userId, final String activationId) throws GenericServiceException {
+        try {
+            return toDBValue(serialize(serverPrivateKeys), userId, activationId);
+        } catch (IOException e) {
+            logger.warn("Encryption failed", e);
+            throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, e.getMessage());
         }
     }
 
@@ -84,7 +104,7 @@ public class ServerPrivateKeysConverter {
      * @return Private keys as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    public PrivateKeys toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
+    PrivateKeys toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
         final EncryptableData encryptable = encryptionService.encrypt(privateKeysBytes, createEncryptionKeyProvider(userId, activationId));
         return new PrivateKeys(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
     }
