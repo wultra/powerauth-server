@@ -160,6 +160,9 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P384 && keyType != KeyType.MLDSA_65) {
+            throw new IllegalArgumentException("Unsupported key type: " + keyType);
+        }
         try {
             switch (keyType) {
                 case ECDSA_P384 -> {
