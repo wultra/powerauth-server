@@ -45,7 +45,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,7 +54,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Date;
 
 /**
  * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65.
@@ -90,50 +88,34 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
-            // Generate P-384 key pair
-            final KeyPair kp384 = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
-            final PrivateKey privateKey = kp384.getPrivate();
-            final PublicKey publicKey = kp384.getPublic();
-
             // Generate PQC key pair
             final KeyPair kpPqcDsa = PQC_DSA.generateKeyPair();
             final PrivateKey privateKeyPqcDsa = kpPqcDsa.getPrivate();
             final PublicKey publicKeyPqcDsa = kpPqcDsa.getPublic();
 
-            // Key pairs for multiple algorithms are stored for the same entity
+            // Key pairs for multiple algorithms are stored for the same entity in order:
+            // 1. EC_P256 (ECDSA keypair)
+            // 2. EC_P384 (ECDSA keypair)
+            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
             MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
-            final PrivateKeyRegistry privateKeyRegistry;
-            final PublicKeyRegistry publicKeyRegistry;
             if (keyPair == null) {
-                keyPair = new MasterKeyPairEntity();
-                privateKeyRegistry = new PrivateKeyRegistry();
-                publicKeyRegistry = new PublicKeyRegistry();
-                // Store empty values for v3
-                keyPair.setMasterKeyPrivateBase64("");
-                keyPair.setMasterKeyPublicBase64("");
-                keyPair.setApplication(application);
-                keyPair.setName(application.getId() + " Default Keypair");
-                keyPair.setTimestampCreated(new Date());
-            } else {
-                final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
-                privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
-                publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
+                logger.error("Key pair generation called in invalid order");
+                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             }
+            final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
+            final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
+            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
 
-            // Store private and public keys for EC curve P-384 in JSON format
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, privateKey);
-            privateKeyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, privateKeyPqcDsa);
+            // Store private and public keys for ML-DSA in JSON format
+            privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, privateKeyPqcDsa);
             final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
             keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
             keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, publicKey);
-            publicKeyRegistry.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, publicKeyPqcDsa);
+            publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, publicKeyPqcDsa);
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
-
             masterKeyPairRepository.save(keyPair);
-        } catch (CryptoProviderException | GenericCryptoException e) {
+        } catch (GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
@@ -159,14 +141,14 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
             // Store server public key in JSON format
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
-            serverPublicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, serverKeyPairEc.getPublic());
-            serverPublicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, serverKeyPairPqc.getPublic());
+            serverPublicKeys.storePublicKey(KeyType.ECDSA_P384, serverKeyPairEc.getPublic());
+            serverPublicKeys.storePublicKey(KeyType.MLDSA_65, serverKeyPairPqc.getPublic());
             activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
 
             // Store server private key in JSON format
             final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
-            serverPrivateKeys.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, serverKeyPairEc.getPrivate());
-            serverPrivateKeys.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, serverKeyPairPqc.getPrivate());
+            serverPrivateKeys.storePrivateKey(KeyType.ECDSA_P384, serverKeyPairEc.getPrivate());
+            serverPrivateKeys.storePrivateKey(KeyType.MLDSA_65, serverKeyPairPqc.getPrivate());
             final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
             activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
             activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
@@ -180,14 +162,15 @@ public class CryptographyServiceHybrid extends CryptographyService {
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
         try {
             switch (keyType) {
-                case ECDSA -> {
+                case ECDSA_P384 -> {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, devicePublicKey);
                     return EcPublicKey.builder().ecPublicKey(convertedPublicKey).build();
                 }
-                case MLDSA -> {
+                case MLDSA_65 -> {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(devicePublicKey);
                     return PqcPublicKey.builder().pqcPublicKey(convertedPublicKey).build();
                 }
+                default -> throw new IllegalArgumentException("Unsupported key type: " + keyType);
             }
         } catch (InvalidKeySpecException e) {
             logger.error("Invalid device public key", e);
@@ -196,7 +179,6 @@ public class CryptographyServiceHybrid extends CryptographyService {
             logger.error("Key conversion failed", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
-        return null;
     }
 
     @Override
@@ -210,7 +192,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             } else {
                 publicKeys = new PublicKeyRegistry();
             }
-            publicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, ecPublicKey);
+            publicKeys.storePublicKey(KeyType.ECDSA_P384, ecPublicKey);
             activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
             return;
         }
@@ -222,7 +204,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             } else {
                 publicKeys = new PublicKeyRegistry();
             }
-            publicKeys.storePublicKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, pqcPublicKey);
+            publicKeys.storePublicKey(KeyType.MLDSA_65, pqcPublicKey);
             activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
             return;
         }

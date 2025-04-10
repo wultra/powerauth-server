@@ -67,7 +67,6 @@ import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadE
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextHybrid;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
@@ -94,7 +93,6 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
@@ -176,7 +174,7 @@ class TemporaryKeyBehaviorTest {
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
         final String masterPublicKeys = masterKeyPair.getMasterPublicKeys();
         final PublicKeyRegistry publicKeys = publicKeysConverter.fromDBValue(masterPublicKeys);
-        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
 
         assertTrue(validateJwtSignature(decodedJWT, masterPublicKeyEc384));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
@@ -203,7 +201,7 @@ class TemporaryKeyBehaviorTest {
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
         final String masterPublicKeys = masterKeyPair.getMasterPublicKeys();
         final PublicKeyRegistry publicKeys = publicKeysConverter.fromDBValue(masterPublicKeys);
-        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
 
         // TODO - validate Dilithium signature after it is available
         assertTrue(validateJwtSignature(decodedJWT, masterPublicKeyEc384));
@@ -394,7 +392,7 @@ class TemporaryKeyBehaviorTest {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
         final String serverPublicKeys = activation.getServerPublicKeys();
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-        return publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        return publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
     private SecretKey getMasterTransportKey(String activationId) throws Exception {
@@ -405,11 +403,11 @@ class TemporaryKeyBehaviorTest {
         final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
         final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
         final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
-        final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> new IllegalStateException("Missing private key"));
+        final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing private key"));
 
         final String devicePublicKeys = activation.getDevicePublicKeys();
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
-        final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(SharedSecretAlgorithm.EC_P384, KeyType.ECDSA).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
         // TODO - switch to a key derived with KMAC-256 after activation is implemented
         final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
 

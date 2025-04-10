@@ -32,9 +32,9 @@ import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcKeyPair;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -101,23 +101,26 @@ public class CryptographyServiceEc256 extends CryptographyService {
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
-            // Key pairs for multiple algorithms are stored for the same entity
-            final PrivateKeyRegistry privateKeyRegistry;
-            final PublicKeyRegistry publicKeyRegistry;
+            // Key pairs for multiple algorithms are stored for the same entity in order:
+            // 1. EC_P256 (ECDSA keypair)
+            // 2. EC_P384 (ECDSA keypair)
+            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
             MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
-            if (keyPair == null) {
-                keyPair = new MasterKeyPairEntity();
-                privateKeyRegistry = new PrivateKeyRegistry();
-                publicKeyRegistry = new PublicKeyRegistry();
-                keyPair.setTimestampCreated(new Date());
-                keyPair.setName(application.getId() + " Default Keypair");
-                // Store empty registries for V4
-                final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
-                keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-                keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-                final String masterPublicKeys = publicKeysConverter.toDBValue(publicKeyRegistry);
-                keyPair.setMasterPublicKeys(masterPublicKeys);
+            if (keyPair != null) {
+                logger.error("Key pair generation called in invalid order");
+                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             }
+            keyPair = new MasterKeyPairEntity();
+            final PrivateKeyRegistry privateKeyRegistry = new PrivateKeyRegistry();
+            final PublicKeyRegistry publicKeyRegistry = new PublicKeyRegistry();
+            keyPair.setTimestampCreated(new Date());
+            keyPair.setName(application.getId() + " Default Keypair");
+            // Store empty registries for V4
+            final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
+            keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
+            keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
+            final String masterPublicKeys = publicKeysConverter.toDBValue(publicKeyRegistry);
+            keyPair.setMasterPublicKeys(masterPublicKeys);
             keyPair.setApplication(application);
             keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
             keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
@@ -202,7 +205,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
 
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
-        if (keyType != KeyType.ECDSA) {
+        if (keyType != KeyType.ECDSA_P256) {
             throw new IllegalArgumentException("Unsupported key type: " + keyType);
         }
         try {

@@ -26,7 +26,6 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,8 +50,8 @@ class MasterPrivateKeysConverterTest {
     private static final String ECDSA_PRIVATE_KEY = "APEKs9JvvLiNMOYoP9AB/ysrqa3NvTjGz5zdEZu0j2MjKxMyKKoTWtOtUHt6AfBAZg==";
     private static final String MLDSA_PRIVATE_KEY = "MDICAQAwCwYJYIZIAWUDBAMSBCDjgy6AIFJt1eRaBN8FVmwaSQTtyMnFzcRJ5tCh8M+6SA==";
 
-    private static final String MASTER_PRIVATE_KEYS_JSON = "{\"privateKeys\":{\"EC_P384_ML_L3\":{\"ECDSA\":\"" + ECDSA_PRIVATE_KEY + "\",\"MLDSA\":\"" + MLDSA_PRIVATE_KEY + "\"}}}";
-    private static final String MASTER_PRIVATE_KEYS_ENCRYPTED = "j535AIE/smRhCbeZF8Xw40tim+7MbvWB8U6ITNIInYyHjN/Jq8blsaVfDc4CP5RPnfzzQHqJnqTqgd6qcQvJQFLIG8J6dwfx5RhY28vB/uSzMwAV8v1kF27I7yelVmIw6lFFFo0ctvbluVYelDFxdqZ3ng1DiJ6DuGLbPequSMbf1YjjLLoi8FbwUIKMLqqZeB8HqxEbdsA98DIYomAVXU9UsEOIUr4lOq2YnaCJIsrrFBlYXZyzFj01KaNvm94qLLNlgRe8Vbu5/5ro8/fNTOFID6BfuwKR7Am7R3Y7tow=";
+    private static final String MASTER_PRIVATE_KEYS_JSON = "{\"privateKeys\":{\"ECDSA_P384\":\"" + ECDSA_PRIVATE_KEY + "\",\"MLDSA_65\":\"" + MLDSA_PRIVATE_KEY + "\"}}";
+    private static final String MASTER_PRIVATE_KEYS_ENCRYPTED = "FS5fGCes4T7aiT2yCMVU49VNPuZk5uYrCKHrV/rcn6rsQCJN0e5IGvUzEiREEZ8I0LWppa5T/pqAD2KTbbc3wylUgQ30WPA6smBjecpoxq0RynVtZKnCVIGqSTQiUPt2KPcIs+QNOXJfAPUCF2pQBjeLBEPK5/vFaBqagnc3qO04BND1VKWYgdBsYAtQtbaAGWgGApJE/fE37ahykenGqT20plPvGu+OX3mqkdnrq0Sa28ZNeQeK8eVSVmPOgQ0zafMmMXFzN+1uxbPHxdwJ4w==";
 
     private static final String APPLICATION_ID = "test";
 
@@ -66,17 +65,17 @@ class MasterPrivateKeysConverterTest {
     void testFromDbValueNoEncryption() throws Exception {
         final PrivateKeyRegistry keyRegistry = new PrivateKeyRegistry();
         final PrivateKey ecdsaPrivateKey = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
-        keyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA, ecdsaPrivateKey);
+        keyRegistry.storePrivateKey(KeyType.ECDSA_P384, ecdsaPrivateKey);
         final PrivateKey mlDsaPrivateKey = KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(Base64.getDecoder().decode(MLDSA_PRIVATE_KEY));
-        keyRegistry.storePrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA, mlDsaPrivateKey);
+        keyRegistry.storePrivateKey(KeyType.MLDSA_65, mlDsaPrivateKey);
         final byte[] keyRegistryBytes = privateKeysConverter.serialize(keyRegistry);
         final String keyRegistryBase64 = Base64.getEncoder().encodeToString(keyRegistryBytes);
         final PrivateKeys privateKeysEncrypted = new PrivateKeys(EncryptionMode.NO_ENCRYPTION, keyRegistryBase64);
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, APPLICATION_ID);
-        final Optional<PrivateKey> ecdsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA);
+        final Optional<PrivateKey> ecdsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384);
         assertFalse(ecdsaPrivateKeyActual.isEmpty());
         final byte[] ecdsaPrivateKeyActualBytes = KEY_CONVERTOR_EC.convertPrivateKeyToBytes(ecdsaPrivateKeyActual.get());
-        final Optional<PrivateKey> mlDsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA);
+        final Optional<PrivateKey> mlDsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(KeyType.MLDSA_65);
         assertFalse(mlDsaPrivateKeyActual.isEmpty());
         final byte[] mlDsaPrivateKeyActualBytes = KEY_CONVERTOR_PQC_DSA.convertPrivateKeyToBytes(mlDsaPrivateKeyActual.get());
         assertEquals(ECDSA_PRIVATE_KEY, Base64.getEncoder().encodeToString(ecdsaPrivateKeyActualBytes));
@@ -91,9 +90,9 @@ class MasterPrivateKeysConverterTest {
         assertNotEquals(MASTER_PRIVATE_KEYS_JSON, privateKeysEncrypted.privateKeysBase64());
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, APPLICATION_ID);
         final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
-        assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA).get());
+        assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384).get());
         final PrivateKey privateKeyPqcExpected = KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(Base64.getDecoder().decode(MLDSA_PRIVATE_KEY));
-        assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA).get());
+        assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.MLDSA_65).get());
     }
 
     @Test
@@ -102,9 +101,9 @@ class MasterPrivateKeysConverterTest {
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, APPLICATION_ID);
         assertArrayEquals(MASTER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8), privateKeysConverter.serialize(serverPrivateKeysActual));
         final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
-        assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.ECDSA).get());
+        assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384).get());
         final PrivateKey privateKeyPqcExpected = KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(Base64.getDecoder().decode(MLDSA_PRIVATE_KEY));
-        assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(SharedSecretAlgorithm.EC_P384_ML_L3, KeyType.MLDSA).get());
+        assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.MLDSA_65).get());
     }
 
     @Test

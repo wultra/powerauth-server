@@ -25,18 +25,8 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
-import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
-import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
-import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -44,13 +34,23 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -196,7 +196,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // TODO - v4 support
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA, devicePublicKeyBytes);
+                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA_P256, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
