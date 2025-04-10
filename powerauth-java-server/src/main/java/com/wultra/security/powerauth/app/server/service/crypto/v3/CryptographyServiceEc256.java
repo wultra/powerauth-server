@@ -105,16 +105,14 @@ public class CryptographyServiceEc256 extends CryptographyService {
             // 1. EC_P256 (ECDSA keypair)
             // 2. EC_P384 (ECDSA keypair)
             // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
-            final PrivateKeyRegistry privateKeyRegistry;
-            final PublicKeyRegistry publicKeyRegistry;
             MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             if (keyPair != null) {
                 logger.error("Key pair generation called in invalid order");
                 throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             }
             keyPair = new MasterKeyPairEntity();
-            privateKeyRegistry = new PrivateKeyRegistry();
-            publicKeyRegistry = new PublicKeyRegistry();
+            final PrivateKeyRegistry privateKeyRegistry = new PrivateKeyRegistry();
+            final PublicKeyRegistry publicKeyRegistry = new PublicKeyRegistry();
             keyPair.setMasterPrivateKeysEncryption(EncryptionMode.NO_ENCRYPTION);
             keyPair.setTimestampCreated(new Date());
             keyPair.setName(application.getId() + " Default Keypair");
