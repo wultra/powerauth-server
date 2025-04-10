@@ -109,7 +109,6 @@ public class CryptographyServiceEc256 extends CryptographyService {
                 keyPair = new MasterKeyPairEntity();
                 privateKeyRegistry = new PrivateKeyRegistry();
                 publicKeyRegistry = new PublicKeyRegistry();
-                keyPair.setMasterPrivateKeysEncryption(EncryptionMode.NO_ENCRYPTION);
                 keyPair.setTimestampCreated(new Date());
                 keyPair.setName(application.getId() + " Default Keypair");
                 // Store empty registries for V4
