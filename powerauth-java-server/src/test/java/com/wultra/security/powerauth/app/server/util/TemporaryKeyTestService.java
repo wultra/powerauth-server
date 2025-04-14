@@ -25,6 +25,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.TemporaryKeyBehaviorAead;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
@@ -32,6 +33,8 @@ import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyRes
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -46,9 +49,12 @@ import org.bouncycastle.asn1.DLSequence;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -69,7 +75,18 @@ public class TemporaryKeyTestService {
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
 
-    public SignedJWT fetchTemporaryKey(RequestCryptogram requestCryptogram, ApplicationVersion applicationVersion) throws Exception {
+    /**
+     * Fetch a temporary key.
+     *
+     * @param requestCryptogram Request cryptogram for AEAD client request.
+     * @param applicationVersion Application version.
+     * @return SignedJWT object containing information about temporary key.
+     * @throws GenericServiceException Thrown in case of a business logic error.
+     * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
+     * @throws GenericCryptoException Thrown in case of a cryptography error.
+     * @throws ParseException Thrown in case of invalid response from server.
+     */
+    public SignedJWT fetchTemporaryKey(RequestCryptogram requestCryptogram, ApplicationVersion applicationVersion) throws GenericServiceException, CryptoProviderException, GenericCryptoException, ParseException {
         final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
         final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationVersion.getApplicationSecret());
@@ -80,7 +97,20 @@ public class TemporaryKeyTestService {
         return SignedJWT.parse(response.getJwt());
     }
 
-    public String createJwtRequest(EncryptorScope scope, String applicationKey, String activationId, String challenge, SecretKey secretKey, RequestCryptogram requestCryptogram) throws Exception {
+    /**
+     * Create a JWT request for temporary key.
+     *
+     * @param scope Encryptor scope.
+     * @param applicationKey Application key.
+     * @param activationId Activation identifier.
+     * @param challenge Request challenge.
+     * @param secretKey Secret key for signing key derivation.
+     * @param requestCryptogram Request cryptogram for AEAD client request.
+     * @return Response JWT.
+     * @throws GenericCryptoException Thrown in case of a cryptography error.
+     * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
+     */
+    public String createJwtRequest(EncryptorScope scope, String applicationKey, String activationId, String challenge, SecretKey secretKey, RequestCryptogram requestCryptogram) throws GenericCryptoException, CryptoProviderException {
         final Instant now = Instant.now();
         final JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .claim("applicationKey", applicationKey)
@@ -106,7 +136,15 @@ public class TemporaryKeyTestService {
         return signJwt(jwtClaims, signingKey);
     }
 
-    public byte[] deriveSigningKey(EncryptorScope scope, SecretKey sourceKey) throws Exception {
+    /**
+     * Derive signing key from the source key.
+     *
+     * @param scope Encryptor scope.
+     * @param sourceKey Source key.
+     * @return Derived signing key.
+     * @throws GenericCryptoException Thrown in case of a cryptography error.
+     */
+    public byte[] deriveSigningKey(EncryptorScope scope, SecretKey sourceKey) throws GenericCryptoException {
         return switch (scope) {
             case APPLICATION_SCOPE -> {
                 final SecretKey secretKey = KeyFactory.deriveKeyMacGetAppTempKey(sourceKey);
@@ -119,18 +157,38 @@ public class TemporaryKeyTestService {
         };
     }
 
-    public String signJwt(JWTClaimsSet jwtClaims, byte[] secretKey) throws Exception {
+    /**
+     * Sign a JWT request.
+     *
+     * @param jwtClaims JWT claims
+     * @param signingKey Secret key used for signing.
+     * @return JWT payload with signature.
+     * @throws GenericCryptoException Thrown in case of a cryptography error.
+     * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
+     */
+    public String signJwt(JWTClaimsSet jwtClaims, byte[] signingKey) throws GenericCryptoException, CryptoProviderException {
         final JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
         final byte[] payloadBytes = jwtClaims.toPayload().toBytes();
         final Base64URL encodedHeader = jwsHeader.toBase64URL();
         final Base64URL encodedPayload = Base64URL.encode(payloadBytes);
         final String signingInput = encodedHeader + "." + encodedPayload;
-        final byte[] hash = new HMACHashUtilities().hash(secretKey, signingInput.getBytes(StandardCharsets.UTF_8));
+        final byte[] hash = new HMACHashUtilities().hash(signingKey, signingInput.getBytes(StandardCharsets.UTF_8));
         final Base64URL signature = Base64URL.encode(hash);
         return encodedHeader + "." + encodedPayload + "." + signature;
     }
 
-    public boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws Exception {
+    /**
+     * Validate a JWT signature.
+     *
+     * @param jwt Signed JWT.
+     * @param publicKey Public key to use for signature verification.
+     * @return Whether signature is valid.
+     * @throws IOException Thrown in case of a conversion error.
+     * @throws GenericCryptoException Thrown in case of a cryptography error.
+     * @throws InvalidKeyException Thrown in case the public key is invalid.
+     * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
+     */
+    public boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws IOException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
         final Base64URL[] jwtParts = jwt.getParsedParts();
         final Base64URL encodedHeader = jwtParts[0];
         final Base64URL encodedPayload = jwtParts[1];
@@ -140,7 +198,14 @@ public class TemporaryKeyTestService {
         return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
     }
 
-    private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws Exception {
+    /**
+     * Convert raw signature to DER format.
+     *
+     * @param rawSignature Raw signature.
+     * @return Signature in DER format.
+     * @throws IOException Thrown in case of a conversion error.
+     */
+    private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws IOException {
         if (rawSignature.length % 2 != 0) {
             throw new IllegalArgumentException("Invalid ECDSA signature format");
         }
