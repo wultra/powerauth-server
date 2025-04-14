@@ -17,20 +17,19 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.client.model.entity.v4.response;
 
 import lombok.Data;
 
 /**
- * Model class for shared secret request.
+ * Model class for device public keys.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class SharedSecretRequest {
+public class ServerPublicKeys {
 
-    private String algorithm;
-    private String ecdhe;
-    private String mlkem;
+    private String ecdsa;
+    private String mldsa;
 
 }

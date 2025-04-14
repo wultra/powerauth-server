@@ -17,19 +17,26 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.app.server.service.model.crypto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+
+import java.security.KeyPair;
 
 /**
- * Model class for shared secret response.
+ * PQC key pair wrapper.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class SharedSecretResponse {
+@EqualsAndHashCode(callSuper = true)
+@SuperBuilder
+public class PqcKeyPair extends BaseKeyPair {
 
-    private String ecdhe;
-    private String mlkem;
-    
+    @ToString.Exclude
+    private KeyPair pqcKeyPair;
+
 }

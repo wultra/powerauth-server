@@ -132,7 +132,11 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
+    public BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P256) {
+            logger.error("Unsupported key type in master keypair request: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
         final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             logger.error("Missing key pair for application ID: {}", application.getId());
@@ -158,7 +162,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
+    public SecretKey deriveSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
         try {
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -206,7 +210,8 @@ public class CryptographyServiceEc256 extends CryptographyService {
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
         if (keyType != KeyType.ECDSA_P256) {
-            throw new IllegalArgumentException("Unsupported key type: " + keyType);
+            logger.error("Unsupported key type in device public key conversion: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
             final PublicKey convertedPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKey);
@@ -250,9 +255,13 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException {
+    public byte[] generateSignatureForApplication(KeyType keyType, byte[] data, ApplicationEntity application) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P256) {
+            logger.error("Unsupported key type in application signature: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
         try {
-            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(application);
+            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(keyType, application);
             return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, data, keyPair.getEcKeyPair().getPrivate());
         } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
             logger.error("Invalid keypair", e);
@@ -261,7 +270,11 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
+    public byte[] generateSignatureForActivation(KeyType keyType, byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P256) {
+            logger.error("Unsupported key type in activation signature: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
         try {
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -282,7 +295,11 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
+    public boolean verifySignatureForActivation(KeyType keyType, byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P256) {
+            logger.error("Unsupported key type in signature verification: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
         try {
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, devicePublicKeyData);

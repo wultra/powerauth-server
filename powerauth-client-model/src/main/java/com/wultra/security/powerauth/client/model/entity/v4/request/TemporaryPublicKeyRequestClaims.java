@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,17 +14,18 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v3;
+package com.wultra.security.powerauth.client.model.entity.v4.request;
 
 import lombok.Data;
 import lombok.ToString;
 
 /**
- * Class used for holding the request claims (V3).
+ * Class used for holding the request claims (V4).
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
 public class TemporaryPublicKeyRequestClaims {
@@ -33,5 +34,6 @@ public class TemporaryPublicKeyRequestClaims {
     private String activationId;
     @ToString.Exclude
     private String challenge;
+    private SharedSecretRequest sharedSecretRequest;
 
 }

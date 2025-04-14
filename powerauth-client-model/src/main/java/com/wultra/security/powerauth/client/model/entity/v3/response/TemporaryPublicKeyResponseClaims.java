@@ -17,23 +17,27 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.client.model.entity.v3.response;
 
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.Date;
+
 /**
- * Class used for holding the request claims (V4).
+ * Class for holding the temporary key response claims (V3).
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class TemporaryPublicKeyRequestClaims {
+public class TemporaryPublicKeyResponseClaims {
 
     private String applicationKey;
     private String activationId;
     @ToString.Exclude
     private String challenge;
-    private SharedSecretRequest sharedSecretRequest;
+    private String keyId;
+    private String publicKey;
+    private Date expiration;
 
 }

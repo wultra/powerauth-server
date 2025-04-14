@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.impl.ECDSA;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
@@ -88,7 +89,7 @@ public class AsymmetricSignatureServiceBehavior {
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
             // TODO - v4 support
-            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(dataRaw, activation);
+            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(KeyType.ECDSA_P256, dataRaw, activation);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
             final SignECDSAResponse response = new SignECDSAResponse();
@@ -142,7 +143,7 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
             // TODO - v4 support
-            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(dataBytes, signatureBytesDER, activation);
+            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)

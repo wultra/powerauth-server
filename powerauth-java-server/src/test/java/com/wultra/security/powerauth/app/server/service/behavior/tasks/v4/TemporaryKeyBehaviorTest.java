@@ -19,31 +19,24 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
+import com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response;
+import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
+import com.wultra.security.powerauth.app.server.util.TemporaryKeyTestService;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.entity.v4.SharedSecretRequest;
-import com.wultra.security.powerauth.client.model.entity.v4.SharedSecretResponse;
+import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
+import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
+import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
@@ -58,15 +51,18 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
-import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecretClientContext;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextHybrid;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
@@ -74,10 +70,8 @@ import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretRe
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretResponseHybrid;
 import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretHybrid;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.DLSequence;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -85,15 +79,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
@@ -110,10 +101,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class TemporaryKeyBehaviorTest {
 
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
-    private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+    private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
+    private static final PqcDsa PQC_DSA = new PqcDsa();
+    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
-    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     private static final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
     private static final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
@@ -121,22 +112,21 @@ class TemporaryKeyBehaviorTest {
     private final TemporaryKeyBehaviorAead temporaryKeyBehavior;
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationCreateServiceBehavior activationServiceBehaviorV4;
     private final ActivationRepository activationRepository;
-    private final ServerPrivateKeysConverter serverPrivateKeysConverter;
-    private final ApplicationVersionRepository applicationVersionRepository;
-    private final MasterKeyPairRepository masterKeyPairRepository;
     private final PublicKeysConverter publicKeysConverter;
 
+    private final TemporaryKeyTestService temporaryKeyTestService;
+
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeysConverter serverPrivateKeysConverter, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, PublicKeysConverter publicKeysConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, PublicKeysConverter publicKeysConverter, TemporaryKeyTestService temporaryKeyTestService) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationServiceBehaviorV4 = activationServiceBehaviorV4;
         this.activationRepository = activationRepository;
-        this.serverPrivateKeysConverter = serverPrivateKeysConverter;
-        this.applicationVersionRepository = applicationVersionRepository;
-        this.masterKeyPairRepository = masterKeyPairRepository;
         this.publicKeysConverter = publicKeysConverter;
+        this.temporaryKeyTestService = temporaryKeyTestService;
     }
 
     @Test
@@ -149,8 +139,9 @@ class TemporaryKeyBehaviorTest {
     @Test
     void testJwtRequestInvalidClaims() throws Exception {
         final JWTClaimsSet jwtClaims = new JWTClaimsSet.Builder().build();
-        final byte[] secretKey = getSecretKey(EncryptorScope.APPLICATION_SCOPE, "test", null);
-        final String jwtRequest = signJwt(jwtClaims, secretKey);
+        final SecretKey secretKey = KEY_CONVERTOR_EC.convertBytesToSharedSecretKey("test".getBytes(StandardCharsets.UTF_8));
+        final byte[] signingKey = temporaryKeyTestService.deriveSigningKey(EncryptorScope.APPLICATION_SCOPE, secretKey);
+        final String jwtRequest = temporaryKeyTestService.signJwt(jwtClaims, signingKey);
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
         request.setJwt(jwtRequest);
         assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
@@ -162,21 +153,17 @@ class TemporaryKeyBehaviorTest {
         final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
         final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null, requestCryptogram);
+        final byte[] secretKeyBytes = Base64.getDecoder().decode(defaultVersion.getApplicationSecret());
+        final SecretKey secretKey = KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(secretKeyBytes);
+        final String jwtRequest = temporaryKeyTestService.createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, secretKey, requestCryptogram);
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
         request.setJwt(jwtRequest);
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
         final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
+        final PublicKey masterPublicKeyEc384 = getMasterPublicKey(defaultVersion);
 
-        // TODO - use serialized keys instead of querying database after serialization of new keys is available
-        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(defaultVersion.getApplicationKey());
-        final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
-        final String masterPublicKeys = masterKeyPair.getMasterPublicKeys();
-        final PublicKeyRegistry publicKeys = publicKeysConverter.fromDBValue(masterPublicKeys);
-        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
-
-        assertTrue(validateJwtSignature(decodedJWT, masterPublicKeyEc384));
+        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWT, masterPublicKeyEc384));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
         assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
@@ -186,28 +173,14 @@ class TemporaryKeyBehaviorTest {
     @Test
     void testJwtRequestHybridValidApplicationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
-        final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
-        final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null, requestCryptogram);
-        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
-        request.setJwt(jwtRequest);
-        final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
-        assertNotNull(response.getJwt());
-        final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
-
-        // TODO - use serialized keys instead of querying database after serialization of new keys is available
-        final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(defaultVersion.getApplicationKey());
-        final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
-        final String masterPublicKeys = masterKeyPair.getMasterPublicKeys();
-        final PublicKeyRegistry publicKeys = publicKeysConverter.fromDBValue(masterPublicKeys);
-        final PublicKey masterPublicKeyEc384 = publicKeys.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+        final PublicKey masterPublicKeyEc384 = getMasterPublicKey(defaultVersion);
 
         // TODO - validate Dilithium signature after it is available
-        assertTrue(validateJwtSignature(decodedJWT, masterPublicKeyEc384));
+        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWT, masterPublicKeyEc384));
 
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
-        assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
         assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
         assertNotNull(decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse"));
         final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
@@ -219,16 +192,8 @@ class TemporaryKeyBehaviorTest {
     @Test
     void testJwtRequestValidApplicationScopeWithRemove() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
-        final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
-        final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null, requestCryptogram);
-        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
-        request.setJwt(jwtRequest);
-        final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
-        assertNotNull(response.getJwt());
-        final String jwtResponse = response.getJwt();
-        final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
+        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
         final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
         final RemoveTemporaryPublicKeyRequest removeRequest = new RemoveTemporaryPublicKeyRequest();
         removeRequest.setId(temporaryKeyId);
@@ -240,33 +205,27 @@ class TemporaryKeyBehaviorTest {
     @Test
     void testJwtRequestEcdheValidActivationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
-        final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
-        final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null, requestCryptogram);
-        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
-        request.setJwt(jwtRequest);
-        final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
-        assertNotNull(response.getJwt());
-        final String jwtResponse = response.getJwt();
-        final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
+        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+
         final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
         final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         // extract temporary key and use it during an activation
-        final String activationId = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
+        final ActivationContext activationContext = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
+        final String activationId = activationContext.activationLayer2Response.getActivationId();
         final byte[] challengeBytesActivation = KEY_GENERATOR.generateRandomBytes(18);
         final String challengeActivation = Base64.getEncoder().encodeToString(challengeBytesActivation);
-        final SecretKey transportMasterKey = getMasterTransportKey(activationId);
+        final SecretKey signingKeyActivation = deriveSharedSecret(activationContext.sharedSecretClientContext, activationContext.activationLayer2Response.getSharedSecretResponse());
         final RequestCryptogram requestCryptogramActivation = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final String jwtRequestActivation = createJwtRequest(EncryptorScope.ACTIVATION_SCOPE, defaultVersion.getApplicationKey(), activationId, challengeActivation, defaultVersion.getApplicationSecret(), transportMasterKey, requestCryptogramActivation);
+        final String jwtRequestActivation = temporaryKeyTestService.createJwtRequest(EncryptorScope.ACTIVATION_SCOPE, defaultVersion.getApplicationKey(), activationId, challengeActivation, signingKeyActivation, requestCryptogramActivation);
         final TemporaryPublicKeyRequest requestTempKeyActivation = new TemporaryPublicKeyRequest();
         requestTempKeyActivation.setJwt(jwtRequestActivation);
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
         final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
-        assertTrue(validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
+        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
         assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
@@ -279,34 +238,27 @@ class TemporaryKeyBehaviorTest {
     @Test
     void testJwtRequestHybridValidActivationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
-        final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
-        final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, defaultVersion.getApplicationSecret(), null, requestCryptogram);
-        final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
-        request.setJwt(jwtRequest);
-        final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
-        assertNotNull(response.getJwt());
-        final String jwtResponse = response.getJwt();
-        final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
+        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
         final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
         final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         assertNotNull(serverResponse.getMlkem());
         // extract temporary key and use it during an activation
-        final String activationId = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
+        final ActivationContext activationContext = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
+        final String activationId = activationContext.activationLayer2Response.getActivationId();
         final byte[] challengeBytesActivation = KEY_GENERATOR.generateRandomBytes(18);
         final String challengeActivation = Base64.getEncoder().encodeToString(challengeBytesActivation);
-        final SecretKey transportMasterKey = getMasterTransportKey(activationId);
+        final SecretKey signingKeyActivation = deriveSharedSecret(activationContext.sharedSecretClientContext, activationContext.activationLayer2Response.getSharedSecretResponse());
         final RequestCryptogram requestCryptogramActivation = SHARED_SECRET_HYBRID.generateRequestCryptogram();
-        final String jwtRequestActivation = createJwtRequest(EncryptorScope.ACTIVATION_SCOPE, defaultVersion.getApplicationKey(), activationId, challengeActivation, defaultVersion.getApplicationSecret(), transportMasterKey, requestCryptogramActivation);
+        final String jwtRequestActivation = temporaryKeyTestService.createJwtRequest(EncryptorScope.ACTIVATION_SCOPE, defaultVersion.getApplicationKey(), activationId, challengeActivation, signingKeyActivation, requestCryptogramActivation);
         final TemporaryPublicKeyRequest requestTempKeyActivation = new TemporaryPublicKeyRequest();
         requestTempKeyActivation.setJwt(jwtRequestActivation);
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
         final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
-        assertTrue(validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
+        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
         assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
         assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
@@ -323,9 +275,9 @@ class TemporaryKeyBehaviorTest {
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
         final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
         final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
-        final String appSecretInvalid = Base64.getEncoder().encodeToString(KEY_GENERATOR.generateRandomBytes(8));
+        final SecretKey secretKey = KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(KEY_GENERATOR.generateRandomBytes(8));
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, appSecretInvalid, null, requestCryptogram);
+        final String jwtRequest = temporaryKeyTestService.createJwtRequest(EncryptorScope.APPLICATION_SCOPE, defaultVersion.getApplicationKey(), null, challenge, secretKey, requestCryptogram);
         request.setJwt(jwtRequest);
         assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
     }
@@ -340,30 +292,55 @@ class TemporaryKeyBehaviorTest {
         return appDetailResponse.getVersions().get(0);
     }
 
-    private String createActivation(ApplicationVersion applicationVersion, String temporaryKeyId, SharedSecretClientContext clientContext, SharedSecretResponse serverResponse) throws Exception {
-        final String publicKeyBytes = generatePublicKey();
-        final ActivationLayer2Request activationLayer2Request = new ActivationLayer2Request();
-        activationLayer2Request.setDevicePublicKey(publicKeyBytes);
-
+    private ActivationContext createActivation(ApplicationVersion applicationVersion, String temporaryKeyId, SharedSecretClientContext clientContext, SharedSecretResponse serverResponse) throws Exception {
+        final com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request activationLayer2Request = new com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request();
         final String applicationKey = applicationVersion.getApplicationKey();
         final String applicationSecret = applicationVersion.getApplicationSecret();
-        final SecretKey sharedSecret;
+        final SecretKey temporarySharedSecret;
+        final RequestCryptogram activationSharedSecretRequest;
         if (clientContext instanceof SharedSecretClientContextEcdhe contextEcdhe) {
+            final KeyPair ecDeviceKeyPair = generateEcDeviceKeypair();
             final SharedSecretResponseEcdhe sharedSecretResponseEcdhe = new SharedSecretResponseEcdhe();
             sharedSecretResponseEcdhe.setEcServerPublicKey(serverResponse.getEcdhe());
-            sharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret(contextEcdhe, sharedSecretResponseEcdhe);
+            temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret(contextEcdhe, sharedSecretResponseEcdhe);
+
+            final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
+            final byte[] ecPublicKeyBytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecDeviceKeyPair.getPublic());
+            devicePublicKeys.setEcdsa(Base64.getEncoder().encodeToString(ecPublicKeyBytes));
+            activationLayer2Request.setDevicePublicKeys(devicePublicKeys);
+            activationSharedSecretRequest = SHARED_SECRET_ECDHE.generateRequestCryptogram();
+            final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
+            sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384.toString());
+            sharedSecretRequest.setEcdhe(((SharedSecretRequestEcdhe)activationSharedSecretRequest.getSharedSecretRequest()).getEcClientPublicKey());
+            activationLayer2Request.setSharedSecretRequest(sharedSecretRequest);
+
         } else if (clientContext instanceof SharedSecretClientContextHybrid contextHybrid) {
+            final KeyPair ecDeviceKeyPair = generateEcDeviceKeypair();
+            final KeyPair pqcDeviceKeyPair = generatePqcDeviceKeypair();
             final SharedSecretResponseHybrid sharedSecretResponseHybrid = new SharedSecretResponseHybrid();
             sharedSecretResponseHybrid.setEcServerPublicKey(serverResponse.getEcdhe());
             sharedSecretResponseHybrid.setPqcEncapsulation(serverResponse.getMlkem());
-            sharedSecret = SHARED_SECRET_HYBRID.computeSharedSecret(contextHybrid, sharedSecretResponseHybrid);
+            temporarySharedSecret = SHARED_SECRET_HYBRID.computeSharedSecret(contextHybrid, sharedSecretResponseHybrid);
+
+            final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
+            final byte[] ecPublicKeyBytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecDeviceKeyPair.getPublic());
+            final byte[] pqcPublicKeyBytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(pqcDeviceKeyPair.getPublic());
+            devicePublicKeys.setEcdsa(Base64.getEncoder().encodeToString(ecPublicKeyBytes));
+            devicePublicKeys.setMldsa(Base64.getEncoder().encodeToString(pqcPublicKeyBytes));
+            activationLayer2Request.setDevicePublicKeys(devicePublicKeys);
+            activationSharedSecretRequest = SHARED_SECRET_HYBRID.generateRequestCryptogram();
+            final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
+            sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.toString());
+            sharedSecretRequest.setEcdhe(((SharedSecretRequestHybrid)activationSharedSecretRequest.getSharedSecretRequest()).getEcClientPublicKey());
+            sharedSecretRequest.setMlkem(((SharedSecretRequestHybrid)activationSharedSecretRequest.getSharedSecretRequest()).getPqcEncapsulationKey());
+            activationLayer2Request.setSharedSecretRequest(sharedSecretRequest);
         } else {
             throw new IllegalStateException("Invalid client context");
         }
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters("4.0", applicationKey, null, temporaryKeyId),
-                new AeadSecrets(sharedSecret.getEncoded(), applicationSecret));
+                new AeadSecrets(temporarySharedSecret.getEncoded(), applicationSecret));
         final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(activationLayer2Request));
 
         final CreateActivationRequest activationRequest = new CreateActivationRequest();
@@ -374,18 +351,25 @@ class TemporaryKeyBehaviorTest {
         activationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
         activationRequest.setNonce(encryptedRequest.getNonce());
         activationRequest.setTimestamp(encryptedRequest.getTimestamp());
-        final CreateActivationResponse response = activationServiceBehavior.createActivation(activationRequest);
+        final CreateActivationResponse createActivationResponse = activationServiceBehaviorV4.createActivation(activationRequest);
         final CommitActivationRequest commitRequest = new CommitActivationRequest();
-        commitRequest.setActivationId(response.getActivationId());
+        commitRequest.setActivationId(createActivationResponse.getActivationId());
         activationServiceBehavior.commitActivation(commitRequest);
-        return response.getActivationId();
+
+        final AeadEncryptedResponse encryptedResponse = new AeadEncryptedResponse();
+        encryptedResponse.setEncryptedData(createActivationResponse.getEncryptedData());
+        encryptedResponse.setTimestamp(createActivationResponse.getTimestamp());
+        final byte[] decryptedResponse = clientEncryptor.decryptResponse(encryptedResponse);
+        final ActivationLayer2Response layer2Response = OBJECT_MAPPER.readValue(decryptedResponse, ActivationLayer2Response.class);
+        return new ActivationContext(activationSharedSecretRequest.getSharedSecretClientContext(), layer2Response);
     }
 
-    private String generatePublicKey() throws Exception {
-        final KeyGenerator keyGenerator = new KeyGenerator();
-        final KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P384);
-        final byte[] publicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P384, keyPair.getPublic());
-        return Base64.getEncoder().encodeToString(publicKeyBytes);
+    private KeyPair generateEcDeviceKeypair() throws Exception {
+        return KEY_GENERATOR.generateKeyPair(EcCurve.P384);
+    }
+
+    private KeyPair generatePqcDeviceKeypair() throws Exception {
+        return PQC_DSA.generateKeyPair();
     }
 
     private PublicKey getServerPublicKey(String activationId) throws Exception {
@@ -395,100 +379,36 @@ class TemporaryKeyBehaviorTest {
         return publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
-    private SecretKey getMasterTransportKey(String activationId) throws Exception {
-        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
-        // Get the server private key, decrypt it if required
-
-        final String serverPrivateKeys = activation.getServerPrivateKeys();
-        final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
-        final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
-        final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
-        final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing private key"));
-
-        final String devicePublicKeys = activation.getDevicePublicKeys();
-        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
-        final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
-        // TODO - switch to a key derived with KMAC-256 after activation is implemented
-        final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
-
-        final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
-        return KEY_CONVERTOR.convertBytesToSharedSecretKey(transportKeyBytes);
+    private PublicKey getMasterPublicKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
+        final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
+        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyP384();
+        final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
+        return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, masterPublicKeyBytes);
     }
 
-    private static String createJwtRequest(EncryptorScope scope, String applicationKey, String activationId, String challenge, String appSecret, SecretKey transportMasterKey, RequestCryptogram requestCryptogram) throws Exception {
-        final Instant now = Instant.now();
-        final JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-                .claim("applicationKey", applicationKey)
-                .claim("activationId", activationId)
-                .claim("challenge", challenge)
-                .issueTime(Date.from(now))
-                .expirationTime(Date.from(now.plus(5, ChronoUnit.MINUTES)));
-        final Object request = requestCryptogram.getSharedSecretRequest();
-        final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
-        if (request instanceof SharedSecretRequestEcdhe ecdhe) {
-            sharedSecretRequest.setAlgorithm("EC_P384");
-            sharedSecretRequest.setEcdhe(ecdhe.getEcClientPublicKey());
-        } else if (request instanceof SharedSecretRequestHybrid hybrid) {
-            sharedSecretRequest.setAlgorithm("EC_P384_ML_L3");
-            sharedSecretRequest.setEcdhe(hybrid.getEcClientPublicKey());
-            sharedSecretRequest.setMlkem(hybrid.getPqcEncapsulationKey());
+    private SecretKey deriveSharedSecret(SharedSecretClientContext clientContext, SharedSecretResponse serverResponse) throws Exception {
+        if (clientContext instanceof SharedSecretClientContextEcdhe contextEcdhe) {
+            final SharedSecretResponseEcdhe sharedSecretResponse = new SharedSecretResponseEcdhe();
+            sharedSecretResponse.setEcServerPublicKey(serverResponse.getEcdhe());
+            return SHARED_SECRET_ECDHE.computeSharedSecret(contextEcdhe, sharedSecretResponse);
+        } else if (clientContext instanceof SharedSecretClientContextHybrid contextHybrid) {
+            final SharedSecretResponseHybrid sharedSecretResponse = new SharedSecretResponseHybrid();
+            sharedSecretResponse.setEcServerPublicKey(serverResponse.getEcdhe());
+            sharedSecretResponse.setPqcEncapsulation(serverResponse.getMlkem());
+            return SHARED_SECRET_HYBRID.computeSharedSecret(contextHybrid, sharedSecretResponse);
         } else {
-            throw new IllegalStateException("Invalid cryptogram");
+            throw new IllegalStateException("Invalid client context");
         }
-        builder.claim("sharedSecretRequest", sharedSecretRequest);
-        final JWTClaimsSet jwtClaims = builder.build();
-        final byte[] secretKey = getSecretKey(scope, appSecret, transportMasterKey);
-        return signJwt(jwtClaims, secretKey);
     }
 
-    private static byte[] getSecretKey(EncryptorScope scope, String appSecret, SecretKey transportMasterKey) throws Exception {
-        if (scope == EncryptorScope.APPLICATION_SCOPE) {
-            return Base64.getDecoder().decode(appSecret);
-        } else if (scope == EncryptorScope.ACTIVATION_SCOPE) {
-            // TODO - switch to a key derived with KMAC-256 after activation is implemented
-            final byte[] appSecretBytes = Base64.getDecoder().decode(appSecret);
-            final SecretKey secretKeyBytes = KEY_GENERATOR.deriveSecretKeyHmac(transportMasterKey, appSecretBytes);
-            return KEY_CONVERTOR.convertSharedSecretKeyToBytes(secretKeyBytes);
-        }
-        return null;
-    }
+    @Data
+    @AllArgsConstructor
+    private static class ActivationContext {
 
-    private static String signJwt(JWTClaimsSet jwtClaims, byte[] secretKey) throws Exception {
-        final JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
-        final byte[] payloadBytes = jwtClaims.toPayload().toBytes();
-        final Base64URL encodedHeader = jwsHeader.toBase64URL();
-        final Base64URL encodedPayload = Base64URL.encode(payloadBytes);
-        final String signingInput = encodedHeader + "." + encodedPayload;
-        final byte[] hash = new HMACHashUtilities().hash(secretKey, signingInput.getBytes(StandardCharsets.UTF_8));
-        final Base64URL signature = Base64URL.encode(hash);
-        return encodedHeader + "." + encodedPayload + "." + signature;
-    }
+        private SharedSecretClientContext sharedSecretClientContext;
+        private ActivationLayer2Response activationLayer2Response;
 
-    private static boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws Exception {
-        final Base64URL[] jwtParts = jwt.getParsedParts();
-        final Base64URL encodedHeader = jwtParts[0];
-        final Base64URL encodedPayload = jwtParts[1];
-        final Base64URL encodedSignature = jwtParts[2];
-        final String signingInput = encodedHeader + "." + encodedPayload;
-        final byte[] signatureBytes = convertRawSignatureToDER(encodedSignature.decode());
-        return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
-    }
-
-    private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws Exception {
-        if (rawSignature.length % 2 != 0) {
-            throw new IllegalArgumentException("Invalid ECDSA signature format");
-        }
-        int len = rawSignature.length / 2;
-        byte[] rBytes = new byte[len];
-        byte[] sBytes = new byte[len];
-        System.arraycopy(rawSignature, 0, rBytes, 0, len);
-        System.arraycopy(rawSignature, len, sBytes, 0, len);
-        BigInteger r = new BigInteger(1, rBytes);
-        BigInteger s = new BigInteger(1, sBytes);
-        ASN1EncodableVector v = new ASN1EncodableVector();
-        v.add(new ASN1Integer(r));
-        v.add(new ASN1Integer(s));
-        return new DLSequence(v).getEncoded();
     }
 
 }

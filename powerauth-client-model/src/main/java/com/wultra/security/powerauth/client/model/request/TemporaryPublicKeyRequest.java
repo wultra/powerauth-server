@@ -20,7 +20,9 @@ package com.wultra.security.powerauth.client.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Request class for JWT encoded temporary key request.
@@ -28,6 +30,8 @@ import lombok.Data;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TemporaryPublicKeyRequest {
 
     @Schema(description = "JWT claims for the temporary public key request")

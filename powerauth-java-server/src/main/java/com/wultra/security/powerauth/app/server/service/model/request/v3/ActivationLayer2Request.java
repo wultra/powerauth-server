@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,24 +14,29 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
+package com.wultra.security.powerauth.app.server.service.model.request.v3;
 
-package com.wultra.security.powerauth.client.model.response;
-
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Response class with JWT encoded temporary public key response.
+ * Request object for activation layer 2 request (V3).
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
+ *
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class TemporaryPublicKeyResponse {
+public class ActivationLayer2Request {
 
-    private String jwt;
+    private String devicePublicKey;
+    private String activationOtp;
+    private String activationName;
+    private String externalId;
+    private String extras;
+    private String platform;
+    private String deviceInfo;
 
 }

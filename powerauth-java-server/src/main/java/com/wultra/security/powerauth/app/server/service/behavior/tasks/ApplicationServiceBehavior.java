@@ -48,7 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.PublicKey;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -109,6 +108,31 @@ public class ApplicationServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        String publicKeyP384 = null;
+        String publicKeyMlDsa65 = null;
+        if (masterKeyPairEntity.getMasterPublicKeys() != null) {
+            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
+            publicKeyP384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
+                    .map(publicKey -> {
+                        try {
+                            byte[] bytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey);
+                            return Base64.getEncoder().encodeToString(bytes);
+                        } catch (CryptoProviderException e) {
+                            logger.warn("Public key conversion failed", e);
+                            return null;
+                        }
+                    }).orElse(null);
+            publicKeyMlDsa65 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65)
+                    .map(publicKey -> {
+                        try {
+                            byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
+                            return Base64.getEncoder().encodeToString(bytes);
+                        } catch (GenericCryptoException e) {
+                            logger.warn("Public key conversion failed", e);
+                            return null;
+                        }
+                    }).orElse(null);
+        }
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
@@ -116,32 +140,7 @@ public class ApplicationServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            String publicKeyEc384 = null;
-            String publicKeyMlDsa65 = null;
-            if (masterKeyPairEntity.getMasterPublicKeys() != null) {
-                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-                publicKeyEc384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
-                        .map(publicKey -> {
-                            try {
-                                byte[] bytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey);
-                                return Base64.getEncoder().encodeToString(bytes);
-                            } catch (CryptoProviderException e) {
-                                logger.warn("Public key conversion failed", e);
-                                return null;
-                            }
-                        }).orElse(null);
-                publicKeyMlDsa65 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65)
-                        .map(publicKey -> {
-                            try {
-                                byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
-                                return Base64.getEncoder().encodeToString(bytes);
-                            } catch (GenericCryptoException e) {
-                                logger.warn("Public key conversion failed", e);
-                                return null;
-                            }
-                        }).orElse(null);
-            }
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyEc384, publicKeyMlDsa65);
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyP384, publicKeyMlDsa65);
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();

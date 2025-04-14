@@ -32,7 +32,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -99,14 +99,16 @@ class TemporaryKeyBehaviorTest {
     private final TemporaryKeyBehaviorEcies temporaryKeyBehavior;
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV3, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
         this.activationRepository = activationRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
@@ -245,7 +247,7 @@ class TemporaryKeyBehaviorTest {
         activationRequest.setMac(encryptedRequest.getMac());
         activationRequest.setNonce(encryptedRequest.getNonce());
         activationRequest.setTimestamp(encryptedRequest.getTimestamp());
-        final CreateActivationResponse response = activationServiceBehavior.createActivation(activationRequest);
+        final CreateActivationResponse response = activationServiceBehaviorV3.createActivation(activationRequest);
         final CommitActivationRequest commitRequest = new CommitActivationRequest();
         commitRequest.setActivationId(response.getActivationId());
         activationServiceBehavior.commitActivation(commitRequest);

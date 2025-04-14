@@ -1,6 +1,8 @@
 package com.wultra.security.powerauth.app.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
@@ -9,10 +11,9 @@ import com.wultra.security.powerauth.client.model.response.v3.CreateActivationRe
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.OnlineSignatureServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
@@ -42,15 +43,17 @@ public class VerifySignatureConcurrencyTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     @Autowired
-    public VerifySignatureConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+    public VerifySignatureConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV3, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
         this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
     }
 
@@ -113,7 +116,7 @@ public class VerifySignatureConcurrencyTest {
         createActivationRequest.setNonce(encryptedRequest.getNonce());
         createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
         createActivationRequest.setProtocolVersion(version);
-        CreateActivationResponse createActivationResponse = activationServiceBehavior.createActivation(createActivationRequest);
+        CreateActivationResponse createActivationResponse = activationServiceBehaviorV3.createActivation(createActivationRequest);
 
         // Commit activation
         CommitActivationRequest commitActivationRequest = new CommitActivationRequest();

@@ -17,29 +17,19 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v4.request;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
-
-import java.security.KeyPair;
 
 /**
- * Hybrid key pair wrapper.
+ * Model class for device public keys.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-public class HybridKeyPair extends BaseKeyPair {
+public class DevicePublicKeys {
 
-    @ToString.Exclude
-    private KeyPair ecKeyPair;
-
-    @ToString.Exclude
-    private KeyPair mlKeyPair;
+    private String ecdsa;
+    private String mldsa;
 
 }

@@ -230,7 +230,7 @@ public class SignatureSharedServiceBehavior {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
         // TODO - v4 support
-        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activation);
+        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSharedSecretKey(activation);
 
         // Resolve signature version based on activation version and request
         final Integer signatureVersion = resolveSignatureVersion(activation, signatureData.getForcedSignatureVersion());

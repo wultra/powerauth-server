@@ -54,11 +54,12 @@ public abstract class CryptographyService {
     /**
      * Get a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
      *
+     * @param keyType Key type.
      * @param application Application.
      * @return Key pair.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
+    public abstract BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate shared secret key.
@@ -66,10 +67,10 @@ public abstract class CryptographyService {
      * @return Shared secret key.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract SecretKey deriveSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
-     * Generate a key pair for an activation. The key pair can be composite in case of a hybrid algorithm.
+     * Generate server key pair for an activation. The key pair can be composite in case of a hybrid algorithm.
      *
      * @param activation Activation.
      * @throws GenericServiceException In case of a cryptography error.
@@ -103,32 +104,35 @@ public abstract class CryptographyService {
     /**
      * Generate an asymmetric signature for an application.
      *
+     * @param keyType Key type.
      * @param data Data to sign.
-     * @param application Application identifier.
+     * @param application Application entity.
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException;
+    public abstract byte[] generateSignatureForApplication(KeyType keyType, byte[] data, ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Generate an asymmetric signature for an activation.
      *
+     * @param keyType Key type.
      * @param data Data to sign.
-     * @param activation Activation identifier.
+     * @param activation Activation entity.
      * @return Signature.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract byte[] generateSignatureForActivation(KeyType keyType, byte[] data, ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
      * Verify an asymmetric signature for an activation.
      *
+     * @param keyType Key type.
      * @param data Data used for calculating signature.
      * @param signature Signature.
      * @param activation Activation.
      * @return True in case signature is valid, false otherwise.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
+    public abstract boolean verifySignatureForActivation(KeyType keyType, byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException;
 
 }

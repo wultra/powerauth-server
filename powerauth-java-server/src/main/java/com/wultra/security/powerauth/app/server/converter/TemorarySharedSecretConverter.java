@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Converter for shared secret which handles key encryption and decryption in case it is configured.
+ * Converter for temporary shared secret which handles key encryption and decryption in case it is configured.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
 @Slf4j
 @AllArgsConstructor
-public class SharedSecretConverter {
+public class TemorarySharedSecretConverter {
 
     private final DatabaseEncryptionService encryptionService;
 

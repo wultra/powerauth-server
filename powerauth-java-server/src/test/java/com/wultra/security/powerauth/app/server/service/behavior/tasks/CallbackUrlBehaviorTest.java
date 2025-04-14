@@ -54,7 +54,7 @@ import static org.mockito.Mockito.*;
 /**
  * Test for {@link CallbackUrlBehavior}.
  *
- * @author Jan Pesek, janpesek@outlook.com
+ * @author Jan Pesek, jan.pesek@wultra.com
  */
 @SpringBootTest
 @Sql
