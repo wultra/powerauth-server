@@ -88,7 +88,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final ActivationRepository activationRepository;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final TemporaryPrivateKeyConverter temporaryPrivateKeyConverter;
-    private final TemorarySharedSecretConverter temporarySharedSecretConverter;
+    private final TemporarySharedSecretConverter temporarySharedSecretConverter;
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final TemporaryKeyRepository temporaryKeyRepository;
     private final LocalizationProvider localizationProvider;
@@ -103,7 +103,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
 
     @Autowired
-    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemorarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter) {
+    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter) {
         super(localizationProvider, temporaryKeyRepository);
         this.activationRepository = activationRepository;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;

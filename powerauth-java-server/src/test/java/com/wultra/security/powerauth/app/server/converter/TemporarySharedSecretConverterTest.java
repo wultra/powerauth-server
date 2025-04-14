@@ -31,7 +31,7 @@ import java.util.Base64;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for {@link TemorarySharedSecretConverter}.
+ * Tests for {@link TemporarySharedSecretConverter}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -50,7 +50,7 @@ class TemporarySharedSecretConverterTest {
     private static final String ACTIVATION_ID = "015286e0-e1c5-4ee1-8d1b-c6947cab0a56";
 
     @Autowired
-    private TemorarySharedSecretConverter sharedSecretConverter;
+    private TemporarySharedSecretConverter sharedSecretConverter;
 
     @Test
     void testFromDbValueNoEncryption() throws Exception {

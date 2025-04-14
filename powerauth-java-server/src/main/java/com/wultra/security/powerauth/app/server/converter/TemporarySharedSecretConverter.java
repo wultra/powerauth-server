@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 @Component
 @Slf4j
 @AllArgsConstructor
-public class TemorarySharedSecretConverter {
+public class TemporarySharedSecretConverter {
 
     private final DatabaseEncryptionService encryptionService;
 
