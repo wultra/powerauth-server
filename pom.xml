@@ -99,7 +99,7 @@
         <shedlock.version>6.3.1</shedlock.version>
 
         <!-- Other Dependencies -->
-        <commons-text.version>1.13.0</commons-text.version>
+        <commons-text.version>1.13.1</commons-text.version>
         <logstash.version>8.1</logstash.version>
         <equalsverifier.version>3.19.3</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
