@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.entity.v4.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -29,7 +30,9 @@ import lombok.Data;
 @Data
 public class SharedSecretRequest {
 
+    @NotBlank
     private String algorithm;
+    @NotBlank
     private String ecdhe;
     private String mlkem;
 
