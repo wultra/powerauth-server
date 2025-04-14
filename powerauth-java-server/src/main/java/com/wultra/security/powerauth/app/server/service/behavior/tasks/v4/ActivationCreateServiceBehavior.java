@@ -37,7 +37,11 @@ import com.wultra.security.powerauth.app.server.service.model.response.Decryptio
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
@@ -46,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 
@@ -61,7 +64,6 @@ import java.util.Set;
 public class ActivationCreateServiceBehavior {
 
     private final CallbackUrlBehavior callbackUrlBehavior;
-    private final com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationProcessServiceBehavior activationProcessServiceV3;
     private final ActivationProcessServiceBehavior activationProcessServiceV4;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final ActivationServiceInitBehavior activationServiceInitBehavior;
@@ -81,7 +83,7 @@ public class ActivationCreateServiceBehavior {
     private final ObjectMapper objectMapper;
 
     @Transactional
-    public com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest request) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
@@ -102,16 +104,6 @@ public class ActivationCreateServiceBehavior {
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final ApplicationEntity application = decryptionResult.getApplication();
-
-            // Convert JSON data to activation layer 2 request object
-            final com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request layer2Request;
-            try {
-                layer2Request = objectMapper.readValue(decryptionResult.getDecryptedData(), com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request.class);
-            } catch (IOException ex) {
-                logger.warn("Invalid activation request, activation code: {}", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-            }
 
             // Fetch the current activation by activation code
             final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
@@ -139,7 +131,7 @@ public class ActivationCreateServiceBehavior {
             final AeadEncryptedResponse encryptedResponse = activationProcessServiceV4.processNewActivation(activation, decryptionResult, protocolVersion);
 
             // Generate response object
-            final com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse response = new com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse();
+            final PrepareActivationResponse response = new PrepareActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
             response.setApplicationId(application.getId());
@@ -172,7 +164,7 @@ public class ActivationCreateServiceBehavior {
      * @throws GenericServiceException In case create activation fails
      */
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
-    public com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest request) throws GenericServiceException {
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         try {
             // Get request parameters
             final String userId = request.getUserId();
@@ -227,7 +219,7 @@ public class ActivationCreateServiceBehavior {
             final AeadEncryptedResponse encryptedResponse = activationProcessServiceV4.processNewActivation(activation, decryptionResult, protocolVersion);
 
             // Generate encrypted response
-            final com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse response = new com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse();
+            final CreateActivationResponse response = new CreateActivationResponse();
             response.setActivationId(activation.getActivationId());
             response.setUserId(activation.getUserId());
             response.setApplicationId(application.getId());

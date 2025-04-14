@@ -39,6 +39,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
+import com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response;
 import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import com.wultra.security.powerauth.client.model.entity.v4.response.ServerPublicKeys;
@@ -97,9 +98,9 @@ public class ActivationProcessServiceBehavior {
             final byte[] activationData = decryptionResult.getDecryptedData();
 
             // Convert JSON data to activation layer 2 request object
-            com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request layer2Request;
+            ActivationLayer2Request layer2Request;
             try {
-                layer2Request = objectMapper.readValue(activationData, com.wultra.security.powerauth.app.server.service.model.request.v4.ActivationLayer2Request.class);
+                layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activation.getActivationId());
                 // Activation failed due to invalid ECIES request, rollback transaction
@@ -119,7 +120,7 @@ public class ActivationProcessServiceBehavior {
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
-            final com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response layer2Response = handleKeyAgreement(activation, layer2Request, ctrDataBase64);
+            final ActivationLayer2Response layer2Response = handleKeyAgreement(activation, layer2Request, ctrDataBase64);
 
             // Update and persist the activation record
             activation.setActivationStatus(activationStatus);
@@ -167,7 +168,7 @@ public class ActivationProcessServiceBehavior {
         }
     }
 
-    private com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response handleKeyAgreement(ActivationRecordEntity activation, ActivationLayer2Request layer2Request, String ctrDataBase64) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+    private ActivationLayer2Response handleKeyAgreement(ActivationRecordEntity activation, ActivationLayer2Request layer2Request, String ctrDataBase64) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = activation.getActivationId();
         final SharedSecretRequest sharedSecretRequest = layer2Request.getSharedSecretRequest();
         if (sharedSecretRequest == null) {
@@ -206,7 +207,7 @@ public class ActivationProcessServiceBehavior {
         cryptographyServiceFactory.getService(algorithm).storeDevicePublicKey(activation, ecDevicePublicKeyDsa);
 
         final ResponseCryptogram responseCryptogram;
-        final com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response activationLayer2Response = new com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response();
+        final ActivationLayer2Response activationLayer2Response = new ActivationLayer2Response();
         activationLayer2Response.setActivationId(activationId);
         activationLayer2Response.setCtrData(ctrDataBase64);
         switch (algorithm) {
