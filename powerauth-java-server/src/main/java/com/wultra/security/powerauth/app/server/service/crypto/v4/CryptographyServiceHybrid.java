@@ -135,9 +135,9 @@ public class CryptographyServiceHybrid extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         try {
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterPrivateKeys();
-            final EncryptionMode masterPrivateKeyEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
-            final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeyEncryption, masterPrivateKeyBase64);
+            final String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+            final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
+            final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeysEncryption, masterPrivateKeysBase64);
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(keyType).orElseThrow(() -> {
                 logger.error("Missing master private key for application ID: {}", application.getId());
