@@ -123,7 +123,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
+    public KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
         if (keyType != KeyType.ECDSA_P384 && keyType != KeyType.MLDSA_65) {
             logger.error("Unsupported key type in master keypair request: {}", keyType);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -150,12 +150,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             });
-            final KeyPair keyPair = new KeyPair(publicKey, privateKey);
-            return switch (keyType) {
-                case ECDSA_P384 -> EcKeyPair.builder().ecKeyPair(keyPair).build();
-                case MLDSA_65 -> PqcKeyPair.builder().pqcKeyPair(keyPair).build();
-                default -> null;
-            };
+            return new KeyPair(publicKey, privateKey);
         } catch (GenericServiceException e) {
             logger.error("Invalid master key pair for application ID: {}", application.getId());
             // Rollback is not required, database is not used for writing
@@ -264,8 +259,8 @@ public class CryptographyServiceHybrid extends CryptographyService {
         return switch (keyType) {
             case ECDSA_P384 -> {
                 try {
-                    final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(keyType, application);
-                    yield SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getEcKeyPair().getPrivate());
+                    final KeyPair keyPair = getMasterKeyPair(keyType, application);
+                    yield SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getPrivate());
                 } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
                     logger.error("Invalid keypair", e);
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -273,8 +268,8 @@ public class CryptographyServiceHybrid extends CryptographyService {
             }
             case MLDSA_65 -> {
                 try {
-                    final PqcKeyPair keyPair = (PqcKeyPair) getMasterKeyPair(keyType, application);
-                    yield PQC_DSA.sign(keyPair.getPqcKeyPair().getPrivate(), data);
+                    final KeyPair keyPair = getMasterKeyPair(keyType, application);
+                    yield PQC_DSA.sign(keyPair.getPrivate(), data);
                 } catch (GenericCryptoException e) {
                     logger.error("Could not generate signature", e);
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

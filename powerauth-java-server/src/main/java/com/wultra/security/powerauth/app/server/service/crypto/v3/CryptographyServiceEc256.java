@@ -32,9 +32,7 @@ import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
-import com.wultra.security.powerauth.app.server.service.model.crypto.EcKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -129,7 +127,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
+    public KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
         if (keyType != KeyType.ECDSA_P256) {
             logger.error("Unsupported key type in master keypair request: {}", keyType);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -147,8 +145,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
             final String masterPublicKeyBase64 = masterKeyPairEntity.getMasterKeyPublicBase64();
             final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
             final PublicKey publicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, masterPublicKeyBytes);
-            final KeyPair keyPair = new KeyPair(publicKey, privateKey);
-            return EcKeyPair.builder().ecKeyPair(keyPair).build();
+            return new KeyPair(publicKey, privateKey);
         } catch (InvalidKeySpecException e) {
             logger.error("Invalid key format", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
@@ -258,8 +255,8 @@ public class CryptographyServiceEc256 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
-            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(keyType, application);
-            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, data, keyPair.getEcKeyPair().getPrivate());
+            final KeyPair keyPair = getMasterKeyPair(keyType, application);
+            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, data, keyPair.getPrivate());
         } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
             logger.error("Invalid keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

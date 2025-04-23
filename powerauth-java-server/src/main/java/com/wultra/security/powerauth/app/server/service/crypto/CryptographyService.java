@@ -23,12 +23,12 @@ import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.SecretKey;
+import java.security.KeyPair;
 
 /**
  * Cryptography service API for PowerAuth server.
@@ -55,7 +55,7 @@ public abstract class CryptographyService {
      * @return Key pair.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException;
+    public abstract KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException;
 
     /**
      * Derive shared secret key.

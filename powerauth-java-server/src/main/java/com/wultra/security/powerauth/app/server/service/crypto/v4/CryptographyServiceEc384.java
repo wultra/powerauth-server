@@ -33,9 +33,7 @@ import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
-import com.wultra.security.powerauth.app.server.service.model.crypto.EcKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -124,7 +122,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
+    public KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
         if (keyType != KeyType.ECDSA_P384) {
             logger.error("Unsupported key type in master keypair request: {}", keyType);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -151,8 +149,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             });
-            final KeyPair keyPair = new KeyPair(publicKey, privateKey);
-            return EcKeyPair.builder().ecKeyPair(keyPair).build();
+            return new KeyPair(publicKey, privateKey);
         } catch (GenericServiceException e) {
             logger.error("Invalid master key pair for application ID: {}", application.getId());
             // Rollback is not required, database is not used for writing
@@ -235,8 +232,8 @@ public class CryptographyServiceEc384 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
-            final EcKeyPair keyPair = (EcKeyPair) getMasterKeyPair(keyType, application);
-            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getEcKeyPair().getPrivate());
+            final KeyPair keyPair = getMasterKeyPair(keyType, application);
+            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getPrivate());
         } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
             logger.error("Invalid keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
