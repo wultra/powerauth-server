@@ -30,7 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceValidationBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -78,7 +78,7 @@ import java.util.Base64;
 public class ActivationProcessServiceBehavior {
 
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private final ActivationServiceValidationBehavior activationServiceValidationBehavior;
+    private final ActivationValidationServiceBehavior activationValidationServiceBehavior;
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final LocalizationProvider localizationProvider;
     private final CallbackUrlBehavior callbackUrlBehavior;
@@ -108,7 +108,7 @@ public class ActivationProcessServiceBehavior {
             }
 
             // Validate activation OTP for stage ON_KEY_EXCHANGE
-            activationServiceValidationBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+            activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
             // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
             // TODO - add biometry confirmation for crypto4 to decouple state transition from OTP check

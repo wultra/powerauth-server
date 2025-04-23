@@ -17,16 +17,11 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceValidationBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.*;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
@@ -35,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
@@ -63,24 +59,18 @@ import java.util.Set;
 @AllArgsConstructor
 public class ActivationCreateServiceBehavior {
 
-    private final CallbackUrlBehavior callbackUrlBehavior;
     private final ActivationProcessServiceBehavior activationProcessServiceV4;
-    private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
-    private final ActivationServiceValidationBehavior activationServiceValidationBehavior;
+    private final ActivationValidationServiceBehavior activationValidationServiceBehavior;
+    private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final EncryptionServiceAead encryptionService;
 
     private final LocalizationProvider localizationProvider;
 
     private final ActivationQueryService activationQueryService;
 
-    private final CryptographyServiceFactory cryptographyServiceFactory;
-
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
-    // Helper classes
-    private final ObjectMapper objectMapper;
 
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
@@ -123,10 +113,10 @@ public class ActivationCreateServiceBehavior {
             });
 
             // Make sure to deactivate the activation if it is expired
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
 
             // Validate that the activation is in correct state for the prepare step
-            activationServiceValidationBehavior.validateCreatedActivation(activation, application, false);
+            activationValidationServiceBehavior.validateCreatedActivation(activation, application, false);
 
             final AeadEncryptedResponse encryptedResponse = activationProcessServiceV4.processNewActivation(activation, decryptionResult, protocolVersion);
 
@@ -191,7 +181,7 @@ public class ActivationCreateServiceBehavior {
             final ApplicationEntity application = decryptionResult.getApplication();
 
             // Prepare activation OTP mode
-            final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
+            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
 
             // Create an activation record and obtain the activation database record
             final InitActivationRequest initRequest = new InitActivationRequest();
@@ -212,9 +202,9 @@ public class ActivationCreateServiceBehavior {
             });
 
             // Make sure to deactivate the activation if it is expired
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
 
-            activationServiceValidationBehavior.validateCreatedActivation(activation, application, true);
+            activationValidationServiceBehavior.validateCreatedActivation(activation, application, true);
 
             final AeadEncryptedResponse encryptedResponse = activationProcessServiceV4.processNewActivation(activation, decryptionResult, protocolVersion);
 
@@ -238,39 +228,5 @@ public class ActivationCreateServiceBehavior {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
-
-    /**
-     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
-     * is below the given timestamp.
-     *
-     * @param timestamp  Timestamp to check activations against.
-     * @param activation Activation to check.
-     */
-    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) throws GenericServiceException {
-        if ((activation.getActivationStatus() == ActivationStatus.CREATED || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
-            logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
-            if (!isActivationLocked) {
-                // Make sure activation is locked until the end of transaction in case it was not locked yet
-                final String activationId = activation.getActivationId();
-                activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
-                    logger.info("Activation not found, activation ID: {}", activationId);
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-                });
-            }
-            removeActivationInternal(activation, null);
-        }
-    }
-
-    /**
-     * Internal logic for processing activation removal.
-     * @param activation Activation entity.
-     * @param externalUserId External user identifier.
-     */
-    private void removeActivationInternal(final ActivationRecordEntity activation, final String externalUserId) {
-        activation.setActivationStatus(ActivationStatus.REMOVED);
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-    }
-
 
 }

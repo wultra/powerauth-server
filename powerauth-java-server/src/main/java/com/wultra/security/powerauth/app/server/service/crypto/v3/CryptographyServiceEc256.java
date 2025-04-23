@@ -75,12 +75,9 @@ public class CryptographyServiceEc256 extends CryptographyService {
     private final PublicKeysConverter publicKeysConverter;
 
     @Autowired
-    public CryptographyServiceEc256(LocalizationProvider localizationProvider,
-                                    EncryptionServiceEcies encryptionService,
-                                    MasterKeyPairRepository masterKeyPairRepository,
+    public CryptographyServiceEc256(MasterKeyPairRepository masterKeyPairRepository,
                                     LocalizationProvider localizationProvider1,
                                     ServerPrivateKeyConverter serverPrivateKeyConverter, MasterPrivateKeysConverter masterPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
-        super(localizationProvider, encryptionService);
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.localizationProvider = localizationProvider1;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;

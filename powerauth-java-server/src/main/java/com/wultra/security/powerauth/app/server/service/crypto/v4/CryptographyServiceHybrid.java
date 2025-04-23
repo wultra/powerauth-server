@@ -77,8 +77,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
 
     @Autowired
-    public CryptographyServiceHybrid(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, EncryptionServiceAead encryptionService, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
-        super(localizationProvider, encryptionService);
+    public CryptographyServiceHybrid(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.localizationProvider = localizationProvider;
         this.masterPrivateKeysConverter = masterPrivateKeysConverter;

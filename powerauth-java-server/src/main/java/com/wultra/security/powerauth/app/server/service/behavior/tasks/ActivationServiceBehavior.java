@@ -86,7 +86,8 @@ public class ActivationServiceBehavior {
 
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private final ActivationServiceValidationBehavior activationServiceValidationBehavior;
+    private final ActivationValidationServiceBehavior activationValidationServiceBehavior;
+    private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
 
     private final LocalizationProvider localizationProvider;
 
@@ -104,28 +105,6 @@ public class ActivationServiceBehavior {
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
-
-    /**
-     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
-     * is below the given timestamp.
-     *
-     * @param timestamp  Timestamp to check activations against.
-     * @param activation Activation to check.
-     */
-    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) throws GenericServiceException {
-        if ((activation.getActivationStatus() == ActivationStatus.CREATED || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
-            logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
-            if (!isActivationLocked) {
-                // Make sure activation is locked until the end of transaction in case it was not locked yet
-                final String activationId = activation.getActivationId();
-                activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
-                    logger.info("Activation not found, activation ID: {}", activationId);
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-                });
-            }
-            removeActivationInternal(activation, null);
-        }
-    }
 
     /**
      * Fetch a paginated list of activations for a given application ID and user ID.
@@ -161,7 +140,7 @@ public class ActivationServiceBehavior {
             if (activationsList != null) {
                 for (ActivationRecordEntity activation : activationsList) {
 
-                    deactivatePendingActivation(timestamp, activation, false);
+                    activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                     if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                         continue;
@@ -383,7 +362,7 @@ public class ActivationServiceBehavior {
 
                 final ActivationRecordEntity activation = activationOptional.get();
                 // Deactivate old pending activations first
-                deactivatePendingActivation(timestamp, activation, false);
+                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 final ApplicationEntity application = activation.getApplication();
                 final String applicationId = application.getId();
@@ -625,7 +604,7 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
             if (activation.getActivationStatus() == ActivationStatus.REMOVED) {
                 logger.info("Activation is already REMOVED, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -640,7 +619,7 @@ public class ActivationServiceBehavior {
             }
 
             // Validate activation OTP for stage ON_COMMIT
-            activationServiceValidationBehavior.validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
+            activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
 
             // Check the commit phase
             if (activation.getCommitPhase() != CommitPhase.ON_COMMIT) {
@@ -738,7 +717,7 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
 
             // Check activation state
             if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
@@ -826,7 +805,7 @@ public class ActivationServiceBehavior {
      */
     public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId) {
         logger.info("Processing activation removal, activation ID: {}", activation.getActivationId());
-        removeActivationInternal(activation, externalUserId);
+        activationRemoveServiceBehavior.removeActivation(activation, externalUserId);
         final RemoveActivationResponse response = new RemoveActivationResponse();
         response.setActivationId(activation.getActivationId());
         response.setRemoved(true);
@@ -931,17 +910,6 @@ public class ActivationServiceBehavior {
         }
     }
 
-    /**
-     * Internal logic for processing activation removal.
-     * @param activation Activation entity.
-     * @param externalUserId External user identifier.
-     */
-    private void removeActivationInternal(final ActivationRecordEntity activation, final String externalUserId) {
-        activation.setActivationStatus(ActivationStatus.REMOVED);
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-    }
-
     public List<Activation> findByExternalId(String applicationId, String externalId) throws GenericServiceException {
         final Date timestamp = new Date();
         final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
@@ -951,7 +919,7 @@ public class ActivationServiceBehavior {
         if (activationsList != null) {
             for (ActivationRecordEntity activation : activationsList) {
 
-                deactivatePendingActivation(timestamp, activation, false);
+                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -991,7 +959,7 @@ public class ActivationServiceBehavior {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
                 try {
-                    deactivatePendingActivation(currentTimestamp, activation, false);
+                    activationRemoveServiceBehavior.deactivatePendingActivation(currentTimestamp, activation, false);
                 } catch (GenericServiceException e) {
                     logger.error("Activation expiration failed, activation ID: {}", activation.getActivationId());
                 }

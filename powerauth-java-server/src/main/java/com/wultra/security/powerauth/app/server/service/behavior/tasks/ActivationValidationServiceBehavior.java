@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Commi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -44,7 +46,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class ActivationServiceValidationBehavior {
+public class ActivationValidationServiceBehavior {
 
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final LocalizationProvider localizationProvider;

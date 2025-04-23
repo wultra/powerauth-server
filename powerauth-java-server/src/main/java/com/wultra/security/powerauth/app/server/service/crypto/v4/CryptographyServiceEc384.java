@@ -76,8 +76,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
     private final KeyGenerator KEY_GENERATOR_EC = new KeyGenerator();
 
     @Autowired
-    public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, EncryptionServiceAead encryptionService, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
-        super(localizationProvider, encryptionService);
+    public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.localizationProvider = localizationProvider;
         this.masterPrivateKeysConverter = masterPrivateKeysConverter;
