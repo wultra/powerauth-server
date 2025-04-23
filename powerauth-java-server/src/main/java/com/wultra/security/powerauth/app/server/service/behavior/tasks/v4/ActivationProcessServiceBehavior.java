@@ -103,7 +103,7 @@ public class ActivationProcessServiceBehavior {
                 layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activation.getActivationId());
-                // Activation failed due to invalid ECIES request, rollback transaction
+                // Activation failed due to invalid request, rollback transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
