@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import lombok.AllArgsConstructor;
@@ -39,9 +38,6 @@ import javax.crypto.SecretKey;
 @Slf4j
 @AllArgsConstructor
 public abstract class CryptographyService {
-
-    private final LocalizationProvider localizationProvider;
-    private final EncryptionService encryptionService;
 
     /**
      * Generate a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
