@@ -62,7 +62,7 @@ public abstract class CryptographyService {
     public abstract BaseKeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException;
 
     /**
-     * Generate shared secret key.
+     * Derive shared secret key.
      * @param activation Activation.
      * @return Shared secret key.
      * @throws GenericServiceException In case of a cryptography error.
