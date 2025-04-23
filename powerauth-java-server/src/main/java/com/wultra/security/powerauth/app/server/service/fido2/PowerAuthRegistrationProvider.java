@@ -22,7 +22,7 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceInitBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
@@ -68,7 +68,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     private final RegistrationChallengeConverter registrationChallengeConverter;
 
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationServiceInitBehavior activationServiceInitBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
     private final ApplicationConfigServiceBehavior applicationConfig;
     private final ActivationQueryService activationQueryService;
     private final ApplicationRepository applicationRepository;
@@ -81,7 +81,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setActivationOtpValidation(ActivationOtpValidation.NONE);
-        final InitActivationResponse initActivationResponse = activationServiceInitBehavior.initActivation(request);
+        final InitActivationResponse initActivationResponse = activationInitServiceBehavior.initActivation(request);
 
         final List<Credential> excludeCredentials = authenticatorProvider.findByUserId(userId, applicationId)
                 .stream()

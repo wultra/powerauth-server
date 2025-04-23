@@ -57,7 +57,7 @@ import java.util.*;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class ActivationServiceInitBehavior {
+public class ActivationInitServiceBehavior {
 
     private final ApplicationRepository applicationRepository;
     private final LocalizationProvider localizationProvider;

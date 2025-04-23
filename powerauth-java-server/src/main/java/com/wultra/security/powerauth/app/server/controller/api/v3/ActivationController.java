@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceInitBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
@@ -55,7 +55,7 @@ public class ActivationController {
 
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
-    private final ActivationServiceInitBehavior activationServiceInitBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     /**
      * Init activation.
@@ -69,7 +69,7 @@ public class ActivationController {
         final InitActivationRequest req = request.getRequestObject();
         logger.info("action: initActivation, state: initiated, userId: {}, application: {}", req.getUserId(), req.getApplicationId());
         logger.debug("action: initActivation, state: initiated, request: {}", request);
-        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceInitBehavior.initActivation(req));
+        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationInitServiceBehavior.initActivation(req));
         logger.info("action: initActivation, state: succeeded");
         logger.debug("action: initActivation, state: succeeded, response: {}", response);
         return response;

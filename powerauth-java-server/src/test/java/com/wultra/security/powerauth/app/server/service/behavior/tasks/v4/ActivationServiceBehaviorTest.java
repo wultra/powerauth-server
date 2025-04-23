@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceInitBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -94,7 +94,7 @@ class ActivationServiceBehaviorTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationServiceInitBehavior activationServiceInitBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
 
@@ -112,10 +112,10 @@ class ActivationServiceBehaviorTest {
     private static final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationServiceInitBehavior activationServiceInitBehavior, TemporaryKeyTestService temporaryKeyTestService) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, TemporaryKeyTestService temporaryKeyTestService) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
-        this.activationServiceInitBehavior = activationServiceInitBehavior;
+        this.activationInitServiceBehavior = activationInitServiceBehavior;
         this.temporaryKeyTestService = temporaryKeyTestService;
     }
 
@@ -648,7 +648,7 @@ class ActivationServiceBehaviorTest {
         request.setCommitPhase(commitPhase);
         request.setActivationOtpValidation(activationOtpValidation);
         request.setActivationOtp(otp);
-        return activationServiceInitBehavior.initActivation(request);
+        return activationInitServiceBehavior.initActivation(request);
     }
 
     private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, String otpToUse) throws Exception {

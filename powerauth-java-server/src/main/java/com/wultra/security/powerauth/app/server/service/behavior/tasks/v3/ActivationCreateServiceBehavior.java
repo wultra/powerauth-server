@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceInitBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceValidationBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
@@ -66,7 +66,7 @@ public class ActivationCreateServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
-    private final ActivationServiceInitBehavior activationServiceInitBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
     private final ActivationServiceValidationBehavior activationServiceValidationBehavior;
     private final EncryptionServiceEcies encryptionService;
 
@@ -216,7 +216,7 @@ public class ActivationCreateServiceBehavior {
         initRequest.setActivationOtp(activationOtp);
         initRequest.setActivationOtpValidation(activationOtpValidation);
         initRequest.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
-        final InitActivationResponse initResponse = activationServiceInitBehavior.initActivation(initRequest);
+        final InitActivationResponse initResponse = activationInitServiceBehavior.initActivation(initRequest);
         final String activationId = initResponse.getActivationId();
         final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
             logger.warn("Activation not found, activation ID: {}", activationId);

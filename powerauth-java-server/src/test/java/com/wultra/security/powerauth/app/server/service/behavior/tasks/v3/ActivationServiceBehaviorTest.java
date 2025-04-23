@@ -20,7 +20,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceInitBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -72,7 +72,7 @@ class ActivationServiceBehaviorTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationServiceInitBehavior activationServiceInitBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -80,10 +80,10 @@ class ActivationServiceBehaviorTest {
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationServiceInitBehavior activationServiceInitBehavior) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
-        this.activationServiceInitBehavior = activationServiceInitBehavior;
+        this.activationInitServiceBehavior = activationInitServiceBehavior;
     }
 
     @Test
@@ -434,7 +434,7 @@ class ActivationServiceBehaviorTest {
         request.setCommitPhase(commitPhase);
         request.setActivationOtpValidation(activationOtpValidation);
         request.setActivationOtp(otp);
-        return activationServiceInitBehavior.initActivation(request);
+        return activationInitServiceBehavior.initActivation(request);
     }
 
     private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, String otpToUse) throws Exception {
