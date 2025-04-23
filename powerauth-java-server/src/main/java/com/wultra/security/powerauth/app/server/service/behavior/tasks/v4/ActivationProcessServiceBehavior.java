@@ -120,7 +120,7 @@ public class ActivationProcessServiceBehavior {
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
-            final ActivationLayer2Response layer2Response = handleKeyAgreement(activation, layer2Request, ctrDataBase64);
+            final ActivationLayer2Response layer2Response = deriveSharedSecret(activation, layer2Request, ctrDataBase64);
 
             // Update and persist the activation record
             activation.setActivationStatus(activationStatus);
@@ -168,7 +168,7 @@ public class ActivationProcessServiceBehavior {
         }
     }
 
-    private ActivationLayer2Response handleKeyAgreement(ActivationRecordEntity activation, ActivationLayer2Request layer2Request, String ctrDataBase64) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+    private ActivationLayer2Response deriveSharedSecret(ActivationRecordEntity activation, ActivationLayer2Request layer2Request, String ctrDataBase64) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = activation.getActivationId();
         final SharedSecretRequest sharedSecretRequest = layer2Request.getSharedSecretRequest();
         if (sharedSecretRequest == null) {
