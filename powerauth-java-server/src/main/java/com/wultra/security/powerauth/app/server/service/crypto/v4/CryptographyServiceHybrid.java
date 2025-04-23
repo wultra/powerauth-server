@@ -347,7 +347,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             case MLDSA_65 -> {
                 try {
                     final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
-                    final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                    final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
                         logger.error("Missing device public key for ML-DSA for activation ID: {}", activation.getActivationId());
                         // Rollback is not required, database is not used for writing
                         return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
