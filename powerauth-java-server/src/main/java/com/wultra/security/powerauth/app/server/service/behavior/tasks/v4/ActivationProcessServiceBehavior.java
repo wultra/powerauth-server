@@ -133,7 +133,7 @@ public class ActivationProcessServiceBehavior {
                 activation.setPlatform("unknown");
             }
             activation.setDeviceInfo(layer2Request.getDeviceInfo());
-            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
+            // PowerAuth protocol version 4.0 uses 0x4 as version in activation status
             activation.setVersion(4);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
