@@ -19,8 +19,8 @@
 package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,29 +31,28 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Converter for shared secret which handles key encryption and decryption in case it is configured.
+ * Converter for activation shared secret which handles key encryption and decryption in case it is configured.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
 @Slf4j
 @AllArgsConstructor
-public class SharedSecretConverter {
+public class ActivationSharedSecretConverter {
 
     private final DatabaseEncryptionService encryptionService;
 
     /**
      * Convert shared secret from composite database value to Base64-encoded string value.
      * @param sharedSecret Shared secret composite database value shared secret and encryption mode.
-     * @param keyId Key ID.
-     * @param appKey App key.
+     * @param userId User ID used for derivation of secret key.
      * @param activationId Activation ID used for derivation of secret key.
      * @return Decrypted Base64-encoded shared secret.
      * @throws GenericServiceException In case shared secret decryption fails.
      */
-    public String fromDBValue(final SharedSecret sharedSecret, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
+    public String fromDBValue(final SharedSecret sharedSecret, final String userId, final String activationId) throws GenericServiceException {
         final byte[] data = convert(sharedSecret.sharedSecretBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, sharedSecret.encryptionMode(), createSecretKeyDerivationInput(keyId, appKey, activationId));
+        final byte[] decrypted = encryptionService.decrypt(data, sharedSecret.encryptionMode(), createSecretKeyDerivationInput(userId, activationId));
         return convert(decrypted);
     }
 
@@ -63,14 +62,13 @@ public class SharedSecretConverter {
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param sharedSecret Shared secret value.
-     * @param keyId Key ID.
-     * @param appKey App Key.
+     * @param userId User ID used for derivation of secret key.
      * @param activationId Activation ID used for derivation of secret key.
      * @return Shared secret as composite database value.
      * @throws GenericServiceException Thrown when shared secret encryption fails.
      */
-    public SharedSecret toDBValue(final byte[] sharedSecret, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, createSecretKeyDerivationInput(keyId, appKey, activationId));
+    public SharedSecret toDBValue(final byte[] sharedSecret, final String userId, final String activationId) throws GenericServiceException {
+        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, createSecretKeyDerivationInput(userId, activationId));
         return new SharedSecret(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
@@ -82,12 +80,8 @@ public class SharedSecretConverter {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
-        if (activationId != null) {
-            return () -> List.of(keyId, appKey, activationId);
-        } else {
-            return () -> List.of(keyId, appKey);
-        }
+    private static Supplier<List<String>> createSecretKeyDerivationInput(final String userId, final String activationId) {
+        return () -> List.of(userId, activationId);
     }
 
 }

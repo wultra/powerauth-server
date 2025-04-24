@@ -19,6 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
@@ -32,7 +34,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,6 +54,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ActivationController {
 
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     /**
      * Init activation.
@@ -66,7 +69,7 @@ public class ActivationController {
         final InitActivationRequest req = request.getRequestObject();
         logger.info("action: initActivation, state: initiated, userId: {}, application: {}", req.getUserId(), req.getApplicationId());
         logger.debug("action: initActivation, state: initiated, request: {}", request);
-        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(req));
+        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationInitServiceBehavior.initActivation(req));
         logger.info("action: initActivation, state: succeeded");
         logger.debug("action: initActivation, state: succeeded, response: {}", response);
         return response;
@@ -84,7 +87,7 @@ public class ActivationController {
         final PrepareActivationRequest req = request.getRequestObject();
         logger.info("action: prepareActivation, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: prepareActivation, state: initiated, request: {}", request);
-        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(req));
+        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehaviorV3.prepareActivation(req));
         logger.info("action: prepareActivation, state: succeeded");
         logger.debug("action: prepareActivation, state: succeeded, response: {}", response);
         return response;
@@ -102,7 +105,7 @@ public class ActivationController {
         final CreateActivationRequest req = request.getRequestObject();
         logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}", req.getUserId(), req.getApplicationKey());
         logger.debug("action: createActivation, state: initiated, request: {}", request);
-        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(req));
+        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehaviorV3.createActivation(req));
         logger.info("action: createActivation, state: succeeded");
         logger.debug("action: createActivation, state: succeeded, response: {}", response);
         return response;

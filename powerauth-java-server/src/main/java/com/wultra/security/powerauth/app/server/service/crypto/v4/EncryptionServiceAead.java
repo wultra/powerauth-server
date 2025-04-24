@@ -19,12 +19,10 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
+import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
-import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
+import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
@@ -48,7 +46,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,6 +56,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -74,19 +73,20 @@ public class EncryptionServiceAead extends EncryptionService {
     private final ReplayVerificationService replayVerificationService;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final PublicKeysConverter publicKeysConverter;
+    private final ActivationSharedSecretConverter activationSharedSecretConverter;
 
     private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
-    private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
+    public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter, ActivationSharedSecretConverter activationSharedSecretConverter) {
         super(localizationProvider, applicationVersionRepository, activationQueryService);
         this.localizationProvider = localizationProvider;
         this.temporaryKeyService = temporaryKeyService;
         this.replayVerificationService = replayVerificationService;
         this.serverPrivateKeysConverter = serverPrivateKeysConverter;
         this.publicKeysConverter = publicKeysConverter;
+        this.activationSharedSecretConverter = activationSharedSecretConverter;
     }
 
     @Override
@@ -164,10 +164,12 @@ public class EncryptionServiceAead extends EncryptionService {
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
         final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
-        // Get application secret and transport key used in sharedInfo2 parameter of AEAD secrets
-        // TODO - update sharedInfo2 calculation for crypto4 after server key factory is updated
-        final SecretKey transportKey = SERVER_KEY_FACTORY.deriveTransportKey(serverPrivateKey, devicePublicKey);
-        final byte[] transportKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportKey);
+        final SharedSecret activationSharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
+        final String activationSecretBase64 = activationSharedSecretConverter.fromDBValue(activationSharedSecret, activation.getUserId(), activation.getActivationId());
+        final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
+        final SecretKey activationSecret = KEY_CONVERTOR.convertBytesToSharedSecretKey(activationSecretBytes);
+        final SecretKey sharedInfo2Key = KeyFactory.deriveKeyE2eeSharedInfo2(activationSecret);
+        final byte[] sharedInfo2KeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(sharedInfo2Key);
 
         final DecryptionResult decryptionResult;
         if (encryptorId == EncryptorId.VAULT_UNLOCK) {
@@ -181,7 +183,7 @@ public class EncryptionServiceAead extends EncryptionService {
         decryptionResult.setServerEncryptor(ENCRYPTOR_FACTORY.getServerEncryptor(
                 encryptorId,
                 new EncryptorParameters(protocolVersion, applicationVersion.getApplicationKey(), activation.getActivationId(), aeadRequest.getTemporaryKeyId()),
-                new AeadSecrets(sharedSecret.getEncoded(), applicationVersion.getApplicationSecret(), transportKeyBytes)
+                new AeadSecrets(sharedSecret.getEncoded(), applicationVersion.getApplicationSecret(), sharedInfo2KeyBytes)
         ));
         decryptionResult.setApplication(applicationVersion.getApplication());
         return decryptionResult;

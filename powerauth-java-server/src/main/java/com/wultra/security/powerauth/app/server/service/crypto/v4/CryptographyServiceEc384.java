@@ -19,22 +19,20 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
+import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.MasterPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
-import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
+import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BaseKeyPair;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
@@ -42,15 +40,18 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Cryptography Service V4 implementation based on EC curve P-384.
@@ -65,18 +66,20 @@ public class CryptographyServiceEc384 extends CryptographyService {
     private final LocalizationProvider localizationProvider;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
+    private final ActivationSharedSecretConverter sharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
 
+    private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final KeyGenerator KEY_GENERATOR_EC = new KeyGenerator();
 
     @Autowired
-    public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, EncryptionServiceAead encryptionService, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
-        super(localizationProvider, encryptionService);
+    public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.localizationProvider = localizationProvider;
         this.masterPrivateKeysConverter = masterPrivateKeysConverter;
         this.serverPrivateKeysConverter = serverPrivateKeysConverter;
+        this.sharedSecretConverter = sharedSecretConverter;
         this.publicKeysConverter = publicKeysConverter;
     }
 
@@ -119,15 +122,47 @@ public class CryptographyServiceEc384 extends CryptographyService {
     }
 
     @Override
-    public BaseKeyPair getMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
-        // TODO
-        return null;
+    public KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P384) {
+            logger.error("Unsupported key type in master keypair request: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+        if (masterKeyPairEntity == null) {
+            logger.error("Missing master key pair for application ID: {}", application.getId());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+        }
+        try {
+            final String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+            final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
+            final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeysEncryption, masterPrivateKeysBase64);
+            final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
+            final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing master private key for application ID: {}", application.getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            });
+            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
+            final PublicKey publicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing master public key for application ID: {}", application.getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            });
+            return new KeyPair(publicKey, privateKey);
+        } catch (GenericServiceException e) {
+            logger.error("Invalid master key pair for application ID: {}", application.getId());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+        }
     }
 
     @Override
-    public SecretKey generateSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
-        // TODO
-        return null;
+    public SecretKey deriveSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
+        final SharedSecret sharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
+        final String activationSecretBase64 = sharedSecretConverter.fromDBValue(sharedSecret, activation.getUserId(), activation.getActivationId());
+        final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
+        return KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(activationSecretBytes);
     }
 
     @Override
@@ -155,7 +190,8 @@ public class CryptographyServiceEc384 extends CryptographyService {
     @Override
     public BasePublicKey convertDevicePublicKey(KeyType keyType, byte[] devicePublicKey) throws GenericServiceException {
         if (keyType != KeyType.ECDSA_P384) {
-            throw new IllegalArgumentException("Unsupported key type: " + keyType);
+            logger.error("Unsupported key type in device public key conversion: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
             final PublicKey convertedPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, devicePublicKey);
@@ -185,26 +221,70 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     @Override
     public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
-        // TODO
+        // TODO - activation fingerprint needs to be defined for crypto4 first
         return "";
     }
 
     @Override
-    public byte[] generateSignatureForApplication(byte[] data, ApplicationEntity application) throws GenericServiceException {
-        // TODO
-        return new byte[0];
+    public byte[] generateSignatureForApplication(KeyType keyType, byte[] data, ApplicationEntity application) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P384) {
+            logger.error("Unsupported key type in application signature: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+        try {
+            final KeyPair keyPair = getMasterKeyPair(keyType, application);
+            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getPrivate());
+        } catch (CryptoProviderException | GenericCryptoException | InvalidKeyException e) {
+            logger.error("Invalid keypair", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
     }
 
     @Override
-    public byte[] generateSignatureForActivation(byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
-        // TODO
-        return new byte[0];
+    public byte[] generateSignatureForActivation(KeyType keyType, byte[] data, ActivationRecordEntity activation) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P384) {
+            logger.error("Unsupported key type in activation signature: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+        try {
+            final PrivateKeys privateKeys = new PrivateKeys(activation.getServerPrivateKeysEncryption(), activation.getServerPrivateKeys());
+            final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
+            final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing server private key for activation ID: {}", activation.getActivationId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            return SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, serverPrivateKey);
+        } catch (InvalidKeyException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
+            logger.error("Could not generate signature", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
     }
 
     @Override
-    public boolean verifySignatureForActivation(byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
-        // TODO
-        return false;
+    public boolean verifySignatureForActivation(KeyType keyType, byte[] data, byte[] signature, ActivationRecordEntity activation) throws GenericServiceException {
+        if (keyType != KeyType.ECDSA_P384) {
+            logger.error("Unsupported key type in signature verification: {}", keyType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+        try {
+            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
+            final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing server public key for application ID: {}", activation.getApplication().getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, data, signature, devicePublicKey);
+        } catch (InvalidKeyException e) {
+            logger.error("Invalid key", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (CryptoProviderException | GenericCryptoException e) {
+            logger.error("Could not verify signature", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
     }
 
 }

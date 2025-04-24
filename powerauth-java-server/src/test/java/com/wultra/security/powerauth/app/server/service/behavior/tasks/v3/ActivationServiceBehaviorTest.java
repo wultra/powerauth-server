@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,10 +14,14 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
@@ -25,8 +29,8 @@ import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRe
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
-import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
+import com.wultra.security.powerauth.app.server.service.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
@@ -53,9 +57,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@link ActivationServiceBehavior}.
+ * Test for {@link ActivationServiceBehavior} (V3).
  *
- * @author Jan Pesek, janpesek@outlook.com
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 
@@ -65,10 +68,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class ActivationServiceBehaviorTest {
 
     @Autowired
-    private ActivationServiceBehavior tested;
+    private ActivationCreateServiceBehavior tested;
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -76,9 +80,10 @@ class ActivationServiceBehaviorTest {
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationInitServiceBehavior = activationInitServiceBehavior;
     }
 
     @Test
@@ -429,7 +434,7 @@ class ActivationServiceBehaviorTest {
         request.setCommitPhase(commitPhase);
         request.setActivationOtpValidation(activationOtpValidation);
         request.setActivationOtp(otp);
-        return tested.initActivation(request);
+        return activationInitServiceBehavior.initActivation(request);
     }
 
     private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, String otpToUse) throws Exception {

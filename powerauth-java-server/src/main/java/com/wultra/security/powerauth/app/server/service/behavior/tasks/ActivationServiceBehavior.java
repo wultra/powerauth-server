@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
@@ -28,37 +26,18 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
-import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
-import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
-import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
-import com.wultra.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
-import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
-import com.wultra.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
-import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
-import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -76,10 +55,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -109,6 +86,8 @@ public class ActivationServiceBehavior {
 
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final ActivationValidationServiceBehavior activationValidationServiceBehavior;
+    private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
 
     private final LocalizationProvider localizationProvider;
 
@@ -117,96 +96,15 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
 
-    private final MasterKeyPairRepository masterKeyPairRepository;
-    private final ApplicationRepository applicationRepository;
-    private final ActivationRepository activationRepository;
     private final CryptographyServiceFactory cryptographyServiceFactory;
-    private final EncryptionServiceEcies encryptionService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
 
-    // Helper classes
-    private final ObjectMapper objectMapper;
-
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
-
-    /**
-     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
-     * is below the given timestamp.
-     *
-     * @param timestamp  Timestamp to check activations against.
-     * @param activation Activation to check.
-     */
-    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) throws GenericServiceException {
-        if ((activation.getActivationStatus() == ActivationStatus.CREATED || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
-            logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
-            if (!isActivationLocked) {
-                // Make sure activation is locked until the end of transaction in case it was not locked yet
-                final String activationId = activation.getActivationId();
-                activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
-                    logger.info("Activation not found, activation ID: {}", activationId);
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-                });
-            }
-            removeActivationInternal(activation, null);
-        }
-    }
-
-    /**
-     * Handle case when public key is invalid. Remove provided activation (mark as REMOVED),
-     * notify callback listeners, and throw an exception.
-     *
-     * @param activation Activation to be removed.
-     * @throws GenericServiceException Error caused by invalid public key.
-     */
-    private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
-        activation.setActivationStatus(ActivationStatus.REMOVED);
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-        // Exception must not be rollbacking, otherwise data written to database in this method would be lost
-        throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-    }
-
-    /**
-     * Validate activation in prepare or create activation step: it should be in CREATED state, it should be linked to correct
-     * application and the activation code should have valid length.
-     *
-     * @param activation Activation used in prepare activation step.
-     * @param application Application used in prepare activation step.
-     * @param rollbackInCaseOfError Whether transaction should be rolled back in case of validation error.
-     * @throws GenericServiceException In case activation state is invalid.
-     */
-    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application, boolean rollbackInCaseOfError) throws GenericServiceException {
-        // If there is no such activation or application does not match the activation application, fail validation
-        if (activation == null
-                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || !Objects.equals(activation.getApplication().getRid(), application.getRid())) {
-            logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
-            if (rollbackInCaseOfError) {
-                // Rollback is used during createActivation, because activation has just been initialized and it is invalid
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            } else {
-                // Regular exception is used during prepareActivation
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
-        }
-
-        // Make sure activation code has 23 characters
-        if (activation.getActivationCode().length() != 23) {
-            logger.warn("Activation code is invalid, activation ID: {}", activation.getActivationId());
-            if (rollbackInCaseOfError) {
-                // Rollback is used during createActivation, because activation has just been initialized and it is invalid
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            } else {
-                // Regular exception is used during prepareActivation
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-            }
-        }
-    }
 
     /**
      * Fetch a paginated list of activations for a given application ID and user ID.
@@ -242,7 +140,7 @@ public class ActivationServiceBehavior {
             if (activationsList != null) {
                 for (ActivationRecordEntity activation : activationsList) {
 
-                    deactivatePendingActivation(timestamp, activation, false);
+                    activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                     if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                         continue;
@@ -464,7 +362,7 @@ public class ActivationServiceBehavior {
 
                 final ActivationRecordEntity activation = activationOptional.get();
                 // Deactivate old pending activations first
-                deactivatePendingActivation(timestamp, activation, false);
+                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 final ApplicationEntity application = activation.getApplication();
                 final String applicationId = application.getId();
@@ -478,9 +376,9 @@ public class ActivationServiceBehavior {
                     // Use random nonce in case that challenge was provided.
                     final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
-                    // TODO - v4 support
                     final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
                             .generateSignatureForApplication(
+                                    KeyType.ECDSA_P256,
                                     activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
                                     application
                             );
@@ -534,7 +432,7 @@ public class ActivationServiceBehavior {
                     if (devicePublicKeyBase64 != null) {
 
                         // TODO - v4 support
-                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSharedSecretKey(activation);
+                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSharedSecretKey(activation);
                         final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         final String ctrDataBase64 = activation.getCtrDataBase64();
@@ -682,547 +580,6 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Init activation with given parameters
-     *
-     * @param request Init activation request.
-     * @return Response with activation initialization data
-     * @throws GenericServiceException If invalid values are provided.
-     */
-    @Transactional
-    public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
-        try {
-            final ActivationProtocol protocol = request.getProtocol();
-            final String userId = request.getUserId();
-            final String applicationId = request.getApplicationId();
-            final Long maxFailureCount = request.getMaxFailureCount();
-            final Date activationExpireTimestamp = request.getTimestampActivationExpire();
-            final String activationOtp = request.getActivationOtp();
-            final List<String> flags = request.getFlags();
-            com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
-            final com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase = request.getCommitPhase();
-
-            // Generate timestamp in advance
-            final Date timestamp = new Date();
-
-            // Find application by application key
-            final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-            if (applicationEntityOptional.isEmpty()) {
-                logger.warn("Application does not exist: {}", applicationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-            final ApplicationEntity application = applicationEntityOptional.get();
-
-            // Get number of max attempts from request or from constants, if not provided
-            Long maxAttempt = maxFailureCount;
-            if (maxAttempt == null) { // use the default value
-                maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
-            } else if (maxFailureCount <= 0) { // only allow custom values > 0
-                logger.warn("Activation cannot be created with the specified properties: maxFailureCount");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_CREATE_FAILED);
-            }
-
-            // Get activation expiration date from request or from constants, if not provided
-            Date timestampExpiration = activationExpireTimestamp;
-            if (timestampExpiration == null) {
-                timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
-            }
-
-            if (activationOtpValidation == null) {
-                activationOtpValidation = com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
-            }
-
-            validateOtpValidationAndCommitPhase(activationOtpValidation, commitPhase, activationOtp);
-
-            // Generate hash from activation OTP
-            final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
-
-            // Generate new activation data, generate a unique activation ID
-            String activationId = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
-                final String tmpActivationId = powerAuthServerActivation.generateActivationId();
-                final Long activationCount = activationRepository.getActivationCount(tmpActivationId);
-                if (activationCount == 0) {
-                    activationId = tmpActivationId;
-                    break;
-                } // ... else this activation ID has a collision, reset it and try to find another one
-            }
-            if (activationId == null) {
-                logger.error("Unable to generate activation ID");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
-            }
-
-            // Generate a unique activation code
-            String activationCode = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
-                final String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
-                final Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
-                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
-                if (activationCount == 0) {
-                    activationCode = tmpActivationCode;
-                    break;
-                }
-            }
-            if (activationCode == null) {
-                logger.error("Unable to generate activation code");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
-            }
-
-            // Compute activation signature
-            // TODO - v4 support
-            final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
-                    .generateSignatureForApplication(
-                            activationCode.getBytes(StandardCharsets.UTF_8),
-                            application
-                    );
-
-            // Encode the signature
-            final String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-
-            // Store the new activation
-            final ActivationRecordEntity activation = new ActivationRecordEntity();
-            activation.setActivationId(activationId);
-            activation.setActivationCode(activationCode);
-            activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
-            activation.setCommitPhase(activationCommitPhaseConverter.convertTo(commitPhase));
-            activation.setActivationOtp(activationOtpHash);
-            activation.setExternalId(null);
-            activation.setActivationName(null);
-            activation.setActivationStatus(ActivationStatus.CREATED);
-            activation.setCounter(0L);
-            activation.setCtrDataBase64(null);
-            activation.setDevicePublicKeyBase64(null);
-            activation.setExtras(null);
-            activation.setProtocol(convert(protocol));
-            activation.setPlatform(null);
-            activation.setDeviceInfo(null);
-            activation.setFailedAttempts(0L);
-            activation.setApplication(application);
-            activation.setMasterKeyPair(masterKeyPairEntity);
-            activation.setMaxFailedAttempts(maxAttempt);
-            activation.setTimestampActivationExpire(timestampExpiration);
-            activation.setTimestampCreated(timestamp);
-            activation.setTimestampLastUsed(timestamp);
-            activation.setTimestampLastChange(null);
-            activation.setVersion(null); // Activation version is not known yet
-            activation.setUserId(userId);
-            if (flags != null) {
-                activation.getFlags().addAll(flags);
-            }
-
-            // TODO - v4 support
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
-
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-
-            // Return the server response
-            final InitActivationResponse response = new InitActivationResponse();
-            response.setActivationId(activationId);
-            response.setActivationCode(activationCode);
-            response.setUserId(userId);
-            response.setActivationSignature(activationSignatureBase64);
-            response.setApplicationId(activation.getApplication().getId());
-
-            return response;
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
-        } catch (RuntimeException ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
-        }
-    }
-
-    private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase, String activationOtp) throws GenericServiceException {
-        // Validate combination of activation OTP and OTP validation mode.
-        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && commitPhase != null) {
-            logger.warn("Invalid combination of input parameters activationOtpValidation and commitPhase.");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        if (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !StringUtils.hasText(activationOtp)) {
-            logger.warn("Missing activation OTP for OTP validation: {}", activationOtpValidation);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-    }
-
-    private com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol convert(final ActivationProtocol source) {
-        if (source == null) {
-            return null;
-        }
-        return switch (source) {
-            case POWERAUTH -> com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.POWERAUTH;
-            case FIDO2 -> com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2;
-        };
-    }
-
-    /**
-     * Prepare activation with given parameters.
-     *
-     * <p><b>PowerAuth protocol versions:</b>
-     * <ul>
-     *     <li>3.0</li>
-     * </ul>
-     *
-     * @param request Request with prepared activation.
-     * @return ECIES encrypted activation information.
-     * @throws GenericServiceException If invalid values are provided.
-     */
-    @Transactional
-    public com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest request) throws GenericServiceException {
-        try {
-            final String activationCode = request.getActivationCode();
-            final String applicationKey = request.getApplicationKey();
-            final String protocolVersion = request.getProtocolVersion();
-
-            // Build encrypted request
-            // TODO - v4 support
-            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
-                    request.getTemporaryKeyId(),
-                    request.getEphemeralPublicKey(),
-                    request.getEncryptedData(),
-                    request.getMac(),
-                    request.getNonce(),
-                    request.getTimestamp()
-            );
-
-            // Get current timestamp
-            final Date timestamp = new Date();
-
-            // Decrypt activation data
-            final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
-            // TODO - v4 support
-            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
-            final ApplicationEntity application = decryptionResult.getApplication();
-
-            // Convert JSON data to activation layer 2 request object
-            final ActivationLayer2Request layer2Request;
-            try {
-                layer2Request = objectMapper.readValue(decryptionResult.getDecryptedData(), ActivationLayer2Request.class);
-            } catch (IOException ex) {
-                logger.warn("Invalid activation request, activation code: {}", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-            }
-
-            // Ensure presence of the devicePublicKey
-            final String retrievedDevicePublicKey = layer2Request.getDevicePublicKey();
-            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
-                logger.warn("Invalid activation request, activation code: {}", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
-            // Fetch the current activation by activation code
-            final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
-            // Search for activation without lock to avoid potential deadlocks
-            ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(application.getId(), activationCode, states, timestamp).orElseThrow(() -> {
-                logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
-                // Rollback is not required, error occurs before writing to database
-                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            });
-
-            // Search for activation again to acquire PESSIMISTIC_WRITE lock for activation row
-            final String activationId = activation.getActivationId();
-            activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
-                logger.info("Activation not found, activation ID: {}", activationId);
-                // Rollback is not required, error occurs before writing to database
-                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            });
-
-            // Make sure to deactivate the activation if it is expired
-            deactivatePendingActivation(timestamp, activation, true);
-
-            // Validate that the activation is in correct state for the prepare step
-            validateCreatedActivation(activation, application, false);
-
-            // Validate activation OTP for stage ON_KEY_EXCHANGE
-            validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
-
-            // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
-            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
-
-            // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
-            // TODO - v4 support
-            BasePublicKey devicePublicKey = null;
-            try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA_P256, devicePublicKeyBytes);
-            } catch (GenericServiceException e) {
-                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
-                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
-                handleInvalidPublicKey(activation);
-            }
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
-
-            // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
-            final byte[] ctrData = counter.init();
-            final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
-
-            // Update the activation record
-            activation.setActivationStatus(activationStatus);
-            activation.setActivationName(layer2Request.getActivationName());
-            activation.setExternalId(layer2Request.getExternalId());
-            activation.setExtras(layer2Request.getExtras());
-            if (layer2Request.getPlatform() != null) {
-                activation.setPlatform(layer2Request.getPlatform().toLowerCase());
-            } else {
-                activation.setPlatform("unknown");
-            }
-            activation.setDeviceInfo(layer2Request.getDeviceInfo());
-            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
-            activation.setVersion(3);
-            // Set initial counter data
-            activation.setCtrDataBase64(ctrDataBase64);
-
-            // Generate activation layer 2 response
-            final ActivationLayer2Response layer2Response = new ActivationLayer2Response();
-            layer2Response.setActivationId(activation.getActivationId());
-            layer2Response.setCtrData(ctrDataBase64);
-            layer2Response.setServerPublicKey(activation.getServerPublicKeyBase64());
-            final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
-
-            // Encrypt response data
-            // TODO - v4 support
-            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
-
-            // Persist activation report and notify listeners
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-
-            // Generate response object
-            final com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse response = new com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse();
-            response.setActivationId(activation.getActivationId());
-            response.setUserId(activation.getUserId());
-            response.setApplicationId(application.getId());
-            response.setEncryptedData(encryptedResponse.getEncryptedData());
-            response.setMac(encryptedResponse.getMac());
-            response.setNonce(encryptedResponse.getNonce());
-            response.setTimestamp(encryptedResponse.getTimestamp());
-            response.setActivationStatus(activationStatusConverter.convert(activationStatus));
-            return response;
-        } catch (EncryptorException | JsonProcessingException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
-        } catch (RuntimeException ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
-        }
-    }
-
-    @Transactional
-    public PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new PrepareActivationResponse();
-    }
-
-        /**
-         * Create activation with given parameters.
-         *
-         * <p><b>PowerAuth protocol versions:</b>
-         * <ul>
-         *     <li>3.0</li>
-         * </ul>
-         *
-         * @param request Encrypted activation request.
-         * @return ECIES encrypted activation information
-         * @throws GenericServiceException       In case create activation fails
-         */
-    @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
-    public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
-        try {
-            // Get request parameters
-            final String userId = request.getUserId();
-            final Date activationExpireTimestamp = request.getTimestampActivationExpire();
-            final Long maxFailureCount = request.getMaxFailureCount();
-            final String applicationKey = request.getApplicationKey();
-            final String activationOtp = request.getActivationOtp();
-            final String protocolVersion = request.getProtocolVersion();
-
-            // Build encrypted request
-            // TODO - v4 support
-            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
-                    request.getTemporaryKeyId(),
-                    request.getEphemeralPublicKey(),
-                    request.getEncryptedData(),
-                    request.getMac(),
-                    request.getNonce(),
-                    request.getTimestamp()
-            );
-
-            // Get current timestamp
-            final Date timestamp = new Date();
-
-            // Decrypt activation data
-            final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.ACTIVATION_LAYER_2);
-            // TODO - v4 support
-            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
-            final ApplicationEntity application = decryptionResult.getApplication();
-
-            // Prepare activation OTP mode
-            final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
-
-            // Create an activation record and obtain the activation database record
-            final InitActivationRequest initRequest = new InitActivationRequest();
-            initRequest.setProtocol(ActivationProtocol.POWERAUTH);
-            initRequest.setApplicationId(application.getId());
-            initRequest.setUserId(userId);
-            initRequest.setMaxFailureCount(maxFailureCount);
-            initRequest.setTimestampActivationExpire(activationExpireTimestamp);
-            initRequest.setActivationOtp(activationOtp);
-            initRequest.setActivationOtpValidation(activationOtpValidation);
-            initRequest.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
-            final InitActivationResponse initResponse = this.initActivation(initRequest);
-            final String activationId = initResponse.getActivationId();
-            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
-                logger.warn("Activation not found, activation ID: {}", activationId);
-                // The whole transaction is rolled back in case of this unexpected state
-                return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            });
-
-            // Make sure to deactivate the activation if it is expired
-            deactivatePendingActivation(timestamp, activation, true);
-
-            validateCreatedActivation(activation, application, true);
-
-            // Decrypt activation data
-            final byte[] activationData = decryptionResult.getDecryptedData();
-
-            // Convert JSON data to activation layer 2 request object
-            ActivationLayer2Request layer2Request;
-            try {
-                layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
-            } catch (IOException ex) {
-                logger.warn("Invalid activation request, activation ID: {}", activationId);
-                // Activation failed due to invalid ECIES request, rollback transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-            }
-
-            // Ensure presence of the devicePublicKey
-            final String retrievedDevicePublicKey = layer2Request.getDevicePublicKey();
-            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
-                logger.warn("Invalid activation request, activation ID: {}", activationId);
-                // Activation failed due to invalid ECIES request, rollback transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
-            // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
-            // TODO - v4 support
-            BasePublicKey devicePublicKey = null;
-            try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA_P256, devicePublicKeyBytes);
-            } catch (GenericServiceException e) {
-                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
-                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
-                handleInvalidPublicKey(activation);
-            }
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
-
-            // Initialize hash based counter
-            final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
-            final byte[] ctrData = counter.init();
-            final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
-
-            // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
-            activation.setActivationName(layer2Request.getActivationName());
-            activation.setExternalId(layer2Request.getExternalId());
-            activation.setExtras(layer2Request.getExtras());
-            if (layer2Request.getPlatform() != null) {
-                activation.setPlatform(layer2Request.getPlatform().toLowerCase());
-            } else {
-                activation.setPlatform("unknown");
-            }
-            activation.setDeviceInfo(layer2Request.getDeviceInfo());
-            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
-            activation.setVersion(3);
-            // Set initial counter data
-            activation.setCtrDataBase64(ctrDataBase64);
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-
-            // Generate activation layer 2 response
-            final ActivationLayer2Response layer2Response = new ActivationLayer2Response();
-            layer2Response.setActivationId(activation.getActivationId());
-            layer2Response.setCtrData(ctrDataBase64);
-            layer2Response.setServerPublicKey(activation.getServerPublicKeyBase64());
-            final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
-
-            // Encrypt response data
-            // TODO - v4 support
-            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
-
-            // Generate encrypted response
-            final CreateActivationResponse response = new CreateActivationResponse();
-            response.setActivationId(activation.getActivationId());
-            response.setUserId(activation.getUserId());
-            response.setApplicationId(application.getId());
-            response.setEncryptedData(encryptedResponse.getEncryptedData());
-            response.setMac(encryptedResponse.getMac());
-            response.setNonce(encryptedResponse.getNonce());
-            response.setTimestamp(encryptedResponse.getTimestamp());
-            response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-            return response;
-        } catch (EncryptorException | JsonProcessingException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback transaction to avoid data inconsistency because of cryptography errors
-            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback transaction to avoid data inconsistency because of cryptography errors
-            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback transaction to avoid data inconsistency because of cryptography errors
-            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
-        } catch (RuntimeException ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
-        }
-    }
-
-    @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
-    public com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse();
-    }
-
-    /**
      * Commit activation with given ID.
      *
      * @param request Commit activation request.
@@ -1247,7 +604,7 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
             if (activation.getActivationStatus() == ActivationStatus.REMOVED) {
                 logger.info("Activation is already REMOVED, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -1262,7 +619,7 @@ public class ActivationServiceBehavior {
             }
 
             // Validate activation OTP for stage ON_COMMIT
-            validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
+            activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_COMMIT, activationOtp, activation, externalUserId);
 
             // Check the commit phase
             if (activation.getCommitPhase() != CommitPhase.ON_COMMIT) {
@@ -1360,7 +717,7 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
 
             // Check activation state
             if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
@@ -1410,110 +767,6 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Validate activation OTP against value set in the activation's record.
-     *
-     * @param confirmationOtp   OTP value to be validated.
-     * @param activation        Activation record.
-     * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
-     * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
-     */
-    private void validateActivationOtp(CommitPhase currentPhase, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
-
-        final String activationId = activation.getActivationId();
-        final ActivationOtpValidation expectedStage = activation.getActivationOtpValidation();
-        final CommitPhase expectedCommitPhase = activation.getCommitPhase();
-        final String expectedOtpHash = activation.getActivationOtp();
-
-        if (expectedStage != ActivationOtpValidation.NONE) {
-            // Validation using ActivationOtpValidation (deprecated):
-            // - in case the check is done in different phase, skip validation
-            // - for correct phase make sure OTP is available when required
-            if (expectedStage == ActivationOtpValidation.ON_KEY_EXCHANGE && currentPhase == CommitPhase.ON_COMMIT
-                    || expectedStage == ActivationOtpValidation.ON_COMMIT && currentPhase == CommitPhase.ON_KEY_EXCHANGE) {
-                if (StringUtils.hasText(confirmationOtp)) {
-                    logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentPhase);
-                    // Rollback is not required, database is not used for writing yet.
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-                }
-                // Different phase, skip validation
-                return;
-            }
-            if (!StringUtils.hasText(confirmationOtp)) {
-                logger.info("Activation OTP is missing for activation ID: {}, phase: {}", activationId, currentPhase);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-        } else {
-            // Validation of commit phase:
-            // - if no OTP is specified for an activation, no validation is required
-            // - in case the commit is done in different phase, skip validation
-            // - for correct phase make sure OTP is available when required
-            if (expectedOtpHash == null) {
-                return;
-            }
-            if (currentPhase != expectedCommitPhase) {
-                if (StringUtils.hasText(confirmationOtp)) {
-                    logger.info("Activation OTP should not be present for activation ID: {}, stage: {}", activationId, currentPhase);
-                    // Rollback is not required, database is not used for writing yet.
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-                }
-                // Different phase, skip validation
-                return;
-            }
-            if (!StringUtils.hasText(confirmationOtp)) {
-                logger.info("Activation OTP is missing for activation ID: {}, stage: {}", activationId, currentPhase);
-                // Rollback is not required, database is not used for writing yet.
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-            }
-        }
-
-        // Check whether hash is present in the database.
-        if (expectedOtpHash == null) {
-            logger.info("Activation OTP is missing in activation data: {}", activationId);
-            // Rollback is not required, database is not used for writing yet.
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-        }
-
-        // Now verify OTP value
-        try {
-            if (PasswordHash.verify(confirmationOtp.getBytes(StandardCharsets.UTF_8), expectedOtpHash)) {
-                // Everything looks fine. Reset the failed attempts counter.
-                activation.setFailedAttempts(0L);
-                return;
-            }
-        } catch (IOException e) {
-            // This exception typically means that the hash stored in DB is in wrong format. The rest of this method
-            // will treat this as an invalid OTP.
-            logger.warn("Invalid activation OTP hash: {}", activationId);
-        }
-
-        // Confirmation OTP doesn't match value stored in the database.
-
-        // Increase the number of failed attempts and validate the maximum number of failed attempts.
-        activation.setFailedAttempts(activation.getFailedAttempts() + 1L);
-        final boolean removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
-
-        // If activation should be removed then set its status to REMOVED.
-        if (removeActivation) {
-            activation.setActivationStatus(ActivationStatus.REMOVED);
-        }
-
-        // Save activation state with the reason.
-        final String activationSaveReason = removeActivation ? AdditionalInformation.Reason.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.Reason.ACTIVATION_OTP_FAILED_ATTEMPT;
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
-
-        // Also notify the listeners in case that the state of the activation was changed.
-        if (removeActivation) {
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-        }
-
-        // ...and finally throw an exception.
-        logger.info("Invalid activation OTP: {}", activationId);
-        // Exception must not be rollbacking, otherwise data written to database in this method would be lost.
-        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
-    }
-
-    /**
      * Remove activation with given ID.
      *
      * @param request Remove activation request.
@@ -1552,7 +805,7 @@ public class ActivationServiceBehavior {
      */
     public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId) {
         logger.info("Processing activation removal, activation ID: {}", activation.getActivationId());
-        removeActivationInternal(activation, externalUserId);
+        activationRemoveServiceBehavior.removeActivation(activation, externalUserId);
         final RemoveActivationResponse response = new RemoveActivationResponse();
         response.setActivationId(activation.getActivationId());
         response.setRemoved(true);
@@ -1657,17 +910,6 @@ public class ActivationServiceBehavior {
         }
     }
 
-    /**
-     * Internal logic for processing activation removal.
-     * @param activation Activation entity.
-     * @param externalUserId External user identifier.
-     */
-    private void removeActivationInternal(final ActivationRecordEntity activation, final String externalUserId) {
-        activation.setActivationStatus(ActivationStatus.REMOVED);
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-    }
-
     public List<Activation> findByExternalId(String applicationId, String externalId) throws GenericServiceException {
         final Date timestamp = new Date();
         final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
@@ -1677,7 +919,7 @@ public class ActivationServiceBehavior {
         if (activationsList != null) {
             for (ActivationRecordEntity activation : activationsList) {
 
-                deactivatePendingActivation(timestamp, activation, false);
+                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -1717,7 +959,7 @@ public class ActivationServiceBehavior {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
                 try {
-                    deactivatePendingActivation(currentTimestamp, activation, false);
+                    activationRemoveServiceBehavior.deactivatePendingActivation(currentTimestamp, activation, false);
                 } catch (GenericServiceException e) {
                     logger.error("Activation expiration failed, activation ID: {}", activation.getActivationId());
                 }

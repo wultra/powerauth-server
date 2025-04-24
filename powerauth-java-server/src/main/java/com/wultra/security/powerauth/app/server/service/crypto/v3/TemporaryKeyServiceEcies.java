@@ -48,8 +48,8 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.TemporaryKeyResult;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifier16B;
-import com.wultra.security.powerauth.client.model.entity.v3.TemporaryPublicKeyRequestClaims;
-import com.wultra.security.powerauth.client.model.entity.v3.TemporaryPublicKeyResponseClaims;
+import com.wultra.security.powerauth.client.model.entity.v3.request.TemporaryPublicKeyRequestClaims;
+import com.wultra.security.powerauth.client.model.entity.v3.response.TemporaryPublicKeyResponseClaims;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;

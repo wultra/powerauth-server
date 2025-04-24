@@ -16,28 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.app.server.service.model.response.v3;
 
 import lombok.Data;
-import lombok.ToString;
-
-import java.util.Date;
+import lombok.NoArgsConstructor;
 
 /**
- * Class for holding the temporary key response claims (V4).
+ * Response object for activation layer 2 response (V3).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
+ *
  */
 @Data
-public class TemporaryPublicKeyResponseClaims {
+@NoArgsConstructor
+public class ActivationLayer2Response {
 
-    private String applicationKey;
     private String activationId;
-    @ToString.Exclude
-    private String challenge;
-    private String keyId;
-    private SharedSecretResponse sharedSecretResponse;
-    private Date expiration;
+    private String serverPublicKey;
+    private String ctrData;
 
 }

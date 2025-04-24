@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.model.crypto;
 
-import com.wultra.security.powerauth.client.model.entity.v4.SharedSecretRequest;
+import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import lombok.Data;
 import lombok.ToString;
 

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.app.server.controller.api;
+package com.wultra.security.powerauth.app.server.controller.api.v3;
 
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
@@ -32,7 +32,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,8 +43,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@RestController("applicationController")
-@RequestMapping({"/rest/v3/application", "/rest/v4/application"})
+@RestController("applicationControllerV3")
+@RequestMapping("/rest/v3/application")
 @Tag(name = "PowerAuth Application Controller")
 @AllArgsConstructor
 @Validated
@@ -78,7 +77,7 @@ public class ApplicationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateApplicationResponse> createApplication(@Valid  @RequestBody ObjectRequest<CreateApplicationRequest> request) throws Exception {
+    public ObjectResponse<CreateApplicationResponse> createApplication(@Valid @RequestBody ObjectRequest<CreateApplicationRequest> request) throws Exception {
         final CreateApplicationRequest req = request.getRequestObject();
         logger.info("action: createApplication, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: createApplication, state: initiated, request: {}", request);

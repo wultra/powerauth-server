@@ -17,29 +17,23 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v4.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
-
-import java.security.KeyPair;
 
 /**
- * Hybrid key pair wrapper.
+ * Model class for shared secret request.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-public class HybridKeyPair extends BaseKeyPair {
+public class SharedSecretRequest {
 
-    @ToString.Exclude
-    private KeyPair ecKeyPair;
-
-    @ToString.Exclude
-    private KeyPair mlKeyPair;
+    @NotBlank
+    private String algorithm;
+    @NotBlank
+    private String ecdhe;
+    private String mlkem;
 
 }

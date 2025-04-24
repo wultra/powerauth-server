@@ -17,19 +17,19 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.client.model.entity.v4.response;
 
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 
 /**
- * Base key pair.
+ * Model class for device public keys.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-@SuperBuilder
-public abstract class BaseKeyPair {
+public class ServerPublicKeys {
+
+    private String ecdsa;
+    private String mldsa;
 
 }

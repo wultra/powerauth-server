@@ -17,19 +17,22 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.client.model.entity.v3.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
- * Model class for shared secret response.
+ * Class used for holding the request claims (V3).
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class SharedSecretResponse {
+public class TemporaryPublicKeyRequestClaims {
 
-    private String ecdhe;
-    private String mlkem;
-    
+    private String applicationKey;
+    private String activationId;
+    @ToString.Exclude
+    private String challenge;
+
 }

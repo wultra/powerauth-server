@@ -17,7 +17,7 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.entity.v4;
+package com.wultra.security.powerauth.client.model.entity.v4.request;
 
 import lombok.Data;
 import lombok.ToString;

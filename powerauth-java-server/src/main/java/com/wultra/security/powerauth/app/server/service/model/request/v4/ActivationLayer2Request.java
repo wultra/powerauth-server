@@ -16,25 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+package com.wultra.security.powerauth.app.server.service.model.request.v4;
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
-
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
-import java.security.KeyPair;
+import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
+import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * EC key pair wrapper.
+ * Request object for activation layer 2 request (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
+ *
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
-public class EcKeyPair extends BaseKeyPair {
+@NoArgsConstructor
+public class ActivationLayer2Request {
 
-    @ToString.Exclude
-    private KeyPair ecKeyPair;
+    private SharedSecretRequest sharedSecretRequest;
+    private DevicePublicKeys devicePublicKeys;
+    private String activationName;
+    private String activationOtp;
+    private String externalId;
+    private String platform;
+    private String deviceInfo;
+    private String extras;
 
 }
