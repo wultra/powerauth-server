@@ -105,6 +105,12 @@ public class ActivationStatusServiceBehavior {
             if (activationOptional.isPresent()) {
 
                 final ActivationRecordEntity activation = activationOptional.get();
+                if (activation.getVersion() != 3) {
+                    logger.error("Unsupported activation version: {}", activation.getVersion());
+                    // Rollback is not required, database is not used for writing
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                }
+
                 // Deactivate old pending activations first
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
@@ -221,13 +227,7 @@ public class ActivationStatusServiceBehavior {
                         encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey, protocolVersion);
 
                         // Assign the activation fingerprint
-                        if (activation.getVersion() == 3) {
-                            activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
-                        } else {
-                            logger.error("Unsupported activation version: {}", activation.getVersion());
-                            // Rollback is not required, database is not used for writing
-                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                        }
+                        activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
                     }
 
                     // return the data
