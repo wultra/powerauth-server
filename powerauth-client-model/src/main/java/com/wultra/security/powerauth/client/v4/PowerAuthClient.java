@@ -299,12 +299,9 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth Server interface. This method should be used only
-     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
-     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithStatusBlob(String, String)}
-     * method instead.
+     * Call the getActivationStatus method of the PowerAuth Server interface.
      *
-     * @param activationId Activation Id to lookup information for.
+     * @param activationId Activation identifier to lookup information for.
      * @return {@link GetActivationStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
