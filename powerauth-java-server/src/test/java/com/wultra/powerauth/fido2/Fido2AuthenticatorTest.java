@@ -33,9 +33,11 @@ import com.webauthn4j.test.client.ClientPlatform;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
@@ -104,16 +106,18 @@ class Fido2AuthenticatorTest {
     private final RegistrationService registrationService;
     private final AssertionService assertionService;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
 
 
     @Autowired
-    public Fido2AuthenticatorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationConfigServiceBehavior applicationConfigService, OperationTemplateServiceBehavior operationTemplateService, RegistrationService registrationService, AssertionService assertionService, ActivationServiceBehavior activationServiceBehavior) throws Exception {
+    public Fido2AuthenticatorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationConfigServiceBehavior applicationConfigService, OperationTemplateServiceBehavior operationTemplateService, RegistrationService registrationService, AssertionService assertionService, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior) throws Exception {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationConfigService = applicationConfigService;
         this.operationTemplateService = operationTemplateService;
         this.registrationService = registrationService;
         this.assertionService = assertionService;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         createApplication();
         createOperationTemplate();
     }
@@ -440,7 +444,7 @@ class Fido2AuthenticatorTest {
         // Check that activation is in ACTIVE state
         final GetActivationStatusRequest activationStatusRequest2 = new GetActivationStatusRequest();
         activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, activationServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
+        assertEquals(ActivationStatus.ACTIVE, activationStatusServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
 
         // Remove configuration
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
@@ -477,7 +481,7 @@ class Fido2AuthenticatorTest {
         // Check that activation is in CREATED state
         final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
         activationStatusRequest.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.CREATED, activationServiceBehavior.getActivationStatus(activationStatusRequest).getActivationStatus());
+        assertEquals(ActivationStatus.CREATED, activationStatusServiceBehavior.getActivationStatus(activationStatusRequest).getActivationStatus());
 
         // Use obtained activation code as a challenge, prepare credential options
         final Challenge challenge = new DefaultChallenge(challengeResponse.getChallenge().getBytes(StandardCharsets.UTF_8));
@@ -500,7 +504,7 @@ class Fido2AuthenticatorTest {
         // Check that activation is in ACTIVE state
         final GetActivationStatusRequest activationStatusRequest2 = new GetActivationStatusRequest();
         activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, activationServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
+        assertEquals(ActivationStatus.ACTIVE, activationStatusServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
     }
 
     private RegistrationRequest prepareRegistrationRequest(PublicKeyCredentialCreationOptions credentialCreationOptions, Challenge challenge, ClientPlatform clientPlatform) throws Exception {

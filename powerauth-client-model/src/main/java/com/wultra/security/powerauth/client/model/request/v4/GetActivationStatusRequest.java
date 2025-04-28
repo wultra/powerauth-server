@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,18 +14,19 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.request;
+package com.wultra.security.powerauth.client.model.request.v4;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * Model class representing request for obtaining activation status.
+ * Model class representing request for obtaining activation status (V4).
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
 public class GetActivationStatusRequest {
@@ -33,8 +34,5 @@ public class GetActivationStatusRequest {
     @Schema(description = "Activation identifier")
     @NotBlank(message = "Activation ID must not be empty when requesting activation status")
     private String activationId;
-
-    @Schema(description = "Challenge value")
-    private String challenge;
 
 }

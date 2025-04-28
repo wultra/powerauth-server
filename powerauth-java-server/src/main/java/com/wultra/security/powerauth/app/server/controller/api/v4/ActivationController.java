@@ -24,9 +24,12 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationCreateServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.PrepareActivationResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,8 +56,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class ActivationController {
 
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationCreateServiceBehavior activationServiceBehaviorV4;
+    private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
+    private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
 
     /**
      * Init activation.
@@ -86,7 +90,7 @@ public class ActivationController {
         final PrepareActivationRequest req = request.getRequestObject();
         logger.info("action: prepareActivation, state: initiated, applicationKey: {}", req.getApplicationKey());
         logger.debug("action: prepareActivation, state: initiated, request: {}", request);
-        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehaviorV4.prepareActivation(req));
+        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationCreateServiceBehavior.prepareActivation(req));
         logger.info("action: prepareActivation, state: succeeded");
         logger.debug("action: prepareActivation, state: succeeded, response: {}", response);
         return response;
@@ -104,7 +108,7 @@ public class ActivationController {
         final com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest req = request.getRequestObject();
         logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}", req.getUserId(), req.getApplicationKey());
         logger.debug("action: createActivation, state: initiated, request: {}", request);
-        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehaviorV4.createActivation(req));
+        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationCreateServiceBehavior.createActivation(req));
         logger.info("action: createActivation, state: succeeded");
         logger.debug("action: createActivation, state: succeeded, response: {}", response);
         return response;
@@ -158,7 +162,7 @@ public class ActivationController {
         final GetActivationStatusRequest req = request.getRequestObject();
         logger.info("action: getActivationStatus, state: initiated, activationId: {}", req.getActivationId());
         logger.debug("action: getActivationStatus, state: initiated, request: {}", request);
-        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(req));
+        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationStatusServiceBehavior.getActivationStatus(req));
         logger.info("action: getActivationStatus, state: succeeded");
         logger.debug("action: getActivationStatus, state: succeeded, response: {}", response);
         return response;

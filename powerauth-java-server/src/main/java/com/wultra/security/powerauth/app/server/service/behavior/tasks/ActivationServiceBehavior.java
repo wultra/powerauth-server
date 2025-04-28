@@ -23,9 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseC
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
@@ -38,12 +36,8 @@ import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
-import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
@@ -56,7 +50,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -327,249 +320,6 @@ public class ActivationServiceBehavior {
             response.setUpdated(true);
 
             return response;
-        } catch (RuntimeException ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
-        }
-    }
-
-    /**
-     * Get activation status for given activation ID
-     *
-     * @param request Activation status request.
-     * @return Activation status response
-     * @throws GenericServiceException Thrown when cryptography error occurs.
-     */
-    @Transactional
-    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws GenericServiceException {
-        try {
-            final String activationId = request.getActivationId();
-            final String challenge = request.getChallenge();
-
-            // Generate timestamp in advance
-            final Date timestamp = new Date();
-
-            // Prepare key generator
-            final KeyGenerator keyGenerator = new KeyGenerator();
-
-            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
-
-            // Check if the activation exists
-            if (activationOptional.isPresent()) {
-
-                final ActivationRecordEntity activation = activationOptional.get();
-                // Deactivate old pending activations first
-                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
-
-                final ApplicationEntity application = activation.getApplication();
-                final String applicationId = application.getId();
-
-                // Handle CREATED activation
-                if (activation.getActivationStatus() == ActivationStatus.CREATED) {
-
-                    // Created activations are not able to transfer valid status blob to the client
-                    // since both keys were not exchanged yet and transport cannot be secured.
-                    final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
-                    // Use random nonce in case that challenge was provided.
-                    final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
-
-                    final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
-                            .generateSignatureForApplication(
-                                    KeyType.ECDSA_P256,
-                                    activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                                    application
-                            );
-
-                    // return the data
-                    final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                    response.setActivationId(activationId);
-                    response.setUserId(activation.getUserId());
-                    response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
-                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
-                    response.setBlockedReason(activation.getBlockedReason());
-                    response.setActivationName(activation.getActivationName());
-                    response.setExtras(activation.getExtras());
-                    response.setApplicationId(applicationId);
-                    response.setFailedAttempts(activation.getFailedAttempts());
-                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
-                    response.setTimestampCreated(activation.getTimestampCreated());
-                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
-                    response.setTimestampLastChange(activation.getTimestampLastChange());
-                    response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
-                    response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
-                    response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
-                    response.setDevicePublicKeyFingerprint(null);
-                    response.setPlatform(activation.getPlatform());
-                    response.setProtocol(convert(activation.getProtocol()));
-                    response.setExternalId(activation.getExternalId());
-                    response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getActivationFlags().addAll(activation.getFlags());
-                    response.getApplicationRoles().addAll(application.getRoles());
-                    // Unknown version is converted to 0 in service
-                    response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                    return response;
-                } else {
-
-                    // Get the server private and device public keys to compute the transport key
-                    final String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
-
-                    // If an activation was turned to REMOVED directly from CREATED state,
-                    // there is no device public key in the database - we need to handle
-                    // that case by defaulting the encryptedStatusBlob to random value...
-                    byte[] encryptedStatusBlob = keyGenerator.generateRandomBytes(32);
-                    String encryptedStatusBlobNonce = null;
-
-                    // Prepare a value for the device public key fingerprint
-                    String activationFingerPrint = null;
-
-                    // There is a device public key available, therefore we can compute
-                    // the real encryptedStatusBlob value.
-                    if (devicePublicKeyBase64 != null) {
-
-                        // TODO - v4 support
-                        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).deriveSharedSecretKey(activation);
-                        final SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
-
-                        final String ctrDataBase64 = activation.getCtrDataBase64();
-                        byte[] ctrDataHashForStatusBlob;
-                        if (ctrDataBase64 != null) {
-                            // In crypto v3 counter data is stored with activation. We have to calculate hash from
-                            // the counter value, before it's encoded into the status blob. The value might be replaced
-                            // in `encryptedStatusBlob()` function that injects random data, depending on the version
-                            // of the status blob encryption.
-                            final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
-                            ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, transportKey);
-                        } else {
-                            // In crypto v2 counter data is not present, so use an array of zero bytes. This might be
-                            // replaced in `encryptedStatusBlob()` function that injects random data automatically,
-                            // depending on the version of the status blob encryption.
-                            ctrDataHashForStatusBlob = new byte[16];
-                        }
-                        byte[] statusChallenge;
-                        byte[] statusNonce;
-                        if (challenge != null) {
-                            // If challenge is present, then also generate a new nonce. Protocol V3.1+
-                            statusChallenge = Base64.getDecoder().decode(challenge);
-                            statusNonce = keyGenerator.generateRandomBytes(16);
-                            encryptedStatusBlobNonce = Base64.getEncoder().encodeToString(statusNonce);
-                        } else {
-                            // Older protocol versions, where IV derivation is not available.
-                            statusChallenge = null;
-                            statusNonce = null;
-                        }
-
-                        // Encrypt the status blob
-                        final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
-                        statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
-                        statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
-                        statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
-                        statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
-                        statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
-                        statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
-                        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
-                        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
-                        encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey);
-
-                        // Assign the activation fingerprint
-                        switch (activation.getVersion()) {
-                            case 3 ->
-                                    activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
-                            default -> {
-                                // TODO - v4 support
-                                logger.error("Unsupported activation version: {}", activation.getVersion());
-                                // Rollback is not required, database is not used for writing
-                                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                            }
-                        }
-                    }
-
-                    // return the data
-                    final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                    response.setActivationId(activationId);
-                    response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
-                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
-                    response.setBlockedReason(activation.getBlockedReason());
-                    response.setActivationName(activation.getActivationName());
-                    response.setUserId(activation.getUserId());
-                    response.setExtras(activation.getExtras());
-                    response.setApplicationId(applicationId);
-                    response.setFailedAttempts(activation.getFailedAttempts());
-                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
-                    response.setTimestampCreated(activation.getTimestampCreated());
-                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
-                    response.setTimestampLastChange(activation.getTimestampLastChange());
-                    response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(encryptedStatusBlob));
-                    response.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
-                    response.setActivationCode(null);
-                    response.setActivationSignature(null);
-                    response.setDevicePublicKeyFingerprint(activationFingerPrint);
-                    response.setPlatform(activation.getPlatform());
-                    response.setProtocol(convert(activation.getProtocol()));
-                    response.setExternalId(activation.getExternalId());
-                    response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getActivationFlags().addAll(activation.getFlags());
-                    response.getApplicationRoles().addAll(application.getRoles());
-                    // Unknown version is converted to 0 in service
-                    response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                    return response;
-                }
-            } else {
-
-                // Activations that do not exist should return REMOVED state and
-                // a random status blob
-                final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
-                // Use random nonce in case that challenge was provided.
-                final String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
-
-                // Generate date
-                final Date zeroDate = new Date(0);
-
-                // return the data
-                final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                response.setActivationId(activationId);
-                response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
-                response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
-                response.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
-                response.setBlockedReason(null);
-                response.setActivationName("unknown");
-                response.setUserId("unknown");
-                response.setApplicationId(null);
-                response.setExtras(null);
-                response.setPlatform(null);
-                response.setProtocol(null);
-                response.setExternalId(null);
-                response.setDeviceInfo(null);
-                response.setTimestampCreated(zeroDate);
-                response.setTimestampLastUsed(zeroDate);
-                response.setTimestampLastChange(null);
-                response.setFailedAttempts(0L);
-                response.setMaxFailedAttempts(powerAuthServiceConfiguration.getSignatureMaxFailedAttempts());
-                response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
-                response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
-                response.setActivationCode(null);
-                response.setActivationSignature(null);
-                response.setDevicePublicKeyFingerprint(null);
-                // Use 0 as version when version is undefined
-                response.setVersion(0L);
-                return response;
-            }
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            /// Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;

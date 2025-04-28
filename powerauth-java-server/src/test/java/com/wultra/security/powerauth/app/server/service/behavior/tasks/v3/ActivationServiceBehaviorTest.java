@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Applicati
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -32,6 +33,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
 import com.wultra.security.powerauth.app.server.service.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
@@ -72,6 +74,7 @@ class ActivationServiceBehaviorTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
@@ -80,9 +83,10 @@ class ActivationServiceBehaviorTest {
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         this.activationInitServiceBehavior = activationInitServiceBehavior;
     }
 
@@ -483,7 +487,7 @@ class ActivationServiceBehaviorTest {
     private ActivationStatus getActivationStatus(String activationId) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
-        final GetActivationStatusResponse statusResponse = activationServiceBehavior.getActivationStatus(statusRequest);
+        final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
 
         return statusResponse.getActivationStatus();
     }
