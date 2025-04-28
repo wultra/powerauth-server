@@ -26,10 +26,8 @@ import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v4.*;
 import org.springframework.util.MultiValueMap;
 
@@ -303,7 +301,7 @@ public interface PowerAuthClient {
     /**
      * Call the getActivationStatus method of the PowerAuth Server interface. This method should be used only
      * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
-     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
+     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithStatusBlob(String, String)}
      * method instead.
      *
      * @param activationId Activation Id to lookup information for.
@@ -311,18 +309,6 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException;
-
-    /**
-     * Call the getActivationStatus method of the PowerAuth Server interface. The method should be used to
-     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
-     * contains an encrypted activation status blob.
-     *
-     * @param activationId Activation Id to lookup information for.
-     * @param challenge    Cryptographic challenge for activation status blob encryption.
-     * @return {@link GetActivationStatusResponse}
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth Server interface.
