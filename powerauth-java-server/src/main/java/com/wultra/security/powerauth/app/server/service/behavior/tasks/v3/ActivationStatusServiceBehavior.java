@@ -105,11 +105,6 @@ public class ActivationStatusServiceBehavior {
             if (activationOptional.isPresent()) {
 
                 final ActivationRecordEntity activation = activationOptional.get();
-                if (activation.getVersion() != 3) {
-                    logger.error("Unsupported activation version: {}", activation.getVersion());
-                    // Rollback is not required, database is not used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                }
 
                 // Deactivate old pending activations first
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
@@ -164,7 +159,6 @@ public class ActivationStatusServiceBehavior {
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
                 } else {
-
                     // Get the server private and device public keys to compute the transport key
                     final String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
 
@@ -176,6 +170,23 @@ public class ActivationStatusServiceBehavior {
 
                     // Prepare a value for the device public key fingerprint
                     String activationFingerPrint = null;
+
+                    // Derive values for different protocol versions depending on presence of challenge parameter
+                    final byte[] statusChallenge;
+                    final byte[] statusNonce;
+                    final ProtocolVersion protocolVersion;
+                    if (challenge != null) {
+                        // If challenge is present, then also generate a new nonce. Protocol V3.1+
+                        statusChallenge = Base64.getDecoder().decode(challenge);
+                        statusNonce = keyGenerator.generateRandomBytes(16);
+                        encryptedStatusBlobNonce = Base64.getEncoder().encodeToString(statusNonce);
+                        protocolVersion = ProtocolVersion.V33;
+                    } else {
+                        // Older protocol versions, where IV derivation is not available.
+                        statusChallenge = null;
+                        statusNonce = null;
+                        protocolVersion = ProtocolVersion.V30;
+                    }
 
                     // There is a device public key available, therefore we can compute
                     // the real encryptedStatusBlob value.
@@ -196,22 +207,6 @@ public class ActivationStatusServiceBehavior {
                         // in `encryptedStatusBlob()` function that injects random data, depending on the version
                         // of the status blob encryption.
                         final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
-                        final byte[] statusChallenge;
-                        final byte[] statusNonce;
-                        final ProtocolVersion protocolVersion;
-                        if (challenge != null) {
-                            // If challenge is present, then also generate a new nonce. Protocol V3.1+
-                            statusChallenge = Base64.getDecoder().decode(challenge);
-                            statusNonce = keyGenerator.generateRandomBytes(16);
-                            encryptedStatusBlobNonce = Base64.getEncoder().encodeToString(statusNonce);
-                            protocolVersion = ProtocolVersion.V33;
-                        } else {
-                            // Older protocol versions, where IV derivation is not available.
-                            statusChallenge = null;
-                            statusNonce = null;
-                            protocolVersion = ProtocolVersion.V30;
-                        }
-
                         ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, transportKey, protocolVersion);
 
                         // Encrypt the status blob
