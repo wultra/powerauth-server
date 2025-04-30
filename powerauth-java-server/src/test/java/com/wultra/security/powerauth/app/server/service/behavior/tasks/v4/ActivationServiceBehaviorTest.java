@@ -36,10 +36,11 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse;
@@ -94,6 +95,7 @@ class ActivationServiceBehaviorTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
@@ -112,9 +114,10 @@ class ActivationServiceBehaviorTest {
     private static final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, TemporaryKeyTestService temporaryKeyTestService) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, TemporaryKeyTestService temporaryKeyTestService) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         this.activationInitServiceBehavior = activationInitServiceBehavior;
         this.temporaryKeyTestService = temporaryKeyTestService;
     }
@@ -714,8 +717,7 @@ class ActivationServiceBehaviorTest {
     private ActivationStatus getActivationStatus(String activationId) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
-        final GetActivationStatusResponse statusResponse = activationServiceBehavior.getActivationStatus(statusRequest);
-
+        final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
         return statusResponse.getActivationStatus();
     }
 

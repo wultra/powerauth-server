@@ -299,28 +299,13 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Call the getActivationStatus method of the PowerAuth Server interface. This method should be used only
-     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
-     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
-     * method instead.
+     * Call the getActivationStatus method of the PowerAuth Server interface.
      *
-     * @param activationId Activation Id to lookup information for.
+     * @param activationId Activation identifier to lookup information for.
      * @return {@link GetActivationStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException;
-
-    /**
-     * Call the getActivationStatus method of the PowerAuth Server interface. The method should be used to
-     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
-     * contains an encrypted activation status blob.
-     *
-     * @param activationId Activation Id to lookup information for.
-     * @param challenge    Cryptographic challenge for activation status blob encryption.
-     * @return {@link GetActivationStatusResponse}
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth Server interface.

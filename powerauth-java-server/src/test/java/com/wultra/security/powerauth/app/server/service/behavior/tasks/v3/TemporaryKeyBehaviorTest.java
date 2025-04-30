@@ -99,16 +99,16 @@ class TemporaryKeyBehaviorTest {
     private final TemporaryKeyBehaviorEcies temporaryKeyBehavior;
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
+    private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV3, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
-        this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
+        this.activationCreateServiceBehavior = activationCreateServiceBehavior;
         this.activationRepository = activationRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
@@ -247,7 +247,7 @@ class TemporaryKeyBehaviorTest {
         activationRequest.setMac(encryptedRequest.getMac());
         activationRequest.setNonce(encryptedRequest.getNonce());
         activationRequest.setTimestamp(encryptedRequest.getTimestamp());
-        final CreateActivationResponse response = activationServiceBehaviorV3.createActivation(activationRequest);
+        final CreateActivationResponse response = activationCreateServiceBehavior.createActivation(activationRequest);
         final CommitActivationRequest commitRequest = new CommitActivationRequest();
         commitRequest.setActivationId(response.getActivationId());
         activationServiceBehavior.commitActivation(commitRequest);

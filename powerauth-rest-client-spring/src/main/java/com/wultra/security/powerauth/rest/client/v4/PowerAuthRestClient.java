@@ -35,8 +35,10 @@ import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v4.*;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
@@ -318,17 +320,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException {
-        final GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
-        response.setEncryptedStatusBlob(null);
-        return response;
-    }
-
-    @Override
-    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException {
         final GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
-        request.setChallenge(challenge);
-        return getActivationStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return this.getActivationStatus(request);
     }
 
     @Override

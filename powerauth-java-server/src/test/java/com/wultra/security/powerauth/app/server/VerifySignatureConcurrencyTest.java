@@ -43,17 +43,17 @@ public class VerifySignatureConcurrencyTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
-    private final ActivationCreateServiceBehavior activationServiceBehaviorV3;
+    private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     @Autowired
-    public VerifySignatureConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV3, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+    public VerifySignatureConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
-        this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
+        this.activationCreateServiceBehavior = activationCreateServiceBehavior;
         this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
     }
 
@@ -116,7 +116,7 @@ public class VerifySignatureConcurrencyTest {
         createActivationRequest.setNonce(encryptedRequest.getNonce());
         createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
         createActivationRequest.setProtocolVersion(version);
-        CreateActivationResponse createActivationResponse = activationServiceBehaviorV3.createActivation(createActivationRequest);
+        CreateActivationResponse createActivationResponse = activationCreateServiceBehavior.createActivation(createActivationRequest);
 
         // Commit activation
         CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
