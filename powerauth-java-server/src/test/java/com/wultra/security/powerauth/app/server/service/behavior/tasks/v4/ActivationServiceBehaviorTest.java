@@ -145,8 +145,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramEcdhe();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -215,8 +214,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key in hybrid mode
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramHybrid();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -274,8 +272,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramEcdhe();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -326,8 +323,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramEcdhe();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -389,8 +385,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key in hybrid mode
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramHybrid();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -441,8 +436,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramEcdhe();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, detailResponse.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, detailResponse);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -686,8 +680,7 @@ class ActivationServiceBehaviorTest {
 
         // Request temporary key
         final RequestCryptogram requestCryptogramTemporary = generateRequestCryptogramEcdhe();
-        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogramTemporary, applicationDetail.getVersions().get(0));
-        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        final JWTClaimsSet claims = requestTemporaryKeyJwt(requestCryptogramTemporary, applicationDetail);
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
@@ -734,6 +727,11 @@ class ActivationServiceBehaviorTest {
         statusRequest.setActivationId(activationId);
         final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
         return statusResponse.getActivationStatus();
+    }
+
+    private JWTClaimsSet requestTemporaryKeyJwt(final RequestCryptogram requestCryptogram, final GetApplicationDetailResponse detailResponse) throws Exception {
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, detailResponse.getVersions().get(0));
+        return JWTClaimsSet.parse(jws.getPayload().toJSONObject());
     }
 
 }
