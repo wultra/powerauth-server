@@ -323,7 +323,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         return result;
     }
 
-    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims, final SharedSecretAlgorithm algorithm) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
+    private TemporaryKeyResult obtainTemporaryKeyResult(final TemporaryPublicKeyRequestClaims requestClaims, final SharedSecretAlgorithm algorithm) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
         final String applicationKey = requestClaims.getApplicationKey();
         if (applicationKey != null) {
             final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
