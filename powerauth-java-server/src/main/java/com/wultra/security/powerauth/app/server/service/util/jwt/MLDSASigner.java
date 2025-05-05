@@ -57,7 +57,7 @@ public class MLDSASigner implements JWSSigner {
             final byte[] signature = PQC_DSA.sign(privateKey, signingInput);
             return Base64URL.encode(signature);
         } catch (GenericCryptoException e) {
-            throw new JOSEException(e);
+            throw new JOSEException(e.getMessage(), e);
         }
     }
 
