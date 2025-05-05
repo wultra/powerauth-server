@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
@@ -33,6 +34,7 @@ import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
+import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
 import com.wultra.security.powerauth.app.server.util.TemporaryKeyTestService;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
@@ -166,7 +168,7 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON jws = JWSObjectJSON.parse(response.getJwt());
         assertEquals(1, jws.getSignatures().size());
-        assertEquals("ES384", jws.getSignatures().get(0).getHeader().getAlgorithm().getName());
+        assertEquals(JWSAlgorithm.ES384, jws.getSignatures().get(0).getHeader().getAlgorithm());
 
         final PublicKey masterPublicKeyEc384 = getMasterPublicEcKey(defaultVersion);
 
@@ -186,8 +188,8 @@ class TemporaryKeyBehaviorTest {
         final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
 
         assertEquals(2, jws.getSignatures().size());
-        assertEquals("ES384", jws.getSignatures().get(0).getHeader().getAlgorithm().getName());
-        assertEquals("ML-DSA-65", jws.getSignatures().get(1).getHeader().getAlgorithm().getName());
+        assertEquals(JWSAlgorithm.ES384, jws.getSignatures().get(0).getHeader().getAlgorithm());
+        assertEquals(JWSAlgorithmMLDSA.MLDSA65, jws.getSignatures().get(1).getHeader().getAlgorithm());
 
         final PublicKey masterPublicKeyEc384 = getMasterPublicEcKey(defaultVersion);
         final PublicKey masterPublicKeyMlDsa65 = getMasterPublicPqcKey(defaultVersion);
@@ -245,7 +247,7 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
         assertEquals(1, decodedJWSActivation.getSignatures().size());
-        assertEquals("ES384", decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm().getName());
+        assertEquals(JWSAlgorithm.ES384, decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm());
         assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(0), getServerPublicEcKey(activationId)));
 
         final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
@@ -286,8 +288,8 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
         assertEquals(2, decodedJWSActivation.getSignatures().size());
-        assertEquals("ES384", decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm().getName());
-        assertEquals("ML-DSA-65", decodedJWSActivation.getSignatures().get(1).getHeader().getAlgorithm().getName());
+        assertEquals(JWSAlgorithm.ES384, decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm());
+        assertEquals(JWSAlgorithmMLDSA.MLDSA65, decodedJWSActivation.getSignatures().get(1).getHeader().getAlgorithm());
         assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(0), getServerPublicEcKey(activationId)));
         assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(1), getServerPublicPqcKey(activationId)));
 
