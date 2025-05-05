@@ -21,9 +21,10 @@ package com.wultra.security.powerauth.app.server.util;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObjectJSON;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.TemporaryKeyBehaviorAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
@@ -38,6 +39,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
@@ -74,19 +76,20 @@ public class TemporaryKeyTestService {
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
+    private static final PqcDsa PQC_DSA = new PqcDsa();
 
     /**
      * Fetch a temporary key.
      *
      * @param requestCryptogram Request cryptogram for AEAD client request.
      * @param applicationVersion Application version.
-     * @return SignedJWT object containing information about temporary key.
+     * @return JWSObjectJSON object containing information about temporary key.
      * @throws GenericServiceException Thrown in case of a business logic error.
      * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
      * @throws GenericCryptoException Thrown in case of a cryptography error.
      * @throws ParseException Thrown in case of invalid response from server.
      */
-    public SignedJWT fetchTemporaryKey(RequestCryptogram requestCryptogram, ApplicationVersion applicationVersion) throws GenericServiceException, CryptoProviderException, GenericCryptoException, ParseException {
+    public JWSObjectJSON fetchTemporaryKey(RequestCryptogram requestCryptogram, ApplicationVersion applicationVersion) throws GenericServiceException, CryptoProviderException, GenericCryptoException, ParseException {
         final byte[] challengeBytes = KEY_GENERATOR.generateRandomBytes(18);
         final String challenge = Base64.getEncoder().encodeToString(challengeBytes);
         final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationVersion.getApplicationSecret());
@@ -94,7 +97,7 @@ public class TemporaryKeyTestService {
         final String jwtRequest = createJwtRequest(EncryptorScope.APPLICATION_SCOPE, applicationVersion.getApplicationKey(), null, challenge, secretKey, requestCryptogram);
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest(jwtRequest);
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
-        return SignedJWT.parse(response.getJwt());
+        return JWSObjectJSON.parse(response.getJwt());
     }
 
     /**
@@ -178,9 +181,10 @@ public class TemporaryKeyTestService {
     }
 
     /**
-     * Validate a JWT signature.
+     * Validate a JWS signature.
      *
-     * @param jwt Signed JWT.
+     * @param payload JWS payload.
+     * @param signature Item from the JWS signatures array.
      * @param publicKey Public key to use for signature verification.
      * @return Whether signature is valid.
      * @throws IOException Thrown in case of a conversion error.
@@ -188,14 +192,14 @@ public class TemporaryKeyTestService {
      * @throws InvalidKeyException Thrown in case the public key is invalid.
      * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
      */
-    public boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws IOException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
-        final Base64URL[] jwtParts = jwt.getParsedParts();
-        final Base64URL encodedHeader = jwtParts[0];
-        final Base64URL encodedPayload = jwtParts[1];
-        final Base64URL encodedSignature = jwtParts[2];
-        final String signingInput = encodedHeader + "." + encodedPayload;
-        final byte[] signatureBytes = convertRawSignatureToDER(encodedSignature.decode());
-        return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
+    public boolean validateJwsSignature(Payload payload, JWSObjectJSON.Signature signature, PublicKey publicKey) throws IOException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
+        final String signingInput = signature.getHeader().getParsedBase64URL() + "." + payload.toBase64URL();
+
+        return switch (signature.getHeader().getAlgorithm().getName()) {
+            case "ES384" -> SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), convertRawSignatureToDER(signature.getSignature().decode()), publicKey);
+            case "ML-DSA-65" -> PQC_DSA.verify(publicKey, signingInput.getBytes(StandardCharsets.UTF_8), signature.getSignature().decode());
+            default -> throw new IllegalStateException("Unexpected value: " + signature.getHeader().getAlgorithm().getName());
+        };
     }
 
     /**

@@ -19,8 +19,8 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.app.server.util.TemporaryKeyTestService;
@@ -133,7 +134,8 @@ class TemporaryKeyBehaviorTest {
     void testJwtRequestEmpty() {
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
         request.setJwt("");
-        assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
+        assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
     @Test
@@ -144,7 +146,8 @@ class TemporaryKeyBehaviorTest {
         final String jwtRequest = temporaryKeyTestService.signJwt(jwtClaims, signingKey);
         final TemporaryPublicKeyRequest request = new TemporaryPublicKeyRequest();
         request.setJwt(jwtRequest);
-        assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> temporaryKeyBehavior.requestTemporaryKey(request));
+        assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
     @Test
@@ -160,30 +163,42 @@ class TemporaryKeyBehaviorTest {
         request.setJwt(jwtRequest);
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
-        final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
-        final PublicKey masterPublicKeyEc384 = getMasterPublicKey(defaultVersion);
 
-        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWT, masterPublicKeyEc384));
-        assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
-        assertEquals(challenge, decodedJWT.getJWTClaimsSet().getClaim("challenge"));
-        assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
-        assertNotNull(decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse"));
+        final JWSObjectJSON jws = JWSObjectJSON.parse(response.getJwt());
+        assertEquals(1, jws.getSignatures().size());
+        assertEquals("ES384", jws.getSignatures().get(0).getHeader().getAlgorithm().getName());
+
+        final PublicKey masterPublicKeyEc384 = getMasterPublicEcKey(defaultVersion);
+
+        assertTrue(temporaryKeyTestService.validateJwsSignature(jws.getPayload(), jws.getSignatures().get(0), masterPublicKeyEc384));
+
+        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        assertEquals(defaultVersion.getApplicationKey(), claims.getStringClaim("applicationKey"));
+        assertEquals(challenge, claims.getStringClaim("challenge"));
+        assertNull(claims.getClaim("activationId"));
+        assertNotNull(claims.getClaim("sharedSecretResponse"));
     }
 
     @Test
     void testJwtRequestHybridValidApplicationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
         final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
-        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
-        final PublicKey masterPublicKeyEc384 = getMasterPublicKey(defaultVersion);
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
 
-        // TODO - validate Dilithium signature after it is available
-        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWT, masterPublicKeyEc384));
+        assertEquals(2, jws.getSignatures().size());
+        assertEquals("ES384", jws.getSignatures().get(0).getHeader().getAlgorithm().getName());
+        assertEquals("ML-DSA-65", jws.getSignatures().get(1).getHeader().getAlgorithm().getName());
 
-        assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));
-        assertNull(decodedJWT.getJWTClaimsSet().getClaim("activationId"));
-        assertNotNull(decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse"));
-        final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
+        final PublicKey masterPublicKeyEc384 = getMasterPublicEcKey(defaultVersion);
+        final PublicKey masterPublicKeyMlDsa65 = getMasterPublicPqcKey(defaultVersion);
+        assertTrue(temporaryKeyTestService.validateJwsSignature(jws.getPayload(), jws.getSignatures().get(0), masterPublicKeyEc384));
+        assertTrue(temporaryKeyTestService.validateJwsSignature(jws.getPayload(), jws.getSignatures().get(1), masterPublicKeyMlDsa65));
+
+        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+        assertEquals(defaultVersion.getApplicationKey(), claims.getClaim("applicationKey"));
+        assertNull(claims.getClaim("activationId"));
+        assertNotNull(claims.getClaim("sharedSecretResponse"));
+        final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         assertNotNull(serverResponse.getMlkem());
@@ -193,8 +208,10 @@ class TemporaryKeyBehaviorTest {
     void testJwtRequestValidApplicationScopeWithRemove() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
-        final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+
+        final String temporaryKeyId = claims.getSubject();
         final RemoveTemporaryPublicKeyRequest removeRequest = new RemoveTemporaryPublicKeyRequest();
         removeRequest.setId(temporaryKeyId);
         final RemoveTemporaryPublicKeyResponse removeResponse = temporaryKeyBehavior.removeTemporaryKey(removeRequest);
@@ -206,10 +223,11 @@ class TemporaryKeyBehaviorTest {
     void testJwtRequestEcdheValidActivationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
         final RequestCryptogram requestCryptogram = SHARED_SECRET_ECDHE.generateRequestCryptogram();
-        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
 
-        final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
-        final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
+        final String temporaryKeyId = claims.getSubject();
+        final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         // extract temporary key and use it during an activation
@@ -224,13 +242,18 @@ class TemporaryKeyBehaviorTest {
         requestTempKeyActivation.setJwt(jwtRequestActivation);
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
-        final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
-        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
-        assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
-        assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
-        assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
-        assertNotNull(decodedJWTActivation.getJWTClaimsSet().getClaim("sharedSecretResponse"));
-        final Object claimActivation = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
+
+        final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
+        assertEquals(1, decodedJWSActivation.getSignatures().size());
+        assertEquals("ES384", decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm().getName());
+        assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(0), getServerPublicEcKey(activationId)));
+
+        final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
+        assertEquals(defaultVersion.getApplicationKey(), claimsActivation.getClaim("applicationKey"));
+        assertEquals(challengeActivation, claimsActivation.getClaim("challenge"));
+        assertEquals(activationId, claimsActivation.getClaim("activationId"));
+        assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
+        final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
         assertNotNull(serverResponseActivation.getEcdhe());
     }
@@ -239,12 +262,15 @@ class TemporaryKeyBehaviorTest {
     void testJwtRequestHybridValidActivationScope() throws Exception {
         final ApplicationVersion defaultVersion = createApplication();
         final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
-        final SignedJWT decodedJWT = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
-        final String temporaryKeyId = (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
-        final Object claim = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+        final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+
+        final String temporaryKeyId = claims.getSubject();
+        final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         assertNotNull(serverResponse.getMlkem());
+
         // extract temporary key and use it during an activation
         final ActivationContext activationContext = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
         final String activationId = activationContext.activationLayer2Response.getActivationId();
@@ -257,13 +283,20 @@ class TemporaryKeyBehaviorTest {
         requestTempKeyActivation.setJwt(jwtRequestActivation);
         final TemporaryPublicKeyResponse responseTempKeyActivation = temporaryKeyBehavior.requestTemporaryKey(requestTempKeyActivation);
         assertNotNull(responseTempKeyActivation.getJwt());
-        final SignedJWT decodedJWTActivation = SignedJWT.parse(responseTempKeyActivation.getJwt());
-        assertTrue(temporaryKeyTestService.validateJwtSignature(decodedJWTActivation, getServerPublicKey(activationId)));
-        assertEquals(defaultVersion.getApplicationKey(), decodedJWTActivation.getJWTClaimsSet().getClaim("applicationKey"));
-        assertEquals(challengeActivation, decodedJWTActivation.getJWTClaimsSet().getClaim("challenge"));
-        assertEquals(activationId, decodedJWTActivation.getJWTClaimsSet().getClaim("activationId"));
-        assertNotNull(decodedJWTActivation.getJWTClaimsSet().getClaim("sharedSecretResponse"));
-        final Object claimActivation = decodedJWT.getJWTClaimsSet().getClaim("sharedSecretResponse");
+
+        final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
+        assertEquals(2, decodedJWSActivation.getSignatures().size());
+        assertEquals("ES384", decodedJWSActivation.getSignatures().get(0).getHeader().getAlgorithm().getName());
+        assertEquals("ML-DSA-65", decodedJWSActivation.getSignatures().get(1).getHeader().getAlgorithm().getName());
+        assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(0), getServerPublicEcKey(activationId)));
+        assertTrue(temporaryKeyTestService.validateJwsSignature(decodedJWSActivation.getPayload(), decodedJWSActivation.getSignatures().get(1), getServerPublicPqcKey(activationId)));
+
+        final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
+        assertEquals(defaultVersion.getApplicationKey(), claimsActivation.getClaim("applicationKey"));
+        assertEquals(challengeActivation, claimsActivation.getClaim("challenge"));
+        assertEquals(activationId, claimsActivation.getClaim("activationId"));
+        assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
+        final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
         assertNotNull(serverResponseActivation.getEcdhe());
         assertNotNull(serverResponseActivation.getMlkem());
@@ -372,19 +405,34 @@ class TemporaryKeyBehaviorTest {
         return PQC_DSA.generateKeyPair();
     }
 
-    private PublicKey getServerPublicKey(String activationId) throws Exception {
+    private PublicKey getServerPublicEcKey(String activationId) throws Exception {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
         final String serverPublicKeys = activation.getServerPublicKeys();
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
         return publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
-    private PublicKey getMasterPublicKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
+    private PublicKey getServerPublicPqcKey(String activationId) throws Exception {
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
+        final String serverPublicKeys = activation.getServerPublicKeys();
+        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
+        return publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> new IllegalStateException("Missing public key"));
+    }
+
+    private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
         final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
         final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyP384();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, masterPublicKeyBytes);
+    }
+
+    private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws GenericCryptoException {
+        final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
+        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyMlDsa65();
+        final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
+        return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterPublicKeyBytes);
     }
 
     private SecretKey deriveSharedSecret(SharedSecretClientContext clientContext, SharedSecretResponse serverResponse) throws Exception {

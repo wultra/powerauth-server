@@ -14,31 +14,23 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-package com.wultra.security.powerauth.app.server.service.model.crypto;
+package com.wultra.security.powerauth.app.server.service.util.jwt;
 
-import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
-import lombok.Data;
-import lombok.ToString;
-
-import java.security.PrivateKey;
+import com.nimbusds.jose.JWSAlgorithm;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
- * Temporary key result.
+ * JWS algorithm name used in the {@code alg} header when the ML-DSA algorithm is used for signing.
+ * This class exists due to missing support of the algorithm name in the {@link JWSAlgorithm} list.
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Data
-public class TemporaryKeyResult {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class JWSAlgorithmMLDSA {
 
-    @ToString.Exclude
-    private byte[] secretKeyBytes;
-
-    @ToString.Exclude
-    private PrivateKey privateKey;
-
-    private SharedSecretRequest sharedSecretRequest;
+    public static final JWSAlgorithm MLDSA65 = new JWSAlgorithm("ML-DSA-65");
 
 }
