@@ -170,7 +170,7 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON jws = JWSObjectJSON.parse(response.getJwt());
         assertEquals(1, jws.getSignatures().size());
-        assertValidSignature(jws, JWSAlgorithm.ES384, getMasterPublicEcKey(defaultVersion));
+        assertTrue(hasValidSignature(jws, JWSAlgorithm.ES384, getMasterPublicEcKey(defaultVersion)));
 
         final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claims.getStringClaim("applicationKey"));
@@ -186,8 +186,8 @@ class TemporaryKeyBehaviorTest {
         final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
 
         assertEquals(2, jws.getSignatures().size());
-        assertValidSignature(jws, JWSAlgorithm.ES384, getMasterPublicEcKey(defaultVersion));
-        assertValidSignature(jws, JWSAlgorithmMLDSA.MLDSA65, getMasterPublicPqcKey(defaultVersion));
+        assertTrue(hasValidSignature(jws, JWSAlgorithm.ES384, getMasterPublicEcKey(defaultVersion)));
+        assertTrue(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA65, getMasterPublicPqcKey(defaultVersion)));
 
         final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claims.getClaim("applicationKey"));
@@ -197,6 +197,26 @@ class TemporaryKeyBehaviorTest {
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getEcdhe());
         assertNotNull(serverResponse.getMlkem());
+    }
+
+    @Test
+    void testJwtRequestApplicationScope_wrongApplicationKey() throws Exception {
+        final ApplicationVersion defaultVersion = createApplication();
+        defaultVersion.setApplicationKey("wrongApplicationKey");
+
+        final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion));
+        assertEquals(ServiceError.INVALID_APPLICATION, exception.getCode());
+    }
+
+    @Test
+    void testJwtRequestHybridApplicationScope_wrongMlDsaPublicKey() throws Exception {
+        final ApplicationVersion defaultVersion = createApplication();
+        final RequestCryptogram requestCryptogram = SHARED_SECRET_HYBRID.generateRequestCryptogram();
+        final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
+
+        assertEquals(2, jws.getSignatures().size());
+        assertFalse(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA65, PQC_DSA.generateKeyPair().getPublic()));
     }
 
     @Test
@@ -240,7 +260,7 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
         assertEquals(1, decodedJWSActivation.getSignatures().size());
-        assertValidSignature(decodedJWSActivation, JWSAlgorithm.ES384, getServerPublicEcKey(activationId));
+        assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithm.ES384, getServerPublicEcKey(activationId)));
 
         final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claimsActivation.getClaim("applicationKey"));
@@ -280,8 +300,8 @@ class TemporaryKeyBehaviorTest {
 
         final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
         assertEquals(2, decodedJWSActivation.getSignatures().size());
-        assertValidSignature(decodedJWSActivation, JWSAlgorithm.ES384, getServerPublicEcKey(activationId));
-        assertValidSignature(decodedJWSActivation, JWSAlgorithmMLDSA.MLDSA65, getServerPublicPqcKey(activationId));
+        assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithm.ES384, getServerPublicEcKey(activationId)));
+        assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithmMLDSA.MLDSA65, getServerPublicPqcKey(activationId)));
 
         final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claimsActivation.getClaim("applicationKey"));
@@ -442,13 +462,13 @@ class TemporaryKeyBehaviorTest {
         }
     }
 
-    private void assertValidSignature(JWSObjectJSON jws, JWSAlgorithm algorithm, PublicKey publicKey) throws GenericCryptoException, IOException, InvalidKeyException, CryptoProviderException {
+    private boolean hasValidSignature(JWSObjectJSON jws, JWSAlgorithm algorithm, PublicKey publicKey) throws GenericCryptoException, IOException, InvalidKeyException, CryptoProviderException {
         final JWSObjectJSON.Signature jwsSignature = jws.getSignatures().stream()
                 .filter(signature -> Objects.equals(signature.getHeader().getAlgorithm(), algorithm))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("No signature found for algorithm: " + algorithm));
 
-        assertTrue(temporaryKeyTestService.validateJwsSignature(jws.getPayload(), jwsSignature, publicKey));
+        return temporaryKeyTestService.validateJwsSignature(jws.getPayload(), jwsSignature, publicKey);
     }
 
     @Data
