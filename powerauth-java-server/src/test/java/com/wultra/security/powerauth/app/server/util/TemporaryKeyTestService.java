@@ -181,7 +181,9 @@ public class TemporaryKeyTestService {
     }
 
     /**
-     * Validate a JWS signature.
+     * Validates a JWS signature of the given payload.
+     * This method supports validation of signatures generated using
+     * the {@code ES384} or {@code ML-DSA-65} algorithms.
      *
      * @param payload JWS payload.
      * @param signature Item from the JWS signatures array.
