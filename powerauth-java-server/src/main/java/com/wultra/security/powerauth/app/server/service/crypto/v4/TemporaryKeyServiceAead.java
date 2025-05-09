@@ -21,9 +21,9 @@ package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.Curve;
@@ -47,7 +47,9 @@ import com.wultra.security.powerauth.app.server.service.crypto.TemporaryKeyServi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.TemporaryKeyResult;
+import com.wultra.security.powerauth.app.server.service.model.crypto.v4.TemporaryKeyResult;
+import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
+import com.wultra.security.powerauth.app.server.service.util.jwt.MLDSASigner;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import com.wultra.security.powerauth.client.model.entity.v4.request.TemporaryPublicKeyRequestClaims;
@@ -138,8 +140,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestClaims.getSharedSecretRequest().getAlgorithm());
+
             // Obtain verifier secret and check JWT signature
-            final TemporaryKeyResult temporaryKeyResult = obtainTemporaryKeyResult(requestClaims);
+            final TemporaryKeyResult temporaryKeyResult = obtainTemporaryKeyResult(requestClaims, algorithm);
             final MACVerifier verifier = new MACVerifier(temporaryKeyResult.getSecretKeyBytes());
             boolean verified = decodedJWT.verify(verifier);
             if (!verified) {
@@ -150,22 +154,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             final Date currentTimestamp = new Date();
 
             // Derive shared secret using SharedSecret algorithm
-            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestClaims.getSharedSecretRequest().getAlgorithm());
             final ResponseCryptogram sharedSecretResponse = deriveSharedSecret(temporaryKeyResult.getSharedSecretRequest(), algorithm);
 
             // Generate new key and store it
             final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, sharedSecretResponse, algorithm);
 
             // Built and return the response claims
-            // TODO - add Dilithium signature using custom signer
-            final JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES384).type(JOSEObjectType.JWT).build();
-            final JWTClaimsSet claimsSet = buildClaims(responseClaims, currentTimestamp);
-
-            final ECDSASigner signer = new ECDSASigner(temporaryKeyResult.getPrivateKey(), Curve.P_384);
-
-            final SignedJWT signedJWT = new SignedJWT(header, claimsSet);
-            signedJWT.sign(signer);
-            return signedJWT.serialize();
+            return buildJwsResponse(temporaryKeyResult, responseClaims, currentTimestamp, algorithm);
         } catch (ParseException | JOSEException e) {
             logger.error("Temporary key request is invalid", e);
             // Rollback is not required, error occurs before writing to database
@@ -328,7 +323,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         return result;
     }
 
-    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
+    private TemporaryKeyResult obtainTemporaryKeyResult(final TemporaryPublicKeyRequestClaims requestClaims, final SharedSecretAlgorithm algorithm) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
         final String applicationKey = requestClaims.getApplicationKey();
         if (applicationKey != null) {
             final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
@@ -343,7 +338,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final EncryptionMode encryptionMode = masterKeyPairEntity.getMasterPrivateKeysEncryption();
                 final PrivateKeys masterPrivateKeys = new PrivateKeys(encryptionMode, masterPrivateKeysBase64);
                 final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(masterPrivateKeys, applicationVersionEntity.getApplication().getId());
-                final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
+                final PrivateKey ecPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
                         .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
 
                 final byte[] appSecretBytes = Base64.getDecoder().decode(applicationSecret);
@@ -353,8 +348,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
                 final TemporaryKeyResult result = new TemporaryKeyResult();
                 result.setSecretKeyBytes(secretKeyBytes);
-                result.setPrivateKey(privateKey);
+                result.setEcPrivateKey(ecPrivateKey);
                 result.setSharedSecretRequest(requestClaims.getSharedSecretRequest());
+                if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
+                    final PrivateKey pqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
+                    result.setPqcPrivateKey(pqcPrivateKey);
+                }
                 return result;
             } else {
 
@@ -375,7 +375,8 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
                 final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
                 final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
-                final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                final PrivateKey serverEcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
+                        .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
                 final String sharedSecretEncrypted = activation.getSharedSecret();
                 final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
@@ -387,8 +388,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
                 final TemporaryKeyResult result = new TemporaryKeyResult();
                 result.setSecretKeyBytes(secretKeyBytes);
-                result.setPrivateKey(serverPrivateKey);
+                result.setEcPrivateKey(serverEcPrivateKey);
                 result.setSharedSecretRequest(requestClaims.getSharedSecretRequest());
+                if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
+                    final PrivateKey serverPqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                    result.setPqcPrivateKey(serverPqcPrivateKey);
+                }
                 return result;
             }
         } else {
@@ -430,6 +436,21 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             }
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         }
+    }
+
+    private String buildJwsResponse(final TemporaryKeyResult temporaryKeyResult, final TemporaryPublicKeyResponseClaims responseClaims, final Date timestamp, final SharedSecretAlgorithm algorithm) throws JOSEException {
+        final JWTClaimsSet claimsSet = buildClaims(responseClaims, timestamp);
+        final JWSObjectJSON jws = new JWSObjectJSON(claimsSet.toPayload());
+
+        final ECDSASigner ecdsaSigner = new ECDSASigner(temporaryKeyResult.getEcPrivateKey(), Curve.P_384);
+        jws.sign(new JWSHeader(JWSAlgorithm.ES384), ecdsaSigner);
+
+        if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
+            final MLDSASigner mldsaSigner = new MLDSASigner(temporaryKeyResult.getPqcPrivateKey());
+            jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA65), mldsaSigner);
+        }
+
+        return jws.serializeGeneral();
     }
 
 }

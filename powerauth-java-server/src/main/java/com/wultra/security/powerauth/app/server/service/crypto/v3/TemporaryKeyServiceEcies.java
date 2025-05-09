@@ -46,7 +46,7 @@ import com.wultra.security.powerauth.app.server.service.crypto.TemporaryKeyServi
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.model.crypto.TemporaryKeyResult;
+import com.wultra.security.powerauth.app.server.service.model.crypto.v3.TemporaryKeyResult;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifier16B;
 import com.wultra.security.powerauth.client.model.entity.v3.request.TemporaryPublicKeyRequestClaims;
 import com.wultra.security.powerauth.client.model.entity.v3.response.TemporaryPublicKeyResponseClaims;
