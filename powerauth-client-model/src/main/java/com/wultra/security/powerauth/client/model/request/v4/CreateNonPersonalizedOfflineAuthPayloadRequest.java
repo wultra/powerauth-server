@@ -33,11 +33,11 @@ import lombok.Data;
 public class CreateNonPersonalizedOfflineAuthPayloadRequest {
 
     @Schema(description = "The identifier of the application")
-    @NotBlank(message = "Application ID must not be empty when creating offline signature payload")
+    @NotBlank(message = "Application ID must not be empty when creating offline authentication payload")
     private String applicationId;
 
-    @Schema(description = "Data to be signed")
-    @NotNull(message = "Signed data must not be null when creating offline signature payload")
+    @Schema(description = "Data to be authenticated")
+    @NotNull(message = "Authentication data must not be null when creating offline authentication payload")
     private String data;
 
 }

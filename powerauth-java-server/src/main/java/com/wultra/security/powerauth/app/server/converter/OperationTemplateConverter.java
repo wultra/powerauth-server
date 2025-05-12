@@ -18,12 +18,12 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -50,15 +50,15 @@ public class OperationTemplateConverter {
         destination.setRiskFlags(source.getRiskFlags());
         destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
-        final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
+        final List<PowerAuthCodeType> authCodeTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
-            final PowerAuthSignatureTypes powerAuthSignatureTypes = PowerAuthSignatureTypes.getEnumFromString(type.toString());
-            if (!signatureTypes.contains(powerAuthSignatureTypes)) {
-                signatureTypes.add(powerAuthSignatureTypes);
+            final PowerAuthCodeType powerAuthCodeType = PowerAuthCodeType.getEnumFromString(type.toString());
+            if (!authCodeTypes.contains(powerAuthCodeType)) {
+                authCodeTypes.add(powerAuthCodeType);
             }
         }
-        final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
-        destination.setSignatureType(signatureTypesArray);
+        final PowerAuthCodeType[] typesArray = authCodeTypes.toArray(new PowerAuthCodeType[0]);
+        destination.setSignatureType(typesArray);
 
         return destination;
     }
@@ -75,15 +75,15 @@ public class OperationTemplateConverter {
         original.setRiskFlags(source.getRiskFlags());
         original.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
-        final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
+        final List<PowerAuthCodeType> authCodeTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
-            final PowerAuthSignatureTypes powerAuthSignatureTypes = PowerAuthSignatureTypes.getEnumFromString(type.toString());
-            if (!signatureTypes.contains(powerAuthSignatureTypes)) {
-                signatureTypes.add(powerAuthSignatureTypes);
+            final PowerAuthCodeType powerAuthCodeType = PowerAuthCodeType.getEnumFromString(type.toString());
+            if (!authCodeTypes.contains(powerAuthCodeType)) {
+                authCodeTypes.add(powerAuthCodeType);
             }
         }
-        final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
-        original.setSignatureType(signatureTypesArray);
+        final PowerAuthCodeType[] typesArray = authCodeTypes.toArray(new PowerAuthCodeType[0]);
+        original.setSignatureType(typesArray);
 
         return original;
     }
@@ -99,7 +99,7 @@ public class OperationTemplateConverter {
         destination.setRiskFlags(source.getRiskFlags());
         destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
         final List<SignatureType> signatureTypesResponse = new ArrayList<>();
-        for (final PowerAuthSignatureTypes type : source.getSignatureType()) {
+        for (final PowerAuthCodeType type : source.getSignatureType()) {
             final SignatureType signatureType = SignatureType.enumFromString(type.toString());
             if (!signatureTypesResponse.contains(signatureType)) {
                 signatureTypesResponse.add(signatureType);

@@ -190,7 +190,7 @@ public class ActivationRecordEntity implements Serializable {
     private Date timestampActivationExpire;
 
     /**
-     * Timestamp of the last signature calculation.
+     * Timestamp of the last authentication calculation.
      */
     @Column(name = "timestamp_last_used", nullable = false)
     private Date timestampLastUsed;

@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -56,10 +56,9 @@ public class CreateTokenRequest {
     @ToString.Exclude
     private String nonce;
 
-    @Schema(description = "Signature type")
-    @NotNull(message = "Signature type must not be null when creating token")
-    // TODO - change for v4
-    private SignatureType signatureType;
+    @Schema(description = "Authentication code type")
+    @NotNull(message = "Authentication code type must not be null when creating token")
+    private AuthenticationCodeType authenticationCodeType;
 
     @Schema(description = "Cryptography protocol version")
     @NotBlank(message = "Protocol version must not be empty when creating token")

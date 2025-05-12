@@ -32,6 +32,7 @@ import java.util.List;
 @Data
 public class SignatureAuditResponse {
 
+    // TODO - separate this class for v4
     private List<SignatureAuditItem> items = new ArrayList<>();
 
 }

@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.http.common.headers.UserAgent;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;

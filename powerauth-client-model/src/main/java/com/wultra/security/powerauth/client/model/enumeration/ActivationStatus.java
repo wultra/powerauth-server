@@ -37,7 +37,7 @@ public enum ActivationStatus {
     PENDING_COMMIT,
 
     /**
-     * Activation is ready, committed and can be used for signature verification.
+     * Activation is ready, committed and can be used for authentication code verification.
      */
     ACTIVE,
 
@@ -47,7 +47,7 @@ public enum ActivationStatus {
     BLOCKED,
 
     /**
-     * Activation is permanently removed (or non-existent). It cannot be used for signature verification,
+     * Activation is permanently removed (or non-existent). It cannot be used for authentication code verification,
      * and it cannot be "unblocked".
      */
     REMOVED

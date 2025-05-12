@@ -107,7 +107,7 @@ public class ActivationInitServiceBehavior {
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
             if (maxAttempt == null) { // use the default value
-                maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
+                maxAttempt = powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts();
             } else if (maxFailureCount <= 0) { // only allow custom values > 0
                 logger.warn("Activation cannot be created with the specified properties: maxFailureCount");
                 // Rollback is not required, error occurs before writing to database

@@ -25,7 +25,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OnlineSignatureServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -37,7 +37,7 @@ import com.wultra.security.powerauth.app.server.service.model.response.VaultUnlo
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -75,7 +75,6 @@ public class VaultUnlockServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final EncryptionServiceEcies encryptionService;
 
@@ -122,7 +121,7 @@ public class VaultUnlockServiceBehavior {
                         powerAuthServiceConfiguration.isSecureVaultBiometricAuthenticationEnabled())) {
                     logger.warn("Invalid signature type: {}", signatureType);
                     // Rollback is not required, error occurs before writing to database
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_AUTHENTICATION_CODE);
                 }
             }
 

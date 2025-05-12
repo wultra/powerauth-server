@@ -17,24 +17,24 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 
 /**
- * Converter from {@link SignatureType} to {@link PowerAuthSignatureTypes}.
+ * Converter from {@link SignatureType} to {@link PowerAuthCodeType}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 final public class SignatureTypeConverter {
 
-    public PowerAuthSignatureTypes convertFrom(SignatureType signatureType) {
+    public PowerAuthCodeType convertFrom(SignatureType signatureType) {
         return switch (signatureType) {
-            case POSSESSION -> PowerAuthSignatureTypes.POSSESSION;
-            case KNOWLEDGE -> PowerAuthSignatureTypes.KNOWLEDGE;
-            case BIOMETRY -> PowerAuthSignatureTypes.BIOMETRY;
-            case POSSESSION_KNOWLEDGE -> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY -> PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
-            default -> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
+            case POSSESSION -> PowerAuthCodeType.POSSESSION;
+            case KNOWLEDGE -> PowerAuthCodeType.KNOWLEDGE;
+            case BIOMETRY -> PowerAuthCodeType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> PowerAuthCodeType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> PowerAuthCodeType.POSSESSION_BIOMETRY;
+            default -> PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 
@@ -42,8 +42,8 @@ final public class SignatureTypeConverter {
         return SignatureType.enumFromString(signatureType.toUpperCase());
     }
 
-    public SignatureType convertTo(PowerAuthSignatureTypes powerAuthSignatureTypes) {
-        return switch (powerAuthSignatureTypes) {
+    public SignatureType convertTo(PowerAuthCodeType PowerAuthCodeType) {
+        return switch (PowerAuthCodeType) {
             case POSSESSION -> SignatureType.POSSESSION;
             case KNOWLEDGE -> SignatureType.KNOWLEDGE;
             case BIOMETRY -> SignatureType.BIOMETRY;

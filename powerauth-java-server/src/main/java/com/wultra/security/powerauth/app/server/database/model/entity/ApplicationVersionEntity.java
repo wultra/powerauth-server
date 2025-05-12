@@ -74,7 +74,7 @@ public class ApplicationVersionEntity implements Serializable {
     private String applicationSecret;
 
     /**
-     * Flag indicating if this version is still supported (can be used for signatures).
+     * Flag indicating if this version is still supported (can be used for authentication).
      */
     @Column(name = "supported")
     private Boolean supported;

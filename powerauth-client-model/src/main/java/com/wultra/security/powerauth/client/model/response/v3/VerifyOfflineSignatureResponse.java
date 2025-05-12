@@ -20,7 +20,7 @@
 package com.wultra.security.powerauth.client.model.response.v3;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import lombok.Data;
 
 import java.math.BigInteger;

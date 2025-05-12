@@ -18,8 +18,8 @@
 
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthCodeTypeConverter;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,11 +70,11 @@ public class OperationTemplateEntity implements Serializable {
     private String dataTemplate;
 
     /**
-     * Signature types. Value representing which factors are allowed. One of: {@code 1FA}, {@code 2FA}, {@code 2FA_NO_BIOMETRY}.
+     * Authentication code types. Value representing which factors are allowed. One of: {@code 1FA}, {@code 2FA}, {@code 2FA_NO_BIOMETRY}.
      */
     @Column(name = "signature_type", nullable=false)
-    @Convert(converter = SignatureTypeConverter.class)
-    private PowerAuthSignatureTypes[] signatureType;
+    @Convert(converter = AuthCodeTypeConverter.class)
+    private PowerAuthCodeType[] signatureType;
 
     /**
      * Maximum failure count.

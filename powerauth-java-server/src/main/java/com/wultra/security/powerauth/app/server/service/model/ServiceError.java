@@ -94,14 +94,14 @@ public final class ServiceError {
     public static final String INVALID_INPUT_FORMAT = "ERR0011";
 
     /**
-     * Invalid Signature Provided.
+     * Invalid authentication code provided.
      */
-    public static final String INVALID_SIGNATURE = "ERR0012";
+    public static final String INVALID_AUTHENTICATION_CODE = "ERR0012";
 
     /**
-     * Unable to compute signature.
+     * Unable to compute authentication code.
      */
-    public static final String UNABLE_TO_COMPUTE_SIGNATURE = "ERR0013";
+    public static final String UNABLE_TO_COMPUTE_AUTHENTICATION_CODE = "ERR0013";
 
     /**
      * Invalid URL format.
@@ -255,8 +255,8 @@ public final class ServiceError {
         list.add(ACTIVATION_NOT_FOUND);
         list.add(INVALID_KEY_FORMAT);
         list.add(INVALID_INPUT_FORMAT);
-        list.add(INVALID_SIGNATURE);
-        list.add(UNABLE_TO_COMPUTE_SIGNATURE);
+        list.add(INVALID_AUTHENTICATION_CODE);
+        list.add(UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
         list.add(INVALID_URL_FORMAT);
         list.add(INVALID_APPLICATION);
         list.add(INVALID_TOKEN);

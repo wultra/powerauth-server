@@ -19,7 +19,7 @@
 package com.wultra.powerauth.fido2.database.entity;
 
 import com.wultra.powerauth.fido2.database.entity.converter.ListToStringConverter;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

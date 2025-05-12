@@ -18,11 +18,11 @@
 
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthCodeTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.MapToJsonConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.OperationStatusDoConverter;
-import com.wultra.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -130,8 +130,8 @@ public class OperationEntity implements Serializable {
      * Signature types.
      */
     @Column(name = "signature_type", nullable = false)
-    @Convert(converter = SignatureTypeConverter.class)
-    private PowerAuthSignatureTypes[] signatureType;
+    @Convert(converter = AuthCodeTypeConverter.class)
+    private PowerAuthCodeType[] signatureType;
 
     /**
      * Failure count.

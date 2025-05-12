@@ -32,13 +32,12 @@ import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v4.*;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
@@ -413,26 +412,26 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifyAuthResponse verifyAuth(VerifyAuthRequest request) throws PowerAuthClientException {
-        return verifyAuth(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public VerifyAuthenticationResponse verifyAuthentication(VerifyAuthenticationRequest request) throws PowerAuthClientException {
+        return verifyAuthentication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public VerifyAuthResponse verifyAuth(VerifyAuthRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV4RestApi("/auth/verify", request, queryParams, httpHeaders, VerifyAuthResponse.class);
+    public VerifyAuthenticationResponse verifyAuthentication(VerifyAuthenticationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/auth/verify", request, queryParams, httpHeaders, VerifyAuthenticationResponse.class);
     }
 
     @Override
-    public VerifyAuthResponse verifyAuth(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Integer forcedSignatureVersion) throws PowerAuthClientException {
-        final VerifyAuthRequest request = new VerifyAuthRequest();
+    public VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion, Integer forcedAuthenticationVersion) throws PowerAuthClientException {
+        final VerifyAuthenticationRequest request = new VerifyAuthenticationRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
-        request.setSignature(signature);
-        request.setSignatureType(signatureType);
-        request.setSignatureVersion(signatureVersion);
-        request.setForcedSignatureVersion(forcedSignatureVersion);
-        return verifyAuth(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        request.setAuthenticationCode(authenticationCode);
+        request.setAuthenticationCodeType(authenticationCodeType);
+        request.setAuthenticationVersion(authenticationVersion);
+        request.setForcedAuthenticationVersion(forcedAuthenticationVersion);
+        return verifyAuthentication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -472,23 +471,23 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifyOfflineAuthResponse verifyOfflineAuth(VerifyOfflineAuthRequest request) throws PowerAuthClientException {
-        return verifyOfflineAuth(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(VerifyOfflineAuthenticationRequest request) throws PowerAuthClientException {
+        return verifyOfflineAuthentication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public VerifyOfflineAuthResponse verifyOfflineAuth(VerifyOfflineAuthRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV4RestApi("/auth/offline/verify", request, queryParams, httpHeaders, VerifyOfflineAuthResponse.class);
+    public VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(VerifyOfflineAuthenticationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/auth/offline/verify", request, queryParams, httpHeaders, VerifyOfflineAuthenticationResponse.class);
     }
 
     @Override
-    public VerifyOfflineAuthResponse verifyOfflineAuth(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException {
-        final VerifyOfflineAuthRequest request = new VerifyOfflineAuthRequest();
+    public VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(String activationId, String data, String authenticationCode, boolean allowBiometry) throws PowerAuthClientException {
+        final VerifyOfflineAuthenticationRequest request = new VerifyOfflineAuthenticationRequest();
         request.setActivationId(activationId);
         request.setData(data);
-        request.setSignature(signature);
+        request.setAuthenticationCode(authenticationCode);
         request.setAllowBiometry(allowBiometry);
-        return verifyOfflineAuth(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return verifyOfflineAuthentication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
