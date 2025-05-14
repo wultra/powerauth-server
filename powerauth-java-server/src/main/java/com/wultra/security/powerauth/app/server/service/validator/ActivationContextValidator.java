@@ -86,7 +86,7 @@ public class ActivationContextValidator {
      * @throws GenericServiceException Thrown when activation version is invalid.
      */
     public void validateVersionValid(final int activationVersion, final LocalizationProvider localizationProvider) throws GenericServiceException {
-        if (activationVersion < 2 || activationVersion > 3) {
+        if (activationVersion < 3 || activationVersion > 4) {
             logger.warn("Invalid activation version: {}", activationVersion);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
