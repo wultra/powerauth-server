@@ -51,7 +51,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Behavior class associated with process of a server auditing. Every time server attempts to compute a signature,
+ * Behavior class associated with process of a server auditing. Every time server attempts to compute an authentication code,
  * a log record is created. This class separates logic from the main service class.
  *
  * @author Petr Dvorak, petr@wultra.com
