@@ -36,11 +36,11 @@ import java.util.stream.Collectors;
 public class AuthCodeTypeConverter implements AttributeConverter<PowerAuthCodeType[], String> {
 
     @Override
-    public String convertToDatabaseColumn(PowerAuthCodeType[] authCodeType) {
-        if (authCodeType == null) {
+    public String convertToDatabaseColumn(PowerAuthCodeType[] authCodeTypes) {
+        if (authCodeTypes == null) {
             return null;
         }
-        return Arrays.stream(authCodeType)
+        return Arrays.stream(authCodeTypes)
                 .map(PowerAuthCodeType::toString)
                 .collect(Collectors.joining(","));
     }
