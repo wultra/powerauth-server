@@ -41,9 +41,9 @@ import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeLegacyUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import com.wultra.security.powerauth.crypto.server.authentication.PowerAuthServerAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +74,7 @@ public class SignatureSharedServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final ActivationRepository activationRepository;
 
-    private final PowerAuthServerAuthentication powerAuthServerAuth = new PowerAuthServerAuthentication();
+    private final AuthenticationCodeLegacyUtils AUTHENTICATION_CODE_LEGACY_UTILS = new AuthenticationCodeLegacyUtils();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final CryptographyServiceFactory cryptographyServiceFactory;
@@ -264,7 +264,7 @@ public class SignatureSharedServiceBehavior {
                 final PowerAuthCodeType powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureType);
                 final List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForAuthenticationCodeType(powerAuthSignatureTypes, masterSecretKey);
 
-                signatureValid = powerAuthServerAuth.verifyAuthenticationForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getAuthCodeConfiguration());
+                signatureValid = AUTHENTICATION_CODE_LEGACY_UTILS.validatePowerAuthCode(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getAuthCodeConfiguration());
                 if (signatureValid) {
                     // Set the next valid value of numeric counter based on current iteration counter +1
                     ctrNext = iteratedCounter + 1;
