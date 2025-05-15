@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Model class representing response with HMAC token verification results.
+ * Model class representing response with PowerAuth token verification results.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
