@@ -77,7 +77,7 @@ Audit records for operation callbacks have also been updated to reflect the prop
 
 Following property names were changed:
 - `powerauth.service.crypto.signatureMaxFailedAttempts` is now `powerauth.service.crypto.authenticationCodeMaxFailedAttempts`
-- `powerauth.service.crypto.authenticationCodeValidationLookahead` is now `powerauth.service.crypto.authenticationCodeValidationLookahead`
-- `powerauth.service.crypto.offlineAuthenticationCodeComponentLength` is now `powerauth.service.crypto.offlineAuthenticationCodeComponentLength`
+- `powerauth.service.crypto.signatureValidationLookahead` is now `powerauth.service.crypto.authenticationCodeValidationLookahead`
+- `powerauth.service.crypto.offlineSignatureComponentLength` is now `powerauth.service.crypto.offlineAuthenticationCodeComponentLength`
 
 Usually there is no reason to change these configuration properties, default values are used in most of the deployments. Please double-check if this change affects existing deployments.
