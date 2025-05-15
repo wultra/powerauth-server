@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.database.model.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.app.server.database.model.AuthenticationMetadata;
+import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +38,14 @@ import org.springframework.stereotype.Component;
 @Converter
 @Component
 @Slf4j
-public class AuthenticationMetadataConverter implements AttributeConverter<AuthenticationMetadata, String> {
+public class AuthenticationCodeMetadataConverter implements AttributeConverter<AuthenticationCodeMetadata, String> {
 
     private final ObjectMapper objectMapper;
 
     /**
      * No-arg constructor that initializes a default ObjectMapper.
      */
-    public AuthenticationMetadataConverter() {
+    public AuthenticationCodeMetadataConverter() {
         this.objectMapper = new ObjectMapper();
     }
 
@@ -55,7 +55,7 @@ public class AuthenticationMetadataConverter implements AttributeConverter<Authe
      * @param objectMapper The Jackson ObjectMapper.
      */
     @Autowired
-    public AuthenticationMetadataConverter(ObjectMapper objectMapper) {
+    public AuthenticationCodeMetadataConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -66,7 +66,7 @@ public class AuthenticationMetadataConverter implements AttributeConverter<Authe
      * @return The JSON string representation of the object.
      */
     @Override
-    public String convertToDatabaseColumn(AuthenticationMetadata attribute) {
+    public String convertToDatabaseColumn(AuthenticationCodeMetadata attribute) {
         if (attribute == null) {
             return "{}";
         }
@@ -85,7 +85,7 @@ public class AuthenticationMetadataConverter implements AttributeConverter<Authe
      * @return The converted AuthCodeMetadata object.
      */
     @Override
-    public AuthenticationMetadata convertToEntityAttribute(String s) {
+    public AuthenticationCodeMetadata convertToEntityAttribute(String s) {
         if (StringUtils.isBlank(s)) {
             return null;
         }

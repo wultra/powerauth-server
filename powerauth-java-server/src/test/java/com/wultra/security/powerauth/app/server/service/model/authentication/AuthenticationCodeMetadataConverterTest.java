@@ -17,9 +17,9 @@
  */
 package com.wultra.security.powerauth.app.server.service.model.authentication;
 
-import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationMetadata;
-import com.wultra.security.powerauth.app.server.database.model.AuthenticationMetadata;
-import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationMetadataConverter;
+import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
+import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,19 +31,19 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Dusil
  */
-public class AuthenticationMetadataConverterTest {
+public class AuthenticationCodeMetadataConverterTest {
 
     /**
      * Converter object to be used for tests.
      */
-    private AuthenticationMetadataConverter converter;
+    private AuthenticationCodeMetadataConverter converter;
 
     /**
      * Initializes the AuthMetadataConverter object and any other necessary objects.
      */
     @BeforeEach
     void setUp() {
-        converter = new AuthenticationMetadataConverter();
+        converter = new AuthenticationCodeMetadataConverter();
     }
 
     /**
@@ -51,7 +51,7 @@ public class AuthenticationMetadataConverterTest {
      */
     @Test
     void convertToDatabaseColumnTest() {
-        PowerAuthAuthenticationMetadata metadata = new PowerAuthAuthenticationMetadata("POST", "123");
+        PowerAuthAuthenticationCodeMetadata metadata = new PowerAuthAuthenticationCodeMetadata("POST", "123");
         String jsonStr = converter.convertToDatabaseColumn(metadata);
 
         assertNotNull(jsonStr);
@@ -64,7 +64,7 @@ public class AuthenticationMetadataConverterTest {
     @Test
     void convertToEntityAttributeTest() {
         String jsonStr = "{\"type\":\"POWERAUTH\",\"authDataMethod\":\"POST\",\"authDataUriId\":\"123\"}";
-        PowerAuthAuthenticationMetadata metadata = (PowerAuthAuthenticationMetadata) converter.convertToEntityAttribute(jsonStr);
+        PowerAuthAuthenticationCodeMetadata metadata = (PowerAuthAuthenticationCodeMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(metadata);
         assertEquals("POST", metadata.getAuthDataMethod());
@@ -76,9 +76,9 @@ public class AuthenticationMetadataConverterTest {
      */
     @Test
     void testRoundTripConversion() {
-        PowerAuthAuthenticationMetadata originalMetadata = new PowerAuthAuthenticationMetadata("POST", "123");
+        PowerAuthAuthenticationCodeMetadata originalMetadata = new PowerAuthAuthenticationCodeMetadata("POST", "123");
         String jsonStr = converter.convertToDatabaseColumn(originalMetadata);
-        PowerAuthAuthenticationMetadata convertedMetadata = (PowerAuthAuthenticationMetadata) converter.convertToEntityAttribute(jsonStr);
+        PowerAuthAuthenticationCodeMetadata convertedMetadata = (PowerAuthAuthenticationCodeMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(convertedMetadata);
         assertEquals(originalMetadata.getAuthDataMethod(), convertedMetadata.getAuthDataMethod());
@@ -91,7 +91,7 @@ public class AuthenticationMetadataConverterTest {
     @Test
     void testInvalidJsonInput() {
         String invalidJson = "{\"invalidField\":\"someValue\"}";
-        AuthenticationMetadata metadata = converter.convertToEntityAttribute(invalidJson);
+        AuthenticationCodeMetadata metadata = converter.convertToEntityAttribute(invalidJson);
         assertNull(metadata);
     }
 }

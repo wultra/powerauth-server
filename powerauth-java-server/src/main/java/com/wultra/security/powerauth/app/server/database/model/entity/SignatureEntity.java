@@ -17,9 +17,9 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.AuthenticationMetadata;
+import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationMetadataConverter;
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -112,8 +112,8 @@ public class SignatureEntity implements Serializable {
      * Signature metadata associated with this signature.
      */
     @Column(name = "signature_metadata")
-    @Convert(converter = AuthenticationMetadataConverter.class)
-    private AuthenticationMetadata signatureMetadata;
+    @Convert(converter = AuthenticationCodeMetadataConverter.class)
+    private AuthenticationCodeMetadata signatureMetadata;
 
     /**
      * Signature data body.

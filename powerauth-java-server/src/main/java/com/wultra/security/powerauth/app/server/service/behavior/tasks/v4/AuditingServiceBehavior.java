@@ -24,8 +24,8 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationMetadata;
-import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationMetadataConverter;
+import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -69,7 +69,7 @@ public class AuditingServiceBehavior {
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
-    private final AuthenticationMetadataConverter authMetadataConverter = new AuthenticationMetadataConverter();
+    private final AuthenticationCodeMetadataConverter authMetadataConverter = new AuthenticationCodeMetadataConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
     // Generic auditing capability
@@ -174,7 +174,7 @@ public class AuditingServiceBehavior {
 
         // Audit the signature
         final SignatureEntity signatureAuditRecord = new SignatureEntity();
-        final PowerAuthAuthenticationMetadata authMetadata = new PowerAuthAuthenticationMetadata(authenticationData.getRequestMethod(), authenticationData.getRequestUriId());
+        final PowerAuthAuthenticationCodeMetadata authMetadata = new PowerAuthAuthenticationCodeMetadata(authenticationData.getRequestMethod(), authenticationData.getRequestUriId());
         signatureAuditRecord.setActivation(activationRepository.getReferenceById(activation.getActivationId()));
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());

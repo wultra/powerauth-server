@@ -35,10 +35,10 @@ import java.io.Serializable;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = PowerAuthAuthenticationMetadata.class,
+        @JsonSubTypes.Type(value = PowerAuthAuthenticationCodeMetadata.class,
                 name = AuthenticationMetadataType.POWERAUTH)
 })
-public interface AuthenticationMetadata extends Serializable {
+public interface AuthenticationCodeMetadata extends Serializable {
 
 }
 

@@ -27,7 +27,7 @@ import java.io.Serial;
 
 
 /**
- * Concrete implementation of the {@link AuthenticationMetadata} interface for PowerAuth.
+ * Concrete implementation of the {@link AuthenticationCodeMetadata} interface for PowerAuth.
  * Contains metadata parameters specific to PowerAuth authentication.
  *
  * @author Jan Dusil
@@ -35,7 +35,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PowerAuthAuthenticationMetadata implements AuthenticationMetadata {
+public class PowerAuthAuthenticationCodeMetadata implements AuthenticationCodeMetadata {
 
     @Serial
     private static final long serialVersionUID = -2528940792626565595L;
