@@ -442,8 +442,8 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("maxFailureCount")) {
             callbackData.put("maxFailureCount", operation.getMaxFailureCount());
         }
-        if (callbackUrlEntity.getAttributes().contains("signatureType")) {
-            callbackData.put("signatureType", operation.getSignatureType());
+        if (callbackUrlEntity.getAttributes().contains("authenticationCodeType")) {
+            callbackData.put("authenticationCodeType", operation.getSignatureType());
         }
         if (callbackUrlEntity.getAttributes().contains("externalId")) {
             callbackData.put("externalId", operation.getExternalId());

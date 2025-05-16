@@ -35,7 +35,7 @@ import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;

@@ -32,7 +32,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;

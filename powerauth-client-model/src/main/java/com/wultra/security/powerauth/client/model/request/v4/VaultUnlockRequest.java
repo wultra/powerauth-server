@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -43,23 +43,22 @@ public class VaultUnlockRequest {
     @NotBlank(message = "Application key must not be empty when unlocking vault")
     private String applicationKey;
 
-    @Schema(description = "Signed data")
-    @NotBlank(message = "Signed data must not be empty when unlocking vault")
-    private String signedData;
+    @Schema(description = "Request data")
+    @NotBlank(message = "Request data must not be empty when unlocking vault")
+    private String requestData;
 
-    @Schema(description = "Signature")
-    @NotBlank(message = "Signature must not be empty when unlocking vault")
+    @Schema(description = "Authentication code")
+    @NotBlank(message = "Authentication code must not be empty when unlocking vault")
     @ToString.Exclude
-    private String signature;
+    private String authenticationCode;
 
-    @Schema(description = "Signature type")
-    @NotNull(message = "Signature type must not be empty when unlocking vault")
-    // TODO - change for v4
-    private SignatureType signatureType;
+    @Schema(description = "Authentication code type")
+    @NotNull(message = "Authentication code type must not be empty when unlocking vault")
+    private AuthenticationCodeType authenticationCodeType;
 
-    @Schema(description = "Signature version")
-    @NotBlank(message = "Signature version must not be empty when unlocking vault")
-    private String signatureVersion;
+    @Schema(description = "Authentication version")
+    @NotBlank(message = "Authentication version must not be empty when unlocking vault")
+    private String authenticationVersion;
 
     @Schema(description = "Identifier of the temporary key for encryption")
     @NotBlank(message = "Temporary key ID must not be empty when unlocking vault")

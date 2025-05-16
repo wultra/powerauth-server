@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v4.*;
@@ -434,37 +435,37 @@ public interface PowerAuthClient {
     /**
      * Call the verifyAuth method of the PowerAuth Server interface.
      *
-     * @param request {@link VerifyAuthRequest} instance.
-     * @return {@link VerifyAuthResponse}
+     * @param request {@link VerifyAuthenticationRequest} instance.
+     * @return {@link VerifyAuthenticationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyAuthResponse verifyAuth(VerifyAuthRequest request) throws PowerAuthClientException;
+    VerifyAuthenticationResponse verifyAuthentication(VerifyAuthenticationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the verifyAuth method of the PowerAuth Server interface.
      *
-     * @param request {@link VerifyAuthRequest} instance.
+     * @param request {@link VerifyAuthenticationRequest} instance.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
-     * @return {@link VerifyAuthResponse}
+     * @return {@link VerifyAuthenticationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyAuthResponse verifyAuth(VerifyAuthRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+    VerifyAuthenticationResponse verifyAuthentication(VerifyAuthenticationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the verifyAuth method of the PowerAuth Server interface.
      *
-     * @param activationId           Activation ID of activation to be used for authentication.
-     * @param applicationKey         Application Key of an application related to the activation.
-     * @param data                   Data to be signed encoded in format as specified by PowerAuth data normalization.
-     * @param signature              Request signature.
-     * @param signatureType          Request signature type.
-     * @param signatureVersion       Signature version.
-     * @param forcedSignatureVersion Forced signature version.
-     * @return Verify signature and return REST response with the verification results.
+     * @param activationId                Activation ID of activation to be used for authentication.
+     * @param applicationKey              Application Key of an application related to the activation.
+     * @param data                        Data to be signed encoded in format as specified by PowerAuth data normalization.
+     * @param authenticationCode          Request authentication code.
+     * @param authenticationCodeType      Request authentication code type.
+     * @param authenticationVersion       Authentication version.
+     * @param forcedAuthenticationVersion Forced authentication version.
+     * @return Verify authentication and return REST response with the verification results.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyAuthResponse verifyAuth(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Integer forcedSignatureVersion) throws PowerAuthClientException;
+    VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion, Integer forcedAuthenticationVersion) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineAuthPayload method of the PowerAuth Server interface.
@@ -529,34 +530,34 @@ public interface PowerAuthClient {
     /**
      * Verify offline authentication by calling verifyOfflineAuth method of the PowerAuth Server interface.
      *
-     * @param request {@link VerifyOfflineAuthRequest} instance.
-     * @return {@link VerifyOfflineAuthResponse}
+     * @param request {@link VerifyOfflineAuthenticationRequest} instance.
+     * @return {@link VerifyOfflineAuthenticationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyOfflineAuthResponse verifyOfflineAuth(VerifyOfflineAuthRequest request) throws PowerAuthClientException;
+    VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(VerifyOfflineAuthenticationRequest request) throws PowerAuthClientException;
 
     /**
      * Verify offline authentication by calling verifyOfflineAuth method of the PowerAuth Server interface.
      *
-     * @param request {@link VerifyOfflineAuthRequest} instance.
+     * @param request {@link VerifyOfflineAuthenticationRequest} instance.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
-     * @return {@link VerifyOfflineAuthResponse}
+     * @return {@link VerifyOfflineAuthenticationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyOfflineAuthResponse verifyOfflineAuth(VerifyOfflineAuthRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+    VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(VerifyOfflineAuthenticationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Verify offline authentication by calling verifyOfflineAuth method of the PowerAuth Server interface.
      *
-     * @param activationId  Activation ID.
-     * @param data          Data for authentication.
-     * @param signature     Signature value.
-     * @param allowBiometry Whether POSSESSION_BIOMETRY signature type is allowed during signature verification.
+     * @param activationId       Activation ID.
+     * @param data               Data for authentication.
+     * @param authenticationCode Authentication code value.
+     * @param allowBiometry      Whether POSSESSION_BIOMETRY authentication code type is allowed during authentication.
      * @return Offline authentication verification response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyOfflineAuthResponse verifyOfflineAuth(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException;
+    VerifyOfflineAuthenticationResponse verifyOfflineAuthentication(String activationId, String data, String authenticationCode, boolean allowBiometry) throws PowerAuthClientException;
 
     /**
      * Call the vaultUnlock method of the PowerAuth Server interface.

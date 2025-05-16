@@ -13,7 +13,7 @@
 **Implementation Tutorials**
 
 - [Mobile-First Authentication in Banking (SCA)](https://developers.wultra.com/tutorials/posts/Mobile-First-Authentication/)
-- [Verifying PowerAuth Signatures On The Server](https://developers.wultra.com/tutorials/posts/Manual-Signature-Verification/)
+- [Verifying Authentication Codes On The Server](https://developers.wultra.com/tutorials/posts/Manual-Signature-Verification/)
 
 **Reference Manual**
 
@@ -34,6 +34,6 @@
 **Advanced Topics**
 
 - [Encrypting DB Records](./Encrypting-Records-in-Database.md)
-- [Offline Signatures](./Offline-Signatures.md)
+- [Offline Authentication Codes](./Offline-Authentication-Codes)
 - [Integrating with HashiCorp Vault](./Using-HashiCorp-Vault.md)
 - [Database Sizing](./Database-Sizing.md)

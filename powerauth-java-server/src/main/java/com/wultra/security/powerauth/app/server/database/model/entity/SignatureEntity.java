@@ -17,9 +17,9 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.SignatureMetadata;
+import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
+import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -112,8 +112,8 @@ public class SignatureEntity implements Serializable {
      * Signature metadata associated with this signature.
      */
     @Column(name = "signature_metadata")
-    @Convert(converter = SignatureMetadataConverter.class)
-    private SignatureMetadata signatureMetadata;
+    @Convert(converter = AuthenticationCodeMetadataConverter.class)
+    private AuthenticationCodeMetadata signatureMetadata;
 
     /**
      * Signature data body.
@@ -221,7 +221,7 @@ public class SignatureEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
+        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", authenticationCodeType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
     }
 
 }

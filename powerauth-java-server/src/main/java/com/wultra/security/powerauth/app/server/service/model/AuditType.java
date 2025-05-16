@@ -29,9 +29,14 @@ import lombok.Getter;
 public enum AuditType {
 
     /**
-     * Audit type for signatures.
+     * Audit type for signatures (V3).
      */
     SIGNATURE("signature"),
+
+    /**
+     * Audit type for authentication (V4).
+     */
+    AUTHENTICATION("authentication"),
 
     /**
      * Audit type for operations.

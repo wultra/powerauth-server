@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import org.junit.jupiter.api.Test;

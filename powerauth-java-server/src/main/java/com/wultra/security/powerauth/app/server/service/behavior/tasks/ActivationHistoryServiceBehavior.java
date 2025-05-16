@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;

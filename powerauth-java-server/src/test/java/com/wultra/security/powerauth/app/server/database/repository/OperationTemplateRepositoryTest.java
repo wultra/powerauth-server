@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.app.server.database.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +68,8 @@ class OperationTemplateRepositoryTest {
         entity.setTemplateName(templateName);
         entity.setOperationType(templateName);
         entity.setDataTemplate("A2");
-        PowerAuthSignatureTypes[] signatureTypes = {PowerAuthSignatureTypes.POSSESSION};
-        entity.setSignatureType(signatureTypes);
+        PowerAuthCodeType[] authCodeTypes = {PowerAuthCodeType.POSSESSION};
+        entity.setSignatureType(authCodeTypes);
         entity.setMaxFailureCount(5L);
         entity.setExpiration(300L);
         return entity;

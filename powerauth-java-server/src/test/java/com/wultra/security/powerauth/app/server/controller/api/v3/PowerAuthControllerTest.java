@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.*;
@@ -410,7 +411,7 @@ class PowerAuthControllerTest {
      * This test validates the functionality of approving an operation. It involves the following steps:
      * <ol>
      *   <li>Creation of a new operation.</li>
-     *   <li>Construction of an operation approval request, which includes setting various parameters like operation ID, user ID, data, application ID, and signature type.</li>
+     *   <li>Construction of an operation approval request, which includes setting various parameters like operation ID, user ID, data, application ID, and authentication code type.</li>
      *   <li>Submission of the operation approval request to the PowerAuthClient's operation approval endpoint.</li>
      *   <li>Verification of the response to ensure that the operation was approved successfully. This includes checking the response status, the operation's data, template name, and operation ID.</li>
      *   <li>Confirmation that the operation entity in the database reflects the approved status.</li>

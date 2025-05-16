@@ -1422,7 +1422,7 @@ When creating a callback URL of type `OPERATION_STATUS_CHANGE`, following `attri
 - `data`
 - `failureCount`
 - `maxFailureCount`
-- `signatureType`
+- `authenticationCodeType`
 - `externalId`
 - `timestampCreated`
 - `timestampExpires`
@@ -1523,7 +1523,7 @@ When configuring a callback URL of type `OPERATION_STATUS_CHANGE`, following `at
 - `data`
 - `failureCount`
 - `maxFailureCount`
-- `signatureType`
+- `authenticationCodeType`
 - `externalId`
 - `timestampCreated`
 - `timestampExpires`

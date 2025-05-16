@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;

@@ -27,7 +27,7 @@ The PowerAuth Server uses the following public configuration properties:
 | Property                                                           | Default   | Note                                                                                    |
 |--------------------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------|
 | `powerauth.service.crypto.activationValidityInMilliseconds`        | `120000`  | Default activation validity period in miliseconds                                       |
-| `powerauth.service.crypto.signatureMaxFailedAttempts`              | `5`       | Maximum failed attempts for signature verification                                      |
+| `powerauth.service.crypto.authenticationCodeMaxFailedAttempts`     | `5`       | Maximum failed attempts for authentication code verification                            |
 | `powerauth.service.crypto.requestExpirationInMilliseconds`         | `60000`   | Expiration for ECIES and MAC token requests.                                            |
 | `powerauth.service.crypto.requestExpirationInMillisecondsExtended` | `7200000` | Expiration for ECIES and MAC token requests for protocol versions 3.1 and older.        |
 | `powerauth.service.crypto.replayVerificationService`               | `default` | Request replay verification service, options: `default`, `none`                         |

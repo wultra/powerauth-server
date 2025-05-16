@@ -37,11 +37,11 @@ import com.wultra.security.powerauth.app.server.service.model.response.Decryptio
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
-import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.ValidateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
@@ -234,6 +234,11 @@ public class TokenBehavior {
         }
     }
 
+    public com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse validateTokenV4(com.wultra.security.powerauth.client.model.request.ValidateTokenRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse();
+    }
+
     /**
      * Remove token with provided ID.
      *
@@ -275,13 +280,13 @@ public class TokenBehavior {
      * @param activationId Activation ID.
      * @param applicationKey Application key.
      * @param encryptedRequest Encrypted request.
-     * @param signatureType Signature type.
+     * @param authenticationCodeType Authentication code type.
      * @param version Protocol version.
      * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
     private EncryptedResponse createToken(String activationId, String applicationKey, EciesEncryptedRequest encryptedRequest,
-                                          String signatureType, String version) throws GenericServiceException {
+                                          String authenticationCodeType, String version) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -330,7 +335,7 @@ public class TokenBehavior {
             token.setTokenSecret(tokenSecret);
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
-            token.setSignatureTypeCreated(signatureType);
+            token.setSignatureTypeCreated(authenticationCodeType);
             tokenRepository.save(token);
 
             return encryptedResponse;

@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OnlineSignatureServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateNonPersonalizedOfflineSignaturePayloadRequest;
 import com.wultra.security.powerauth.client.model.request.v3.CreatePersonalizedOfflineSignaturePayloadRequest;
@@ -27,9 +28,8 @@ import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequ
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OnlineSignatureServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OfflineSignatureServiceBehavior;
 import com.wultra.security.powerauth.client.model.response.v3.CreateNonPersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v3.CreatePersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyOfflineSignatureResponse;
@@ -38,7 +38,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

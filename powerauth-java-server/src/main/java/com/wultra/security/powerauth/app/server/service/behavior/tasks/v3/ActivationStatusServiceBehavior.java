@@ -216,7 +216,7 @@ public class ActivationStatusServiceBehavior {
                         statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
-                        statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
+                        statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
                         statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
                         statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
                         encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey, protocolVersion);
@@ -286,7 +286,7 @@ public class ActivationStatusServiceBehavior {
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
                 response.setFailedAttempts(0L);
-                response.setMaxFailedAttempts(powerAuthServiceConfiguration.getSignatureMaxFailedAttempts());
+                response.setMaxFailedAttempts(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts());
                 response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                 response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                 response.setActivationCode(null);

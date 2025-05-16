@@ -26,7 +26,7 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * Model class representing request for validating HMAC token signature.
+ * Model class representing request for validating PowerAuth token.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.service.model;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 
 import java.util.Collections;
 import java.util.List;
