@@ -22,7 +22,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
-import com.wultra.security.powerauth.crypto.lib.util.Hash;
+import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

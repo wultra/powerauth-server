@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="DEBUG_MODE" value="true" />
     <module name="powerauth-java-server" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="com.wultra.security.powerauth.app.server.Application" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.powerauth.app.server.Application" />
     <option name="VM_PARAMETERS" value="-Dserver.servlet.context-path=/powerauth-java-server" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_WORKING_DIR$" />
     <method v="2">

@@ -26,27 +26,27 @@
     <description>PowerAuth Server REST Service Client</description>
 
     <parent>
-        <groupId>com.wultra.security</groupId>
+        <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>1.10.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <!-- PowerAuth dependencies -->
         <dependency>
-            <groupId>com.wultra.security</groupId>
+            <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.wultra.security</groupId>
+            <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.wultra.core</groupId>
+            <groupId>io.getlime.core</groupId>
             <artifactId>rest-model-base</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.wultra.core</groupId>
+            <groupId>io.getlime.core</groupId>
             <artifactId>rest-client-base</artifactId>
         </dependency>
     </dependencies>

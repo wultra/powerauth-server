@@ -46,11 +46,11 @@ import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResp
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
-import com.wultra.security.powerauth.app.server.Application;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
+import io.getlime.security.powerauth.app.server.Application;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

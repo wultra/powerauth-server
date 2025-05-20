@@ -19,8 +19,8 @@
 
 package com.wultra.powerauth.fido2;
 
-import com.wultra.security.powerauth.app.server.Application;
-import com.wultra.security.powerauth.app.server.service.fido2.Fido2CertificateValidator;
+import io.getlime.security.powerauth.app.server.Application;
+import io.getlime.security.powerauth.app.server.service.fido2.Fido2CertificateValidator;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x500.X500Name;
