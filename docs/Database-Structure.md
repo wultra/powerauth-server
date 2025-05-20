@@ -239,7 +239,7 @@ Stores a log of activation changes.
 | external_user_id   | VARCHAR(255) | -                                         | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created  | DATETIME     | -                                         | Timestamp of the record creation.                                                                                                                                               |
 | activation_version | INT(2)       | -                                         | Activation version                                                                                                                                                              |
-| activation_name    | VARCHAR(255  | -                                         | Activation name.                                                                                                                                                                |
+| activation_name    | VARCHAR(255) | -                                         | Activation name.                                                                                                                                                                |
 <!-- end -->
 
 <!-- begin database table pa_recovery_code -->
@@ -378,7 +378,7 @@ Table stores details about FIDO2 Authenticators.
 | aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
 | description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
 | signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
-| transport      | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
+| transports     | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
 <!-- end -->
 
 <!-- begin database table pa_temporary_key -->
@@ -399,6 +399,7 @@ Table stores details about temporary key pairs used for data encryption.
 | secret_key_base64      | VARCHAR(255) | -                                                      | Base64-encoded secret key.                                                            |
 | secret_key_encryption  | INT(11)      | -                                                      | Encryption indicator (0 = no encryption, 1 = AES_HMAC).                               |
 | timestamp_expires      | timestamp    | index                                                  | Timestamp of when the temporary key pair expires.                                     |
+<!-- end -->
 
 <!-- begin database table pa_application_callback_event -->
 ### Callback URL Events
