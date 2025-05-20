@@ -261,7 +261,7 @@ public class ActivationProcessServiceBehavior {
                 final SharedSecretResponseHybrid derivedResponse = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
                 sharedSecretResponse.setEcdhe(derivedResponse.getEcServerPublicKey());
-                sharedSecretResponse.setMlkem(derivedResponse.getPqcEncapsulation());
+                sharedSecretResponse.setMlkem(derivedResponse.getPqcCiphertext());
                 activationLayer2Response.setSharedSecretResponse(sharedSecretResponse);
 
                 final String serverPublicKeys = activation.getServerPublicKeys();

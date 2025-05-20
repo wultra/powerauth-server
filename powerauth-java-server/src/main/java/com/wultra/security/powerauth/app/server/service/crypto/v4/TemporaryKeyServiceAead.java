@@ -431,7 +431,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             case EC_P384_ML_L3 -> {
                 final SharedSecretResponseHybrid sharedSecretResponseHybrid = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 sharedSecretResponse.setEcdhe(sharedSecretResponseHybrid.getEcServerPublicKey());
-                sharedSecretResponse.setMlkem(sharedSecretResponseHybrid.getPqcEncapsulation());
+                sharedSecretResponse.setMlkem(sharedSecretResponseHybrid.getPqcCiphertext());
                 return sharedSecretResponse;
             }
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
