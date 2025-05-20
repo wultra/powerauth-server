@@ -364,7 +364,7 @@ class TemporaryKeyBehaviorTest {
             final KeyPair pqcDeviceKeyPair = generatePqcDeviceKeypair();
             final SharedSecretResponseHybrid sharedSecretResponseHybrid = new SharedSecretResponseHybrid();
             sharedSecretResponseHybrid.setEcServerPublicKey(serverResponse.getEcdhe());
-            sharedSecretResponseHybrid.setPqcEncapsulation(serverResponse.getMlkem());
+            sharedSecretResponseHybrid.setPqcCiphertext(serverResponse.getMlkem());
             temporarySharedSecret = SHARED_SECRET_HYBRID.computeSharedSecret(contextHybrid, sharedSecretResponseHybrid);
 
             final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
@@ -455,7 +455,7 @@ class TemporaryKeyBehaviorTest {
         } else if (clientContext instanceof SharedSecretClientContextHybrid contextHybrid) {
             final SharedSecretResponseHybrid sharedSecretResponse = new SharedSecretResponseHybrid();
             sharedSecretResponse.setEcServerPublicKey(serverResponse.getEcdhe());
-            sharedSecretResponse.setPqcEncapsulation(serverResponse.getMlkem());
+            sharedSecretResponse.setPqcCiphertext(serverResponse.getMlkem());
             return SHARED_SECRET_HYBRID.computeSharedSecret(contextHybrid, sharedSecretResponse);
         } else {
             throw new IllegalStateException("Invalid client context");

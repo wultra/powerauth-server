@@ -221,7 +221,7 @@ class ActivationServiceBehaviorTest {
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final SharedSecretResponseHybrid sharedSecretResponseHybrid = new SharedSecretResponseHybrid();
         sharedSecretResponseHybrid.setEcServerPublicKey(serverResponse.getEcdhe());
-        sharedSecretResponseHybrid.setPqcEncapsulation(serverResponse.getMlkem());
+        sharedSecretResponseHybrid.setPqcCiphertext(serverResponse.getMlkem());
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID.computeSharedSecret((SharedSecretClientContextHybrid) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponseHybrid);
 
         // Create request payload
@@ -392,7 +392,7 @@ class ActivationServiceBehaviorTest {
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final SharedSecretResponseHybrid sharedSecretResponseHybrid = new SharedSecretResponseHybrid();
         sharedSecretResponseHybrid.setEcServerPublicKey(serverResponse.getEcdhe());
-        sharedSecretResponseHybrid.setPqcEncapsulation(serverResponse.getMlkem());
+        sharedSecretResponseHybrid.setPqcCiphertext(serverResponse.getMlkem());
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID.computeSharedSecret((SharedSecretClientContextHybrid) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponseHybrid);
 
         // Create request payload
