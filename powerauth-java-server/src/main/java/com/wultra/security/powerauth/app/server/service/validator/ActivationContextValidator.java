@@ -65,6 +65,21 @@ public class ActivationContextValidator {
     }
 
     /**
+     * Validate that activation status is in correct state for extracting encryptor.
+     * @param activationStatus Actual validation status.
+     * @param activationId Activation identifier.
+     * @param localizationProvider Localization provider.
+     * @throws GenericServiceException Thrown when activation status is invalid.
+     */
+    public void validateActiveStatusForEncryptor(final ActivationStatus activationStatus, final String activationId, final LocalizationProvider localizationProvider) throws GenericServiceException {
+        // Check if the activation is in correct state for extracting encryptor
+        if (activationStatus != ActivationStatus.ACTIVE && activationStatus != ActivationStatus.BLOCKED && activationStatus != ActivationStatus.PENDING_COMMIT) {
+            logger.info("Activation state is invalid, activation ID: {}", activationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+    }
+
+    /**
      * Validate activation version.
      * @param actualVersion Actual version.
      * @param expectedVersion Expected version.

@@ -365,7 +365,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
                 final ActivationRecordEntity activation = activationWithoutLock.get();
-                if ((activation.getActivationStatus() != ActivationStatus.ACTIVE && activation.getActivationStatus() != ActivationStatus.BLOCKED)
+                if ((activation.getActivationStatus() != ActivationStatus.ACTIVE && activation.getActivationStatus() != ActivationStatus.BLOCKED && activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT)
                         || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
                         || !Objects.equals(appId, activation.getApplication().getRid())) {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -401,7 +401,6 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
     }
-
 
     private ResponseCryptogram deriveSharedSecret(SharedSecretRequest request, SharedSecretAlgorithm algorithm) throws GenericCryptoException {
         switch (algorithm) {

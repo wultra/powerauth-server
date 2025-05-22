@@ -27,12 +27,10 @@ import com.wultra.security.powerauth.app.server.service.model.request.Encryption
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
-import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import lombok.AllArgsConstructor;
@@ -121,7 +119,7 @@ public class EncryptionBehaviorAead {
 
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-        activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+        activationValidator.validateActiveStatusForEncryptor(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), activationId, EncryptorId.ACTIVATION_SCOPE_GENERIC);
         final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(
