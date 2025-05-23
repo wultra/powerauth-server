@@ -19,12 +19,16 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Model class representing request for AEAD encryptor initialization (V4).
@@ -58,5 +62,8 @@ public class ExtractEncryptorRequest {
     @NotNull(message = "Timestamp must not be null when requesting encryptor")
     @Positive(message = "Timestamp must be positive when requesting encryptor")
     private Long timestamp;
+
+    @Schema(description = "Activation states which are allowed when obtaining encryptor in activation scope")
+    private List<@NotNull ActivationStatus> allowedStates = new ArrayList<>();
 
 }

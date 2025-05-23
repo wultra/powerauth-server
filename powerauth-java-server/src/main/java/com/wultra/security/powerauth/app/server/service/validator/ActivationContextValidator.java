@@ -27,6 +27,8 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Validation of activation context.
  *
@@ -71,9 +73,13 @@ public class ActivationContextValidator {
      * @param localizationProvider Localization provider.
      * @throws GenericServiceException Thrown when activation status is invalid.
      */
-    public void validateActiveStatusForEncryptor(final ActivationStatus activationStatus, final String activationId, final LocalizationProvider localizationProvider) throws GenericServiceException {
+    public void validateActiveStatusForEncryptor(final ActivationStatus activationStatus, final List<ActivationStatus> allowedStates, final String activationId, final LocalizationProvider localizationProvider) throws GenericServiceException {
+        if (allowedStates.contains(ActivationStatus.CREATED) || allowedStates.contains(ActivationStatus.REMOVED)) {
+            logger.info("Requested allow states are invalid, activation ID: {}", activationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         // Check if the activation is in correct state for extracting encryptor
-        if (activationStatus != ActivationStatus.ACTIVE && activationStatus != ActivationStatus.BLOCKED && activationStatus != ActivationStatus.PENDING_COMMIT) {
+        if (!allowedStates.contains(activationStatus)) {
             logger.info("Activation state is invalid, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }

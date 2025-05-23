@@ -18,6 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
+import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -26,6 +27,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -39,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Behavior class implementing the AEAD encryption service logic.
@@ -59,6 +62,8 @@ public class EncryptionBehaviorAead {
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
+
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     /**
      * Extract AEAD encryptor parameters to allow decryption of AEAD-encrypted messages on intermediate server.
@@ -109,6 +114,10 @@ public class EncryptionBehaviorAead {
         final String activationId = request.getActivationId();
         final Long timestamp = request.getTimestamp();
         final String nonce = request.getNonce();
+        final List<ActivationStatus> allowedStates = request.getAllowedStates();
+        final List<com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus> convertedStates = allowedStates.stream()
+                        .map(activationStatusConverter::convert)
+                        .toList();
 
         // Lookup the activation
         final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -119,7 +128,7 @@ public class EncryptionBehaviorAead {
 
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-        activationValidator.validateActiveStatusForEncryptor(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+        activationValidator.validateActiveStatusForEncryptor(activation.getActivationStatus(), convertedStates, activation.getActivationId(), localizationProvider);
 
         final EncryptionContext context = new EncryptionContext(request.getProtocolVersion(), request.getApplicationKey(), activationId, EncryptorId.ACTIVATION_SCOPE_GENERIC);
         final EncryptorSecrets encryptorSecrets = encryptionService.deriveSecrets(
