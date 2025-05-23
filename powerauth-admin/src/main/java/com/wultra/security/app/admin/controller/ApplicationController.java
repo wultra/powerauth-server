@@ -610,7 +610,7 @@ public class ApplicationController {
             }
             certificateAuth.setUseCustomTrustStore("on".equals(allParams.get("auth_useCustomTrustStore")));
             if (!allParams.get("auth_trustStoreLocation").isEmpty()) {
-                certificateAuth.setKeyStoreLocation(allParams.get("auth_keyStoreLocation"));
+                certificateAuth.setTrustStoreLocation(allParams.get("auth_trustStoreLocation"));
             }
             if ("true".equals(allParams.get("auth_trustStorePasswordChanged"))) {
                 certificateAuth.setTrustStorePassword(allParams.get("auth_trustStorePassword"));
