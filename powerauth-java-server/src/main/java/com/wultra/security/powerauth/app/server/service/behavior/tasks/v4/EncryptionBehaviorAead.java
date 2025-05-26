@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.v4.ExtractEncryptorRequest;
 import com.wultra.security.powerauth.client.model.response.v4.ExtractEncryptorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -114,8 +113,7 @@ public class EncryptionBehaviorAead {
         final String activationId = request.getActivationId();
         final Long timestamp = request.getTimestamp();
         final String nonce = request.getNonce();
-        final List<ActivationStatus> allowedStates = request.getAllowedStates();
-        final List<com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus> convertedStates = allowedStates.stream()
+        final List<com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus> convertedStates = request.getAllowedStates().stream()
                         .map(activationStatusConverter::convert)
                         .toList();
 
