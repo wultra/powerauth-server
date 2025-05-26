@@ -19,15 +19,12 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
-import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -38,8 +35,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
-import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,15 +84,8 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
 
-    private final CryptographyServiceFactory cryptographyServiceFactory;
-
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
-    private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
-
-    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-    private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
     /**
      * Fetch a paginated list of activations for a given application ID and user ID.

@@ -35,7 +35,6 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationVersion;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -43,6 +42,7 @@ import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,6 +72,8 @@ public class CryptographyServiceEc256 extends CryptographyService {
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final PublicKeysConverter publicKeysConverter;
 
+    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
+
     @Autowired
     public CryptographyServiceEc256(MasterKeyPairRepository masterKeyPairRepository,
                                     LocalizationProvider localizationProvider1,
@@ -84,15 +86,13 @@ public class CryptographyServiceEc256 extends CryptographyService {
     }
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
-    private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
-            final KeyGenerator keyGen = new KeyGenerator();
-            final KeyPair kp = keyGen.generateKeyPair(EcCurve.P256);
+            final KeyPair kp = SERVER_ACTIVATION.generateServerKeyPair();
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
@@ -184,7 +184,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
     @Override
     public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final KeyPair serverKeyPair = KEY_GENERATOR.generateKeyPair(EcCurve.P256);
+            final KeyPair serverKeyPair = SERVER_ACTIVATION.generateServerKeyPair();
 
             final byte[] serverKeyPrivateBytes = KEY_CONVERTOR.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
             final byte[] serverKeyPublicBytes = KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, serverKeyPair.getPublic());

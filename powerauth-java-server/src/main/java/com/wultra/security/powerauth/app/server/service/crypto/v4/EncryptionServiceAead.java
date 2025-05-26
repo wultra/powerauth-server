@@ -46,7 +46,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +77,7 @@ public class EncryptionServiceAead extends EncryptionService {
 
     private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
     public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter, ActivationSharedSecretConverter activationSharedSecretConverter) {
@@ -168,7 +169,7 @@ public class EncryptionServiceAead extends EncryptionService {
         final String activationSecretBase64 = activationSharedSecretConverter.fromDBValue(activationSharedSecret, activation.getUserId(), activation.getActivationId());
         final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
         final SecretKey activationSecret = KEY_CONVERTOR.convertBytesToSharedSecretKey(activationSecretBytes);
-        final SecretKey sharedInfo2Key = KeyFactory.deriveKeyE2eeSharedInfo2(activationSecret);
+        final SecretKey sharedInfo2Key = SERVER_KEY_FACTORY.generateSharedInfo2Key(activationSecret);
         final byte[] sharedInfo2KeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(sharedInfo2Key);
 
         final DecryptionResult decryptionResult;

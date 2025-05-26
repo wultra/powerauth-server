@@ -58,7 +58,6 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
@@ -67,6 +66,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretRe
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretResponseHybrid;
 import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretHybrid;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -103,6 +103,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
     private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
     public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter) {
@@ -343,7 +344,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
                 final byte[] appSecretBytes = Base64.getDecoder().decode(applicationSecret);
                 final SecretKey appSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(appSecretBytes);
-                final SecretKey secretKey = KeyFactory.deriveKeyMacGetAppTempKey(appSecretKey);
+                final SecretKey secretKey = SERVER_KEY_FACTORY.generateKeyMacGetAppTempKey(appSecretKey);
                 final byte[] secretKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(secretKey);
 
                 final TemporaryKeyResult result = new TemporaryKeyResult();
@@ -383,7 +384,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
                 final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
                 final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
-                final SecretKey secretKey = KeyFactory.deriveKeyMacGetActTempKey(sharedSecretKey);
+                final SecretKey secretKey = SERVER_KEY_FACTORY.generateKeyMacGetActTempKey(sharedSecretKey);
                 final byte[] secretKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(secretKey);
 
                 final TemporaryKeyResult result = new TemporaryKeyResult();

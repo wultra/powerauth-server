@@ -41,9 +41,9 @@ import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.crypto.server.v4.authentication.PowerAuthServerAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,9 +74,10 @@ public class AuthenticationSharedServiceBehavior {
     private final ActivationRepository activationRepository;
 
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
-    private final AuthenticationCodeUtils authenticationCodeUtils = new AuthenticationCodeUtils();
     private final AuthenticationCodeTypeConverter authenticationCodeTypeConverter = new AuthenticationCodeTypeConverter();
     private final CryptographyServiceFactory cryptographyServiceFactory;
+
+    private final PowerAuthServerAuthentication SERVER_AUTH = new PowerAuthServerAuthentication();
 
     /**
      * Verify online authentication.
@@ -255,7 +256,7 @@ public class AuthenticationSharedServiceBehavior {
                 final PowerAuthCodeType powerAuthCodeType = authenticationCodeTypeConverter.convertFrom(authenticationCodeType);
                 final List<SecretKey> authenticationKeys = authenticationKeyFactory.keysForAuthenticationCodeType(powerAuthCodeType, masterSecretKey);
 
-                authenticationValid = authenticationCodeUtils.validateAuthCode(authenticationData.getData(), authenticationData.getAuthenticationCode(), authenticationKeys, ctrData, authenticationData.getAuthCodeConfiguration());
+                authenticationValid = SERVER_AUTH.validateAuthCode(authenticationData.getData(), authenticationData.getAuthenticationCode(), authenticationKeys, ctrData, authenticationData.getAuthCodeConfiguration());
                 if (authenticationValid) {
                     // Set the next valid value of numeric counter based on current iteration counter +1
                     ctrNext = iteratedCounter + 1;
