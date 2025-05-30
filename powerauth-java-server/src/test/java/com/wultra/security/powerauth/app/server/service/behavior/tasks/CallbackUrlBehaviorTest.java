@@ -17,14 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
-import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
-import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
@@ -35,13 +27,21 @@ import com.wultra.security.powerauth.app.server.service.callbacks.model.Callback
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.task.CleaningTask;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
+import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Map;
@@ -71,13 +71,13 @@ class CallbackUrlBehaviorTest {
     @Autowired
     private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
 
-    @MockBean
+    @MockitoBean
     private CallbackUrlEventService callbackUrlEventService;
 
     /**
      * Mock CleaningTask to avoid running scheduled job when mocking CallbackUrlEventService
      */
-    @MockBean
+    @MockitoBean
     private CleaningTask cleaningTask;
 
     @Test
