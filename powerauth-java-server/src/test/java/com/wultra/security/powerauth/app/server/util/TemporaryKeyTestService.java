@@ -40,10 +40,10 @@ import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -77,6 +77,8 @@ public class TemporaryKeyTestService {
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private static final PqcDsa PQC_DSA = new PqcDsa();
+
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     /**
      * Fetch a temporary key.
@@ -150,11 +152,11 @@ public class TemporaryKeyTestService {
     public byte[] deriveSigningKey(EncryptorScope scope, SecretKey sourceKey) throws GenericCryptoException {
         return switch (scope) {
             case APPLICATION_SCOPE -> {
-                final SecretKey secretKey = KeyFactory.deriveKeyMacGetAppTempKey(sourceKey);
+                final SecretKey secretKey = SERVER_KEY_FACTORY.generateKeyMacGetAppTempKey(sourceKey);
                 yield KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(secretKey);
             }
             case ACTIVATION_SCOPE -> {
-                final SecretKey secretKey = KeyFactory.deriveKeyMacGetActTempKey(sourceKey);
+                final SecretKey secretKey = SERVER_KEY_FACTORY.generateKeyMacGetActTempKey(sourceKey);
                 yield KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(secretKey);
             }
         };

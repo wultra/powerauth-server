@@ -43,9 +43,9 @@ import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
+import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -87,6 +87,7 @@ public class ActivationStatusServiceBehavior {
 
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     /**
      * Get activation status for given activation ID
@@ -170,8 +171,8 @@ public class ActivationStatusServiceBehavior {
                     final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
                     final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
                     final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
-                    final SecretKey keyCtrDataMac = KeyFactory.deriveKeyMacCtrData(sharedSecretKey);
-                    final SecretKey keyStatusMac = KeyFactory.deriveKeyMacStatus(sharedSecretKey);
+                    final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);
+                    final SecretKey keyStatusMac = SERVER_KEY_FACTORY.generateKeyMacStatus(sharedSecretKey);
 
                     final byte[] ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, keyCtrDataMac, ProtocolVersion.V40);
 

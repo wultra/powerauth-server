@@ -35,13 +35,13 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.*;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,9 +72,10 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-    private final KeyGenerator KEY_GENERATOR_EC = new KeyGenerator();
-    private final PqcDsa PQC_DSA = new PqcDsa();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
+    private final PqcDsa PQC_DSA = new PqcDsa();
+
+    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
 
     @Autowired
     public CryptographyServiceHybrid(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
@@ -90,7 +91,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
             // Generate PQC key pair
-            final KeyPair kpPqcDsa = PQC_DSA.generateKeyPair();
+            final KeyPair kpPqcDsa = SERVER_ACTIVATION.generatePqcServerKeyPair();
             final PrivateKey privateKeyPqcDsa = kpPqcDsa.getPrivate();
             final PublicKey publicKeyPqcDsa = kpPqcDsa.getPublic();
 
@@ -116,7 +117,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
             keyPair.setMasterPublicKeys(publicKeys384Json);
             masterKeyPairRepository.save(keyPair);
-        } catch (GenericCryptoException e) {
+        } catch (CryptoProviderException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
@@ -169,8 +170,8 @@ public class CryptographyServiceHybrid extends CryptographyService {
     @Override
     public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final KeyPair serverKeyPairEc = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
-            final KeyPair serverKeyPairPqc = PQC_DSA.generateKeyPair();
+            final KeyPair serverKeyPairEc = SERVER_ACTIVATION.generateEcServerKeyPair();
+            final KeyPair serverKeyPairPqc = SERVER_ACTIVATION.generatePqcServerKeyPair();
 
             // Store server public key in JSON format
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
@@ -185,7 +186,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
             final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
             activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
             activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
-        } catch (CryptoProviderException | GenericCryptoException e) {
+        } catch (CryptoProviderException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }

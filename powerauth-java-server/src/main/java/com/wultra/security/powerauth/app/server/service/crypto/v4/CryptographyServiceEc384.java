@@ -36,11 +36,11 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.BasePublicKey;
 import com.wultra.security.powerauth.app.server.service.model.crypto.EcPublicKey;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,7 +71,8 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-    private final KeyGenerator KEY_GENERATOR_EC = new KeyGenerator();
+
+    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
 
     @Autowired
     public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
@@ -87,7 +88,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
         try {
             // Generate P-384 key pair
-            final KeyPair kp = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
+            final KeyPair kp = SERVER_ACTIVATION.generateEcServerKeyPair();
             final PrivateKey privateKey = kp.getPrivate();
             final PublicKey publicKey = kp.getPublic();
 
@@ -168,7 +169,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
     @Override
     public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final KeyPair serverKeyPair = KEY_GENERATOR_EC.generateKeyPair(EcCurve.P384);
+            final KeyPair serverKeyPair = SERVER_ACTIVATION.generateEcServerKeyPair();
 
             // Store server public key in JSON format
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
