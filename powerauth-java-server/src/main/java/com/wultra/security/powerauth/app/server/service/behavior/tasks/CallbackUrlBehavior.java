@@ -370,9 +370,11 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("applicationId")) {
             callbackData.put("applicationId", activation.getApplication().getId());
         }
+        if (callbackUrlEntity.getAttributes().contains("additionalData")) {
+            callbackData.put("additionalData", activation.getAdditionalData());
+        }
         return callbackData;
     }
-
 
     /**
      * Tries to asynchronously notify all operation callbacks that are registered for given application.
