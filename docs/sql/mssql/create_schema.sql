@@ -525,3 +525,8 @@ ALTER TABLE pa_application_callback ADD timestamp_last_updated datetime2(6);
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky
+
+-- Changeset powerauth-java-server/1.10.x/20250609-activation-additional-data.xml::1::Lubos Racansky
+-- Add additional_data column to pa_activation table.
+ALTER TABLE pa_activation ADD additional_data varchar (max);
+GO

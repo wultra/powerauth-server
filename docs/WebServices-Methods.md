@@ -459,8 +459,9 @@ REST endpoint: `POST /rest/v3/activation/init`
 | `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                                                                                                                                                                                       |
 | `Long`                    | `maxFailureCount`           | How many failures are allowed for this activation                                                                                                                                                                                                     |
 | `ActivationOtpValidation` | `activationOtpValidation`   | *Deprecated* optional activation OTP validation mode, use the `activationOtp` parameter during activation init or activation commit to control the OTP check. Use the `commitPhase` parameter for specifying when the activation should be committed. |
-| `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |        
-| `String`                  | `activationOtp` | Optional activation OTP                                                                                                                                                                                                                               |
+| `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |
+| `String`                  | `activationOtp`             | Optional activation OTP                                                                                                                                                                                                                               |
+| `Object`                  | `additionaData`             | Optional additional data, structure is customer-specific.                                                                                                                                                                                             |
 
 This section describes how to change the activation commit flow:
 - By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
@@ -554,19 +555,20 @@ REST endpoint: `POST /rest/v3/activation/create`
 
 `CreateActivationRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | User ID |
-| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long` | `maxFailureCount` | How many failures are allowed for this activation |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
-| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
-| `String` | `activationOtp` | Optional activation OTP |
-| `String` | `protocolVersion` | Cryptography protocol version |
-| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
+| Type       | Name                        | Description                                                                     |
+|------------|-----------------------------|---------------------------------------------------------------------------------|
+| `String`   | `userId`                    | User ID                                                                         |
+| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                 |
+| `Long`     | `maxFailureCount`           | How many failures are allowed for this activation                               |
+| `String`   | `applicationKey`            | A key (identifier) of an application, associated with given application version |
+| `String`   | `ephemeralPublicKey`        | A base64 encoded ephemeral public key for ECIES                                 |
+| `String`   | `encryptedData`             | Base64 encoded encrypted data for ECIES                                         |
+| `String`   | `mac`                       | Base64 encoded mac of key and data for ECIES                                    |
+| `String`   | `nonce`                     | Base64 encoded nonce for IV derivation for ECIES                                |
+| `String`   | `activationOtp`             | Optional activation OTP                                                         |
+| `String`   | `protocolVersion`           | Cryptography protocol version                                                   |
+| `Long`     | `timestamp`                 | Unix timestamp in milliseconds for ECIES                                        |
+| `Object`   | `additionaData`             | Optional additional data, structure is customer-specific.                       |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".

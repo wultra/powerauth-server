@@ -26,6 +26,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Model class representing request for creating activation.
@@ -84,4 +85,6 @@ public class CreateActivationRequest {
     @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
 
+    @Schema(description = "Optional additional data, structure is customer-specific.", example = "{\"jti\":\"unique_value\"}")
+    private Map<String, Object> additionalData;
 }

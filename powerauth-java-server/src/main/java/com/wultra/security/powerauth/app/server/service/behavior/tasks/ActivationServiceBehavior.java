@@ -853,6 +853,9 @@ public class ActivationServiceBehavior {
             activation.setTimestampLastChange(null);
             activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
+            if (request.getAdditionalData() != null) {
+                activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
+            }
             if (flags != null) {
                 activation.getFlags().addAll(flags);
             }
@@ -1338,6 +1341,11 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
+
+            if (request.getAdditionalData() != null) {
+                activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
+            }
+
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 

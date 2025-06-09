@@ -22,13 +22,17 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValid
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Model class representing request for initializing activation.
@@ -73,5 +77,8 @@ public class InitActivationRequest {
 
     @Schema(description = "List of activation flags")
     private List<@NotBlank String> flags = new ArrayList<>();
+
+    @Schema(description = "Optional additional data, structure is customer-specific.", example = "{\"jti\":\"unique_value\"}")
+    private Map<String, Object> additionalData;
 
 }
