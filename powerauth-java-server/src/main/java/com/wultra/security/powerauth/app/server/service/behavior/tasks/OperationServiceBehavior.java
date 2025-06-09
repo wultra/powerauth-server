@@ -379,7 +379,7 @@ public class OperationServiceBehavior {
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
                     && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
-                    && proximityCheckPassed(proximityCheckResult)
+                    && proximityCheckPassed(proximityCheckResult, operationEntity)
                     && activationIdMatches // either Operation does not have assigned activationId or it has one, and it matches activationId from request
                     && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
@@ -1114,12 +1114,22 @@ public class OperationServiceBehavior {
         return null;
     }
 
-    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult) {
-        return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
+    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult, final OperationEntity operation) {
+        if (proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED) {
+            return true;
+        } else {
+            logger.warn("action: approveOperation/proximityCheck, state: failed, result: {}, operationId: {}", proximityCheckResult, operation.getId());
+            return false;
+        }
     }
 
-    private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
-        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
+    private static boolean activationIdMatches(final OperationApproveRequest request, String activationId) {
+        if (activationId == null || activationId.equals(request.getAdditionalData().get("activationId"))) {
+            return true;
+        } else {
+            logger.warn("action: approveOperation/activationIdMatch, state: failed, operationId: {}", request.getOperationId());
+            return false;
+        }
     }
 
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
