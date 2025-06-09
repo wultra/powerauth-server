@@ -19,9 +19,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
-import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
-import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
@@ -30,8 +27,10 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
+import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
+import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,17 +51,15 @@ public class ActivationHistoryServiceBehavior {
     private final ActivationHistoryRepository activationHistoryRepository;
 
     private final ActivationRepository activationRepository;
-    private final LocalizationProvider localizationProvider;
     private final AuditingServiceBehavior audit;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, LocalizationProvider localizationProvider, AuditingServiceBehavior audit) {
+    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, AuditingServiceBehavior audit) {
         this.activationHistoryRepository = activationHistoryRepository;
         this.activationRepository = activationRepository;
-        this.localizationProvider = localizationProvider;
         this.audit = audit;
     }
 
@@ -188,6 +185,11 @@ public class ActivationHistoryServiceBehavior {
         if (externalUserId != null) {
             auditDetailBuilder
                     .param("externalUserId", externalUserId);
+        }
+
+        if (activation.getAdditionalData() != null) {
+            auditDetailBuilder
+                    .param("additionalData", activation.getAdditionalData());
         }
 
         // Build audit log message
