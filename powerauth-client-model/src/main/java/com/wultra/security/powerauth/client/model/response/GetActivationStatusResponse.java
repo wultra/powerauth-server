@@ -18,10 +18,12 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
@@ -69,5 +71,9 @@ public class GetActivationStatusResponse {
     private long version;
     private List<String> activationFlags = new ArrayList<>();
     private List<String> applicationRoles = new ArrayList<>();
+
+    @Schema(description = "Optional additional data specified during creation/initiation, structure is customer-specific.", example = "{\"jti\":\"unique_value\"}")
+    @JsonRawValue
+    private Object additionalData;
 
 }

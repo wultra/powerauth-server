@@ -698,31 +698,32 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name                         | Description                                                                             |
-|---------------------------|------------------------------|-----------------------------------------------------------------------------------------|
-| `String`                  | `activationId`               | An identifier of an activation                                                          |
-| `ActivationStatus`        | `activationStatus`           | An activation status                                                                    |
-| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                        |
-| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                  |
-| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                              |
-| `String`                  | `activationName`             | An activation name                                                                      |
-| `String`                  | `userId`                     | An identifier of a user                                                                 |
-| `String`                  | `extras`                     | Any custom attributes                                                                   |
-| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                         |
-| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                        |
-| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                            |
-| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                            |
-| `String[]`                | `activationFlags`            | Activation flags                                                                        |
-| `String`                  | `applicationId`              | An identifier fo an application                                                         |
-| `String[]`                | `applicationRoles`           | Application roles                                                                       |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                             |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                           |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                            |
-| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                               |
-| `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                      |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification   |
-| `Long`                    | `version`                    | Activation version                                                                      |
+| Type                      | Name                         | Description                                                                                    |
+|---------------------------|------------------------------|------------------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                                 |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                           |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                               |
+| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                         |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                     |
+| `String`                  | `activationName`             | An activation name                                                                             |
+| `String`                  | `userId`                     | An identifier of a user                                                                        |
+| `String`                  | `extras`                     | Any custom attributes                                                                          |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                               |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                                   |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                                   |
+| `String[]`                | `activationFlags`            | Activation flags                                                                               |
+| `String`                  | `applicationId`              | An identifier fo an application                                                                |
+| `String[]`                | `applicationRoles`           | Application roles                                                                              |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                                    |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                                  |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                                   |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                      |
+| `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character      |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                             |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification          |
+| `Long`                    | `version`                    | Activation version                                                                             |
+| `Object`                  | `additionaData`              | Optional additional data specified during creation/initiation, structure is customer-specific. |
 
 ### Method 'removeActivation'
 
