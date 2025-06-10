@@ -78,7 +78,7 @@ public class InitActivationRequest {
     @Schema(description = "List of activation flags")
     private List<@NotBlank String> flags = new ArrayList<>();
 
-    @Schema(description = "Optional additional data, structure is customer-specific.", example = "{\"jti\":\"unique_value\"}")
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     private Map<String, Object> additionalData;
 
 }

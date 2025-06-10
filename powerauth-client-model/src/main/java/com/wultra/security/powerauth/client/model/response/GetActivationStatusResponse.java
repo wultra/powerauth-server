@@ -47,6 +47,8 @@ public class GetActivationStatusResponse {
     private String blockedReason;
     private String activationName;
     private String userId;
+
+    @Schema(description = "Any custom attributes set through SDK")
     private String extras;
     private ActivationProtocol protocol;
     private String externalId;
@@ -72,8 +74,7 @@ public class GetActivationStatusResponse {
     private List<String> activationFlags = new ArrayList<>();
     private List<String> applicationRoles = new ArrayList<>();
 
-    @Schema(description = "Optional additional data specified during creation/initiation, structure is customer-specific.", example = "{\"jti\":\"unique_value\"}")
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     @JsonRawValue
     private Object additionalData;
-
 }
