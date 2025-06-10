@@ -1122,7 +1122,7 @@ public class OperationServiceBehavior {
         if (activationId == null || activationId.equals(request.getAdditionalData().get("activationId"))) {
             return true;
         } else {
-            logger.warn("action: approveOperation, step: activationIdMatch, state: failed, operationId: {}, activationId: {}", request.getOperationId(), activationId);
+            logger.warn("action: activationIdMatch, state: failed, operationId: {}, activationId: {}", request.getOperationId(), activationId);
             return false;
         }
     }
@@ -1135,7 +1135,7 @@ public class OperationServiceBehavior {
 
         final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otpObject == null) {
-            logger.warn("action: approveOperation, step: fetchProximityCheckResult, state: failed, operationId: {}, detail: proximity OTP not sent", operation.getId());
+            logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}, detail: proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
@@ -1148,11 +1148,11 @@ public class OperationServiceBehavior {
             if (result) {
                 return ProximityCheckResult.SUCCESS;
             } else {
-                logger.warn("action: approveOperation, step: fetchProximityCheckResult, state: failed, operationId: {}", operation.getId());
+                logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}", operation.getId());
                 return ProximityCheckResult.FAILED;
             }
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("action: approveOperation, step: fetchProximityCheckResult, state: error, operationId: {}", operation.getId(), e);
+            logger.error("action: fetchProximityCheckResult, state: error, operationId: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
     }
