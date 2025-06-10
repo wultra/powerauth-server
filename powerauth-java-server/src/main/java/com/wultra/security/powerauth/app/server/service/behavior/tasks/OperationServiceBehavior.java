@@ -379,7 +379,7 @@ public class OperationServiceBehavior {
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
                     && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
-                    && proximityCheckPassed(proximityCheckResult, operationEntity)
+                    && proximityCheckPassed(proximityCheckResult)
                     && activationIdMatches // either Operation does not have assigned activationId or it has one, and it matches activationId from request
                     && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
@@ -1114,20 +1114,15 @@ public class OperationServiceBehavior {
         return null;
     }
 
-    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult, final OperationEntity operation) {
-        if (proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED) {
-            return true;
-        } else {
-            logger.warn("action: approveOperation/proximityCheck, state: failed, result: {}, operationId: {}", proximityCheckResult, operation.getId());
-            return false;
-        }
+    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult) {
+        return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
     }
 
     private static boolean activationIdMatches(final OperationApproveRequest request, String activationId) {
         if (activationId == null || activationId.equals(request.getAdditionalData().get("activationId"))) {
             return true;
         } else {
-            logger.warn("action: approveOperation/activationIdMatch, state: failed, operationId: {}", request.getOperationId());
+            logger.warn("action: approveOperation, step: activationIdMatch, state: failed, operationId: {}, activationId: {}", request.getOperationId(), activationId);
             return false;
         }
     }
@@ -1140,7 +1135,7 @@ public class OperationServiceBehavior {
 
         final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otpObject == null) {
-            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
+            logger.warn("action: approveOperation, step:fetchProximityCheckResult, state: failed, operationId: {}, detail: proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
@@ -1149,10 +1144,15 @@ public class OperationServiceBehavior {
             final Duration otpStepDuration = powerAuthServiceConfiguration.getProximityCheckStepDuration();
             final int otpStepCount = powerAuthServiceConfiguration.getProximityCheckStepCount();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength, otpStepCount, otpStepDuration);
-            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
-            return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
+            logger.debug("OTP validation result: {} for operationId: {}", result, operation.getId());
+            if (result) {
+                return ProximityCheckResult.SUCCESS;
+            } else {
+                logger.warn("action: approveOperation, step:fetchProximityCheckResult, state: failed, operationId: {}", operation.getId());
+                return ProximityCheckResult.FAILED;
+            }
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
+            logger.error("action: approveOperation, step:fetchProximityCheckResult, state: error, operationId: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
     }
