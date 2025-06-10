@@ -723,7 +723,7 @@ REST endpoint: `POST /rest/v3/activation/status`
 | `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
 | `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
 | `Long`                    | `version`                    | Activation version                                                                        |
-| `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure.    |
+| `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure     |
 
 ### Method 'removeActivation'
 
@@ -795,7 +795,7 @@ REST endpoint: `POST /rest/v3/activation/list`
 | `String`           | `userId`              | An identifier of a user                                                                |
 | `String`           | `applicationId`       | An identifier fo an application                                                        |
 | `Long`             | `version`             | Activation version                                                                     |
-| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure. |
+| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure  |
 
 ### Method 'blockActivation'
 
@@ -890,7 +890,7 @@ REST endpoint: `POST /rest/v3/activation/lookup`
 | `String`           | `userId`              | An identifier of a user                                                                |
 | `String`           | `applicationId`       | An identifier fo an application                                                        |
 | `Long`             | `version`             | Activation version                                                                     |
-| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure. |
+| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure  |
 
 ### Method 'updateStatusForActivations'
 
