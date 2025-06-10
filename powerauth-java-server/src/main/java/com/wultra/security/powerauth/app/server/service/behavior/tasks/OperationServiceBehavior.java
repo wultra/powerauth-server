@@ -1118,8 +1118,13 @@ public class OperationServiceBehavior {
         return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
     }
 
-    private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
-        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
+    private static boolean activationIdMatches(final OperationApproveRequest request, String activationId) {
+        if (activationId == null || activationId.equals(request.getAdditionalData().get("activationId"))) {
+            return true;
+        } else {
+            logger.warn("action: activationIdMatch, state: failed, operationId: {}, activationId: {}", request.getOperationId(), activationId);
+            return false;
+        }
     }
 
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
@@ -1130,7 +1135,7 @@ public class OperationServiceBehavior {
 
         final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otpObject == null) {
-            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
+            logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}, detail: proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
@@ -1139,10 +1144,15 @@ public class OperationServiceBehavior {
             final Duration otpStepDuration = powerAuthServiceConfiguration.getProximityCheckStepDuration();
             final int otpStepCount = powerAuthServiceConfiguration.getProximityCheckStepCount();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength, otpStepCount, otpStepDuration);
-            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
-            return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
+            logger.debug("OTP validation result: {} for operationId: {}", result, operation.getId());
+            if (result) {
+                return ProximityCheckResult.SUCCESS;
+            } else {
+                logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}", operation.getId());
+                return ProximityCheckResult.FAILED;
+            }
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
+            logger.error("action: fetchProximityCheckResult, state: error, operationId: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
     }
