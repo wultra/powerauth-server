@@ -17,8 +17,10 @@
  */
 package com.wultra.security.powerauth.client.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class Activation {
     private String blockedReason;
     private String activationName;
     private String externalId;
+
+    @Schema(description = "Any custom attributes set through SDK")
     private String extras;
     private ActivationProtocol protocol;
     private String platform;
@@ -54,4 +58,7 @@ public class Activation {
     private String devicePublicKeyBase64;
     private long version;
 
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
+    @JsonRawValue
+    private Object additionalData;
 }
