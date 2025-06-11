@@ -279,6 +279,7 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                     activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
+                    activationServiceItem.setAdditionalData(activation.getAdditionalData());
                     response.getActivations().add(activationServiceItem);
                 }
             }
@@ -390,6 +391,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
+                activationServiceItem.setAdditionalData(activation.getAdditionalData());
                 response.getActivations().add(activationServiceItem);
             }
 
@@ -646,6 +648,7 @@ public class ActivationServiceBehavior {
                     response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                    response.setAdditionalData(activation.getAdditionalData());
                     return response;
                 }
             } else {
@@ -853,6 +856,9 @@ public class ActivationServiceBehavior {
             activation.setTimestampLastChange(null);
             activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
+            if (request.getAdditionalData() != null) {
+                activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
+            }
             if (flags != null) {
                 activation.getFlags().addAll(flags);
             }
@@ -1338,6 +1344,11 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
+
+            if (request.getAdditionalData() != null) {
+                activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
+            }
+
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
