@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
@@ -77,6 +79,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
     private final LoadingCache<String, CachedRestClient> restClientCache;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -370,8 +373,13 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("applicationId")) {
             callbackData.put("applicationId", activation.getApplication().getId());
         }
-        if (callbackUrlEntity.getAttributes().contains("additionalData")) {
-            callbackData.put("additionalData", activation.getAdditionalData());
+        if (callbackUrlEntity.getAttributes().contains("additionalData") && activation.getAdditionalData() != null) {
+            try {
+                final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
+                callbackData.put("additionalData", additionalData);
+            } catch (JsonProcessingException e) {
+                logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
+            }
         }
         return callbackData;
     }
