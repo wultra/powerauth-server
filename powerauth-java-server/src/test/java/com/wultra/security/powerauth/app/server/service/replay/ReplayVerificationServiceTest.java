@@ -112,6 +112,7 @@ public class ReplayVerificationServiceTest {
                 new TestCase("3.0", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwS2V5LTE=", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.0", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwS2V5LTE=", "activation-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.0", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwS2V5LTE=", "activation-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
+                new TestCase("3.0", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwS2V5LTE=", "activation-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
 
                 // --- 3.1 ---
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3", null, "bm9uY2U=", Date.from(now), true),
