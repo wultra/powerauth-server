@@ -342,7 +342,7 @@ public class CallbackUrlBehavior {
      * @param activation Activation entity.
      * @return Callback data to send.
      */
-    private Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
+    protected Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
         final Map<String, Object> callbackData = new HashMap<>();
         callbackData.put("type", "ACTIVATION");
         callbackData.put("activationId", activation.getActivationId());
