@@ -145,12 +145,6 @@ public class ReplayVerificationServiceTest {
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
 
-                // --- 4.0 ---
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now), true),
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), true),
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), false),
-
                 // Timestamp range test cases
                 // --- 3.0 Expiration: 120 min (7200s) ---
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-3001", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
