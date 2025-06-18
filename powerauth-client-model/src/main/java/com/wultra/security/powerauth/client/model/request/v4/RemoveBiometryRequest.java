@@ -21,23 +21,18 @@ package com.wultra.security.powerauth.client.model.request.v4;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * Model class representing request for signing data using asymmetric cryptography (V4).
+ * Model class representing request for removing biometry (V4).
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class SignAsymmetricRequest {
+public class RemoveBiometryRequest {
 
     @Schema(description = "Activation identifier")
-    @NotBlank(message = "Activation ID must not be empty when creating signature")
+    @NotBlank(message = "Activation ID must not be empty when setting up biometry")
     private String activationId;
-
-    @Schema(description = "Data to be signed")
-    @NotNull(message = "Data must not be null when creating signature")
-    private String data;
 
 }

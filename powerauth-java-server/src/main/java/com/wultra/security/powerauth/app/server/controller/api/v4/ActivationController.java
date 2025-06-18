@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -104,7 +105,7 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateActivationResponse> createActivation(@Valid @RequestBody ObjectRequest<com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest> request) throws Exception {
+    public ObjectResponse<CreateActivationResponse> createActivation(@Valid @RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
         final com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest req = request.getRequestObject();
         logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}", req.getUserId(), req.getApplicationKey());
         logger.debug("action: createActivation, state: initiated, request: {}", request);
