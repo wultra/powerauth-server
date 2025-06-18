@@ -103,22 +103,37 @@ public class EncryptionServiceEcies extends EncryptionService {
             final ActivationRecordEntity activation = findActivation(activationId);
 
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = switch (encryptorId) {
-                case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN ->
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE;
-            };
+            final String applicationKeyEffective;
+            final String identifier;
+            final UniqueValueType uniqueValueType;
+            if (protocolVersion.equals("3.3")) {
+                applicationKeyEffective = null;
+                identifier = ((EciesEncryptedRequest) encryptedRequest).getTemporaryKeyId();
+                uniqueValueType = UniqueValueType.ECIES_WITH_TEMPORARY_KEY;
+            } else {
+                applicationKeyEffective = applicationKey;
+                identifier = activation != null ? activation.getActivationId() : null;
+                uniqueValueType = switch (encryptorId) {
+                    case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
+                    case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN -> UniqueValueType.ECIES_ACTIVATION_SCOPE;
+                    default -> {
+                        logger.warn("Invalid encryptor ID: {}", encryptorId);
+                        // Rollback is not required, error occurs before writing to database
+                        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                    }
+                };
+            }
             if (eciesRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         uniqueValueType,
                         new Date(eciesRequest.getTimestamp()),
+                        applicationKeyEffective,
                         eciesRequest.getEphemeralPublicKey(),
                         eciesRequest.getNonce(),
-                        activation != null ? activation.getActivationId() : null,
+                        identifier,
                         protocolVersion);
             }
-
             if (activation == null) {
                 return decryptInApplicationScope(eciesRequest, protocolVersion, applicationVersion, encryptorId);
             } else {

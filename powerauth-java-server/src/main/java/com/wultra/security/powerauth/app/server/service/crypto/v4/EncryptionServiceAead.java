@@ -104,16 +104,13 @@ public class EncryptionServiceAead extends EncryptionService {
             final ActivationRecordEntity activation = findActivation(activationId);
 
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = switch (encryptorId) {
-                case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN ->
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE;
-            };
+            final UniqueValueType uniqueValueType = UniqueValueType.AEAD_V4;
             if (aeadRequest.getTimestamp() != null) {
                 // Check AEAD request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         uniqueValueType,
                         new Date(aeadRequest.getTimestamp()),
+                        null,
                         null,
                         aeadRequest.getNonce(),
                         aeadRequest.getTemporaryKeyId(),

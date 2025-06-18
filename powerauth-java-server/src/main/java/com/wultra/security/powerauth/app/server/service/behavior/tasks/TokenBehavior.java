@@ -196,6 +196,7 @@ public class TokenBehavior {
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
                         null,
+                        null,
                         request.getNonce(),
                         tokenId,
                         request.getProtocolVersion());

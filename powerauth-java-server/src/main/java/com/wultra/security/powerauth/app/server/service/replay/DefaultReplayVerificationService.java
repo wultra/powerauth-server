@@ -52,7 +52,7 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     @Override
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String applicationKey, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
         final Duration requestExpiration;
         if ("3.0".equals(version) || "3.1".equals(version)) {
@@ -66,11 +66,13 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        final byte[] applicationKeyBytes = applicationKey != null ? Base64.getDecoder().decode(applicationKey) : new byte[0];
         final byte[] ephemeralPublicKeyBytes = ephemeralPublicKey != null ? Base64.getDecoder().decode(ephemeralPublicKey) : new byte[0];
         final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : new byte[0];
         final byte[] identifierBytes = identifier != null ? identifier.getBytes(StandardCharsets.UTF_8) : new byte[0];
 
         final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(ephemeralPublicKeyBytes.length + nonceBytes.length + identifierBytes.length);
+        uniqueValBuffer.put(applicationKeyBytes);
         uniqueValBuffer.put(ephemeralPublicKeyBytes);
         uniqueValBuffer.put(nonceBytes);
         uniqueValBuffer.put(identifierBytes);
