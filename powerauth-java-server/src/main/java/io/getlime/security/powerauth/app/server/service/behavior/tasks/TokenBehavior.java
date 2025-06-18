@@ -208,6 +208,7 @@ public class TokenBehavior {
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
                         null,
+                        null,
                         request.getNonce(),
                         tokenId,
                         request.getProtocolVersion());
@@ -312,6 +313,7 @@ public class TokenBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(encryptedRequest.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         activationId,

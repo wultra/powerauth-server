@@ -987,6 +987,7 @@ public class ActivationServiceBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(encryptedRequest.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         null,
@@ -1261,6 +1262,7 @@ public class ActivationServiceBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(encryptedRequest.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         null,
@@ -1928,6 +1930,7 @@ public class ActivationServiceBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(encryptedRequest.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         null,
