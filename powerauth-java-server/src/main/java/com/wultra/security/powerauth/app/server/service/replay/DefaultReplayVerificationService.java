@@ -60,10 +60,12 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
         } else {
             requestExpiration = powerAuthServiceConfiguration.getRequestExpiration();
         }
-        final Date expiration = Date.from(Instant.now().plus(requestExpiration));
-        if (requestTimestamp.after(expiration)) {
+        final Instant now = Instant.now();
+        final Instant limitOldest = now.minus(requestExpiration);
+        final Instant requestTime = requestTimestamp.toInstant();
+        if (requestTime.isBefore(limitOldest) || requestTime.isAfter(now)) {
             // Rollback is not required, error occurs before writing to database
-            logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
+            logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}", requestTime, limitOldest, now);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final byte[] applicationKeyBytes = applicationKey != null ? Base64.getDecoder().decode(applicationKey) : new byte[0];

@@ -79,7 +79,6 @@ public class ReplayVerificationServiceTest {
     @ParameterizedTest
     @MethodSource("provideTestCases")
     public void testReplayValidation(TestCase tc) {
-        System.out.println(tc);
         try {
             verificationService.checkAndPersistUniqueValue(
                     tc.type,
@@ -106,7 +105,7 @@ public class ReplayVerificationServiceTest {
                 // --- 3.0 ---
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-1", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-1", null, "bm9uY2U=", Date.from(now), false),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-2", null, "bm9uY2U=", Date.from(now.plusSeconds(121 * 60)), false),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-2", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-2", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.0", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwS2V5LTE=", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.0", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwS2V5LTE=", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
@@ -117,7 +116,7 @@ public class ReplayVerificationServiceTest {
                 // --- 3.1 ---
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3", null, "bm9uY2U=", Date.from(now), false),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(120 * 60 + 1)), false),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
@@ -127,7 +126,7 @@ public class ReplayVerificationServiceTest {
 
                 // --- 3.2 ---
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-5", null, "bm9uY2U=", Date.from(now), true),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-6", null, "bm9uY2U=", Date.from(now.plusSeconds(60 + 1)), false),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-6", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-7", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-7", null, "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
@@ -138,23 +137,49 @@ public class ReplayVerificationServiceTest {
 
                 // --- 3.3 ---
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now), true),
-                new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now.plusSeconds(60 + 1)), false),
+                new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-9", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-9", null, "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(60 + 1)), false),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
 
                 // --- 4.0 ---
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now), true),
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now.plusSeconds(60 + 1)), false),
+                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), false),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-3", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-3", null, "bm9uY2U=", Date.from(now), false),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(60 + 1)), false),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now), true)
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now), true),
+
+                // Timestamp range test cases
+                // --- 3.0 (MAC_TOKEN) | Expiration: 120 min (7200s) ---
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+
+                // --- 3.1 (MAC_TOKEN) | Expiration: 120 min (7200s) ---
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+
+                // --- 3.2 (MAC_TOKEN) | Expiration: 60s ---
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+
+                // --- 3.3 (ECIES_WITH_TEMPORARY_KEY) | Expiration: 60s ---
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+
+                // --- 4.0 (AEAD_V4) | Expiration: 60s ---
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false)
         );
     }
 
