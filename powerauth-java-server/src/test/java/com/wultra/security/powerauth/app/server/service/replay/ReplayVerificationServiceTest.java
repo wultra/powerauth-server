@@ -156,30 +156,35 @@ public class ReplayVerificationServiceTest {
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now), true),
 
                 // Timestamp range test cases
-                // --- 3.0 (MAC_TOKEN) | Expiration: 120 min (7200s) ---
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-300", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+                // --- 3.0 Expiration: 120 min (7200s) ---
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-3001", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-3002", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-3003", null, "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwS2V5LTE=", "token-id-3004", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
 
-                // --- 3.1 (MAC_TOKEN) | Expiration: 120 min (7200s) ---
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-310", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+                // --- 3.1 Expiration: 120 min (7200s) ---
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3101", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3102", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3103", null, "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3104", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
 
-                // --- 3.2 (MAC_TOKEN) | Expiration: 60s ---
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-320", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+                // --- 3.2 Expiration: 60s ---
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-3201", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-3202", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-3203", null, "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-3204", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
 
-                // --- 3.3 (ECIES_WITH_TEMPORARY_KEY) | Expiration: 60s ---
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-330", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
+                // --- 3.3 Expiration: 60s ---
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3301", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3302", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3303", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3304", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
 
-                // --- 4.0 (AEAD_V4) | Expiration: 60s ---
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-400", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false)
+                // --- 4.0 Expiration: 60s ---
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4001", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4002", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4003", null, "bm9uY2U=", Date.from(now), true),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4004", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false)
         );
     }
 
