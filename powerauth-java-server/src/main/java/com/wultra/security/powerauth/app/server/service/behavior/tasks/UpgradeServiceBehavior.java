@@ -124,6 +124,7 @@ public class UpgradeServiceBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(encryptedRequest.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         activationId,

@@ -338,6 +338,7 @@ public class RecoveryServiceBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(request.getTimestamp()),
+                        applicationKey,
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
                         activationId,

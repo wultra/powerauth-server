@@ -142,6 +142,7 @@ public class EciesEncryptionBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(request.getTimestamp()),
+                        applicationVersion.getApplicationKey(),
                         request.getEphemeralPublicKey(),
                         request.getNonce(),
                         null,
@@ -243,6 +244,7 @@ public class EciesEncryptionBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(timestamp),
+                        applicationKey,
                         ephemeralPublicKey,
                         nonce,
                         activation.getActivationId(),
