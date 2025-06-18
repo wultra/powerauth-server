@@ -121,9 +121,9 @@ public class ReplayVerificationServiceTest {
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
-                new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
-                new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-3", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-3", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
+                new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-4", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
 
                 // --- 3.2 ---
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-5", null, "bm9uY2U=", Date.from(now), true),
@@ -132,9 +132,9 @@ public class ReplayVerificationServiceTest {
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-7", null, "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
-                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-4", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
-                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-4", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-5", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-5", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
+                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-6", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
 
                 // --- 3.3 ---
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now), true),
