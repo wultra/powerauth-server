@@ -39,6 +39,11 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
+/**
+ * Test cases for replay protection for various protocol versions.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReplayVerificationServiceTest {
 
