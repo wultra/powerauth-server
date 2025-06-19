@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Uniqu
 import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 
 /**
- * Utilities for deriving unique value parameters in ECIES.
+ * Utilities for deriving unique value parameters in encrypted requests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
