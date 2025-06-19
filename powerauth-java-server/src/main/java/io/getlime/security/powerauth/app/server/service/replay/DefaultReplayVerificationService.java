@@ -20,10 +20,10 @@
 package io.getlime.security.powerauth.app.server.service.replay;
 
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.UniqueValueParam;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -52,10 +52,10 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     @Override
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String applicationKey, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
-        logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
+    public void checkAndPersistUniqueValue(String protocolVersion, Date requestTimestamp, UniqueValueParam param) throws GenericServiceException {
+        logger.debug("Checking and persisting unique value, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
         final Duration requestExpiration;
-        if ("3.0".equals(version) || "3.1".equals(version)) {
+        if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
             requestExpiration = powerAuthServiceConfiguration.getRequestExpirationExtended();
         } else {
             requestExpiration = powerAuthServiceConfiguration.getRequestExpiration();
@@ -68,10 +68,10 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
             logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}", requestTime, limitOldest, now);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final byte[] applicationKeyBytes = applicationKey != null ? Base64.getDecoder().decode(applicationKey) : new byte[0];
-        final byte[] ephemeralPublicKeyBytes = ephemeralPublicKey != null ? Base64.getDecoder().decode(ephemeralPublicKey) : new byte[0];
-        final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : new byte[0];
-        final byte[] identifierBytes = identifier != null ? identifier.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        final byte[] applicationKeyBytes = param.getApplicationKey() != null ? Base64.getDecoder().decode(param.getApplicationKey()) : new byte[0];
+        final byte[] ephemeralPublicKeyBytes = param.getEphemeralPublicKey() != null ? Base64.getDecoder().decode(param.getEphemeralPublicKey()) : new byte[0];
+        final byte[] nonceBytes = param.getNonce() != null ? Base64.getDecoder().decode(param.getNonce()) : new byte[0];
+        final byte[] identifierBytes = param.getIdentifier() != null ? param.getIdentifier().getBytes(StandardCharsets.UTF_8) : new byte[0];
 
         final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(applicationKeyBytes.length + ephemeralPublicKeyBytes.length + nonceBytes.length + identifierBytes.length);
         uniqueValBuffer.put(applicationKeyBytes);
@@ -81,12 +81,12 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
 
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
-            logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, identifier: {}", type, identifier);
+            logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!replayPersistenceService.persistUniqueValue(type, uniqueValue)) {
-            logger.warn("Unique value could not be persisted, request type: {}, identifier: {}", type, identifier);
+        if (!replayPersistenceService.persistUniqueValue(param.getUniqueValueType(), uniqueValue)) {
+            logger.warn("Unique value could not be persisted, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
             // The whole transaction is rolled back in case of this unexpected state
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }

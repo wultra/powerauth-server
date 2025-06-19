@@ -177,17 +177,14 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueParam.getUniqueValueType(),
+                        protocolVersion,
                         new Date(encryptedRequest.getTimestamp()),
-                        uniqueValueParam.getApplicationKey(),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        uniqueValueParam.getIdentifier(),
-                        signatureVersion);
+                        uniqueValueParam
+                );
             }
 
             // Get the server private key, decrypt it if required

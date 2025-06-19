@@ -335,17 +335,14 @@ public class RecoveryServiceBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             // Check ECIES request for replay attacks and persist unique value from request
             if (encryptedRequest.getTimestamp() != null) {
                 replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueParam.getUniqueValueType(),
+                        protocolVersion,
                         new Date(request.getTimestamp()),
-                        uniqueValueParam.getApplicationKey(),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        uniqueValueParam.getIdentifier(),
-                        request.getProtocolVersion());
+                        uniqueValueParam
+                );
             }
 
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
