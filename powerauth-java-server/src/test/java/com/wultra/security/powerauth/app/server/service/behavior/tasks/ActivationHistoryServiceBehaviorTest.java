@@ -57,7 +57,7 @@ class ActivationHistoryServiceBehaviorTest {
 
     @Test
     void testLogAuditItem_additionalData() {
-        final ActivationRecordEntity activation = new  ActivationRecordEntity();
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setApplication(new ApplicationEntity());
         activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setAdditionalData("""
@@ -78,7 +78,7 @@ class ActivationHistoryServiceBehaviorTest {
 
     @Test
     void testLogAuditItem_additionalData_invalidJson() {
-        final ActivationRecordEntity activation = new  ActivationRecordEntity();
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setApplication(new ApplicationEntity());
         activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setAdditionalData("invalid json");
