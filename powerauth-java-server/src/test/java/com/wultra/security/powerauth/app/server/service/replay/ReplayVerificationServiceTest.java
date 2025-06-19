@@ -124,7 +124,11 @@ class ReplayVerificationServiceTest {
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-6", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-7", null, "bm9uY2U=", Date.from(now), true, "YXBwLWtleS0zbm9uY2V0b2tlbi1pZC03"),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0z", "token-id-7", null, "bm9uY2U=", Date.from(now), false, null),
-                // For protocol version 3.2 ECIES replay attacks are not verified because of missing timestamps in requests
+                new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "YXBwLWtleS0zZXBoZW1lcmFsLXB1YmxpYy1rZXlub25jZQ=="),
+                new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false, null),
+                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-5", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "YXBwLWtleS0zZXBoZW1lcmFsLXB1YmxpYy1rZXlub25jZWFjdGl2YXRpb24taWQtNQ=="),
+                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-5", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false, null),
+                new TestCase("3.2", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0z", "activation-id-6", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "YXBwLWtleS0zZXBoZW1lcmFsLXB1YmxpYy1rZXlub25jZWFjdGl2YXRpb24taWQtNg=="),
 
                 // --- 3.3 ---
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now), true, "bm9uY2V0b2tlbi1pZC04"),
