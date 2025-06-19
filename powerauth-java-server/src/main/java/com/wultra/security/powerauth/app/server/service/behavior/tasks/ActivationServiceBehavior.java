@@ -19,6 +19,8 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -44,10 +46,7 @@ import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificatio
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.*;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
@@ -982,15 +981,16 @@ public class ActivationServiceBehavior {
             }
             final String applicationId = application.getId();
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(encryptedRequest.getTimestamp()),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null,
+                        uniqueValueParam.getIdentifier(),
                         protocolVersion);
             }
 
@@ -1257,15 +1257,16 @@ public class ActivationServiceBehavior {
 
             validateCreatedActivation(activation, application, true);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(encryptedRequest.getTimestamp()),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null,
+                        uniqueValueParam.getIdentifier(),
                         protocolVersion);
             }
 
@@ -1884,6 +1885,7 @@ public class ActivationServiceBehavior {
             final Long maxFailureCount = request.getMaxFailureCount();
             final String activationOtp = request.getActivationOtp();
             final String temporaryKeyId = request.getTemporaryKeyId();
+            final String protocolVersion = request.getProtocolVersion();
 
             // Prepare and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -1925,15 +1927,16 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(encryptedRequest.getTimestamp()),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null,
+                        uniqueValueParam.getIdentifier(),
                         version);
             }
 

@@ -117,7 +117,7 @@ public class ReplayVerificationServiceTest {
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-3", null, "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now), true),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, "YXBwLWtleS0y", "token-id-4", null, "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),
                 new TestCase("3.1", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0y", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false),
                 new TestCase("3.1", UniqueValueType.ECIES_ACTIVATION_SCOPE, "YXBwLWtleS0y", "activation-id-3", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true),

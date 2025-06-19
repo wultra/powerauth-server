@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
@@ -26,7 +28,6 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -137,19 +138,23 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
+            final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
+            final String applicationKey = request.getApplicationKey();
+
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
             if (request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(request.getTimestamp()),
-                        applicationVersion.getApplicationKey(),
+                        uniqueValueParam.getApplicationKey(),
                         request.getEphemeralPublicKey(),
                         request.getNonce(),
-                        null,
+                        uniqueValueParam.getIdentifier(),
                         request.getProtocolVersion());
             }
 
-            final String temporaryKeyId = request.getTemporaryKeyId();
             final PrivateKey privateKey;
             if (temporaryKeyId != null) {
                 // Get the temporary private key
@@ -239,15 +244,16 @@ public class EciesEncryptionBehavior {
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
             if (timestamp != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(timestamp),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         ephemeralPublicKey,
                         nonce,
-                        activation.getActivationId(),
+                        uniqueValueParam.getIdentifier(),
                         protocolVersion);
             }
 

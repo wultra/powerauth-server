@@ -18,6 +18,8 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -31,7 +33,6 @@ import com.wultra.security.powerauth.app.server.database.model.entity.*;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
@@ -282,6 +283,7 @@ public class RecoveryServiceBehavior {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String temporaryKeyId = request.getTemporaryKeyId();
+            final String protocolVersion = request.getProtocolVersion();
 
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -333,15 +335,16 @@ public class RecoveryServiceBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
             // Check ECIES request for replay attacks and persist unique value from request
             if (encryptedRequest.getTimestamp() != null) {
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(request.getTimestamp()),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId,
+                        uniqueValueParam.getIdentifier(),
                         request.getProtocolVersion());
             }
 
