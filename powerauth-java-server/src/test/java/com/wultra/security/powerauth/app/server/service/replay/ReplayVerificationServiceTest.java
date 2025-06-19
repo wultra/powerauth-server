@@ -78,7 +78,7 @@ class ReplayVerificationServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideTestCases")
-    public void testReplayValidation(TestCase tc) {
+    void testReplayValidation(TestCase tc) {
         try {
             verificationService.checkAndPersistUniqueValue(
                     tc.type,
