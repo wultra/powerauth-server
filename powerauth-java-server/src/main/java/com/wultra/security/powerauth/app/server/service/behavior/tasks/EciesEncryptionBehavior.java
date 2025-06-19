@@ -142,17 +142,13 @@ public class EciesEncryptionBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
             final String applicationKey = request.getApplicationKey();
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, request.getEphemeralPublicKey(), request.getNonce(), temporaryKeyId);
             if (request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueParam.getUniqueValueType(),
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion,
                         new Date(request.getTimestamp()),
-                        uniqueValueParam.getApplicationKey(),
-                        request.getEphemeralPublicKey(),
-                        request.getNonce(),
-                        uniqueValueParam.getIdentifier(),
-                        request.getProtocolVersion());
+                        uniqueValueParam
+                );
             }
 
             final PrivateKey privateKey;
@@ -244,17 +240,14 @@ public class EciesEncryptionBehavior {
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, ephemeralPublicKey, nonce, temporaryKeyId, activationId);
             if (timestamp != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueParam.getUniqueValueType(),
+                        protocolVersion,
                         new Date(timestamp),
-                        uniqueValueParam.getApplicationKey(),
-                        ephemeralPublicKey,
-                        nonce,
-                        uniqueValueParam.getIdentifier(),
-                        protocolVersion);
+                        uniqueValueParam
+                );
             }
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);

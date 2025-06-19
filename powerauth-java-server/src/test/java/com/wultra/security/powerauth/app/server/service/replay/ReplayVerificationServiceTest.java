@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Uniqu
 import com.wultra.security.powerauth.app.server.database.repository.UniqueValueRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -80,15 +81,13 @@ class ReplayVerificationServiceTest {
     @MethodSource("provideTestCases")
     void testReplayValidation(TestCase tc) {
         try {
-            verificationService.checkAndPersistUniqueValue(
-                    tc.type,
-                    tc.timestamp,
-                    tc.applicationKey,
-                    tc.ephemeralKey,
-                    tc.nonce,
-                    tc.identifier,
-                    tc.version
-            );
+            final UniqueValueParam param = new UniqueValueParam();
+            param.setUniqueValueType(tc.type);
+            param.setApplicationKey(tc.applicationKey);
+            param.setEphemeralPublicKey(tc.ephemeralKey);
+            param.setNonce(tc.nonce);
+            param.setIdentifier(tc.identifier);
+            verificationService.checkAndPersistUniqueValue(tc.version, tc.timestamp, param);
             if (!tc.shouldPass) {
                 fail("Expected failure for: " + tc);
             }

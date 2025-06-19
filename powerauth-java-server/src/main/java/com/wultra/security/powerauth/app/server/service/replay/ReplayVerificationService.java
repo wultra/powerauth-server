@@ -19,8 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.service.replay;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 
 import java.util.Date;
 
@@ -28,15 +28,11 @@ public interface ReplayVerificationService {
 
     /**
      * Check whether unique cryptography value exists and persist this value.
-     * @param type Unique value type.
-     * @param requestTimestamp Request timestamp.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key bytes encoded in Base64.
-     * @param nonce Nonce bytes encoded in Base64.
-     * @param identifier Identifier for the record.
      * @param version Protocol version.
+     * @param requestTimestamp Request timestamp.
+     * @param uniqueValues Unique values to use in the request processing.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String applicationKey, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException;
+    void checkAndPersistUniqueValue(String version, Date requestTimestamp, UniqueValueParam uniqueValues) throws GenericServiceException;
 
 }
