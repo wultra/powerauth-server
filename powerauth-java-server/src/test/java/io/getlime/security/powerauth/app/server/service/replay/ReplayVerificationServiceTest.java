@@ -17,13 +17,13 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.replay;
+package io.getlime.security.powerauth.app.server.service.replay;
 
-import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import com.wultra.security.powerauth.app.server.database.repository.UniqueValueRepository;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.database.repository.UniqueValueRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,12 +45,12 @@ import static org.mockito.Mockito.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ReplayVerificationServiceTest {
+class ReplayVerificationServiceTest {
 
     private DefaultReplayVerificationService verificationService;
 
     @BeforeAll
-    public void setup() {
+    void setup() {
         final LocalizationProvider localizationProvider = mock(LocalizationProvider.class);
         final PowerAuthServiceConfiguration configuration = mock(PowerAuthServiceConfiguration.class);
         final UniqueValueRepository uniqueValueRepository = mock(UniqueValueRepository.class);
@@ -78,7 +78,7 @@ public class ReplayVerificationServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideTestCases")
-    public void testReplayValidation(TestCase tc) {
+    void testReplayValidation(TestCase tc) {
         try {
             verificationService.checkAndPersistUniqueValue(
                     tc.type,
