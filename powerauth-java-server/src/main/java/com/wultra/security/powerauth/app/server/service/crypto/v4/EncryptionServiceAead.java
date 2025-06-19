@@ -26,7 +26,6 @@ import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -37,6 +36,7 @@ import com.wultra.security.powerauth.app.server.service.model.response.Decryptio
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -105,19 +105,13 @@ public class EncryptionServiceAead extends EncryptionService {
             final ActivationRecordEntity activation = findActivation(activationId);
 
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
-            if (aeadRequest.getTimestamp() != null) {
-                // Check AEAD request for replay attacks and persist unique value from request
-                final UniqueValueParam param = new UniqueValueParam();
-                param.setUniqueValueType(UniqueValueType.AEAD_V4);
-                param.setApplicationKey(null);
-                param.setEphemeralPublicKey(null);
-                param.setNonce(aeadRequest.getNonce());
-                param.setIdentifier(aeadRequest.getTemporaryKeyId());
-                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
-            }
             if (activation == null) {
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, null, null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId());
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInApplicationScope(aeadRequest, protocolVersion, applicationVersion, encryptorId);
             } else {
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, null, null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), activationId);
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInActivationScope(aeadRequest, protocolVersion, applicationVersion, activation, encryptorId);
             }
         } catch (InvalidKeySpecException | InvalidKeyException e) {
