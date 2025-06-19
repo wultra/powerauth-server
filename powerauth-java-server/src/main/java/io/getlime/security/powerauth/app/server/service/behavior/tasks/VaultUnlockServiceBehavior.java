@@ -33,15 +33,16 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.UniqueValueParam;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -122,6 +123,7 @@ public class VaultUnlockServiceBehavior {
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
             final String temporaryKeyId = request.getTemporaryKeyId();
+            final String protocolVersion = request.getSignatureVersion();
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -175,15 +177,16 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        uniqueValueParam.getUniqueValueType(),
                         new Date(encryptedRequest.getTimestamp()),
-                        applicationKey,
+                        uniqueValueParam.getApplicationKey(),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId,
+                        uniqueValueParam.getIdentifier(),
                         signatureVersion);
             }
 
