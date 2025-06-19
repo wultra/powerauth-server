@@ -50,7 +50,7 @@ class ReplayVerificationServiceTest {
     private DefaultReplayVerificationService verificationService;
 
     @BeforeAll
-    public void setup() {
+    void setup() {
         final LocalizationProvider localizationProvider = mock(LocalizationProvider.class);
         final PowerAuthServiceConfiguration configuration = mock(PowerAuthServiceConfiguration.class);
         final UniqueValueRepository uniqueValueRepository = mock(UniqueValueRepository.class);
