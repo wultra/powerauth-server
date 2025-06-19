@@ -45,12 +45,12 @@ import static org.mockito.Mockito.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ReplayVerificationServiceTest {
+class ReplayVerificationServiceTest {
 
     private DefaultReplayVerificationService verificationService;
 
     @BeforeAll
-    public void setup() {
+    void setup() {
         final LocalizationProvider localizationProvider = mock(LocalizationProvider.class);
         final PowerAuthServiceConfiguration configuration = mock(PowerAuthServiceConfiguration.class);
         final UniqueValueRepository uniqueValueRepository = mock(UniqueValueRepository.class);
@@ -78,7 +78,7 @@ public class ReplayVerificationServiceTest {
 
     @ParameterizedTest
     @MethodSource("provideTestCases")
-    public void testReplayValidation(TestCase tc) {
+    void testReplayValidation(TestCase tc) {
         try {
             verificationService.checkAndPersistUniqueValue(
                     tc.type,
