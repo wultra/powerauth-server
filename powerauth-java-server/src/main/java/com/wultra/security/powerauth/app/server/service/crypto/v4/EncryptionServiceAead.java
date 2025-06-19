@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
@@ -104,17 +105,15 @@ public class EncryptionServiceAead extends EncryptionService {
             final ActivationRecordEntity activation = findActivation(activationId);
 
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = UniqueValueType.AEAD_V4;
             if (aeadRequest.getTimestamp() != null) {
                 // Check AEAD request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueType,
-                        new Date(aeadRequest.getTimestamp()),
-                        null,
-                        null,
-                        aeadRequest.getNonce(),
-                        aeadRequest.getTemporaryKeyId(),
-                        protocolVersion);
+                final UniqueValueParam param = new UniqueValueParam();
+                param.setUniqueValueType(UniqueValueType.AEAD_V4);
+                param.setApplicationKey(null);
+                param.setEphemeralPublicKey(null);
+                param.setNonce(aeadRequest.getNonce());
+                param.setIdentifier(aeadRequest.getTemporaryKeyId());
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
             }
             if (activation == null) {
                 return decryptInApplicationScope(aeadRequest, protocolVersion, applicationVersion, encryptorId);

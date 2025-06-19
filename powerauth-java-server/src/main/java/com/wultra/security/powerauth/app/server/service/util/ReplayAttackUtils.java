@@ -34,20 +34,28 @@ public class ReplayAttackUtils {
      *
      * @param protocolVersion Protocol version.
      * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key.
+     * @param nonce Nonce.
      * @param temporaryKeyId Temporary key ID.
      *
      * @return Unique value parameters.
      */
-    public static UniqueValueParam deriveUniqueValuesApplicationScope(String protocolVersion, String applicationKey, String temporaryKeyId) {
+    public static UniqueValueParam deriveUniqueValuesApplicationScope(String protocolVersion, String applicationKey, String ephemeralPublicKey, String nonce, String temporaryKeyId) {
         final UniqueValueParam param = new UniqueValueParam();
-        if (protocolVersion.equals("3.3")) {
+        param.setEphemeralPublicKey(ephemeralPublicKey);
+        param.setNonce(nonce);
+        if (protocolVersion.equals("3.0") || protocolVersion.equals("3.1") || protocolVersion.equals("3.2")) {
+            param.setApplicationKey(applicationKey);
+            param.setIdentifier(null);
+            param.setUniqueValueType(UniqueValueType.ECIES_APPLICATION_SCOPE);
+        } else if (protocolVersion.equals("3.3")) {
             param.setApplicationKey(null);
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
         } else {
-            param.setApplicationKey(applicationKey);
-            param.setIdentifier(null);
-            param.setUniqueValueType(UniqueValueType.ECIES_APPLICATION_SCOPE);
+            param.setApplicationKey(null);
+            param.setIdentifier(temporaryKeyId);
+            param.setUniqueValueType(UniqueValueType.AEAD_V4);
         }
         return param;
     }
@@ -61,16 +69,22 @@ public class ReplayAttackUtils {
      *
      * @return Unique value parameters.
      */
-    public static UniqueValueParam deriveUniqueValuesActivationScope(String protocolVersion, String applicationKey, String temporaryKeyId, String activationId) {
+    public static UniqueValueParam deriveUniqueValuesActivationScope(String protocolVersion, String applicationKey, String ephemeralPublicKey, String nonce, String temporaryKeyId, String activationId) {
         final UniqueValueParam param = new UniqueValueParam();
-        if (protocolVersion.equals("3.3")) {
+        param.setEphemeralPublicKey(ephemeralPublicKey);
+        param.setNonce(nonce);
+        if (protocolVersion.equals("3.0") || protocolVersion.equals("3.1") || protocolVersion.equals("3.2")) {
+            param.setApplicationKey(applicationKey);
+            param.setIdentifier(activationId);
+            param.setUniqueValueType(UniqueValueType.ECIES_ACTIVATION_SCOPE);
+        } else if (protocolVersion.equals("3.3")) {
             param.setApplicationKey(null);
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
         } else {
-            param.setApplicationKey(applicationKey);
-            param.setIdentifier(activationId);
-            param.setUniqueValueType(UniqueValueType.ECIES_ACTIVATION_SCOPE);
+            param.setApplicationKey(null);
+            param.setIdentifier(temporaryKeyId);
+            param.setUniqueValueType(UniqueValueType.AEAD_V4);
         }
         return param;
     }

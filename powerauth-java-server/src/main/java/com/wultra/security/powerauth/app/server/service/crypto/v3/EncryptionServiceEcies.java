@@ -116,20 +116,13 @@ public class EncryptionServiceEcies extends EncryptionService {
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
             final String temporaryKeyId = eciesRequest.getTemporaryKeyId();
             final UniqueValueParam uniqueValueParam = switch (scope) {
-                case APPLICATION_SCOPE -> ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, temporaryKeyId);
-                case ACTIVATION_SCOPE ->  ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, temporaryKeyId, activationId);
+                case APPLICATION_SCOPE -> ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId);
+                case ACTIVATION_SCOPE ->  ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, activationId);
             };
 
             if (eciesRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueParam.getUniqueValueType(),
-                        new Date(eciesRequest.getTimestamp()),
-                        uniqueValueParam.getApplicationKey(),
-                        eciesRequest.getEphemeralPublicKey(),
-                        eciesRequest.getNonce(),
-                        uniqueValueParam.getIdentifier(),
-                        protocolVersion);
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(eciesRequest.getTimestamp()), uniqueValueParam);
             }
             if (activation == null) {
                 return decryptInApplicationScope(eciesRequest, protocolVersion, applicationVersion, encryptorId);
