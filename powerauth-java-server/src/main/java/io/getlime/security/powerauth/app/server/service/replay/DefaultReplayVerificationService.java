@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -54,20 +53,9 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     @Override
     public void checkAndPersistUniqueValue(String protocolVersion, Date requestTimestamp, UniqueValueParam param) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
-        final Duration requestExpiration;
-        if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
-            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationExtended();
-        } else {
-            requestExpiration = powerAuthServiceConfiguration.getRequestExpiration();
-        }
-        final Instant now = Instant.now();
-        final Instant limitOldest = now.minus(requestExpiration);
-        final Instant requestTime = requestTimestamp.toInstant();
-        if (requestTime.isBefore(limitOldest) || requestTime.isAfter(now)) {
-            // Rollback is not required, error occurs before writing to database
-            logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}", requestTime, limitOldest, now);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+
+        checkTimestamp(protocolVersion, requestTimestamp);
+
         final byte uniqueValueType = (byte) param.getUniqueValueType().ordinal();
         final byte[] ephemeralPublicKeyBytes = param.getEphemeralPublicKey() != null ? Base64.getDecoder().decode(param.getEphemeralPublicKey()) : new byte[0];
         final byte[] nonceBytes = param.getNonce() != null ? Base64.getDecoder().decode(param.getNonce()) : new byte[0];
@@ -85,10 +73,47 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!replayPersistenceService.persistUniqueValue(param.getUniqueValueType(), uniqueValue)) {
+        if (!replayPersistenceService.persistUniqueValue(param.getUniqueValueType(), protocolVersion, uniqueValue)) {
             logger.warn("Unique value could not be persisted, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
             // The whole transaction is rolled back in case of this unexpected state
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+    }
+
+    /**
+     * Check timestamp using the following rules:
+     *
+     * <p>Version 3.0 and 3.1:
+     * <ul>
+     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - EXPIRATION, then reject request</li>
+     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + TIMESTAMP_THRESHOLD, then reject request</li>
+     * </ul>
+     *
+     * <p>Version 3.2+:
+     * <ul>
+     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - TIMESTAMP_THRESHOLD, then reject request</li>
+     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + TIMESTAMP_THRESHOLD, then reject request</li>
+     * </ul>
+     *
+     * @param protocolVersion Protocol version.
+     * @param requestTimestamp Request timestamp.
+     * @throws GenericServiceException Thrown incase request is rejected due to its timestamp.
+     */
+    private void checkTimestamp(String protocolVersion, Date requestTimestamp) throws GenericServiceException {
+        final Instant now = Instant.now();
+        final Instant requestTime = requestTimestamp.toInstant();
+        final Instant limitOldest;
+        if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
+            // MAC TOKEN only has extended expiration, ECIES is checked only in protocol versions 3.2+
+            limitOldest = now.minus(powerAuthServiceConfiguration.getRequestExpirationExtended());
+        } else {
+            limitOldest = now.minus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
+        }
+        final Instant limitNewest = now.plus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
+        if (requestTime.isBefore(limitOldest) || requestTime.isAfter(limitNewest)) {
+            // Rollback is not required, error occurs before writing to database
+            logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}, protocol version: {}", requestTime, limitOldest, limitNewest, protocolVersion);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
     }
 
