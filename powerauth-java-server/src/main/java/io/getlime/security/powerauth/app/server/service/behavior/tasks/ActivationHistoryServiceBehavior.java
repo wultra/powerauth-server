@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -31,8 +33,8 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
 import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,22 +48,17 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ActivationHistoryServiceBehavior {
 
     private final ActivationHistoryRepository activationHistoryRepository;
 
     private final ActivationRepository activationRepository;
     private final AuditingServiceBehavior audit;
+    private final ObjectMapper objectMapper;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
-    @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, AuditingServiceBehavior audit) {
-        this.activationHistoryRepository = activationHistoryRepository;
-        this.activationRepository = activationRepository;
-        this.audit = audit;
-    }
 
     /**
      * Log activation status change into activation history.
@@ -158,9 +155,7 @@ public class ActivationHistoryServiceBehavior {
         }
     }
 
-    // Private methods
-
-    private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
+    protected void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         // Prepare shared parameters
         final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
                 .type(AuditType.ACTIVATION.getCode())
@@ -188,8 +183,12 @@ public class ActivationHistoryServiceBehavior {
         }
 
         if (activation.getAdditionalData() != null) {
-            auditDetailBuilder
-                    .param("additionalData", activation.getAdditionalData());
+            try {
+                final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
+                auditDetailBuilder.param("additionalData", additionalData);
+            } catch (JsonProcessingException e) {
+                logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
+            }
         }
 
         // Build audit log message
