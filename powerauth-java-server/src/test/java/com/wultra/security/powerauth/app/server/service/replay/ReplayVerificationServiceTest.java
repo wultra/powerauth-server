@@ -60,7 +60,7 @@ class ReplayVerificationServiceTest {
 
         when(configuration.getRequestExpiration()).thenReturn(Duration.ofSeconds(60));
         when(configuration.getRequestExpirationExtended()).thenReturn(Duration.ofMinutes(120));
-        when(localizationProvider.buildExceptionForCode(any())).thenThrow(new RuntimeException());
+        when(configuration.getReplayTimestampThreshold()).thenReturn(Duration.ofSeconds(10));
 
         inMemoryPersistence = new ReplayPersistenceService(uniqueValueRepository, configuration) {
             private final Set<String> replayStore = new HashSet<>();
@@ -71,7 +71,7 @@ class ReplayVerificationServiceTest {
             }
 
             @Override
-            public boolean persistUniqueValue(UniqueValueType type, String uniqueValue) {
+            public boolean persistUniqueValue(UniqueValueType type, String protocolVersion, String uniqueValue) {
                 return replayStore.add(uniqueValue);
             }
         };
@@ -103,24 +103,28 @@ class ReplayVerificationServiceTest {
 
     static Stream<TestCase> provideTestCases() {
         Instant now = Instant.now();
+        long withinReplayTresholdSeconds = 9;
+        long exceededReplayTresholdSeconds = 11;
+        long withinExtendedExpirationSeconds = 7199;
+        long exceededExtendedExpirationSeconds = 7201;
         return Stream.of(
                 // --- 3.0 ---
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-1", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMQ=="),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-1", null, "bm9uY2U=", Date.from(now), false, null),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-2", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-2", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-2", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMg=="),
                 // For protocol version 3.0 ECIES replay attacks are not verified because of missing timestamps in requests
 
                 // --- 3.1 ---
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMw=="),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3", null, "bm9uY2U=", Date.from(now), false, null),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-4", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtNA=="),
                 // For protocol version 3.1 ECIES replay attacks are not verified because of missing timestamps in requests
 
                 // --- 3.2 ---
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-5", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtNQ=="),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-6", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-6", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-7", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtNw=="),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-7", null, "bm9uY2U=", Date.from(now), false, null),
                 new TestCase("3.2", UniqueValueType.ECIES_APPLICATION_SCOPE, "YXBwLWtleS0z", null, "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "AWVwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2U="),
@@ -131,54 +135,54 @@ class ReplayVerificationServiceTest {
 
                 // --- 3.3 ---
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtOA=="),
-                new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-8", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-9", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtOQ=="),
                 new TestCase("3.3", UniqueValueType.MAC_TOKEN, null, "token-id-9", null, "bm9uY2U=", Date.from(now), false, null),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0x"),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-1", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), false, null),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0y"),
 
                 // --- 4.0 ---
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMTA="),
-                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-10", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMTE="),
                 new TestCase("4.0", UniqueValueType.MAC_TOKEN, null, "token-id-11", null, "bm9uY2U=", Date.from(now), false, null),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-3", null, "bm9uY2U=", Date.from(now), true, "BG5vbmNldGVtcC1rZXktaWQtMw=="),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-3", null, "bm9uY2U=", Date.from(now), false, null),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4", null, "bm9uY2U=", Date.from(now), true, "BG5vbmNldGVtcC1rZXktaWQtNA=="),
 
                 // Timestamp range test cases
                 // --- 3.0 Expiration: 120 min (7200s) ---
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3001", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true, "AG5vbmNldG9rZW4taWQtMzAwMQ=="),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3002", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false, null),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3001", null, "bm9uY2U=", Date.from(now.minusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzAwMQ=="),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3002", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededExtendedExpirationSeconds)), false, null),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3003", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzAwMw=="),
-                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3004", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3004", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
 
                 // --- 3.1 Expiration: 120 min (7200s) ---
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3101", null, "bm9uY2U=", Date.from(now.minusSeconds(7199)), true, "AG5vbmNldG9rZW4taWQtMzEwMQ=="),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3102", null, "bm9uY2U=", Date.from(now.minusSeconds(7201)), false, null),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3101", null, "bm9uY2U=", Date.from(now.minusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzEwMQ=="),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3102", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededExtendedExpirationSeconds)), false, null),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3103", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzEwMw=="),
-                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3104", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3104", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
 
                 // --- 3.2 Expiration: 60s ---
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3201", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true, "AG5vbmNldG9rZW4taWQtMzIwMQ=="),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3202", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false, null),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3201", null, "bm9uY2U=", Date.from(now.minusSeconds(withinReplayTresholdSeconds)), true, "AG5vbmNldG9rZW4taWQtMzIwMQ=="),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3202", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3203", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzIwMw=="),
-                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3204", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3204", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
 
                 // --- 3.3 Expiration: 60s ---
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3301", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(59)), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0zMzAx"),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3302", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(61)), false, null),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3301", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(withinReplayTresholdSeconds)), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0zMzAx"),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3302", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3303", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0zMzAz"),
-                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3304", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null),
+                new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3304", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
 
                 // --- 4.0 Expiration: 60s ---
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4001", null, "bm9uY2U=", Date.from(now.minusSeconds(59)), true, "BG5vbmNldGVtcC1rZXktaWQtNDAwMQ=="),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4002", null, "bm9uY2U=", Date.from(now.minusSeconds(61)), false, null),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4001", null, "bm9uY2U=", Date.from(now.minusSeconds(withinReplayTresholdSeconds)), true, "BG5vbmNldGVtcC1rZXktaWQtNDAwMQ=="),
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4002", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4003", null, "bm9uY2U=", Date.from(now), true, "BG5vbmNldGVtcC1rZXktaWQtNDAwMw=="),
-                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4004", null, "bm9uY2U=", Date.from(now.plusSeconds(1)), false, null)
+                new TestCase("4.0", UniqueValueType.AEAD_V4, null, "temp-key-id-4004", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null)
         );
     }
 
