@@ -80,7 +80,6 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
         uniqueValBuffer.put(identifierBytes);
 
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
-        System.out.println(uniqueValue);
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
             logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
             // Rollback is not required, error occurs before writing to database
