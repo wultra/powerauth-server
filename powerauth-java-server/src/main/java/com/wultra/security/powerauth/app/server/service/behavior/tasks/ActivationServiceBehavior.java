@@ -981,7 +981,7 @@ public class ActivationServiceBehavior {
             }
             final String applicationId = application.getId();
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), applicationKey, temporaryKeyId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, applicationKey);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion,
@@ -1253,7 +1253,7 @@ public class ActivationServiceBehavior {
 
             validateCreatedActivation(activation, application, true);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, applicationKey);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion,
@@ -1918,7 +1918,7 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, applicationKey);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion,

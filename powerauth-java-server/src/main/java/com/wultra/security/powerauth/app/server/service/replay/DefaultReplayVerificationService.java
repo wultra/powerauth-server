@@ -68,13 +68,11 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
             logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}", requestTime, limitOldest, now);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final byte[] applicationKeyBytes = param.getApplicationKey() != null ? Base64.getDecoder().decode(param.getApplicationKey()) : new byte[0];
         final byte[] ephemeralPublicKeyBytes = param.getEphemeralPublicKey() != null ? Base64.getDecoder().decode(param.getEphemeralPublicKey()) : new byte[0];
         final byte[] nonceBytes = param.getNonce() != null ? Base64.getDecoder().decode(param.getNonce()) : new byte[0];
         final byte[] identifierBytes = param.getIdentifier() != null ? param.getIdentifier().getBytes(StandardCharsets.UTF_8) : new byte[0];
 
-        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(applicationKeyBytes.length + ephemeralPublicKeyBytes.length + nonceBytes.length + identifierBytes.length);
-        uniqueValBuffer.put(applicationKeyBytes);
+        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(ephemeralPublicKeyBytes.length + nonceBytes.length + identifierBytes.length);
         uniqueValBuffer.put(ephemeralPublicKeyBytes);
         uniqueValBuffer.put(nonceBytes);
         uniqueValBuffer.put(identifierBytes);

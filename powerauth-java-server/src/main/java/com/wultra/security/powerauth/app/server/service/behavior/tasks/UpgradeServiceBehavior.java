@@ -120,7 +120,7 @@ public class UpgradeServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
             }
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(

@@ -33,23 +33,21 @@ public class ReplayAttackUtils {
      * Derive unique value parameters based on protocol version for application scope.
      *
      * @param protocolVersion Protocol version.
-     * @param applicationKey Application key.
      * @param ephemeralPublicKey Ephemeral public key.
      * @param nonce Nonce.
      * @param temporaryKeyId Temporary key ID.
+     * @param applicationKey Application key.
      *
      * @return Unique value parameters.
      */
-    public static UniqueValueParam deriveUniqueValuesApplicationScope(String protocolVersion, String applicationKey, String ephemeralPublicKey, String nonce, String temporaryKeyId) {
+    public static UniqueValueParam deriveUniqueValuesApplicationScope(String protocolVersion, String ephemeralPublicKey, String nonce, String temporaryKeyId, String applicationKey) {
         final UniqueValueParam param = new UniqueValueParam();
         param.setEphemeralPublicKey(ephemeralPublicKey);
         param.setNonce(nonce);
         if (protocolVersion.equals("3.0") || protocolVersion.equals("3.1") || protocolVersion.equals("3.2")) {
-            param.setApplicationKey(applicationKey);
-            param.setIdentifier(null);
+            param.setIdentifier(applicationKey);
             param.setUniqueValueType(UniqueValueType.ECIES_APPLICATION_SCOPE);
         } else if (protocolVersion.equals("3.3")) {
-            param.setApplicationKey(null);
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
         }
@@ -60,21 +58,18 @@ public class ReplayAttackUtils {
      * Derive unique value parameters based on protocol version for activation scope.
      *
      * @param protocolVersion Protocol version.
-     * @param applicationKey Application key.
      * @param temporaryKeyId Temporary key ID.
      *
      * @return Unique value parameters.
      */
-    public static UniqueValueParam deriveUniqueValuesActivationScope(String protocolVersion, String applicationKey, String ephemeralPublicKey, String nonce, String temporaryKeyId, String activationId) {
+    public static UniqueValueParam deriveUniqueValuesActivationScope(String protocolVersion, String ephemeralPublicKey, String nonce, String temporaryKeyId, String activationId) {
         final UniqueValueParam param = new UniqueValueParam();
         param.setEphemeralPublicKey(ephemeralPublicKey);
         param.setNonce(nonce);
         if (protocolVersion.equals("3.0") || protocolVersion.equals("3.1") || protocolVersion.equals("3.2")) {
-            param.setApplicationKey(applicationKey);
             param.setIdentifier(activationId);
             param.setUniqueValueType(UniqueValueType.ECIES_ACTIVATION_SCOPE);
         } else if (protocolVersion.equals("3.3")) {
-            param.setApplicationKey(null);
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
         }
