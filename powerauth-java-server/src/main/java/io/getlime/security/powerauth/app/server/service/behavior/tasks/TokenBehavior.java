@@ -208,7 +208,6 @@ public class TokenBehavior {
                 // Check MAC token verification request for replay attacks and persist unique value from request
                 final UniqueValueParam param = new UniqueValueParam();
                 param.setUniqueValueType(UniqueValueType.MAC_TOKEN);
-                param.setApplicationKey(null);
                 param.setEphemeralPublicKey(null);
                 param.setNonce(request.getNonce());
                 param.setIdentifier(tokenId);
@@ -312,7 +311,7 @@ public class TokenBehavior {
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(

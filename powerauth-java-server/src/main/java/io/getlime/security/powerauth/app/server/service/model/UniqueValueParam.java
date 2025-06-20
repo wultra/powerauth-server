@@ -30,7 +30,6 @@ import lombok.Data;
 @Data
 public class UniqueValueParam {
 
-    private String applicationKey;
     private String ephemeralPublicKey;
     private String nonce;
     private String identifier;

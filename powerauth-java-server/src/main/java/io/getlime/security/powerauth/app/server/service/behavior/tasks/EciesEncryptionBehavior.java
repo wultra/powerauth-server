@@ -142,7 +142,7 @@ public class EciesEncryptionBehavior {
             final String temporaryKeyId = request.getTemporaryKeyId();
             final String applicationKey = request.getApplicationKey();
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, request.getEphemeralPublicKey(), request.getNonce(), temporaryKeyId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, request.getEphemeralPublicKey(), request.getNonce(), temporaryKeyId, applicationKey);
             if (request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion,
@@ -240,7 +240,7 @@ public class EciesEncryptionBehavior {
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, ephemeralPublicKey, nonce, temporaryKeyId, activationId);
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, ephemeralPublicKey, nonce, temporaryKeyId, activationId);
             if (timestamp != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
