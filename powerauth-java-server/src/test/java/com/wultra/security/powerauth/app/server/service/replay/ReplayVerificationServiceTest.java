@@ -61,6 +61,7 @@ class ReplayVerificationServiceTest {
         when(configuration.getRequestExpiration()).thenReturn(Duration.ofSeconds(60));
         when(configuration.getRequestExpirationExtended()).thenReturn(Duration.ofMinutes(120));
         when(configuration.getReplayTimestampThreshold()).thenReturn(Duration.ofSeconds(10));
+        when(localizationProvider.buildExceptionForCode(any())).thenThrow(new RuntimeException());
 
         inMemoryPersistence = new ReplayPersistenceService(uniqueValueRepository, configuration) {
             private final Set<String> replayStore = new HashSet<>();
