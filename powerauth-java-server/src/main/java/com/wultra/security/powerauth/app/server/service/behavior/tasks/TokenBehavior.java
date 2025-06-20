@@ -195,7 +195,6 @@ public class TokenBehavior {
                 // Check MAC token verification request for replay attacks and persist unique value from request
                 final UniqueValueParam param = new UniqueValueParam();
                 param.setUniqueValueType(UniqueValueType.MAC_TOKEN);
-                param.setApplicationKey(null);
                 param.setEphemeralPublicKey(null);
                 param.setNonce(request.getNonce());
                 param.setIdentifier(tokenId);

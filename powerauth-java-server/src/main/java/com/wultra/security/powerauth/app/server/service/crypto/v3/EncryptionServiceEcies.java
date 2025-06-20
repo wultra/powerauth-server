@@ -116,8 +116,8 @@ public class EncryptionServiceEcies extends EncryptionService {
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
             final String temporaryKeyId = eciesRequest.getTemporaryKeyId();
             final UniqueValueParam uniqueValueParam = switch (scope) {
-                case APPLICATION_SCOPE -> ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, applicationKey, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId);
-                case ACTIVATION_SCOPE ->  ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, applicationKey, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, activationId);
+                case APPLICATION_SCOPE -> ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, applicationKey);
+                case ACTIVATION_SCOPE ->  ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, activationId);
             };
 
             if (eciesRequest.getTimestamp() != null) {

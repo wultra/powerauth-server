@@ -106,11 +106,11 @@ public class EncryptionServiceAead extends EncryptionService {
 
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
             if (activation == null) {
-                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, null, null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId());
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion,  null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), applicationKey);
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInApplicationScope(aeadRequest, protocolVersion, applicationVersion, encryptorId);
             } else {
-                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, null, null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), activationId);
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion,  null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), activationId);
                 replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInActivationScope(aeadRequest, protocolVersion, applicationVersion, activation, encryptorId);
             }
