@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.server.service.model;
 
 import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Parameters for unique value data checks in replay attack protection.
@@ -31,6 +32,7 @@ import lombok.Data;
 public class UniqueValueParam {
 
     private String ephemeralPublicKey;
+    @ToString.Exclude
     private String nonce;
     private String identifier;
     private UniqueValueType uniqueValueType;
