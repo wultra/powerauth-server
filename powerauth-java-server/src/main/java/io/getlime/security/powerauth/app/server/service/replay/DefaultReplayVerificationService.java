@@ -69,12 +69,12 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
 
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
-            logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
+            logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, request timestamp: {}, unique value: {}", param.getUniqueValueType(), requestTimestamp, uniqueValue);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (!replayPersistenceService.persistUniqueValue(param.getUniqueValueType(), protocolVersion, uniqueValue)) {
-            logger.warn("Unique value could not be persisted, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
+            logger.warn("Unique value could not be persisted, request type: {}, request timestamp: {}, unique value: {}", param.getUniqueValueType(), requestTimestamp, uniqueValue);
             // The whole transaction is rolled back in case of this unexpected state
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
