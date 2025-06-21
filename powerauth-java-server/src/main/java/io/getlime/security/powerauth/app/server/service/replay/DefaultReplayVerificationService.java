@@ -78,6 +78,7 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
             // The whole transaction is rolled back in case of this unexpected state
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
+        logger.debug("Persisted unique value, request type: {}, request timestamp: {}, unique value: {}", param.getUniqueValueType(), requestTimestamp, uniqueValue);
     }
 
     /**
