@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,22 +14,27 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package io.getlime.security.powerauth.app.server.database.model.enumeration;
+
+package io.getlime.security.powerauth.app.server.service.model;
+
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import lombok.Data;
+import lombok.ToString;
 
 /**
- * Enum representing unique value types.
+ * Parameters for unique value data checks in replay attack protection.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public enum UniqueValueType {
+@Data
+public class UniqueValueParam {
 
-    MAC_TOKEN,
-
-    ECIES_APPLICATION_SCOPE,
-
-    ECIES_ACTIVATION_SCOPE,
-
-    ECIES_WITH_TEMPORARY_KEY
+    private String ephemeralPublicKey;
+    @ToString.Exclude
+    private String nonce;
+    private String identifier;
+    private UniqueValueType uniqueValueType;
 
 }

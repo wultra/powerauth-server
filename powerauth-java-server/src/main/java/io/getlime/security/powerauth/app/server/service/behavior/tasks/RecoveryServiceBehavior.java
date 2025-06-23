@@ -31,7 +31,6 @@ import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
@@ -39,10 +38,12 @@ import io.getlime.security.powerauth.app.server.database.repository.RecoveryConf
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.UniqueValueParam;
 import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -282,6 +283,7 @@ public class RecoveryServiceBehavior {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String temporaryKeyId = request.getTemporaryKeyId();
+            final String protocolVersion = request.getProtocolVersion();
 
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -333,15 +335,14 @@ public class RecoveryServiceBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             // Check ECIES request for replay attacks and persist unique value from request
             if (encryptedRequest.getTimestamp() != null) {
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        protocolVersion,
                         new Date(request.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        activationId,
-                        request.getProtocolVersion());
+                        uniqueValueParam
+                );
             }
 
             final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
