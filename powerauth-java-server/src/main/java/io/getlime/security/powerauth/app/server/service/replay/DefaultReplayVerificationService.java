@@ -98,7 +98,7 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
      *
      * @param protocolVersion Protocol version.
      * @param requestTimestamp Request timestamp.
-     * @throws GenericServiceException Thrown incase request is rejected due to its timestamp.
+     * @throws GenericServiceException Thrown in case request is rejected due to its timestamp.
      */
     private void checkTimestamp(String protocolVersion, Date requestTimestamp) throws GenericServiceException {
         final Instant now = Instant.now();
