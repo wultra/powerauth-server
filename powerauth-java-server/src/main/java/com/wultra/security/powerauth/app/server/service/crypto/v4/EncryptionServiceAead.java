@@ -106,7 +106,7 @@ public class EncryptionServiceAead extends EncryptionService {
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
             final UniqueValueType uniqueValueType = switch (encryptorId) {
                 case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN ->
+                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN, CHANGE_PASSWORD, SETUP_BIOMETRY ->
                         UniqueValueType.ECIES_ACTIVATION_SCOPE;
             };
             if (aeadRequest.getTimestamp() != null) {

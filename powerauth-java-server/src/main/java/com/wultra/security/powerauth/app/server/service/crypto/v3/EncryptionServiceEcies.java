@@ -41,6 +41,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorExc
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
@@ -102,11 +103,19 @@ public class EncryptionServiceEcies extends EncryptionService {
             final ApplicationVersionEntity applicationVersion = findApplicationVersion(applicationKey);
             final ActivationRecordEntity activation = findActivation(activationId);
 
+            final EncryptorScope scope = switch (encryptorId) {
+                case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> EncryptorScope.APPLICATION_SCOPE;
+                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN -> EncryptorScope.ACTIVATION_SCOPE;
+                default -> {
+                    logger.warn("Invalid encryptor ID: {}", encryptorId);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                }
+            };
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = switch (encryptorId) {
-                case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN ->
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE;
+            final UniqueValueType uniqueValueType = switch (scope) {
+                case APPLICATION_SCOPE -> UniqueValueType.ECIES_APPLICATION_SCOPE;
+                case ACTIVATION_SCOPE -> UniqueValueType.ECIES_ACTIVATION_SCOPE;
             };
             if (eciesRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
