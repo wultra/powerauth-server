@@ -37,7 +37,6 @@ public class ReplayAttackUtils {
      * @param nonce Nonce.
      * @param temporaryKeyId Temporary key ID.
      * @param applicationKey Application key.
-     *
      * @return Unique value parameters.
      */
     public static UniqueValueParam deriveUniqueValuesApplicationScope(String protocolVersion, String ephemeralPublicKey, String nonce, String temporaryKeyId, String applicationKey) {
@@ -58,8 +57,10 @@ public class ReplayAttackUtils {
      * Derive unique value parameters based on protocol version for activation scope.
      *
      * @param protocolVersion Protocol version.
+     * @param ephemeralPublicKey Ephemeral public key.
+     * @param nonce Nonce.
      * @param temporaryKeyId Temporary key ID.
-     *
+     * @param activationId Activation ID.
      * @return Unique value parameters.
      */
     public static UniqueValueParam deriveUniqueValuesActivationScope(String protocolVersion, String ephemeralPublicKey, String nonce, String temporaryKeyId, String activationId) {
