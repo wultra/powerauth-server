@@ -38,3 +38,7 @@ We have unified validations in PowerAuth server REST API. The error code returne
 
 The validation of requests is now stricter and more complete to ensure data integrity. In case you get the `ERR0024` error in your integration with PowerAuth server, please make sure the requests contain all parameters, as seen in REST API documentation available at `http[s]://[hostname]:[port]/powerauth-java-server/swagger-ui/index.html`.
 
+## Configuration Update
+
+A new parameter `powerauth.service.replay.timestamp.threshold` was introduced so that the replay attack detection time threshold can be configured due to potential system time fluctuations on moble clients. Under normal circumstances, it is not necessary to configure this parameter. However, in case of dropped requests, the threshold duration can be increased.
+

@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.replay;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -37,9 +37,9 @@ import java.util.Date;
 public class NoOpVerificationService implements ReplayVerificationService {
 
     @Override
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) {
+    public void checkAndPersistUniqueValue(String version, Date requestTimestamp, UniqueValueParam param) {
         // No-op implementation is empty
-        logger.debug("Checking and persisting unique value skipped, request type: {}, identifier: {}", type, identifier);
+        logger.debug("Checking and persisting unique value skipped, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
     }
 
 }

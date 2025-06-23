@@ -19,6 +19,8 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
@@ -204,13 +206,15 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.MAC_TOKEN,
+                final UniqueValueParam param = new UniqueValueParam();
+                param.setUniqueValueType(UniqueValueType.MAC_TOKEN);
+                param.setEphemeralPublicKey(null);
+                param.setNonce(request.getNonce());
+                param.setIdentifier(tokenId);
+                replayVerificationService.checkAndPersistUniqueValue(request.getProtocolVersion(),
                         new Date(request.getTimestamp()),
-                        null,
-                        request.getNonce(),
-                        tokenId,
-                        request.getProtocolVersion());
+                        param
+                );
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
             }
@@ -288,13 +292,13 @@ public class TokenBehavior {
      * @param applicationKey Application key.
      * @param encryptedRequest Encrypted request.
      * @param signatureType Signature type.
-     * @param version Protocol version.
+     * @param protocolVersion Protocol version.
      * @param keyConversion Key conversion utility class.
      * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
     private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
-                                          String signatureType, String version, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
+                                          String signatureType, String protocolVersion, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -307,15 +311,14 @@ public class TokenBehavior {
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        protocolVersion,
                         new Date(encryptedRequest.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        activationId,
-                        version);
+                        uniqueValueParam
+                );
             }
 
             // Get the server private key, decrypt it if required
@@ -341,7 +344,7 @@ public class TokenBehavior {
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CREATE_TOKEN,
-                    new EncryptorParameters(version, applicationKey, activationId, temporaryKeyId),
+                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
                     new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.

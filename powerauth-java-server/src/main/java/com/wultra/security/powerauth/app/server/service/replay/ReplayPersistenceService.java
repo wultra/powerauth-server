@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 
@@ -66,11 +67,19 @@ public class ReplayPersistenceService {
     /**
      * Persist a unique value into the database.
      * @param type Unique value type.
+     * @param protocolVersion Protocol version.
      * @param uniqueValue Unique value.
      * @return Whether unique value was added successfully.
      */
-    public boolean persistUniqueValue(final UniqueValueType type, final String uniqueValue) {
-        final Instant expiration = Instant.now().plus(powerAuthServiceConfiguration.getRequestExpiration());
+    public boolean persistUniqueValue(final UniqueValueType type, final String protocolVersion, final String uniqueValue) {
+        final Duration requestExpiration;
+        if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
+            // MAC TOKEN only has extended expiration, ECIES is checked only in protocol versions 3.2+
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationExtended();
+        } else {
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpiration();
+        }
+        final Instant expiration = Instant.now().plus(requestExpiration);
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
         uniqueVal.setUniqueValue(uniqueValue);
