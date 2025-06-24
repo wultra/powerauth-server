@@ -79,7 +79,7 @@ public class RecoveryController {
     @PostMapping("/confirm")
     public ObjectResponse<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@Valid @RequestBody ObjectRequest<ConfirmRecoveryCodeRequest> request) throws Exception {
         final ConfirmRecoveryCodeRequest req = request.getRequestObject();
-        logger.info("action: confirmRecoveryCode, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
+        logger.info("action: confirmRecoveryCode, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: confirmRecoveryCode, state: initiated, request: {}", request);
         final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(req));
         logger.info("action: confirmRecoveryCode, state: succeeded");
