@@ -17,10 +17,10 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
+import com.wultra.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
@@ -31,7 +31,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Base64;
@@ -61,9 +60,6 @@ class AuditingServiceBehaviorTest {
 
     @Mock
     private SignatureAuditRepository signatureAuditRepository;
-
-    @Spy
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     private AuditingServiceBehavior tested;
@@ -109,7 +105,10 @@ class AuditingServiceBehaviorTest {
         assertEquals("Y3RyRGF0YQ==", params.get("counterData"));
         assertEquals(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE, params.get("activationStatus"));
         assertEquals("Test note", params.get("note"));
-        assertEquals("""
-                {"type":"POWERAUTH","signatureDataMethod":"POST","signatureDataUriId":"/pa/signature/validate"}""", params.get("signatureMetadata"));
+
+        final PowerAuthSignatureMetadata signatureMetadata = new PowerAuthSignatureMetadata();
+        signatureMetadata.setSignatureDataMethod("POST");
+        signatureMetadata.setSignatureDataUriId("/pa/signature/validate");
+        assertEquals(signatureMetadata, params.get("signatureMetadata"));
     }
 }

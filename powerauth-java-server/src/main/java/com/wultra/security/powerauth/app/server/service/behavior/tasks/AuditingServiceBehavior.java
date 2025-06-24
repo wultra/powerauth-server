@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
@@ -69,8 +67,6 @@ public class AuditingServiceBehavior {
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     private final KeyValueMapConverter keyValueMapConverter;
-
-    private final ObjectMapper objectMapper;
 
     // Generic auditing capability
     private final Audit audit;
@@ -191,7 +187,7 @@ public class AuditingServiceBehavior {
         signatureAuditRepository.save(signatureAuditRecord);
 
         // Store additional audit log
-        final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
+        final AuditDetail auditDetail = AuditDetail.builder()
                 .param("activationId", activation.getActivationId())
                 .param("applicationId", activation.getApplicationId())
                 .param("userId", activation.getUserId())
@@ -202,22 +198,17 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
+                .param("signatureMetadata", signatureMetadata)
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())
                 .param("activationVersion", version)
                 .param("note", note)
                 .param("timestamp", currentTimestamp)
-                .type(AuditType.SIGNATURE.getCode());
+                .type(AuditType.SIGNATURE.getCode())
+                .build();
 
-        try {
-            auditDetailBuilder.param("signatureMetadata", objectMapper.writeValueAsString(signatureMetadata));
-        } catch (JsonProcessingException e) {
-            logger.warn("Unable to serialize signature metadata to JSON, activationId: {}, {}", activation.getActivationId(), e.getMessage());
-            logger.debug("Unable to serialize signature metadata to JSON, activationId: {}", activation.getActivationId(), e);
-        }
-
-        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetailBuilder.build(),
+        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
                 activation.getActivationId(),
                 activation.getUserId()
