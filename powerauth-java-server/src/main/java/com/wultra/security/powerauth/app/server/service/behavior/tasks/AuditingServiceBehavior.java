@@ -202,7 +202,6 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
-                .param("signatureMetadata", "todo")
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())
