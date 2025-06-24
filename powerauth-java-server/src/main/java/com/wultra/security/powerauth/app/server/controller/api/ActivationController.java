@@ -80,7 +80,7 @@ public class ActivationController {
     @PostMapping("/prepare")
     public ObjectResponse<PrepareActivationResponse> prepareActivation(@Valid @RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
         final PrepareActivationRequest req = request.getRequestObject();
-        logger.info("action: prepareActivation, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.info("action: prepareActivation, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: prepareActivation, state: initiated, request: {}", request);
         final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(req));
         logger.info("action: prepareActivation, state: succeeded");
@@ -98,7 +98,7 @@ public class ActivationController {
     @PostMapping("/create")
     public ObjectResponse<CreateActivationResponse> createActivation(@Valid @RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
         final CreateActivationRequest req = request.getRequestObject();
-        logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}", req.getUserId(), req.getApplicationKey());
+        logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}, requestTimestamp: {}", req.getUserId(), req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: createActivation, state: initiated, request: {}", request);
         final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(req));
         logger.info("action: createActivation, state: succeeded");
@@ -116,7 +116,7 @@ public class ActivationController {
     @PostMapping("/recovery/create")
     public ObjectResponse<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@Valid @RequestBody ObjectRequest<RecoveryCodeActivationRequest> request) throws Exception {
         final RecoveryCodeActivationRequest req = request.getRequestObject();
-        logger.info("action: createActivationUsingRecoveryCode, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.info("action: createActivationUsingRecoveryCode, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: createActivationUsingRecoveryCode, state: initiated, request: {}", request);
         final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(req));
         logger.info("action: createActivationUsingRecoveryCode, state: succeeded");

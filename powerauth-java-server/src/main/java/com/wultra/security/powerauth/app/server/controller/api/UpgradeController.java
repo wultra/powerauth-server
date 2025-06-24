@@ -64,7 +64,7 @@ public class UpgradeController {
     @PostMapping("/start")
     public ObjectResponse<StartUpgradeResponse> startUpgrade(@Valid @RequestBody ObjectRequest<StartUpgradeRequest> request) throws Exception {
         final StartUpgradeRequest req = request.getRequestObject();
-        logger.info("action: startUpgrade, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
+        logger.info("action: startUpgrade, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: startUpgrade, state: initiated, request: {}", request);
         final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>(service.startUpgrade(req));
         logger.info("action: startUpgrade, state: succeeded");

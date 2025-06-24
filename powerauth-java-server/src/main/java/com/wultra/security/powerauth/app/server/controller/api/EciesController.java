@@ -62,7 +62,7 @@ public class EciesController {
     @PostMapping("/decryptor")
     public ObjectResponse<GetEciesDecryptorResponse> getEciesDecryptor(@Valid @RequestBody ObjectRequest<GetEciesDecryptorRequest> request) throws Exception {
         final GetEciesDecryptorRequest req = request.getRequestObject();
-        logger.info("action: getEciesDecryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.info("action: getEciesDecryptor, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: getEciesDecryptor, state: initiated, request: {}", request);
         final ObjectResponse<GetEciesDecryptorResponse> response = new ObjectResponse<>(service.getEciesDecryptor(req));
         logger.info("action: getEciesDecryptor, state: succeeded");
