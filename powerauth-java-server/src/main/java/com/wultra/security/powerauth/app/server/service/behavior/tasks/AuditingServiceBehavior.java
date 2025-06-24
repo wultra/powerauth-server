@@ -17,31 +17,31 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
-import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
-import com.wultra.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.signature.SignatureData;
+import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
+import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,31 +57,23 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AuditingServiceBehavior {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
     private final ActivationRepository activationRepository;
-    private final LocalizationProvider localizationProvider;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
-    private final SignatureMetadataConverter signatureMetadataConverter = new SignatureMetadataConverter();
     private final KeyValueMapConverter keyValueMapConverter;
+
+    private final ObjectMapper objectMapper;
 
     // Generic auditing capability
     private final Audit audit;
-
-    @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, ActivationRepository activationRepository, LocalizationProvider localizationProvider, KeyValueMapConverter keyValueMapConverter, Audit audit) {
-        this.signatureAuditRepository = signatureAuditRepository;
-        this.activationRepository = activationRepository;
-        this.localizationProvider = localizationProvider;
-        this.keyValueMapConverter = keyValueMapConverter;
-        this.audit = audit;
-    }
 
     /**
      * Log information with specified level, message, audit details, and message args.
@@ -199,7 +191,7 @@ public class AuditingServiceBehavior {
         signatureAuditRepository.save(signatureAuditRecord);
 
         // Store additional audit log
-        final AuditDetail auditDetail = AuditDetail.builder()
+        final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
                 .param("activationId", activation.getActivationId())
                 .param("applicationId", activation.getApplicationId())
                 .param("userId", activation.getUserId())
@@ -210,16 +202,23 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
-                .param("signatureMetadata", signatureMetadataConverter.convertToDatabaseColumn(signatureMetadata))
+                .param("signatureMetadata", "todo")
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())
                 .param("activationVersion", version)
                 .param("note", note)
                 .param("timestamp", currentTimestamp)
-                .type(AuditType.SIGNATURE.getCode())
-                .build();
-        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
+                .type(AuditType.SIGNATURE.getCode());
+
+        try {
+            auditDetailBuilder.param("signatureMetadata", objectMapper.writeValueAsString(signatureMetadata));
+        } catch (JsonProcessingException e) {
+            logger.warn("Unable to serialize signature metadata to JSON, activationId: {}, {}", activation.getActivationId(), e.getMessage());
+            logger.debug("Unable to serialize signature metadata to JSON, activationId: {}", activation.getActivationId(), e);
+        }
+
+        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetailBuilder.build(),
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
                 activation.getActivationId(),
                 activation.getUserId()
