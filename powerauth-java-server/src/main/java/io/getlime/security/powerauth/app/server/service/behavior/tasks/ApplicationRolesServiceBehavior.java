@@ -63,11 +63,6 @@ public class ApplicationRolesServiceBehavior {
     public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
-            if (applicationId == null) {
-                logger.warn("Invalid application ID in listApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
@@ -101,16 +96,6 @@ public class ApplicationRolesServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method addApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (applicationRoles == null || applicationRoles.isEmpty()) {
-                logger.warn("Invalid request parameter applicationRoles in method addApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);
@@ -153,16 +138,6 @@ public class ApplicationRolesServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method updateApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (applicationRoles == null || applicationRoles.isEmpty()) {
-                logger.warn("Invalid request parameter applicationRoles in method updateApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final UpdateApplicationRolesResponse response = new UpdateApplicationRolesResponse();
             response.setApplicationId(applicationId);
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
@@ -201,16 +176,6 @@ public class ApplicationRolesServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method removeApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (applicationRoles == null || applicationRoles.isEmpty()) {
-                logger.warn("Invalid request parameter applicationRoles in method removeApplicationRoles");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (applicationOptional.isEmpty()) {
                 logger.info("Application not found, application ID: {}", applicationId);

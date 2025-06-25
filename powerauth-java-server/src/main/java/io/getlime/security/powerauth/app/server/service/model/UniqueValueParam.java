@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,27 +14,27 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.validator;
+package io.getlime.security.powerauth.app.server.service.model;
 
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import lombok.Data;
+import lombok.ToString;
 
 /**
- * Validator for OperationTemplateDeleteRequest class.
+ * Parameters for unique value data checks in replay attack protection.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class OperationTemplateDeleteRequestValidator {
+@Data
+public class UniqueValueParam {
 
-    public static String validate(OperationTemplateDeleteRequest source) {
-        if (source == null) {
-            return "Operation template detail request must not be null";
-        }
-        if (source.getId() == null) {
-            return "Operation template ID must not be null when requesting the template detail";
-        }
-        return null;
-    }
+    private String ephemeralPublicKey;
+    @ToString.Exclude
+    private String nonce;
+    private String identifier;
+    private UniqueValueType uniqueValueType;
 
 }

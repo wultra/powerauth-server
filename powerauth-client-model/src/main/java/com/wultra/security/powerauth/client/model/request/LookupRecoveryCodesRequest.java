@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -30,10 +31,19 @@ import lombok.Data;
 @Data
 public class LookupRecoveryCodesRequest {
 
+    @Schema(description = "The identifier of the user")
     private String userId;
+
+    @Schema(description = "Activation identifier")
     private String activationId;
+
+    @Schema(description = "The identifier of the application")
     private String applicationId;
+
+    @Schema(description = "Recovery code status")
     private RecoveryCodeStatus recoveryCodeStatus;
+
+    @Schema(description = "Recovery PUK status")
     private RecoveryPukStatus recoveryPukStatus;
 
 }

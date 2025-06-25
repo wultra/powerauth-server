@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,6 +30,8 @@ import lombok.Data;
 @Data
 public class GetRecoveryConfigRequest {
 
+    @Schema(description = "The identifier of the application")
+    @NotBlank(message = "Application ID must not be empty when fetching recovery config")
     private String applicationId;
 
 }

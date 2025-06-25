@@ -29,7 +29,7 @@ Mind that this table supports encryption, see [Encrypting Records in Database](.
 - `scopes` - Scope(s) used for the client.
 - `pkceEnabled` - A hint for the mobile application whether to use Authorization Code Flow with Proof Key for Code Exchange (PKCE). If set to `true`, `codeVerifier` must be present in identity attributes during create activation step.
 - `signatureAlgorithm` - If empty, `RS256` is used.
-
+- `tokenClaimNames` - A list of claim names, whose values are to be stored in activation additional data, by default `["jti"]`.
 
 ### Example
 

@@ -28,7 +28,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
-import com.wultra.security.powerauth.client.model.validator.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -144,10 +143,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws GenericServiceException {
         try {
-            final String error = OperationCreateRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
             validate(request);
 
             final List<String> applications = request.getApplications();
@@ -332,11 +327,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request, OperationApprovalCustomizer operationApprovalCustomizer) throws GenericServiceException {
         try {
-            final String error = OperationApproveRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Instant currentInstant = Instant.now();
             final Date currentTimestamp = Date.from(currentInstant);
 
@@ -369,14 +359,23 @@ public class OperationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
             }
 
+            final String expectedUserId = operationEntity.getUserId();
+            if (expectedUserId == null) {
+                logger.warn("Operation with operationId: {} cannot be approved, because user ID is not set.", operationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+            }
+
+            if (!expectedUserId.equals(userId)) {
+                logger.warn("Operation with operationId: {} cannot be approved, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+            }
+
             // Check the operation properties match the request
             final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
             final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
-            final String expectedUserId = operationEntity.getUserId();
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
-            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation
-                    && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
+            if (operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
                     && isDataEqual(operationEntity, data) // operation data matched the expected value
                     && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
                     && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
@@ -385,7 +384,6 @@ public class OperationServiceBehavior {
                     && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
                 // Approve the operation
-                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.APPROVED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -499,11 +497,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws GenericServiceException {
         try {
-            final String error = OperationRejectRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -534,11 +527,19 @@ public class OperationServiceBehavior {
             }
 
             final String expectedUserId = operationEntity.getUserId();
-            if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user rejects the operation
-                    && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
+            if (expectedUserId == null) {
+                logger.warn("Operation with operationId: {} cannot be rejected, because user ID is not set.", operationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+            }
+
+            if (!expectedUserId.equals(userId)) {
+                logger.warn("Operation with operationId: {} cannot be rejected, because user ID from the request '{}' does not match user ID from the operation '{}'.", operationId, userId, expectedUserId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+            }
+
+            if (operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
                 // Reject the operation
-                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.REJECTED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -598,11 +599,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws GenericServiceException {
         try {
-            final String error = OperationFailApprovalRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -689,11 +685,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationDetailResponse cancelOperation(OperationCancelRequest request) throws GenericServiceException {
         try {
-            final String error = OperationCancelRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final String operationId = request.getOperationId();
@@ -750,11 +741,33 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws GenericServiceException {
         try {
-            final String error = OperationDetailRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
+            final Date currentTimestamp = new Date();
+            final String operationId = request.getOperationId();
 
+            final OperationEntity operation = operationQueryService.findOperationForUpdate(operationId).orElseThrow(() -> {
+                logger.warn("Operation was not found for ID: {}", operationId);
+                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+            });
+
+            final OperationEntity operationEntity = expireOperation(operation, currentTimestamp);
+            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
+            extendAndSetOperationDetailData(operationDetailResponse);
+            return operationDetailResponse;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    @Transactional // operation is modified when expiration happens
+    public OperationDetailResponse operationClaim(OperationClaimRequest request) throws GenericServiceException {
+        try {
             final Date currentTimestamp = new Date();
             final String operationId = request.getOperationId();
 
@@ -764,11 +777,9 @@ public class OperationServiceBehavior {
             });
 
             final String userId = request.getUserId();
-            final OperationEntity operationEntity = expireOperation(
-                    claimOperation(operation, userId, currentTimestamp),
-                    currentTimestamp
-            );
-            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
+            final OperationEntity operationClaimed = claimOperation(operation, userId, currentTimestamp);
+            final OperationEntity operationUpdated = expireOperation(operationClaimed, currentTimestamp);
+            final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationUpdated);
             extendAndSetOperationDetailData(operationDetailResponse);
             return operationDetailResponse;
         } catch (GenericServiceException ex) {
@@ -786,11 +797,6 @@ public class OperationServiceBehavior {
     @Transactional
     public OperationListResponse findAllOperationsForUser(final OperationListForUserRequest request) throws GenericServiceException {
         try {
-            final String error = OperationListForUserRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final OperationListRequest operationListRequest = convert(request);
@@ -835,11 +841,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         try {
-            final String error = OperationListForUserRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final OperationListRequest operationListRequest = convert(request);
 
             final Date currentTimestamp = new Date();
@@ -894,11 +895,6 @@ public class OperationServiceBehavior {
     @Transactional // operation is modified when expiration happens
     public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
         try {
-            final String error = OperationExtIdRequestValidator.validate(request);
-            if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
-            }
-
             final Date currentTimestamp = new Date();
 
             final OperationListRequestWithExternalId requestWithExternalId = convert(request);
@@ -1122,8 +1118,13 @@ public class OperationServiceBehavior {
         return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
     }
 
-    private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
-        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
+    private static boolean activationIdMatches(final OperationApproveRequest request, String activationId) {
+        if (activationId == null || activationId.equals(request.getAdditionalData().get("activationId"))) {
+            return true;
+        } else {
+            logger.warn("action: activationIdMatch, state: failed, operationId: {}, activationId: {}", request.getOperationId(), activationId);
+            return false;
+        }
     }
 
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
@@ -1134,7 +1135,7 @@ public class OperationServiceBehavior {
 
         final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otpObject == null) {
-            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
+            logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}, detail: proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
@@ -1143,10 +1144,15 @@ public class OperationServiceBehavior {
             final Duration otpStepDuration = powerAuthServiceConfiguration.getProximityCheckStepDuration();
             final int otpStepCount = powerAuthServiceConfiguration.getProximityCheckStepCount();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength, otpStepCount, otpStepDuration);
-            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
-            return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
+            logger.debug("OTP validation result: {} for operationId: {}", result, operation.getId());
+            if (result) {
+                return ProximityCheckResult.SUCCESS;
+            } else {
+                logger.warn("action: fetchProximityCheckResult, state: failed, operationId: {}", operation.getId());
+                return ProximityCheckResult.FAILED;
+            }
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
+            logger.error("action: fetchProximityCheckResult, state: error, operationId: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
     }

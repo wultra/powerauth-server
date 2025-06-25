@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
@@ -50,6 +52,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -76,6 +79,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
     private final LoadingCache<String, CachedRestClient> restClientCache;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -103,6 +107,8 @@ public class CallbackUrlBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
+
+            validateAuthenticationConfigRequest(request.getAuthentication(), request.getCallbackUrl());
 
             final CallbackUrlEntity entity = new CallbackUrlEntity();
             entity.setId(UUID.randomUUID().toString());
@@ -171,6 +177,8 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
+            validateAuthenticationConfigRequest(request.getAuthentication(), request.getCallbackUrl());
+
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
@@ -186,8 +194,14 @@ public class CallbackUrlBehavior {
                     if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
                         authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
                     }
+                    if (StringUtils.hasText(authExisting.getCertificate().getKeyStoreContent()) && authRequest.getCertificate().getKeyStoreContent() == null) {
+                        authRequest.getCertificate().setKeyStoreContent(authExisting.getCertificate().getKeyStoreContent());
+                    }
                     if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
                         authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
+                    }
+                    if (StringUtils.hasText(authExisting.getCertificate().getTrustStoreContent()) && authRequest.getCertificate().getTrustStoreContent() == null) {
+                        authRequest.getCertificate().setTrustStoreContent(authExisting.getCertificate().getTrustStoreContent());
                     }
                 }
                 if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
@@ -328,7 +342,7 @@ public class CallbackUrlBehavior {
      * @param activation Activation entity.
      * @return Callback data to send.
      */
-    private Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
+    protected Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
         final Map<String, Object> callbackData = new HashMap<>();
         callbackData.put("type", "ACTIVATION");
         callbackData.put("activationId", activation.getActivationId());
@@ -359,9 +373,16 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("applicationId")) {
             callbackData.put("applicationId", activation.getApplication().getId());
         }
+        if (callbackUrlEntity.getAttributes().contains("additionalData") && activation.getAdditionalData() != null) {
+            try {
+                final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
+                callbackData.put("additionalData", additionalData);
+            } catch (JsonProcessingException e) {
+                logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
+            }
+        }
         return callbackData;
     }
-
 
     /**
      * Tries to asynchronously notify all operation callbacks that are registered for given application.
@@ -498,6 +519,32 @@ public class CallbackUrlBehavior {
      */
     private boolean isMaxAttemptsPositive(final CallbackUrlEntity callbackUrlEntity) {
         return callbackUrlEventService.obtainMaxAttempts(callbackUrlEntity) > 0;
+    }
+
+    /**
+     * Validate request so that the authentication configuration is valid.
+     * @param authentication Authentication.
+     * @param callbackUrl Callback URL.
+     * @throws GenericServiceException Thrown when request validation fails.
+     */
+    private void validateAuthenticationConfigRequest(HttpAuthenticationPrivate authentication, String callbackUrl) throws GenericServiceException {
+        if (authentication != null && authentication.getCertificate() != null) {
+            final HttpAuthenticationPrivate.Certificate certificate = authentication.getCertificate();
+
+            if (certificate.isUseCustomKeyStore() &&
+                    StringUtils.hasText(certificate.getKeyStoreLocation()) &&
+                    StringUtils.hasText(certificate.getKeyStoreContent())) {
+                logger.warn("Invalid keystore configuration for callback URL: {}", callbackUrl);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            if (certificate.isUseCustomTrustStore() &&
+                    StringUtils.hasText(certificate.getTrustStoreLocation()) &&
+                    StringUtils.hasText(certificate.getTrustStoreContent())) {
+                logger.warn("Invalid truststore configuration for callback URL: {}", callbackUrl);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+        }
     }
 
 }

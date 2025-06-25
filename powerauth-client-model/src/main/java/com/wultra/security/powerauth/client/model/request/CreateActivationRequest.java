@@ -18,10 +18,15 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Model class representing request for creating activation.
@@ -31,20 +36,55 @@ import java.util.Date;
 @Data
 public class CreateActivationRequest {
 
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when creating activation")
     private String userId;
+
+    @Schema(description = "Timestamp of activation expiration")
+    @Future(message = "The activation expiration timestamp must be in the future when creating activation")
     private Date timestampActivationExpire;
-    private boolean generateRecoveryCodes = true;
+
+    @Schema(description = "Whether recovery codes should be generated")
+    private boolean generateRecoveryCodes;
+
+    @Schema(description = "Maximum number of failures for the activation")
+    @Positive(message = "Maximum failure count must be positive when creating activation")
     private Long maxFailureCount;
+
+    @Schema(description = "Application key")
+    @NotBlank(message = "Application key must not be empty when creating activation")
     private String applicationKey;
+
+    @Schema(description = "Identifier of the temporary key for encryption")
     private String temporaryKeyId;
+
+    @Schema(description = "Ephemeral public key used in encryption")
+    @NotBlank(message = "Ephemeral public key must not be empty when creating activation")
     private String ephemeralPublicKey;
+
+    @Schema(description = "Encrypted data")
+    @NotBlank(message = "Encrypted data must not be empty when creating activation")
     private String encryptedData;
+
+    @Schema(description = "Value of MAC used in encryption")
+    @NotBlank(message = "Value of MAC must not be empty when creating activation")
     private String mac;
+
+    @Schema(description = "Nonce value")
     @ToString.Exclude
     private String nonce;
+
+    @Schema(description = "Activation OTP value")
     @ToString.Exclude
     private String activationOtp;
+
+    @Schema(description = "Cryptography protocol version")
+    @NotBlank(message = "Protocol version must not be empty when creating activation")
     private String protocolVersion;
+
+    @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
 
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
+    private Map<String, Object> additionalData;
 }

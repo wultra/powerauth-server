@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,12 +37,15 @@ import java.util.List;
 @NoArgsConstructor
 public class CreateApplicationConfigRequest {
 
-    @NotBlank
+    @Schema(description = "The identifier of the application")
+    @NotBlank(message = "Application ID must not be empty when creating an application configuration")
     private String applicationId;
 
-    @NotBlank
+    @Schema(description = "The configuration key")
+    @NotBlank(message = "The configuration key must not be empty when creating an application configuration")
     private String key;
 
+    @Schema(description = "The configuration values")
     private List<Object> values = new ArrayList<>();
 
 }

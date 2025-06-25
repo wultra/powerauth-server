@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -32,8 +33,11 @@ import java.util.Map;
 @Data
 public class TelemetryReportRequest {
 
-    @NotBlank
+    @Schema(description = "Telemetry report name")
+    @NotBlank(message = "Telemetry report name must not be empty when requesting telemetry report")
     private String name;
+
+    @Schema(description = "Telemetry report parameters")
     private Map<String, Object> parameters = new HashMap<>();
 
 }

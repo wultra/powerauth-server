@@ -95,13 +95,6 @@ public class OnlineSignatureServiceBehavior {
             if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
                 forcedSignatureVersion = 3;
             }
-
-            if (activationId == null || applicationKey == null || dataString == null
-                    || signature == null || signatureType == null || signatureVersion == null) {
-                logger.warn("Invalid request parameters in method verifySignature");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConvertor);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);

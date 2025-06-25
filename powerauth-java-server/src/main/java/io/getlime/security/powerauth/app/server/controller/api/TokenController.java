@@ -28,8 +28,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.TokenBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("tokenController")
 @RequestMapping("/rest/v3/token")
 @Tag(name = "PowerAuth Token Controller (V3)")
+@Validated
 @Slf4j
 public class TokenController {
 
@@ -61,10 +64,13 @@ public class TokenController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
-        logger.info("CreateTokenRequest received: {}", request);
-        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(request.getRequestObject()));
-        logger.info("CreateTokenRequest succeeded: {}", response);
+    public ObjectResponse<CreateTokenResponse> createToken(@Valid @RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
+        final CreateTokenRequest req = request.getRequestObject();
+        logger.info("action: createToken, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
+        logger.debug("action: createToken, state: initiated, request: {}", request);
+        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(req));
+        logger.info("action: createToken, state: succeeded");
+        logger.debug("action: createToken, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -76,10 +82,13 @@ public class TokenController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/validate")
-    public ObjectResponse<ValidateTokenResponse> validateToken(@RequestBody ObjectRequest<ValidateTokenRequest> request) throws Exception {
-        logger.info("ValidateTokenRequest received: {}", request);
-        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(request.getRequestObject()));
-        logger.info("ValidateTokenRequest succeeded: {}", response);
+    public ObjectResponse<ValidateTokenResponse> validateToken(@Valid @RequestBody ObjectRequest<ValidateTokenRequest> request) throws Exception {
+        final ValidateTokenRequest req = request.getRequestObject();
+        logger.info("action: validateToken, state: initiated, tokenId: {}, requestTimestamp: {}", req.getTokenId(), req.getTimestamp());
+        logger.debug("action: validateToken, state: initiated, request: {}", request);
+        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(req));
+        logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.getResponseObject().isTokenValid());
+        logger.debug("action: validateToken, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -91,10 +100,13 @@ public class TokenController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveTokenResponse> removeToken(@RequestBody ObjectRequest<RemoveTokenRequest> request) throws Exception {
-        logger.info("RemoveTokenRequest received: {}", request);
-        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>(service.removeToken(request.getRequestObject()));
-        logger.info("RemoveTokenRequest succeeded: {}", response);
+    public ObjectResponse<RemoveTokenResponse> removeToken(@Valid @RequestBody ObjectRequest<RemoveTokenRequest> request) throws Exception {
+        final RemoveTokenRequest req = request.getRequestObject();
+        logger.info("action: removeToken, state: initiated, tokenId: {}", req.getTokenId());
+        logger.debug("action: removeToken, state: initiated, request: {}", request);
+        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>(service.removeToken(req));
+        logger.info("action: removeToken, state: succeeded");
+        logger.debug("action: removeToken, state: succeeded, response: {}", response);
         return response;
     }
 

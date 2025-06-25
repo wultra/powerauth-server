@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,10 +30,8 @@ import lombok.Data;
 @Data
 public class OperationDetailRequest {
 
+    @Schema(description = "The identifier of the operation")
+    @NotBlank(message = "Operation ID must not be empty when requesting operation detail")
     private String operationId;
 
-    /**
-     * Optional user identifier of the user who is requesting the operation.
-     */
-    private String userId;
 }

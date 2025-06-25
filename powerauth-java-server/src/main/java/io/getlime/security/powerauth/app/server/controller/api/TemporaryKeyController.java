@@ -26,8 +26,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("temporaryKeyController")
 @RequestMapping("/rest/v3/keystore")
 @Tag(name = "PowerAuth ECIES Temporary Key Controller (V3)")
+@Validated
 @Slf4j
 public class TemporaryKeyController {
 
@@ -59,10 +62,13 @@ public class TemporaryKeyController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<TemporaryPublicKeyResponse> createTemporaryKey(@RequestBody ObjectRequest<TemporaryPublicKeyRequest> request) throws Exception {
-        logger.info("TemporaryPublicKeyRequest received: {}", request);
-        final ObjectResponse<TemporaryPublicKeyResponse> response = new ObjectResponse<>(service.requestTemporaryKey(request.getRequestObject()));
-        logger.info("TemporaryPublicKeyRequest succeeded: {}", response);
+    public ObjectResponse<TemporaryPublicKeyResponse> createTemporaryKey(@Valid @RequestBody ObjectRequest<TemporaryPublicKeyRequest> request) throws Exception {
+        final TemporaryPublicKeyRequest req = request.getRequestObject();
+        logger.info("action: createTemporaryKey, state: initiated");
+        logger.debug("action: createTemporaryKey, state: initiated, request: {}", request);
+        final ObjectResponse<TemporaryPublicKeyResponse> response = new ObjectResponse<>(service.requestTemporaryKey(req));
+        logger.info("action: createTemporaryKey, state: succeeded");
+        logger.debug("action: createTemporaryKey, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -73,10 +79,13 @@ public class TemporaryKeyController {
      * @return Response with deletion result.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveTemporaryPublicKeyResponse> deleteTemporaryKey(@RequestBody ObjectRequest<RemoveTemporaryPublicKeyRequest> request) {
-        logger.info("RemoveTemporaryPublicKeyRequest received: {}", request);
-        final ObjectResponse<RemoveTemporaryPublicKeyResponse> response = new ObjectResponse<>(service.removeTemporaryKey(request.getRequestObject()));
-        logger.info("RemoveTemporaryPublicKeyRequest succeeded: {}", response);
+    public ObjectResponse<RemoveTemporaryPublicKeyResponse> deleteTemporaryKey(@Valid @RequestBody ObjectRequest<RemoveTemporaryPublicKeyRequest> request) {
+        final RemoveTemporaryPublicKeyRequest req = request.getRequestObject();
+        logger.info("action: deleteTemporaryKey, state: initiated, temporaryKeyId: {}", req.getId());
+        logger.debug("action: deleteTemporaryKey, state: initiated, request: {}", request);
+        final ObjectResponse<RemoveTemporaryPublicKeyResponse> response = new ObjectResponse<>(service.removeTemporaryKey(req));
+        logger.info("action: deleteTemporaryKey, state: succeeded");
+        logger.debug("action: deleteTemporaryKey, state: succeeded, response: {}", response);
         return response;
     }
 

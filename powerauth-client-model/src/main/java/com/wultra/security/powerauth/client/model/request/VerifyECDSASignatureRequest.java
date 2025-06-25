@@ -19,6 +19,9 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
@@ -30,10 +33,20 @@ import lombok.ToString;
 @Data
 public class VerifyECDSASignatureRequest {
 
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when verifying signature")
     private String activationId;
+
+    @Schema(description = "Signed data")
+    @NotNull(message = "Data must not be null when verifying signature")
     private String data;
+
+    @Schema(description = "Signature")
+    @NotBlank(message = "Signature must not be empty when verifying signature")
     @ToString.Exclude
     private String signature;
-    private ECDSASignatureFormat signatureFormat;
+
+    @Schema(description = "Signature format")
+    private ECDSASignatureFormat signatureFormat = ECDSASignatureFormat.DER;
 
 }

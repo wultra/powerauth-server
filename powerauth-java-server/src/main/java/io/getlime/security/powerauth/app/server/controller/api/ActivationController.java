@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("activationController")
 @RequestMapping("/rest/v3/activation")
 @Tag(name = "PowerAuth Activation Controller (V3)")
+@Validated
 @Slf4j
 public class ActivationController {
 
@@ -58,10 +60,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/init")
-    public ObjectResponse<InitActivationResponse> initActivation(@RequestBody ObjectRequest<InitActivationRequest> request) throws Exception {
-        logger.info("InitActivationRequest received: {}", request);
-        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(request.getRequestObject()));
-        logger.info("InitActivationRequest succeeded: {}", response);
+    public ObjectResponse<InitActivationResponse> initActivation(@Valid @RequestBody ObjectRequest<InitActivationRequest> request) throws Exception {
+        final InitActivationRequest req = request.getRequestObject();
+        logger.info("action: initActivation, state: initiated, userId: {}, application: {}", req.getUserId(), req.getApplicationId());
+        logger.debug("action: initActivation, state: initiated, request: {}", request);
+        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(req));
+        logger.info("action: initActivation, state: succeeded");
+        logger.debug("action: initActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -73,10 +78,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/prepare")
-    public ObjectResponse<PrepareActivationResponse> prepareActivation(@RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
-        logger.info("PrepareActivationRequest received: {}", request);
-        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(request.getRequestObject()));
-        logger.info("PrepareActivationRequest succeeded");
+    public ObjectResponse<PrepareActivationResponse> prepareActivation(@Valid @RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
+        final PrepareActivationRequest req = request.getRequestObject();
+        logger.info("action: prepareActivation, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
+        logger.debug("action: prepareActivation, state: initiated, request: {}", request);
+        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(req));
+        logger.info("action: prepareActivation, state: succeeded");
+        logger.debug("action: prepareActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -88,10 +96,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
-        logger.info("CreateActivationRequest received: {}", request);
-        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(request.getRequestObject()));
-        logger.info("CreateActivationRequest succeeded: {}", response);
+    public ObjectResponse<CreateActivationResponse> createActivation(@Valid @RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
+        final CreateActivationRequest req = request.getRequestObject();
+        logger.info("action: createActivation, state: initiated, userId: {}, applicationKey: {}, requestTimestamp: {}", req.getUserId(), req.getApplicationKey(), req.getTimestamp());
+        logger.debug("action: createActivation, state: initiated, request: {}", request);
+        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(req));
+        logger.info("action: createActivation, state: succeeded");
+        logger.debug("action: createActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -103,10 +114,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/recovery/create")
-    public ObjectResponse<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody ObjectRequest<RecoveryCodeActivationRequest> request) throws Exception {
-        logger.info("RecoveryCodeActivationRequest received: {}", request);
-        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(request.getRequestObject()));
-        logger.info("RecoveryCodeActivationRequest succeeded: {}", response);
+    public ObjectResponse<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@Valid @RequestBody ObjectRequest<RecoveryCodeActivationRequest> request) throws Exception {
+        final RecoveryCodeActivationRequest req = request.getRequestObject();
+        logger.info("action: createActivationUsingRecoveryCode, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
+        logger.debug("action: createActivationUsingRecoveryCode, state: initiated, request: {}", request);
+        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(req));
+        logger.info("action: createActivationUsingRecoveryCode, state: succeeded");
+        logger.debug("action: createActivationUsingRecoveryCode, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -118,10 +132,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/otp/update")
-    public ObjectResponse<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody ObjectRequest<UpdateActivationOtpRequest> request) throws Exception {
-        logger.info("UpdateActivationOtpRequest received: {}", request);
-        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationOtp(request.getRequestObject()));
-        logger.info("UpdateActivationOtpRequest succeeded: {}", response);
+    public ObjectResponse<UpdateActivationOtpResponse> updateActivationOtp(@Valid @RequestBody ObjectRequest<UpdateActivationOtpRequest> request) throws Exception {
+        final UpdateActivationOtpRequest req = request.getRequestObject();
+        logger.info("action: updateActivationOtp, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: updateActivationOtp, state: initiated, request: {}", request);
+        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationOtp(req));
+        logger.info("action: updateActivationOtp, state: succeeded");
+        logger.debug("action: updateActivationOtp, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -133,10 +150,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/commit")
-    public ObjectResponse<CommitActivationResponse> commitActivation(@RequestBody ObjectRequest<CommitActivationRequest> request) throws Exception {
-        logger.info("CommitActivationRequest received: {}", request);
-        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.commitActivation(request.getRequestObject()));
-        logger.info("CommitActivationRequest succeeded: {}", response);
+    public ObjectResponse<CommitActivationResponse> commitActivation(@Valid @RequestBody ObjectRequest<CommitActivationRequest> request) throws Exception {
+        final CommitActivationRequest req = request.getRequestObject();
+        logger.info("action: commitActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: commitActivation, state: initiated, request: {}", request);
+        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.commitActivation(req));
+        logger.info("action: commitActivation, state: succeeded");
+        logger.debug("action: commitActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -148,10 +168,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/status")
-    public ObjectResponse<GetActivationStatusResponse> getActivationStatus(@RequestBody ObjectRequest<GetActivationStatusRequest> request) throws Exception {
-        logger.info("GetActivationStatusRequest received: {}", request);
-        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(request.getRequestObject()));
-        logger.info("GetActivationStatusResponse succeeded: {}", response);
+    public ObjectResponse<GetActivationStatusResponse> getActivationStatus(@Valid @RequestBody ObjectRequest<GetActivationStatusRequest> request) throws Exception {
+        final GetActivationStatusRequest req = request.getRequestObject();
+        logger.info("action: getActivationStatus, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: getActivationStatus, state: initiated, request: {}", request);
+        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(req));
+        logger.info("action: getActivationStatus, state: succeeded");
+        logger.debug("action: getActivationStatus, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -163,10 +186,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/block")
-    public ObjectResponse<BlockActivationResponse> blockActivation(@RequestBody ObjectRequest<BlockActivationRequest> request) throws Exception {
-        logger.info("BlockActivationRequest received: {}", request);
-        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.blockActivation(request.getRequestObject()));
-        logger.info("BlockActivationRequest succeeded: {}", response);
+    public ObjectResponse<BlockActivationResponse> blockActivation(@Valid @RequestBody ObjectRequest<BlockActivationRequest> request) throws Exception {
+        final BlockActivationRequest req = request.getRequestObject();
+        logger.info("action: blockActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: blockActivation, state: initiated, request: {}", request);
+        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.blockActivation(req));
+        logger.info("action: blockActivation, state: succeeded");
+        logger.debug("action: blockActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -178,10 +204,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/unblock")
-    public ObjectResponse<UnblockActivationResponse> unblockActivation(@RequestBody ObjectRequest<UnblockActivationRequest> request) throws Exception {
-        logger.info("UnblockActivationRequest received: {}", request);
-        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.unblockActivation(request.getRequestObject()));
-        logger.info("UnblockActivationRequest succeeded: {}", response);
+    public ObjectResponse<UnblockActivationResponse> unblockActivation(@Valid @RequestBody ObjectRequest<UnblockActivationRequest> request) throws Exception {
+        final UnblockActivationRequest req = request.getRequestObject();
+        logger.info("action: unblockActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: unblockActivation, state: initiated, request: {}", request);
+        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.unblockActivation(req));
+        logger.info("action: unblockActivation, state: succeeded");
+        logger.debug("action: unblockActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -193,10 +222,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveActivationResponse> removeActivation(@RequestBody ObjectRequest<RemoveActivationRequest> request) throws Exception {
-        logger.info("RemoveActivationRequest received: {}", request);
-        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.removeActivation(request.getRequestObject()));
-        logger.info("RemoveActivationRequest succeeded: {}", response);
+    public ObjectResponse<RemoveActivationResponse> removeActivation(@Valid @RequestBody ObjectRequest<RemoveActivationRequest> request) throws Exception {
+        final RemoveActivationRequest req = request.getRequestObject();
+        logger.info("action: removeActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: removeActivation, state: initiated, request: {}", request);
+        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.removeActivation(req));
+        logger.info("action: removeActivation, state: succeeded");
+        logger.debug("action: removeActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -210,10 +242,13 @@ public class ActivationController {
      * @throws Exception In case the service throws an exception, it will be propagated and should be handled by the caller.
      */
     @PostMapping("/list")
-    public ObjectResponse<GetActivationListForUserResponse> getActivationListForUser(@RequestBody ObjectRequest<GetActivationListForUserRequest> request) throws Exception {
-        logger.info("GetActivationListForUserRequest received: {}", request);
-        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationList(request.getRequestObject()));
-        logger.info("GetActivationListForUserRequest succeeded: {}", response);
+    public ObjectResponse<GetActivationListForUserResponse> getActivationListForUser(@Valid @RequestBody ObjectRequest<GetActivationListForUserRequest> request) throws Exception {
+        final GetActivationListForUserRequest req = request.getRequestObject();
+        logger.info("action: getActivationListForUser, state: initiated, userId: {}", req.getUserId());
+        logger.debug("action: getActivationListForUser, state: initiated, request: {}", request);
+        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationList(req));
+        logger.info("action: getActivationListForUser, state: succeeded");
+        logger.debug("action: getActivationListForUser, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -226,9 +261,12 @@ public class ActivationController {
      */
     @PostMapping("/name/update")
     public ObjectResponse<UpdateActivationNameResponse> updateActivation(@Valid @RequestBody ObjectRequest<UpdateActivationNameRequest> request) throws Exception {
-        logger.info("UpdateActivationRequest call received: {}", request);
-        final ObjectResponse<UpdateActivationNameResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationName(request.getRequestObject()));
-        logger.info("UpdateActivationRequest succeeded: {}", response);
+        final UpdateActivationNameRequest req = request.getRequestObject();
+        logger.info("action: updateActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: updateActivation, state: initiated, request: {}", request);
+        final ObjectResponse<UpdateActivationNameResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationName(req));
+        logger.info("action: updateActivation, state: succeeded");
+        logger.debug("action: updateActivation, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -240,10 +278,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/lookup")
-    public ObjectResponse<LookupActivationsResponse> lookupActivations(@RequestBody ObjectRequest<LookupActivationsRequest> request) throws Exception {
-        logger.info("LookupActivationsRequest received: {}", request);
-        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(request.getRequestObject()));
-        logger.info("LookupActivationsRequest succeeded: {}", response);
+    public ObjectResponse<LookupActivationsResponse> lookupActivations(@Valid @RequestBody ObjectRequest<LookupActivationsRequest> request) throws Exception {
+        final LookupActivationsRequest req = request.getRequestObject();
+        logger.info("action: lookupActivations, state: initiated, userIds: {}", req.getUserIds());
+        logger.debug("action: lookupActivations, state: initiated, request: {}", request);
+        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(req));
+        logger.info("action: lookupActivations, state: succeeded");
+        logger.debug("action: lookupActivations, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -255,10 +296,13 @@ public class ActivationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/status/update")
-    public ObjectResponse<UpdateStatusForActivationsResponse> updateStatusForActivations(@RequestBody ObjectRequest<UpdateStatusForActivationsRequest> request) throws Exception {
-        logger.info("UpdateStatusForActivationsRequest received: {}", request);
-        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(request.getRequestObject()));
-        logger.info("UpdateStatusForActivationsRequest succeeded: {}", response);
+    public ObjectResponse<UpdateStatusForActivationsResponse> updateStatusForActivations(@Valid @RequestBody ObjectRequest<UpdateStatusForActivationsRequest> request) throws Exception {
+        final UpdateStatusForActivationsRequest req = request.getRequestObject();
+        logger.info("action: updateStatusForActivations, state: initiated, activationIds: {}", req.getActivationIds());
+        logger.debug("action: updateStatusForActivations, state: initiated, request: {}", request);
+        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(req));
+        logger.info("action: updateStatusForActivations, state: succeeded");
+        logger.debug("action: updateStatusForActivations, state: succeeded, response: {}", response);
         return response;
     }
 

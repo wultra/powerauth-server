@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
 
@@ -28,22 +31,56 @@ import lombok.ToString;
  */
 @Data
 public class RecoveryCodeActivationRequest {
+
+    @Schema(description = "Whether recovery codes should be generated")
     private Boolean generateRecoveryCodes;
+
+    @Schema(description = "Recovery code value used for activation")
+    @NotBlank(message = "Recovery code value must not be empty when creating activation using recovery code")
     @ToString.Exclude
     private String recoveryCode;
+
+    @Schema(description = "Recovery PUK value used for activation")
+    @NotBlank(message = "Recovery PUK value must not be empty when creating activation using recovery code")
     @ToString.Exclude
     private String puk;
+
+    @Schema(description = "Application key")
+    @NotBlank(message = "Application key must not be empty when creating activation using recovery code")
     private String applicationKey;
+
+    @Schema(description = "Maximum number of failures for the activation")
+    @Positive(message = "Maximum failure count must be positive when creating activation using recovery code")
     private Long maxFailureCount;
+
+    @Schema(description = "Identifier of the temporary key for encryption")
     private String temporaryKeyId;
+    @Schema(description = "Ephemeral public key used in encryption")
+
+    @NotBlank(message = "Ephemeral public key must not be empty when creating activation using recovery code")
     private String ephemeralPublicKey;
+
+    @Schema(description = "Encrypted data")
+    @NotBlank(message = "Encrypted data must not be empty when creating activation using recovery code")
     private String encryptedData;
+
+    @Schema(description = "Value of MAC used in encryption")
+    @NotBlank(message = "Value of MAC must not be empty when creating activation using recovery code")
     private String mac;
+
+    @Schema(description = "Nonce value")
     @ToString.Exclude
     private String nonce;
+
+    @Schema(description = "Activation OTP value")
     @ToString.Exclude
     private String activationOtp;
+
+    @Schema(description = "Cryptography protocol version")
+    @NotBlank(message = "Protocol version must not be empty when creating activation using recovery code")
     private String protocolVersion;
+
+    @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
 
 }

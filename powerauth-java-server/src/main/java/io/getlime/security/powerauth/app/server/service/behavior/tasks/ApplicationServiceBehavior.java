@@ -77,9 +77,6 @@ public class ApplicationServiceBehavior {
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
-            if (applicationId == null) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ApplicationEntity application = findApplicationById(applicationId);
             return createApplicationDetailResponse(application);
         } catch (GenericServiceException ex) {
@@ -137,11 +134,6 @@ public class ApplicationServiceBehavior {
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws GenericServiceException {
         try {
             final String applicationKey = request.getApplicationKey();
-            if (applicationKey == null) {
-                logger.warn("Invalid request parameter applicationKey in method lookupApplicationByAppKey");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
@@ -204,11 +196,6 @@ public class ApplicationServiceBehavior {
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method createApplication");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             // Check application duplicity
             if (applicationRepository.findById(applicationId).isPresent()) {
@@ -279,16 +266,6 @@ public class ApplicationServiceBehavior {
             logger.info("CreateApplicationVersionRequest received: {}", request);
             final String applicationId = request.getApplicationId();
             final String applicationVersionId = request.getApplicationVersionId();
-            if (applicationId == null) {
-                logger.warn("Invalid request parameter applicationId in method createApplicationVersion");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (applicationVersionId == null) {
-                logger.warn("Invalid request parameter applicationVersionId in method createApplicationVersion");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
 
             final ApplicationEntity application = findApplicationById(applicationId);
 

@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Date;
@@ -30,9 +32,17 @@ import java.util.Date;
 @Data
 public class SignatureAuditRequest {
 
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when requesting signature audit")
     private String userId;
+
+    @Schema(description = "The identifier of the application")
     private String applicationId;
+
+    @Schema(description = "The starting timestamp for filtering activation history")
     private Date timestampFrom;
+
+    @Schema(description = "The ending timestamp for filtering activation history")
     private Date timestampTo;
 
 }

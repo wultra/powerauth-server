@@ -68,11 +68,6 @@ public class ActivationFlagsServiceBehavior {
     public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
-            if (activationId == null || activationId.isEmpty()) {
-                logger.warn("Missing activation ID in listActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -105,16 +100,6 @@ public class ActivationFlagsServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final List<String> activationFlags = request.getActivationFlags();
-            if (activationId == null) {
-                logger.warn("Invalid request parameter activationId in method addActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (activationFlags == null || activationFlags.isEmpty()) {
-                logger.warn("Invalid request parameter activationFlags in method addActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -164,16 +149,6 @@ public class ActivationFlagsServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final List<String> activationFlags = request.getActivationFlags();
-            if (activationId == null || activationId.isEmpty()) {
-                logger.warn("Invalid request parameter activationId in method updateActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (activationFlags == null || activationFlags.isEmpty()) {
-                logger.warn("Invalid request parameter activationFlags in method updateActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
@@ -217,16 +192,6 @@ public class ActivationFlagsServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final List<String> activationFlags = request.getActivationFlags();
-            if (activationId == null || activationId.isEmpty()) {
-                logger.warn("Invalid request parameter activationId in method removeActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            if (activationFlags == null || activationFlags.isEmpty()) {
-                logger.warn("Invalid request parameter activationFlags in method removeActivationFlags");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database

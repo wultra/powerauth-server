@@ -88,6 +88,7 @@ The following `v3` methods are published using the service:
 - Operations
     - [createOperation](#method-createoperation)
     - [operationDetail](#method-operationdetail)
+    - [operationClaim](#method-operationclaim)
     - [findPendingOperationsForUser](#method-findpendingoperationsforuser)
     - [findAllOperationsForUser](#method-findalloperationsforuser)
     - [findAllOperationsByExternalId](#method-findalloperationsbyexternalid)
@@ -126,15 +127,15 @@ REST endpoint: `POST /rest/v3/status`
 
 `GetSystemStatusResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `status` | A constant value "OK". |
-| `String` | `applicationName` | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.
-| `String` | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
-| `String` | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property. |
-| `String` | `version` | Version of PowerAuth server. |
-| `String` | `buildTime` | Timestamp when the powerauth-server.war file was built. |
-| `DateTime` | `timestamp` | A current system timestamp. |
+| Type       | Name                     | Description                                                                                                                                                               |
+|------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`   | `status`                 | A constant value "OK".                                                                                                                                                    |
+| `String`   | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
+| `String`   | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
+| `String`   | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
+| `String`   | `version`                | Version of PowerAuth server.                                                                                                                                              |
+| `String`   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
+| `DateTime` | `timestamp`              | A current system timestamp.                                                                                                                                               |
 
 ### Method 'getErrorCodeList'
 
@@ -458,8 +459,9 @@ REST endpoint: `POST /rest/v3/activation/init`
 | `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                                                                                                                                                                                       |
 | `Long`                    | `maxFailureCount`           | How many failures are allowed for this activation                                                                                                                                                                                                     |
 | `ActivationOtpValidation` | `activationOtpValidation`   | *Deprecated* optional activation OTP validation mode, use the `activationOtp` parameter during activation init or activation commit to control the OTP check. Use the `commitPhase` parameter for specifying when the activation should be committed. |
-| `CommitPhase`             | `commitPhase`               | Optional parameter for for specifying when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                           |        
-| `String`                  | `activationOtp` | Optional activation OTP                                                                                                                                                                                                                               |
+| `CommitPhase`             | `commitPhase`               | Optional parameter to specify when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                                   |
+| `String`                  | `activationOtp`             | Optional activation OTP                                                                                                                                                                                                                               |
+| `Object`                  | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure                                                                                                                                                                 |
 
 This section describes how to change the activation commit flow:
 - By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
@@ -553,19 +555,20 @@ REST endpoint: `POST /rest/v3/activation/create`
 
 `CreateActivationRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | User ID |
-| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long` | `maxFailureCount` | How many failures are allowed for this activation |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
-| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
-| `String` | `activationOtp` | Optional activation OTP |
-| `String` | `protocolVersion` | Cryptography protocol version |
-| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
+| Type       | Name                        | Description                                                                           |
+|------------|-----------------------------|---------------------------------------------------------------------------------------|
+| `String`   | `userId`                    | User ID                                                                               |
+| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                       |
+| `Long`     | `maxFailureCount`           | How many failures are allowed for this activation                                     |
+| `String`   | `applicationKey`            | A key (identifier) of an application, associated with given application version       |
+| `String`   | `ephemeralPublicKey`        | A base64 encoded ephemeral public key for ECIES                                       |
+| `String`   | `encryptedData`             | Base64 encoded encrypted data for ECIES                                               |
+| `String`   | `mac`                       | Base64 encoded mac of key and data for ECIES                                          |
+| `String`   | `nonce`                     | Base64 encoded nonce for IV derivation for ECIES                                      |
+| `String`   | `activationOtp`             | Optional activation OTP                                                               |
+| `String`   | `protocolVersion`           | Cryptography protocol version                                                         |
+| `Long`     | `timestamp`                 | Unix timestamp in milliseconds for ECIES                                              |
+| `Object`   | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -695,31 +698,32 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name                         | Description                                                                             |
-|---------------------------|------------------------------|-----------------------------------------------------------------------------------------|
-| `String`                  | `activationId`               | An identifier of an activation                                                          |
-| `ActivationStatus`        | `activationStatus`           | An activation status                                                                    |
-| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                        |
-| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                  |
-| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                              |
-| `String`                  | `activationName`             | An activation name                                                                      |
-| `String`                  | `userId`                     | An identifier of a user                                                                 |
-| `String`                  | `extras`                     | Any custom attributes                                                                   |
-| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                         |
-| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                        |
-| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                            |
-| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                            |
-| `String[]`                | `activationFlags`            | Activation flags                                                                        |
-| `String`                  | `applicationId`              | An identifier fo an application                                                         |
-| `String[]`                | `applicationRoles`           | Application roles                                                                       |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                             |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                           |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                            |
-| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                               |
+| Type                      | Name                         | Description                                                                               |
+|---------------------------|------------------------------|-------------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                            |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                      |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                          |
+| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                    |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                |
+| `String`                  | `activationName`             | An activation name                                                                        |
+| `String`                  | `userId`                     | An identifier of a user                                                                   |
+| `String`                  | `extras`                     | Any custom attributes set through SDK                                                     |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                           |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                          |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                              |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
+| `String[]`                | `activationFlags`            | Activation flags                                                                          |
+| `String`                  | `applicationId`              | An identifier fo an application                                                           |
+| `String[]`                | `applicationRoles`           | Application roles                                                                         |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                 |
 | `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                      |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification   |
-| `Long`                    | `version`                    | Activation version                                                                      |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
+| `Long`                    | `version`                    | Activation version                                                                        |
+| `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure     |
 
 ### Method 'removeActivation'
 
@@ -775,22 +779,23 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserResponse.Activation`
 
-| Type               | Name | Description |
-|--------------------|------|-------------|
-| `String`           | `activationId` | An identifier of an activation |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String`           | `activationName` | An activation name |
-| `String`           | `extras` | Any custom attributes |
-| `String`           | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String`           | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]`         | `activationFlags` | Activation flags |
-| `DateTime`         | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime`         | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change |
-| `String`           | `userId` | An identifier of a user |
-| `String`           | `applicationId` | An identifier fo an application |
-| `Long`             | `version` | Activation version |
+| Type               | Name                  | Description                                                                            |
+|--------------------|-----------------------|----------------------------------------------------------------------------------------|
+| `String`           | `activationId`        | An identifier of an activation                                                         |
+| `ActivationStatus` | `activationStatus`    | An activation status                                                                   |
+| `String`           | `blockedReason`       | Reason why activation was blocked (default: NOT_SPECIFIED)                             |
+| `String`           | `activationName`      | An activation name                                                                     |
+| `String`           | `extras`              | Any custom attributes set through SDK                                                  |
+| `String`           | `platform`            | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                        |
+| `String`           | `deviceInfo`          | Information about user device, e.g. `iPhone12,3`                                       |
+| `String[]`         | `activationFlags`     | Activation flags                                                                       |
+| `DateTime`         | `timestampCreated`    | A timestamp when the activation was created                                            |
+| `DateTime`         | `timestampLastUsed`   | A timestamp when the activation was last used                                          |
+| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change                                           |
+| `String`           | `userId`              | An identifier of a user                                                                |
+| `String`           | `applicationId`       | An identifier fo an application                                                        |
+| `Long`             | `version`             | Activation version                                                                     |
+| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure  |
 
 ### Method 'blockActivation'
 
@@ -869,22 +874,23 @@ REST endpoint: `POST /rest/v3/activation/lookup`
 
 `LookupActivationsResponse.Activation`
 
-| Type               | Name | Description |
-|--------------------|------|-------------|
-| `String`           | `activationId` | An identifier of an activation |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String`           | `activationName` | An activation name |
-| `String`           | `extras` | Any custom attributes |
-| `String`           | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String`           | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]`         | `activationFlags` | Activation flags |
-| `DateTime`         | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime`         | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change |
-| `String`           | `userId` | An identifier of a user |
-| `String`           | `applicationId` | An identifier fo an application |
-| `Long`             | `version` | Activation version |
+| Type               | Name                  | Description                                                                            |
+|--------------------|-----------------------|----------------------------------------------------------------------------------------|
+| `String`           | `activationId`        | An identifier of an activation                                                         |
+| `ActivationStatus` | `activationStatus`    | An activation status                                                                   |
+| `String`           | `blockedReason`       | Reason why activation was blocked (default: NOT_SPECIFIED)                             |
+| `String`           | `activationName`      | An activation name                                                                     |
+| `String`           | `extras`              | Any custom attributes set through SDK                                                  |
+| `String`           | `platform`            | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                        |
+| `String`           | `deviceInfo`          | Information about user device, e.g. `iPhone12,3`                                       |
+| `String[]`         | `activationFlags`     | Activation flags                                                                       |
+| `DateTime`         | `timestampCreated`    | A timestamp when the activation was created                                            |
+| `DateTime`         | `timestampLastUsed`   | A timestamp when the activation was last used                                          |
+| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change                                           |
+| `String`           | `userId`              | An identifier of a user                                                                |
+| `String`           | `applicationId`       | An identifier fo an application                                                        |
+| `Long`             | `version`             | Activation version                                                                     |
+| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure  |
 
 ### Method 'updateStatusForActivations'
 
@@ -1449,11 +1455,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "useCustomKeyStore": false,
     "keyStoreLocation": "[keystore resource location]",
+    "keyStoreContent": "[keystore content encoded in Base64]",
     "keyStorePassword": "[keystore password]",
     "keyAlias": "[key alias]",
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
-    "trustStoreLocation": "[truststore resource location]", 
+    "trustStoreLocation": "[truststore resource location]",
+    "trustStoreContent": "[truststore content encoded in Base64]",
     "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
@@ -1548,11 +1556,13 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "enabled": false,
     "useCustomKeyStore": false,
     "keyStoreLocation": "[keystore resource location]",
+    "keyStoreContent": "[keystore content encoded in Base64]",
     "keyStorePassword": "[keystore password]",
     "keyAlias": "[key alias]",
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
-    "trustStoreLocation": "[truststore resource location]", 
+    "trustStoreLocation": "[truststore resource location]",
+    "trustStoreContent": "[truststore content encoded in Base64]",
     "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
@@ -1569,6 +1579,8 @@ The `authentication` parameter contains a JSON-based configuration for client TL
   }
 }
 ```
+
+In case you do not want to modify the already set `keyStoreContent` or `trustStoreContent`, send a `null` value in request. For removing the existing `keyStoreContent` or `trustStoreContent` use an empty string.
 
 
 #### Response
@@ -2232,10 +2244,49 @@ REST endpoint: `POST /rest/v3/operation/detail`
 
 `OperationDetailRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name          | Description                     |
+|----------|---------------|---------------------------------|
 | `String` | `operationId` | The identifier of the operation |
-| `String` | `userId` | Optional user identifier of the user, used for operation claim. |
+
+#### Response
+
+`OperationDetailResponse`
+
+| Type                  | Name                 | Description                                                                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system                                                           |
+| `String`              | `operationType`      | Type of the operation created based on the template                                                                              |
+| `String`              | `data`               | Operation data                                                                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                                                                |
+| `OperationStatus`     | `status`             | Status of the operation                                                                                                          |
+| `String`              | `statusReason`       | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                                                                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                                                                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                                                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                                                                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status                                                             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.                                                           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                                                                         |
+
+### Method 'operationClaim'
+
+Claim the operation for a user.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/claim`
+
+`OperationClaimRequest`
+
+| Type     | Name          | Description                                            |
+|----------|---------------|--------------------------------------------------------|
+| `String` | `operationId` | The identifier of the operation                        |
+| `String` | `userId`      | User identifier of the user, used for operation claim. |
 
 #### Response
 

@@ -26,14 +26,15 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.UniqueValueParam;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -101,12 +102,6 @@ public class EciesEncryptionBehavior {
     @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
         try {
-            if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
-                logger.warn("Invalid request parameters in method getEciesDecryptor");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             if (request.getActivationId() == null) {
                 // Application scope
                 return getEciesDecryptorParametersForApplication(request);
@@ -134,12 +129,6 @@ public class EciesEncryptionBehavior {
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
-        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
-            logger.warn("Invalid request for ECIES decryptor");
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-
         try {
             // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
@@ -149,18 +138,19 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
+            final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
+            final String applicationKey = request.getApplicationKey();
+
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, request.getEphemeralPublicKey(), request.getNonce(), temporaryKeyId, applicationKey);
             if (request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion,
                         new Date(request.getTimestamp()),
-                        request.getEphemeralPublicKey(),
-                        request.getNonce(),
-                        null,
-                        request.getProtocolVersion());
+                        uniqueValueParam
+                );
             }
 
-            final String temporaryKeyId = request.getTemporaryKeyId();
             final PrivateKey privateKey;
             if (temporaryKeyId != null) {
                 // Get the temporary private key
@@ -240,11 +230,6 @@ public class EciesEncryptionBehavior {
         final String nonce = request.getNonce();
         final String protocolVersion = request.getProtocolVersion();
 
-        if (applicationKey == null || ephemeralPublicKey == null) {
-            logger.warn("Invalid request for ECIES decryptor");
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -255,15 +240,14 @@ public class EciesEncryptionBehavior {
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, ephemeralPublicKey, nonce, temporaryKeyId, activationId);
             if (timestamp != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        protocolVersion,
                         new Date(timestamp),
-                        ephemeralPublicKey,
-                        nonce,
-                        activation.getActivationId(),
-                        protocolVersion);
+                        uniqueValueParam
+                );
             }
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);

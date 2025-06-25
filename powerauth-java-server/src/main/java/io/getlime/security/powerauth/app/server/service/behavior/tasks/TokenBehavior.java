@@ -43,8 +43,10 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
+import io.getlime.security.powerauth.app.server.service.model.UniqueValueParam;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -122,12 +124,6 @@ public class TokenBehavior {
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getActivationId() == null || request.getApplicationKey() == null) {
-                logger.warn("Invalid request parameters in method createToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String version = request.getProtocolVersion();
@@ -171,12 +167,6 @@ public class TokenBehavior {
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null || request.getProtocolVersion() == null) {
-                logger.warn("Invalid request parameters in method validateToken");
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             // Verify the token timestamp validity
             final long currentTimeMillis = System.currentTimeMillis();
             final long requestTimestamp = request.getTimestamp();
@@ -216,13 +206,15 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.MAC_TOKEN,
+                final UniqueValueParam param = new UniqueValueParam();
+                param.setUniqueValueType(UniqueValueType.MAC_TOKEN);
+                param.setEphemeralPublicKey(null);
+                param.setNonce(request.getNonce());
+                param.setIdentifier(tokenId);
+                replayVerificationService.checkAndPersistUniqueValue(request.getProtocolVersion(),
                         new Date(request.getTimestamp()),
-                        null,
-                        request.getNonce(),
-                        tokenId,
-                        request.getProtocolVersion());
+                        param
+                );
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
             }
@@ -267,12 +259,6 @@ public class TokenBehavior {
     @Transactional
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
         try {
-            if (request.getTokenId() == null) {
-                logger.warn("Invalid request parameter tokenId in method removeToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-
             final String tokenId = request.getTokenId();
             boolean removed = false;
 
@@ -306,13 +292,13 @@ public class TokenBehavior {
      * @param applicationKey Application key.
      * @param encryptedRequest Encrypted request.
      * @param signatureType Signature type.
-     * @param version Protocol version.
+     * @param protocolVersion Protocol version.
      * @param keyConversion Key conversion utility class.
      * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
     private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
-                                          String signatureType, String version, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
+                                          String signatureType, String protocolVersion, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -325,15 +311,14 @@ public class TokenBehavior {
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
+            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        protocolVersion,
                         new Date(encryptedRequest.getTimestamp()),
-                        encryptedRequest.getEphemeralPublicKey(),
-                        encryptedRequest.getNonce(),
-                        activationId,
-                        version);
+                        uniqueValueParam
+                );
             }
 
             // Get the server private key, decrypt it if required
@@ -359,7 +344,7 @@ public class TokenBehavior {
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.CREATE_TOKEN,
-                    new EncryptorParameters(version, applicationKey, activationId, temporaryKeyId),
+                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
                     new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.

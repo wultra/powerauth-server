@@ -23,8 +23,10 @@ import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController("RecoveryController")
 @RequestMapping("/rest/v3/recovery")
 @Tag(name = "PowerAuth Controller V3")
+@Validated
 @Slf4j
 public class RecoveryController {
 
@@ -56,10 +59,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody ObjectRequest<CreateRecoveryCodeRequest> request) throws Exception {
-        logger.info("CreateRecoveryCodeRequest received: {}", request);
-        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>(service.createRecoveryCode(request.getRequestObject()));
-        logger.info("CreateRecoveryCodeRequest succeeded: {}", response);
+    public ObjectResponse<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@Valid @RequestBody ObjectRequest<CreateRecoveryCodeRequest> request) throws Exception {
+        final CreateRecoveryCodeRequest req = request.getRequestObject();
+        logger.info("action: createRecoveryCodeForUser, state: initiated, applicationId: {}, userId: {}", req.getApplicationId(), req.getUserId());
+        logger.debug("action: createRecoveryCodeForUser, state: initiated, request: {}", request);
+        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>(service.createRecoveryCode(req));
+        logger.info("action: createRecoveryCodeForUser, state: succeeded");
+        logger.debug("action: createRecoveryCodeForUser, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -71,10 +77,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/confirm")
-    public ObjectResponse<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@RequestBody ObjectRequest<ConfirmRecoveryCodeRequest> request) throws Exception {
-        logger.info("ConfirmRecoveryCodeRequest received: {}", request);
-        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(request.getRequestObject()));
-        logger.info("ConfirmRecoveryCodeRequest succeeded: {}", response);
+    public ObjectResponse<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@Valid @RequestBody ObjectRequest<ConfirmRecoveryCodeRequest> request) throws Exception {
+        final ConfirmRecoveryCodeRequest req = request.getRequestObject();
+        logger.info("action: confirmRecoveryCode, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
+        logger.debug("action: confirmRecoveryCode, state: initiated, request: {}", request);
+        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(req));
+        logger.info("action: confirmRecoveryCode, state: succeeded");
+        logger.debug("action: confirmRecoveryCode, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -86,10 +95,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/lookup")
-    public ObjectResponse<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@RequestBody ObjectRequest<LookupRecoveryCodesRequest> request) throws Exception {
-        logger.info("LookupRecoveryCodesRequest received: {}", request);
-        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(request.getRequestObject()));
-        logger.info("LookupRecoveryCodesRequest succeeded: {}", response);
+    public ObjectResponse<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@Valid @RequestBody ObjectRequest<LookupRecoveryCodesRequest> request) throws Exception {
+        final LookupRecoveryCodesRequest req = request.getRequestObject();
+        logger.info("action: lookupRecoveryCodesRequest, state: initiated, userId: {}, activationId: {}, applicationId: {}", req.getUserId(), req.getActivationId(), req.getApplicationId());
+        logger.debug("action: lookupRecoveryCodesRequest, state: initiated, request: {}", request);
+        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(req));
+        logger.info("action: lookupRecoveryCodesRequest, state: succeeded");
+        logger.debug("action: lookupRecoveryCodesRequest, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -101,10 +113,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/revoke")
-    public ObjectResponse<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@RequestBody ObjectRequest<RevokeRecoveryCodesRequest> request) throws Exception {
-        logger.info("RevokeRecoveryCodesRequest received: {}", request);
-        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>(service.revokeRecoveryCodes(request.getRequestObject()));
-        logger.info("RevokeRecoveryCodesRequest succeeded: {}", response);
+    public ObjectResponse<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@Valid @RequestBody ObjectRequest<RevokeRecoveryCodesRequest> request) throws Exception {
+        final RevokeRecoveryCodesRequest req = request.getRequestObject();
+        logger.info("action: revokeRecoveryCodesRequest, state: initiated, recoveryCodeIds: {}", req.getRecoveryCodeIds());
+        logger.debug("action: revokeRecoveryCodesRequest, state: initiated, request: {}", request);
+        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>(service.revokeRecoveryCodes(req));
+        logger.info("action: revokeRecoveryCodesRequest, state: succeeded");
+        logger.debug("action: revokeRecoveryCodesRequest, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -116,10 +131,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/config/detail")
-    public ObjectResponse<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody ObjectRequest<GetRecoveryConfigRequest> request) throws Exception {
-        logger.info("GetRecoveryConfigRequest received: {}", request);
-        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>(service.getRecoveryConfig(request.getRequestObject()));
-        logger.info("GetRecoveryConfigRequest succeeded: {}", response);
+    public ObjectResponse<GetRecoveryConfigResponse> getRecoveryConfig(@Valid @RequestBody ObjectRequest<GetRecoveryConfigRequest> request) throws Exception {
+        final GetRecoveryConfigRequest req = request.getRequestObject();
+        logger.info("action: getRecoveryConfig, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: getRecoveryConfig, state: initiated, request: {}", request);
+        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>(service.getRecoveryConfig(req));
+        logger.info("action: getRecoveryConfig, state: succeeded");
+        logger.debug("action: getRecoveryConfig, state: succeeded, response: {}", response);
         return response;
     }
 
@@ -131,10 +149,13 @@ public class RecoveryController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/config/update")
-    public ObjectResponse<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody ObjectRequest<UpdateRecoveryConfigRequest> request) throws Exception {
-        logger.info("UpdateRecoveryConfigRequest received: {}", request);
-        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>(service.updateRecoveryConfig(request.getRequestObject()));
-        logger.info("UpdateRecoveryConfigRequest succeeded: {}", response);
+    public ObjectResponse<UpdateRecoveryConfigResponse> updateRecoveryConfig(@Valid @RequestBody ObjectRequest<UpdateRecoveryConfigRequest> request) throws Exception {
+        final UpdateRecoveryConfigRequest req = request.getRequestObject();
+        logger.info("action: updateRecoveryConfig, state: initiated, applicationId: {}", req.getApplicationId());
+        logger.debug("action: updateRecoveryConfig, state: initiated, request: {}", request);
+        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>(service.updateRecoveryConfig(req));
+        logger.info("action: updateRecoveryConfig, state: succeeded");
+        logger.debug("action: updateRecoveryConfig, state: succeeded, response: {}", response);
         return response;
     }
 

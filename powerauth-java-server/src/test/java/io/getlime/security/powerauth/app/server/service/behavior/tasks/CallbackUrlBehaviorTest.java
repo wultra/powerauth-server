@@ -44,6 +44,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -245,8 +246,38 @@ class CallbackUrlBehaviorTest {
         final RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlEntity.getId());
 
-        final RemoveCallbackUrlResponse response = tested.removeCallbackUrl(request);
+        tested.removeCallbackUrl(request);
         entityManager.flush();
     }
 
+    @Test
+    void testPrepareCallbackDataActivation_withAdditionalData() {
+        final CallbackUrlEntity callbackUrlEntity = new CallbackUrlEntity();
+        callbackUrlEntity.setAttributes(List.of("additionalData"));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setActivationId("activation-123");
+        activation.setAdditionalData("""
+                {"foo":"bar"}
+                """);
+
+        final Map<String, Object> result = tested.prepareCallbackDataActivation(callbackUrlEntity, activation);
+
+        assertTrue(result.containsKey("additionalData"));
+        assertEquals(Map.of("foo", "bar"), result.get("additionalData"));
+    }
+
+    @Test
+    void testPrepareCallbackDataActivation_withAdditionalData_invalid() {
+        final CallbackUrlEntity callbackUrlEntity = new CallbackUrlEntity();
+        callbackUrlEntity.setAttributes(List.of("additionalData"));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setActivationId("activation-123");
+        activation.setAdditionalData("invalid json");
+
+        final Map<String, Object> result = tested.prepareCallbackDataActivation(callbackUrlEntity, activation);
+
+        assertFalse(result.containsKey("additionalData"));
+    }
 }

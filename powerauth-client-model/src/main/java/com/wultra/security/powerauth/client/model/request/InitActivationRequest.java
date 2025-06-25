@@ -21,12 +21,18 @@ package com.wultra.security.powerauth.client.model.request;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Model class representing request for initializing activation.
@@ -36,19 +42,43 @@ import java.util.List;
 @Data
 public class InitActivationRequest {
 
+    @Schema(description = "Activation protocol")
     private ActivationProtocol protocol = ActivationProtocol.POWERAUTH;
+
+    @Schema(description = "The identifier of the user")
+    @NotBlank(message = "User ID must not be empty when initiating activation")
     private String userId;
+
+    @Schema(description = "The identifier of the application")
+    @NotNull(message = "Application ID must not be null when initiating activation")
     private String applicationId;
+
+    @Schema(description = "Timestamp of activation expiration")
+    @Future(message = "The activation expiration timestamp must be in the future when initiating activation")
     private Date timestampActivationExpire;
+
+    @Schema(description = "Maximum number of failures for the activation")
+    @Positive(message = "Maximum failure count must be positive when initiating activation")
     private Long maxFailureCount;
+
     /**
      * @deprecated use {@link #activationOtp} for enabling OTP check and {@link #commitPhase} for controlling activation commit
      */
+    @Schema(description = "Activation OTP validation strategy (deprecated)", deprecated = true)
     @Deprecated
     private ActivationOtpValidation activationOtpValidation;
+
+    @Schema(description = "Phase during which the activation is committed")
     private CommitPhase commitPhase;
+
+    @Schema(description = "Activation OTP value")
     @ToString.Exclude
     private String activationOtp;
-    private List<String> flags = new ArrayList<>();
+
+    @Schema(description = "List of activation flags")
+    private List<@NotBlank String> flags = new ArrayList<>();
+
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
+    private Map<String, Object> additionalData;
 
 }

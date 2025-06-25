@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.ToString;
 
@@ -29,13 +31,29 @@ import lombok.ToString;
 @Data
 public class GetEciesDecryptorRequest {
 
+    @Schema(description = "Activation identifier")
     private String activationId;
+
+    @Schema(description = "Application key")
+    @NotBlank(message = "Application key must not be empty when requesting ECIES decryptor")
     private String applicationKey;
+
+    @Schema(description = "Identifier of the temporary key for encryption")
     private String temporaryKeyId;
+
+    @Schema(description = "Ephemeral public key used in encryption")
+    @NotBlank(message = "Ephemeral public key must not be empty when requesting ECIES decryptor")
     private String ephemeralPublicKey;
+
+    @Schema(description = "Nonce value")
     @ToString.Exclude
     private String nonce;
+
+    @Schema(description = "Cryptography protocol version")
+    @NotBlank(message = "Protocol version must not be empty when requesting ECIES decryptor")
     private String protocolVersion;
+
+    @Schema(description = "Timestamp value used in encryption")
     private Long timestamp;
 
 }

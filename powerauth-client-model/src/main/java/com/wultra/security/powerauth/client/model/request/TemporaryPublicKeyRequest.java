@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,6 +30,8 @@ import lombok.Data;
 @Data
 public class TemporaryPublicKeyRequest {
 
+    @Schema(description = "JWT claims for the temporary public key request")
+    @NotBlank(message = "Parameter jwt must not be empty when requesting temporary public key")
     private String jwt;
 
 }

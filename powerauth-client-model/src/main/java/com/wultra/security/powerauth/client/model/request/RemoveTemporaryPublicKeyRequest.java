@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,6 +30,8 @@ import lombok.Data;
 @Data
 public class RemoveTemporaryPublicKeyRequest {
 
+    @Schema(description = "Temporary public key identifier")
+    @NotBlank(message = "Temporary public key identifier must not be empty when removing a temporary public key")
     private String id;
 
 }

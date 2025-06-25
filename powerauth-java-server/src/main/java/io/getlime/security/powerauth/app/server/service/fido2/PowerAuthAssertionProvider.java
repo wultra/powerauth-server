@@ -31,10 +31,7 @@ import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
-import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationFailApprovalRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
@@ -132,6 +129,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             }
             final String operationId = split[0];
             final String operationData = split[1];
+
+            // Claim operation to set user ID for this operation before approval
+            final OperationClaimRequest claimRequest = new OperationClaimRequest();
+            claimRequest.setOperationId(operationId);
+            claimRequest.setUserId(authenticatorDetail.getUserId());
+            operationServiceBehavior.operationClaim(claimRequest);
 
             final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
             operationApproveRequest.setOperationId(operationId);
@@ -277,7 +280,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final Map<String, Object> additionalData = new LinkedHashMap<>();
         additionalData.put(ATTR_ACTIVATION_ID, authenticatorDetail.getActivationId());
         additionalData.put(ATTR_APPLICATION_ID, authenticatorDetail.getApplicationId());
-        additionalData.put(ATTR_CREDENTIAL_ID, authenticatorData.getAttestedCredentialData().getCredentialId());
+        additionalData.put(ATTR_CREDENTIAL_ID, authenticatorDetail.getCredentialId());
         additionalData.put(ATTR_AUTH_FACTOR, supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
         additionalData.put(ATTR_ORIGIN, clientDataJSON.getOrigin());
         additionalData.put(ATTR_TOP_ORIGIN, clientDataJSON.getTopOrigin());

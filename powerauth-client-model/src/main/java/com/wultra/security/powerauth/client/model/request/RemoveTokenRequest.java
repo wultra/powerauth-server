@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,7 +30,12 @@ import lombok.Data;
 @Data
 public class RemoveTokenRequest {
 
+    @Schema(description = "Token identifier")
+    @NotBlank(message = "Token ID must not be empty when removing token")
     private String tokenId;
+
+    @Schema(description = "Activation identifier")
+    @NotBlank(message = "Activation ID must not be empty when removing token")
     private String activationId;
 
 }

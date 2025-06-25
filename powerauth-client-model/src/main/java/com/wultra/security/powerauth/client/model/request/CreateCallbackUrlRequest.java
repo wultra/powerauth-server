@@ -39,31 +39,38 @@ import java.util.List;
 @Data
 public class CreateCallbackUrlRequest {
 
-    @NotBlank
+    @Schema(description = "The identifier of the application")
+    @NotBlank(message = "Application ID must not be empty when creating a callback")
     private String applicationId;
 
-    @NotBlank
+    @Schema(description = "Callback name")
+    @NotBlank(message = "Callback name must not be empty when creating a callback")
     private String name;
 
-    @NotNull
+    @Schema(description = "Callback type")
+    @NotNull(message = "Callback type must not be null when creating a callback")
     private CallbackUrlType type;
 
-    @NotBlank
+    @Schema(description = "Callback URL")
+    @NotBlank(message = "Callback URL must not be empty when creating a callback")
     private String callbackUrl;
 
-    private List<String> attributes = new ArrayList<>();
+    @Schema(description = "Callback attributes")
+    private List<@NotBlank String> attributes = new ArrayList<>();
+
+    @Schema(description = "Callback authentication")
     private HttpAuthenticationPrivate authentication = new HttpAuthenticationPrivate();
 
     @DurationMin(message = "Duration must be positive or zero")
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "P30D")
+    @Schema(description = "Callback retention period", type = "string", format = "ISO 8601 Duration", example = "P30D")
     private Duration retentionPeriod;
 
     @DurationMin(message = "Duration must be positive or zero")
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    @Schema(description = "Initial backoff time for the callback", type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
     private Duration initialBackoff;
 
     @Min(1)
-    @Schema(type = "integer", example = "1")
+    @Schema(description = "Maximum attempts for executing the callback", type = "integer", example = "1")
     private Integer maxAttempts;
 
 }
