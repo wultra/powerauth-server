@@ -25,17 +25,18 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -113,21 +114,16 @@ public class EncryptionServiceEcies extends EncryptionService {
                 }
             };
             final EciesEncryptedRequest eciesRequest = (EciesEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = switch (scope) {
-                case APPLICATION_SCOPE -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE -> UniqueValueType.ECIES_ACTIVATION_SCOPE;
+            final String temporaryKeyId = eciesRequest.getTemporaryKeyId();
+            final UniqueValueParam uniqueValueParam = switch (scope) {
+                case APPLICATION_SCOPE -> ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, applicationKey);
+                case ACTIVATION_SCOPE ->  ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, eciesRequest.getEphemeralPublicKey(), eciesRequest.getNonce(), temporaryKeyId, activationId);
             };
+
             if (eciesRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueType,
-                        new Date(eciesRequest.getTimestamp()),
-                        eciesRequest.getEphemeralPublicKey(),
-                        eciesRequest.getNonce(),
-                        activation != null ? activation.getActivationId() : null,
-                        protocolVersion);
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(eciesRequest.getTimestamp()), uniqueValueParam);
             }
-
             if (activation == null) {
                 return decryptInApplicationScope(eciesRequest, protocolVersion, applicationVersion, encryptorId);
             } else {

@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.TokenInfo;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
@@ -192,13 +193,12 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.MAC_TOKEN,
-                        new Date(request.getTimestamp()),
-                        null,
-                        request.getNonce(),
-                        tokenId,
-                        request.getProtocolVersion());
+                final UniqueValueParam param = new UniqueValueParam();
+                param.setUniqueValueType(UniqueValueType.MAC_TOKEN);
+                param.setEphemeralPublicKey(null);
+                param.setNonce(request.getNonce());
+                param.setIdentifier(tokenId);
+                replayVerificationService.checkAndPersistUniqueValue(request.getProtocolVersion(), new Date(request.getTimestamp()), param);
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
             }

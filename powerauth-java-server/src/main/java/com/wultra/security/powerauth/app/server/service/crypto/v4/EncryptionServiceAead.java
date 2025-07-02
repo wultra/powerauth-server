@@ -26,16 +26,17 @@ import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -104,24 +105,13 @@ public class EncryptionServiceAead extends EncryptionService {
             final ActivationRecordEntity activation = findActivation(activationId);
 
             final AeadEncryptedRequest aeadRequest = (AeadEncryptedRequest) encryptedRequest;
-            final UniqueValueType uniqueValueType = switch (encryptorId) {
-                case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> UniqueValueType.ECIES_APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN, CHANGE_PASSWORD, SETUP_BIOMETRY ->
-                        UniqueValueType.ECIES_ACTIVATION_SCOPE;
-            };
-            if (aeadRequest.getTimestamp() != null) {
-                // Check AEAD request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        uniqueValueType,
-                        new Date(aeadRequest.getTimestamp()),
-                        null,
-                        aeadRequest.getNonce(),
-                        aeadRequest.getTemporaryKeyId(),
-                        protocolVersion);
-            }
             if (activation == null) {
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesApplicationScope(protocolVersion,  null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), applicationKey);
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInApplicationScope(aeadRequest, protocolVersion, applicationVersion, encryptorId);
             } else {
+                final UniqueValueParam param = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion,  null, aeadRequest.getNonce(), aeadRequest.getTemporaryKeyId(), activationId);
+                replayVerificationService.checkAndPersistUniqueValue(protocolVersion, new Date(aeadRequest.getTimestamp()), param);
                 return decryptInActivationScope(aeadRequest, protocolVersion, applicationVersion, activation, encryptorId);
             }
         } catch (InvalidKeySpecException | InvalidKeyException e) {
