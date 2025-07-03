@@ -63,6 +63,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecretClientContext
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextHybrid;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
@@ -107,7 +108,7 @@ class TemporaryKeyBehaviorTest {
 
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-    private static final PqcDsa PQC_DSA = new PqcDsa();
+    private static final PqcDsa PQC_DSA = new MlDsa();
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

@@ -40,6 +40,7 @@ import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
@@ -76,7 +77,7 @@ public class TemporaryKeyTestService {
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
-    private static final PqcDsa PQC_DSA = new PqcDsa();
+    private static final PqcDsa PQC_DSA = new MlDsa();
 
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
