@@ -54,6 +54,7 @@ public class CryptographyServiceFactory {
             case EC_P256 -> cryptographyServiceEc256;
             case EC_P384 -> cryptographyServiceEc384;
             case EC_P384_ML_L3 -> cryptographyServiceV4Hybrid;
+            default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         };
     }
 }
