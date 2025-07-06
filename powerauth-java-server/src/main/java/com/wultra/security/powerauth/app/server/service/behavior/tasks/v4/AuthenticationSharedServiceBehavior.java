@@ -44,6 +44,8 @@ import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.v4.authentication.PowerAuthServerAuthentication;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -589,30 +591,68 @@ public class AuthenticationSharedServiceBehavior {
         final boolean needsBiometry = hasBiometryComponent(codeType);
 
         if (!needsKnowledge && !needsBiometry) {
-            // POSSESSION only
-            result.add(new FactorKeys(possessionKey, null, false, null, false));
+            result.add(FactorKeys.builder()
+                    .possessionKey(possessionKey)
+                    .build());
         } else if (needsKnowledge && !needsBiometry) {
-            // POSSESSION_KNOWLEDGE
             if (knowledgeSecretCurrent != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretCurrent, false, null, false));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .build());
             if (knowledgeSecretNext != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretNext, true, null, false));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .build());
         } else if (!needsKnowledge) {
-            // POSSESSION_BIOMETRY
             if (biometrySecretCurrent != null)
-                result.add(new FactorKeys(possessionKey, null, false, biometrySecretCurrent, false));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
             if (biometrySecretNext != null)
-                result.add(new FactorKeys(possessionKey, null, false, biometrySecretNext, true));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
         } else {
-            // 3FA, to be deprecated
             if (knowledgeSecretCurrent != null && biometrySecretCurrent != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretCurrent, false, biometrySecretCurrent, false));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
             if (knowledgeSecretCurrent != null && biometrySecretNext != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretCurrent, false, biometrySecretNext, true));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
             if (knowledgeSecretNext != null && biometrySecretCurrent != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretNext, true, biometrySecretCurrent, false));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
             if (knowledgeSecretNext != null && biometrySecretNext != null)
-                result.add(new FactorKeys(possessionKey, knowledgeSecretNext, true, biometrySecretNext, true));
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
         }
         return result;
     }
@@ -620,20 +660,14 @@ public class AuthenticationSharedServiceBehavior {
     /**
      * Model class for dynamic factor keys.
      */
+    @Getter
+    @Builder
     private static class FactorKeys {
         private final SecretKey possessionKey;
         private final SecretKey knowledgeKey;
         private final boolean knowledgeUsedNext;
         private final SecretKey biometryKey;
         private final boolean biometryUsedNext;
-
-        FactorKeys(SecretKey possessionKey, SecretKey knowledgeKey, boolean knowledgeUsedNext, SecretKey biometryKey, boolean biometryUsedNext) {
-            this.possessionKey = possessionKey;
-            this.knowledgeKey = knowledgeKey;
-            this.knowledgeUsedNext = knowledgeUsedNext;
-            this.biometryKey = biometryKey;
-            this.biometryUsedNext = biometryUsedNext;
-        }
 
         List<SecretKey> toSecretKeyList() {
             if (knowledgeKey != null && biometryKey != null) {
@@ -646,7 +680,6 @@ public class AuthenticationSharedServiceBehavior {
                 return List.of(possessionKey);
             }
         }
-
     }
 
 }
