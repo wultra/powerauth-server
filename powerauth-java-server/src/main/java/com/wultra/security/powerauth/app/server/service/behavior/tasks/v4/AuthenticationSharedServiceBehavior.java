@@ -222,9 +222,8 @@ public class AuthenticationSharedServiceBehavior {
 
         final long ctr = activation.getCounter();
         final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
-        final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
 
-        final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash, hashBasedCounter);
+        final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
 
         final boolean authenticationValid = result.authenticated();
         final long ctrNext = authenticationValid ? result.nextCounter() : ctr;
@@ -233,14 +232,27 @@ public class AuthenticationSharedServiceBehavior {
         return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
     }
 
+    /**
+     * Performa authentication for an activation with given authentication data and authentication code types.
+     * @param activation Activation used for authentication verification.
+     * @param authenticationData Data related to the authentication.
+     * @param authenticationCodeTypes Authentication code types to try to use for authentication verification. List with one authentication code type is used for online authentication. List with multiple authentication code types is used for offline authentication.
+     * @param keyActivationSecret Activation secret key.
+     * @param ctr Current counter value.
+     * @param initialCtrHash Initial hashed-based counter value.
+     * @return Authentication result.
+     * @throws GenericServiceException In case of a business logic error.
+     * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
+     * @throws GenericCryptoException In case of any other cryptography error.
+     */
     private AuthenticationResult authenticate(ActivationRecordEntity activation, AuthenticationData authenticationData,
                                               List<AuthenticationCodeType> authenticationCodeTypes, SecretKey keyActivationSecret, long ctr,
-                                              byte[] initialCtrHash, HashBasedCounter hashBasedCounter)
-            throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+                                              byte[] initialCtrHash) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         long ctrNext = ctr;
         byte[] ctrHash = initialCtrHash;
         byte[] ctrData;
         byte[] ctrDataNext;
+        final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
 
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead(); iteratedCounter++) {
             ctrData = ctrHash;
@@ -262,6 +274,12 @@ public class AuthenticationSharedServiceBehavior {
         return new AuthenticationResult(false, ctrNext, null, null);
     }
 
+    /**
+     * Check whether biometry check is available for an activation.
+     * @param codeType Authentication code type.
+     * @param activation Activation record.
+     * @throws GenericServiceException In case biometry is not set up yet.
+     */
     private void checkBiometryAvailable(AuthenticationCodeType codeType, ActivationRecordEntity activation) throws GenericServiceException {
         if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
             logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
@@ -269,6 +287,13 @@ public class AuthenticationSharedServiceBehavior {
         }
     }
 
+    /**
+     * Record containing an authentication result.
+     * @param authenticated Whether authentication succeeded.
+     * @param nextCounter Next value of numeric counter.
+     * @param nextCtrData Next value of hash-based counter.
+     * @param usedAuthenticationCodeType Authentication code type used for the authentication.
+     */
     private record AuthenticationResult(
             boolean authenticated,
             long nextCounter,
