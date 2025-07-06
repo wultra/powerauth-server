@@ -217,67 +217,64 @@ public class AuthenticationSharedServiceBehavior {
      */
     private AuthenticationResponse verifyAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, List<AuthenticationCodeType> authenticationCodeTypes) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-
         final SecretKey keyActivationSecret = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSharedSecretKey(activation);
-
-        // Resolve authentication version based on activation version and request
         final Integer authenticationVersion = resolveAuthenticationVersion(activation, authenticationData.getForcedAuthenticationVersion());
 
-        // Verify the authentication code with given lookahead
-        boolean authenticationValid = false;
-        // Current numeric counter value
-        long ctr = activation.getCounter();
-        // Next numeric counter value used in case authentication is valid
-        long ctrNext = ctr;
-        // Current hash based counter value
-        byte[] ctrData;
-        // Hash of current counter data (incremented value)
-        byte[] ctrHash;
-        // Next hash based counter value used in case authentication is valid
-        byte[] ctrDataNext = null;
+        final long ctr = activation.getCounter();
+        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
         final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
-        // Get counter data from activation
-        ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
-        // Authentication code type which was used to verify authentication code successfully
-        AuthenticationCodeType usedAuthenticationCodeType = null;
 
-        counterLoop:
+        final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash, hashBasedCounter);
+
+        final boolean authenticationValid = result.authenticated();
+        final long ctrNext = authenticationValid ? result.nextCounter() : ctr;
+        final byte[] ctrDataNext = authenticationValid ? result.nextCtrData() : null;
+        final AuthenticationCodeType usedAuthenticationCodeType = authenticationValid ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
+        return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
+    }
+
+    private AuthenticationResult authenticate(ActivationRecordEntity activation, AuthenticationData authenticationData,
+                                              List<AuthenticationCodeType> authenticationCodeTypes, SecretKey keyActivationSecret, long ctr,
+                                              byte[] initialCtrHash, HashBasedCounter hashBasedCounter)
+            throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+        long ctrNext = ctr;
+        byte[] ctrHash = initialCtrHash;
+        byte[] ctrData;
+        byte[] ctrDataNext;
+
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead(); iteratedCounter++) {
-            // Set ctrData for current iteration
             ctrData = ctrHash;
-            // Increment the hash based counter
             ctrHash = hashBasedCounter.next(ctrHash);
 
-            // Check all authentication code types for each counter value in case there are multiple authentication code types
             for (AuthenticationCodeType codeType : authenticationCodeTypes) {
-                if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
-                    // Biometry check requested by biometry is not set up yet
-                    logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
-                    throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
-                }
+                checkBiometryAvailable(codeType, activation);
                 for (FactorKeys factorKeys : getAllFactorKeyCombinations(codeType, activation, keyActivationSecret)) {
-                    final List<SecretKey> keys = factorKeys.toSecretKeyList();
+                    List<SecretKey> keys = factorKeys.toSecretKeyList();
                     if (SERVER_AUTH.validateAuthCode(authenticationData.getData(), authenticationData.getAuthenticationCode(), keys, ctrData, authenticationData.getAuthCodeConfiguration())) {
-                        // On success, update keys as needed (roll next to current and clear next)
                         updateDynamicFactorKeys(factorKeys, activation, codeType);
-                        // Set the next valid value of numeric counter based on current iteration counter +1
                         ctrNext = iteratedCounter + 1;
-                        // Set the next valid value of hash based counter (ctrHash is already incremented by +1)
                         ctrDataNext = ctrHash;
-                        // Store authentication code type which was used to verify authentication code successfully
-                        usedAuthenticationCodeType = codeType;
-                        authenticationValid = true;
-                        break counterLoop;
+                        return new AuthenticationResult(true, ctrNext, ctrDataNext, codeType);
                     }
                 }
             }
         }
-        if (!authenticationValid) {
-            // In case authentication fails, use the first code type as authentication code type
-            usedAuthenticationCodeType = authenticationCodeTypes.iterator().next();
-        }
-        return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
+        return new AuthenticationResult(false, ctrNext, null, null);
     }
+
+    private void checkBiometryAvailable(AuthenticationCodeType codeType, ActivationRecordEntity activation) throws GenericServiceException {
+        if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
+            logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
+        }
+    }
+
+    private record AuthenticationResult(
+            boolean authenticated,
+            long nextCounter,
+            byte[] nextCtrData,
+            AuthenticationCodeType usedAuthenticationCodeType
+    ) {}
 
     /**
      * Update dynamic factor keys on successful authentication.
