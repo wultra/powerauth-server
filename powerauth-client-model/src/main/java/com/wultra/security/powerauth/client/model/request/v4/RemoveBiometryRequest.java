@@ -32,7 +32,7 @@ import lombok.Data;
 public class RemoveBiometryRequest {
 
     @Schema(description = "Activation identifier")
-    @NotBlank(message = "Activation ID must not be empty when setting up biometry")
+    @NotBlank(message = "Activation ID must not be empty when removing biometry")
     private String activationId;
 
 }
