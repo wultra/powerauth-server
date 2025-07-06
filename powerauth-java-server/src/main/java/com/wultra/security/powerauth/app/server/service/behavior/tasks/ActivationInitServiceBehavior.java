@@ -208,6 +208,7 @@ public class ActivationInitServiceBehavior {
 
             // Generate server key pairs
             for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
+                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
                 cryptographyServiceFactory.getService(algorithm).generateServerKeyPair(activation);
             }
 
