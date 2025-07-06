@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationData;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationResponse;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.OfflineAuthenticationRequest;
@@ -250,7 +251,7 @@ public class AuthenticationSharedServiceBehavior {
                 if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
                     // Biometry check requested by biometry is not set up yet
                     logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
-                    continue;
+                    throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
                 }
                 for (FactorKeys factorKeys : getAllFactorKeyCombinations(codeType, activation, keyActivationSecret)) {
                     final List<SecretKey> keys = factorKeys.toSecretKeyList();
