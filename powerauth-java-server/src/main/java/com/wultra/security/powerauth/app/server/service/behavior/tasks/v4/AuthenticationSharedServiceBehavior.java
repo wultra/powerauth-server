@@ -226,7 +226,7 @@ public class AuthenticationSharedServiceBehavior {
         final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
 
         final boolean authenticationValid = result.authenticated();
-        final long ctrNext = authenticationValid ? result.nextCounter() : ctr;
+        final Long ctrNext = authenticationValid ? result.nextCounter() : null;
         final byte[] ctrDataNext = authenticationValid ? result.nextCtrData() : null;
         final AuthenticationCodeType usedAuthenticationCodeType = authenticationValid ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
         return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
@@ -248,10 +248,10 @@ public class AuthenticationSharedServiceBehavior {
     private AuthenticationResult authenticate(ActivationRecordEntity activation, AuthenticationData authenticationData,
                                               List<AuthenticationCodeType> authenticationCodeTypes, SecretKey keyActivationSecret, long ctr,
                                               byte[] initialCtrHash) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
-        long ctrNext = ctr;
         byte[] ctrHash = initialCtrHash;
         byte[] ctrData;
-        byte[] ctrDataNext;
+        final long ctrNext;
+        final byte[] ctrDataNext;
         final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
 
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead(); iteratedCounter++) {
@@ -271,7 +271,7 @@ public class AuthenticationSharedServiceBehavior {
                 }
             }
         }
-        return new AuthenticationResult(false, ctrNext, null, null);
+        return new AuthenticationResult(false, null, null, null);
     }
 
     /**
@@ -296,7 +296,7 @@ public class AuthenticationSharedServiceBehavior {
      */
     private record AuthenticationResult(
             boolean authenticated,
-            long nextCounter,
+            Long nextCounter,
             byte[] nextCtrData,
             AuthenticationCodeType usedAuthenticationCodeType
     ) {}
