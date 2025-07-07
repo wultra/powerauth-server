@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -29,27 +28,29 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationData;
+import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationResponse;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.OfflineAuthenticationRequest;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.OnlineAuthenticationRequest;
-import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationResponse;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.v4.authentication.PowerAuthServerAuthentication;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.security.InvalidKeyException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -74,22 +75,21 @@ public class AuthenticationSharedServiceBehavior {
     private final ActivationRepository activationRepository;
 
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
-    private final AuthenticationCodeTypeConverter authenticationCodeTypeConverter = new AuthenticationCodeTypeConverter();
     private final CryptographyServiceFactory cryptographyServiceFactory;
 
-    private final PowerAuthServerAuthentication SERVER_AUTH = new PowerAuthServerAuthentication();
+    private static final PowerAuthServerAuthentication SERVER_AUTH = new PowerAuthServerAuthentication();
+    private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     /**
      * Verify online authentication.
      * @param activation Activation used for authentication code verification.
      * @param authenticationRequest Online authentication code verification request.
      * @return Authentication code verification response.
-     * @throws InvalidKeyException In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public AuthenticationResponse verifyAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    public AuthenticationResponse verifyAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         final List<AuthenticationCodeType> authenticationCodeTypes = Collections.singletonList(authenticationRequest.getAuthenticationCodeType());
         return verifyAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationCodeTypes);
     }
@@ -99,12 +99,11 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Offline authentication verification request.
      * @return Authentication verification response.
-     * @throws InvalidKeyException In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public AuthenticationResponse verifyAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    public AuthenticationResponse verifyAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         return verifyAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationRequest.getAuthenticationCodeTypes());
     }
 
@@ -212,67 +211,117 @@ public class AuthenticationSharedServiceBehavior {
      * @param authenticationData Data related to the authentication.
      * @param authenticationCodeTypes Authentication code types to try to use for authentication verification. List with one authentication code type is used for online authentication. List with multiple authentication code types is used for offline authentication.
      * @return Authentication verification response.
-     * @throws InvalidKeyException In case a key is invalid.
      * @throws GenericServiceException In case of a business logic error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    private AuthenticationResponse verifyAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, List<AuthenticationCodeType> authenticationCodeTypes) throws InvalidKeyException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    private AuthenticationResponse verifyAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, List<AuthenticationCodeType> authenticationCodeTypes) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-
-        final SecretKey masterSecretKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSharedSecretKey(activation);
-
-        // Resolve authentication version based on activation version and request
+        final SecretKey keyActivationSecret = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSharedSecretKey(activation);
         final Integer authenticationVersion = resolveAuthenticationVersion(activation, authenticationData.getForcedAuthenticationVersion());
 
-        // Verify the authentication code with given lookahead
-        boolean authenticationValid = false;
-        // Current numeric counter value
-        long ctr = activation.getCounter();
-        // Next numeric counter value used in case authentication is valid
-        long ctrNext = ctr;
-        // Current hash based counter value
-        byte[] ctrData = null;
-        // Hash of current counter data (incremented value)
-        byte[] ctrHash = null;
-        // Next hash based counter value used in case authentication is valid
-        byte[] ctrDataNext = null;
-        final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
-        // Get counter data from activation
-        ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
-        // Authentication code type which was used to verify authentication code successfully
-        AuthenticationCodeType usedAuthenticationCodeType = null;
+        final long ctr = activation.getCounter();
+        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
 
-        counterLoop:
+        final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
+
+        final boolean authenticationValid = result.authenticated();
+        final Long ctrNext = authenticationValid ? result.nextCounter() : null;
+        final byte[] ctrDataNext = authenticationValid ? result.nextCtrData() : null;
+        final AuthenticationCodeType usedAuthenticationCodeType = authenticationValid ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
+        return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
+    }
+
+    /**
+     * Performa authentication for an activation with given authentication data and authentication code types.
+     * @param activation Activation used for authentication verification.
+     * @param authenticationData Data related to the authentication.
+     * @param authenticationCodeTypes Authentication code types to try to use for authentication verification. List with one authentication code type is used for online authentication. List with multiple authentication code types is used for offline authentication.
+     * @param keyActivationSecret Activation secret key.
+     * @param ctr Current counter value.
+     * @param initialCtrHash Initial hashed-based counter value.
+     * @return Authentication result.
+     * @throws GenericServiceException In case of a business logic error.
+     * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
+     * @throws GenericCryptoException In case of any other cryptography error.
+     */
+    private AuthenticationResult authenticate(ActivationRecordEntity activation, AuthenticationData authenticationData,
+                                              List<AuthenticationCodeType> authenticationCodeTypes, SecretKey keyActivationSecret, long ctr,
+                                              byte[] initialCtrHash) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+        byte[] ctrHash = initialCtrHash;
+        byte[] ctrData;
+        final long ctrNext;
+        final byte[] ctrDataNext;
+        final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
+
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead(); iteratedCounter++) {
-            // Set ctrData for current iteration
             ctrData = ctrHash;
-            // Increment the hash based counter
             ctrHash = hashBasedCounter.next(ctrHash);
 
-            // Check all authentication code types for each counter value in case there are multiple authentication code types
-            for (AuthenticationCodeType authenticationCodeType : authenticationCodeTypes) {
-                // Get the authentication keys according to the authentication code type
-                final PowerAuthCodeType powerAuthCodeType = authenticationCodeTypeConverter.convertFrom(authenticationCodeType);
-                final List<SecretKey> authenticationKeys = authenticationKeyFactory.keysForAuthenticationCodeType(powerAuthCodeType, masterSecretKey);
-
-                authenticationValid = SERVER_AUTH.validateAuthCode(authenticationData.getData(), authenticationData.getAuthenticationCode(), authenticationKeys, ctrData, authenticationData.getAuthCodeConfiguration());
-                if (authenticationValid) {
-                    // Set the next valid value of numeric counter based on current iteration counter +1
-                    ctrNext = iteratedCounter + 1;
-                    // Set the next valid value of hash based counter (ctrHash is already incremented by +1)
-                    ctrDataNext = ctrHash;
-                    // Store authentication code type which was used to verify authentication code successfully
-                    usedAuthenticationCodeType = authenticationCodeType;
-                    break counterLoop;
+            for (AuthenticationCodeType codeType : authenticationCodeTypes) {
+                checkBiometryAvailable(codeType, activation);
+                for (FactorKeys factorKeys : getAllFactorKeyCombinations(codeType, activation, keyActivationSecret)) {
+                    List<SecretKey> keys = factorKeys.toSecretKeyList();
+                    if (SERVER_AUTH.validateAuthCode(authenticationData.getData(), authenticationData.getAuthenticationCode(), keys, ctrData, authenticationData.getAuthCodeConfiguration())) {
+                        updateDynamicFactorKeys(factorKeys, activation, codeType);
+                        ctrNext = iteratedCounter + 1;
+                        ctrDataNext = ctrHash;
+                        return new AuthenticationResult(true, ctrNext, ctrDataNext, codeType);
+                    }
                 }
             }
         }
-        if (usedAuthenticationCodeType == null) {
-            // In case multiple authentication code types are used, use the first one as authentication code type
-            usedAuthenticationCodeType = authenticationCodeTypes.iterator().next();
+        return new AuthenticationResult(false, null, null, null);
+    }
+
+    /**
+     * Check whether biometry check is available for an activation.
+     * @param codeType Authentication code type.
+     * @param activation Activation record.
+     * @throws GenericServiceException In case biometry is not set up yet.
+     */
+    private void checkBiometryAvailable(AuthenticationCodeType codeType, ActivationRecordEntity activation) throws GenericServiceException {
+        if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
+            logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
         }
-        return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
+    }
+
+    /**
+     * Record containing an authentication result.
+     * @param authenticated Whether authentication succeeded.
+     * @param nextCounter Next value of numeric counter.
+     * @param nextCtrData Next value of hash-based counter.
+     * @param usedAuthenticationCodeType Authentication code type used for the authentication.
+     */
+    private record AuthenticationResult(
+            boolean authenticated,
+            Long nextCounter,
+            byte[] nextCtrData,
+            AuthenticationCodeType usedAuthenticationCodeType
+    ) {}
+
+    /**
+     * Update dynamic factor keys on successful authentication.
+     * @param factorKeys Factor keys used.
+     * @param activation Activation entity.
+     * @param codeType Activation code type.
+     */
+    private void updateDynamicFactorKeys(FactorKeys factorKeys, ActivationRecordEntity activation, AuthenticationCodeType codeType) {
+        if (factorKeys.knowledgeUsedNext) {
+            activation.setKnowledgeFactorKey(activation.getKnowledgeFactorKeyNext());
+            activation.setKnowledgeFactorKeyNext(null);
+        }
+        if (factorKeys.biometryUsedNext) {
+            activation.setBiometricFactorKey(activation.getBiometricFactorKeyNext());
+            activation.setBiometricFactorKeyNext(null);
+        }
+        if (!factorKeys.knowledgeUsedNext && hasKnowledgeComponent(codeType)) {
+            activation.setKnowledgeFactorKeyNext(null);
+        }
+        if (!factorKeys.biometryUsedNext && hasBiometryComponent(codeType)) {
+            activation.setBiometricFactorKeyNext(null);
+        }
     }
 
     /**
@@ -514,5 +563,145 @@ public class AuthenticationSharedServiceBehavior {
         }
         return authenticationVersion;
     }
-    
+
+    /**
+     * Get whether the authentication code type has a knowledge component.
+     * @param codeType Authentication code type.
+     * @return Knowledge component present.
+     */
+    private boolean hasKnowledgeComponent(AuthenticationCodeType codeType) {
+        return codeType == AuthenticationCodeType.KNOWLEDGE ||
+                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE ||
+                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+    }
+
+    /**
+     * Get whether the authentication code type has a biometry component.
+     * @param codeType Authentication code type.
+     * @return Biometry component present.
+     */
+    private boolean hasBiometryComponent(AuthenticationCodeType codeType) {
+        return codeType == AuthenticationCodeType.BIOMETRY ||
+                codeType == AuthenticationCodeType.POSSESSION_BIOMETRY ||
+                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+    }
+
+    /**
+     * Get all factor key combinations.
+     * @param codeType Authentication code type.
+     * @param activation Activation entity.
+     * @param keyActivationSecret Activation secret key.
+     * @return List of all factor key combinations.
+     * @throws GenericCryptoException In case key conversion fails.
+     */
+    private List<FactorKeys> getAllFactorKeyCombinations(AuthenticationCodeType codeType, ActivationRecordEntity activation, SecretKey keyActivationSecret) throws GenericCryptoException {
+        final SecretKey possessionKey = authenticationKeyFactory.generatePossessionFactorKey(keyActivationSecret);
+
+        final String knowledgeKeyCurrent = activation.getKnowledgeFactorKey();
+        final String knowledgeKeyNext = activation.getKnowledgeFactorKeyNext();
+        final SecretKey knowledgeSecretCurrent = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(knowledgeKeyCurrent));
+        final SecretKey knowledgeSecretNext = knowledgeKeyNext != null ? KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(knowledgeKeyNext)) : null;
+
+        final boolean biometryEnabled = Boolean.TRUE.equals(activation.getBiometricFactorEnabled());
+        final String biometryKeyCurrent = biometryEnabled ? activation.getBiometricFactorKey() : null;
+        final String biometryKeyNext = biometryEnabled ? activation.getBiometricFactorKeyNext() : null;
+        final SecretKey biometrySecretCurrent = biometryKeyCurrent != null ? KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(biometryKeyCurrent)) : null;
+        final SecretKey biometrySecretNext = biometryKeyNext != null ? KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(biometryKeyNext)) : null;
+
+        final List<FactorKeys> result = new java.util.ArrayList<>();
+        final boolean needsKnowledge = hasKnowledgeComponent(codeType);
+        final boolean needsBiometry = hasBiometryComponent(codeType);
+
+        if (!needsKnowledge && !needsBiometry) {
+            result.add(FactorKeys.builder()
+                    .possessionKey(possessionKey)
+                    .build());
+        } else if (needsKnowledge && !needsBiometry) {
+            if (knowledgeSecretCurrent != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .build());
+            if (knowledgeSecretNext != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .build());
+        } else if (!needsKnowledge) {
+            if (biometrySecretCurrent != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
+            if (biometrySecretNext != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
+        } else {
+            if (knowledgeSecretCurrent != null && biometrySecretCurrent != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
+            if (knowledgeSecretCurrent != null && biometrySecretNext != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretCurrent)
+                        .knowledgeUsedNext(false)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
+            if (knowledgeSecretNext != null && biometrySecretCurrent != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .biometryKey(biometrySecretCurrent)
+                        .biometryUsedNext(false)
+                        .build());
+            if (knowledgeSecretNext != null && biometrySecretNext != null)
+                result.add(FactorKeys.builder()
+                        .possessionKey(possessionKey)
+                        .knowledgeKey(knowledgeSecretNext)
+                        .knowledgeUsedNext(true)
+                        .biometryKey(biometrySecretNext)
+                        .biometryUsedNext(true)
+                        .build());
+        }
+        return result;
+    }
+
+    /**
+     * Model class for dynamic factor keys.
+     */
+    @Getter
+    @Builder
+    private static class FactorKeys {
+        private final SecretKey possessionKey;
+        private final SecretKey knowledgeKey;
+        private final boolean knowledgeUsedNext;
+        private final SecretKey biometryKey;
+        private final boolean biometryUsedNext;
+
+        List<SecretKey> toSecretKeyList() {
+            if (knowledgeKey != null && biometryKey != null) {
+                return List.of(possessionKey, knowledgeKey, biometryKey);
+            } else if (knowledgeKey != null) {
+                return List.of(possessionKey, knowledgeKey);
+            } else if (biometryKey != null) {
+                return List.of(possessionKey, biometryKey);
+            } else {
+                return List.of(possessionKey);
+            }
+        }
+    }
+
 }

@@ -51,6 +51,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
@@ -65,6 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.util.Base64;
@@ -86,6 +88,7 @@ public class ActivationProcessServiceBehavior {
 
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
+    private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
@@ -291,6 +294,10 @@ public class ActivationProcessServiceBehavior {
         }
         // Store derived shared secret into database
         final byte[] sharedSecretBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(responseCryptogram.getSecretKey());
+        // Set knowledge factor key to initial value
+        final SecretKey knowledgeFactorKey = authenticationKeyFactory.generateKnowledgeFactorKey(responseCryptogram.getSecretKey());
+        final byte[] knowledgeFactorKeyBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(knowledgeFactorKey);
+        activation.setKnowledgeFactorKey(Base64.getEncoder().encodeToString(knowledgeFactorKeyBytes));
         final SharedSecret sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activationId);
         activation.setSharedSecret(sharedSecretDb.sharedSecretBase64());
         activation.setSharedSecretEncryption(sharedSecretDb.encryptionMode());

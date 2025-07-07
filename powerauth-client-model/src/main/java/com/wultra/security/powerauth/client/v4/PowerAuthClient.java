@@ -1894,4 +1894,58 @@ public interface PowerAuthClient {
      */
     RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
+    /**
+     * Change the password for the knowledge factor.
+     * @param request Change password request.
+     * @return Change password response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    ChangePasswordResponse changePassword(ChangePasswordRequest request) throws PowerAuthClientException;
+
+    /**
+     * Change the password for the knowledge factor.
+     * @param request Change password request.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Change password response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    ChangePasswordResponse changePassword(ChangePasswordRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Set up biometry.
+     * @param request Add biometry request.
+     * @return Add biometry response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    AddBiometryResponse addBiometry(AddBiometryRequest request) throws PowerAuthClientException;
+
+    /**
+     * Set up biometry.
+     * @param request Add biometry request.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Add biometry response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    AddBiometryResponse addBiometry(AddBiometryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Remove biometry.
+     * @param request Remove biometry request.
+     * @return Response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeBiometry(RemoveBiometryRequest request) throws PowerAuthClientException;
+
+    /**
+     * Remove biometry.
+     * @param request Remove biometry request.
+     * @param queryParams Query params.
+     * @param httpHeaders HTTP headers.
+     * @return Response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeBiometry(RemoveBiometryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
 }

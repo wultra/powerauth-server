@@ -28,7 +28,7 @@ import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationC
 public class AuthenticationResponse {
 
     private boolean authenticationValid;
-    private long ctrNext;
+    private Long ctrNext;
     private byte[] ctrDataNext;
     private Integer forcedAuthenticationVersion;
     private AuthenticationCodeType usedAuthenticationCodeType;
@@ -47,7 +47,7 @@ public class AuthenticationResponse {
      * @param forcedAuthenticationVersion Authentication version which may differ from activation version during upgrade.
      * @param usedAuthenticationCodeType Authentication code type which was used during verification of the authentication code.
      */
-    public AuthenticationResponse(boolean authenticationValid, long ctrNext, byte[] ctrDataNext, Integer forcedAuthenticationVersion, AuthenticationCodeType usedAuthenticationCodeType) {
+    public AuthenticationResponse(boolean authenticationValid, Long ctrNext, byte[] ctrDataNext, Integer forcedAuthenticationVersion, AuthenticationCodeType usedAuthenticationCodeType) {
         this.authenticationValid = authenticationValid;
         this.ctrNext = ctrNext;
         this.ctrDataNext = ctrDataNext;
