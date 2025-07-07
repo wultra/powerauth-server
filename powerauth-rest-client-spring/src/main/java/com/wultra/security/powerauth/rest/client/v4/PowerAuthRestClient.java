@@ -1300,4 +1300,34 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return callV4RestApi("/keystore/remove", request, queryParams, httpHeaders, RemoveTemporaryPublicKeyResponse.class);
     }
 
+    @Override
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request) throws PowerAuthClientException {
+        return changePassword(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public ChangePasswordResponse changePassword(ChangePasswordRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/password/change", request, queryParams, httpHeaders, ChangePasswordResponse.class);
+    }
+
+    @Override
+    public AddBiometryResponse addBiometry(AddBiometryRequest request) throws PowerAuthClientException {
+        return addBiometry(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public AddBiometryResponse addBiometry(AddBiometryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/biometry/add", request, queryParams, httpHeaders, AddBiometryResponse.class);
+    }
+
+    @Override
+    public Response removeBiometry(RemoveBiometryRequest request) throws PowerAuthClientException {
+        return removeBiometry(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public Response removeBiometry(RemoveBiometryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/biometry/remove", request, queryParams, httpHeaders, Response.class);
+    }
+
 }
