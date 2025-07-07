@@ -21,14 +21,13 @@ package com.wultra.security.powerauth.app.server.controller.api.v3;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.VaultUnlockServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.VaultUnlockServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

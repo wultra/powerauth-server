@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,20 +26,21 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OnlineSignatureServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
-import com.wultra.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
+import com.wultra.security.powerauth.app.server.service.model.request.v3.VaultUnlockRequestPayload;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
-import com.wultra.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
+import com.wultra.security.powerauth.app.server.service.model.response.v3.VaultUnlockResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequest;
+import com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
@@ -56,17 +58,11 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Behavior class implementing the vault unlock related processes. The class separates the
- * logic from the main service class.
- *
- * <p><b>PowerAuth protocol versions:</b>
- * <ul>
- *     <li>3.0</li>
- * </ul>
+ * Behavior class implementing the vault unlock related processes (V3).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Service
+@Service("vaultUnlockServiceBehaviorV3")
 @Slf4j
 @AllArgsConstructor
 public class VaultUnlockServiceBehavior {
@@ -84,17 +80,14 @@ public class VaultUnlockServiceBehavior {
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     /**
-     * Method to retrieve the vault unlock key. Before calling this method, it is assumed that
-     * client application performs signature validation - this method should not be called unauthenticated.
-     * To indicate the signature validation result, 'isSignatureValid' boolean is passed as one of the
-     * method parameters.
+     * Method to retrieve the vault unlock key.
      *
      * @param request Vault unlock request.
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
     @Transactional
-    public com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest request) throws GenericServiceException {
+    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
         try {
             // Get request data
             final String activationId = request.getActivationId();
@@ -114,7 +107,7 @@ public class VaultUnlockServiceBehavior {
                     request.getTimestamp()
             );
 
-            // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
+            // The only allowed signature type is POSSESSION_KNOWLEDGE to prevent attacks with weaker signature types
             if (!signatureType.equals(SignatureType.POSSESSION_KNOWLEDGE)) {
                 // POSSESSION_BIOMETRY can also be used, but must be explicitly allowed in the configuration.
                 if (!(signatureType.equals(SignatureType.POSSESSION_BIOMETRY) &&
@@ -131,7 +124,7 @@ public class VaultUnlockServiceBehavior {
             // Check if the activation is in correct state
             if (activationOptional.isEmpty() || activationOptional.get().getActivationStatus() != ActivationStatus.ACTIVE) {
                 // Return response with invalid signature flag when activation is not valid
-                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
+                final VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
@@ -146,13 +139,12 @@ public class VaultUnlockServiceBehavior {
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Return response with invalid signature flag when application version is not valid
-                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
+                final VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
 
             // Decrypt request to obtain vault unlock reason
-            // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(signatureVersion, applicationKey, activationId, EncryptorId.VAULT_UNLOCK);
             final DecryptionResultVaultUnlock decryptionResult = (DecryptionResultVaultUnlock) encryptionService.decryptRequest(encryptedRequest, context);
 
@@ -163,7 +155,7 @@ public class VaultUnlockServiceBehavior {
             } catch (IOException ex) {
                 logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
                 // Return response with invalid signature flag when request format is not valid
-                com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse response = new com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse();
+                final VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
@@ -207,7 +199,6 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            // TODO - v4 support
             final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(reponsePayloadBytes);
 
             // Return vault unlock response, set signature validity
@@ -254,9 +245,4 @@ public class VaultUnlockServiceBehavior {
         }
     }
 
-    @Transactional
-    public com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.model.request.v4.VaultUnlockRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse();
-    }
 }
