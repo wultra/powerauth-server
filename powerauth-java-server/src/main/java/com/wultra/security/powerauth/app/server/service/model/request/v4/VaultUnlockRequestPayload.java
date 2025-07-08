@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.app.server.service.model.request.v4;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Request object for vault unlock AEAD payload.
@@ -28,7 +27,6 @@ import lombok.NoArgsConstructor;
  *
  */
 @Data
-@NoArgsConstructor
 public class VaultUnlockRequestPayload {
 
     private String keyIdentifier;

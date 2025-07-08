@@ -21,7 +21,6 @@ package com.wultra.security.powerauth.app.server.service.model.request.v4;
 import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Request object for activation layer 2 request (V4).
@@ -30,7 +29,6 @@ import lombok.NoArgsConstructor;
  *
  */
 @Data
-@NoArgsConstructor
 public class ActivationLayer2Request {
 
     private SharedSecretRequest sharedSecretRequest;
