@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
@@ -54,10 +53,12 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
 @AllArgsConstructor
 public class ApplicationConfigServiceBehavior {
 
-    private static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
+    public static final String CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE = "disable_biometry_unlock_kek_device_private";
+    public static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
 
     private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
-            CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS, CONFIG_KEY_OAUTH2_PROVIDERS);
+            CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS,
+            CONFIG_KEY_OAUTH2_PROVIDERS, CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE);
 
     private final LocalizationProvider localizationProvider;
     private final ApplicationConfigService applicationConfigService;
@@ -68,10 +69,9 @@ public class ApplicationConfigServiceBehavior {
      * Get application configuration.
      * @param request Request for obtaining an application configuration.
      * @return Get application configuration response.
-     * @throws GenericServiceException In case of a business logic error.
      */
     @Transactional(readOnly = true)
-    public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) throws GenericServiceException {
+    public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) {
         try {
             final String applicationId = request.getApplicationId();
             final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
@@ -134,11 +134,10 @@ public class ApplicationConfigServiceBehavior {
     /**
      * Delete an application configuration.
      * @param request Remove application config request.
-     * @return Response.
      * @throws GenericServiceException In case of a business logic error.
      */
     @Transactional
-    public Response removeApplicationConfig(final RemoveApplicationConfigRequest request) throws GenericServiceException {
+    public void removeApplicationConfig(final RemoveApplicationConfigRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
             final String key = request.getKey();
@@ -151,7 +150,6 @@ public class ApplicationConfigServiceBehavior {
             }
             final List<ApplicationConfigEntity> configs = applicationConfigRepository.findByApplicationId(applicationId);
             configs.stream().filter(config -> config.getKey().equals(key)).forEach(applicationConfigRepository::delete);
-            return new Response();
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;

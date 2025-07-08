@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -37,13 +38,19 @@ import com.wultra.security.powerauth.app.server.service.model.response.Decryptio
 import com.wultra.security.powerauth.app.server.service.model.response.v4.VaultUnlockResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAuthenticationRequest;
+import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAuthenticationResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -58,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.*;
+
+import static com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior.CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE;
 
 /**
  * Behavior class implementing the vault unlock related processes (V4).
@@ -81,6 +90,7 @@ public class VaultUnlockServiceBehavior {
     private final ObjectMapper objectMapper;
     private final OnlineAuthenticationServiceBehavior onlineAuthenticationServiceBehavior;
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
+    private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -99,7 +109,7 @@ public class VaultUnlockServiceBehavior {
             final DecryptionResultVaultUnlock decryptionResult = decryptRequest(request);
             final VaultUnlockRequestPayload payload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
             checkVaultUnlockReason(payload.getReason());
-            checkKeyIdentifier(payload.getKeyIdentifier(), request.getAuthenticationCodeType());
+            checkKeyIdentifier(payload.getKeyIdentifier(), request.getAuthenticationCodeType(), activation.getApplication().getId());
             final List<KeyValue> auditInfo = buildAuditInfo(payload.getReason());
             final VerifyAuthenticationResponse authenticationResponse = verifyAuthentication(request, auditInfo);
             final VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
@@ -107,7 +117,7 @@ public class VaultUnlockServiceBehavior {
                 final String vaultEncryptionKey = deriveVaultEncryptionKey(payload.getKeyIdentifier(), activation);
                 responsePayload.setVaultEncryptionKey(vaultEncryptionKey);
             }
-            return buildVaultUnlockResponse(responsePayload, decryptionResult, authenticationResponse.isAuthenticationValid());
+            return buildVaultUnlockResponse(responsePayload, decryptionResult.getServerEncryptor(), authenticationResponse.isAuthenticationValid());
         } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
@@ -145,7 +155,7 @@ public class VaultUnlockServiceBehavior {
     }
 
     /**
-     * Validate application version by key.
+     * Validate an application version by application key.
      *
      * @param applicationKey Application key.
      * @throws GenericServiceException Thrown in case application is missing or not supported.
@@ -161,9 +171,9 @@ public class VaultUnlockServiceBehavior {
     /**
      * Decrypt the incoming AEAD request.
      *
-     * @param request    Vault unlock request.
+     * @param request Vault unlock request.
      * @return Vault unlok decryption result.
-     * @throws GenericServiceException Thrown in case of any cryptography error..
+     * @throws GenericServiceException Thrown in case of any cryptography error.
      */
     private DecryptionResultVaultUnlock decryptRequest(VaultUnlockRequest request) throws GenericServiceException {
         final EncryptionContext context = new EncryptionContext(
@@ -182,12 +192,12 @@ public class VaultUnlockServiceBehavior {
     }
 
     /**
-     * Parses and validates the decrypted JSON payload.
+     * Parse and validate the decrypted JSON payload.
      *
      * @param data         Decrypted data.
-     * @param activationId Activation ID (for logging).
+     * @param activationId Activation identifier.
      * @return Parsed VaultUnlockRequestPayload.
-     * @throws GenericServiceException on JSON parse errors.
+     * @throws GenericServiceException Thrown in case of deserialization errors.
      */
     private VaultUnlockRequestPayload parseRequestPayload(byte[] data, String activationId) throws GenericServiceException {
         try {
@@ -199,7 +209,7 @@ public class VaultUnlockServiceBehavior {
     }
 
     /**
-     * Builds the audit information for vault unlock.
+     * Build the audit information for vault unlock.
      *
      * @param reason Vault unlock reason.
      * @return List with a single KeyValue for the audit log.
@@ -246,18 +256,18 @@ public class VaultUnlockServiceBehavior {
     }
 
     /**
-     * Builds the encrypted response payload for the vault unlock operation.
+     * Build the encrypted response payload for the vault unlock operation.
      *
-     * @param responsePayload     Response data object.
-     * @param decryptionResult    Result from original request decryption (provides encryptor).
+     * @param responsePayload     Response data payload.
+     * @param encryptor           Server encryptor.
      * @param authenticationValid Whether authentication was valid.
-     * @return VaultUnlockResponse ready for the controller.
-     * @throws JsonProcessingException If serialization fails.
-     * @throws EncryptorException      If encryption fails.
+     * @return Vault unlock response.
+     * @throws JsonProcessingException Thrown in case serialization fails.
+     * @throws EncryptorException      Thrown in case encryption fails.
      */
-    private VaultUnlockResponse buildVaultUnlockResponse(VaultUnlockResponsePayload responsePayload,DecryptionResultVaultUnlock decryptionResult, boolean authenticationValid) throws JsonProcessingException, EncryptorException {
+    private VaultUnlockResponse buildVaultUnlockResponse(VaultUnlockResponsePayload responsePayload, ServerEncryptor<EncryptedRequest, EncryptedResponse> encryptor, boolean authenticationValid) throws JsonProcessingException, EncryptorException {
         final byte[] responsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
-        final AeadEncryptedResponse encryptedResponse = (AeadEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responsePayloadBytes);
+        final AeadEncryptedResponse encryptedResponse = (AeadEncryptedResponse) encryptor.encryptResponse(responsePayloadBytes);
         final VaultUnlockResponse response = new VaultUnlockResponse();
         response.setEncryptedData(encryptedResponse.getEncryptedData());
         response.setTimestamp(encryptedResponse.getTimestamp());
@@ -288,9 +298,10 @@ public class VaultUnlockServiceBehavior {
      *
      * @param keyIdentifier          Key identifier.
      * @param authenticationCodeType Authentication code type.
+     * @param applicationId          Application identifier.
      * @throws GenericServiceException Thrown in case key identifier is invalid.
      */
-    private void checkKeyIdentifier(String keyIdentifier, AuthenticationCodeType authenticationCodeType) throws GenericServiceException {
+    private void checkKeyIdentifier(String keyIdentifier, AuthenticationCodeType authenticationCodeType, String applicationId) throws GenericServiceException {
         if (keyIdentifier == null) {
             logger.warn("Missing key identifier");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -301,7 +312,7 @@ public class VaultUnlockServiceBehavior {
             logger.warn("Invalid key identifier: {}", keyIdentifier);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (keyIdentifier.equals(KEY_ID_KEK_DEVICE_PRIVATE) && !authenticationCodeType.equals(AuthenticationCodeType.POSSESSION_KNOWLEDGE)) {
+        if (keyIdentifier.equals(KEY_ID_KEK_DEVICE_PRIVATE) && !isUnlockAllowedKekDevicePrivate(authenticationCodeType, applicationId)) {
             logger.warn("Invalid authentication code type {} for key identifier {}", authenticationCodeType, keyIdentifier);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -317,7 +328,33 @@ public class VaultUnlockServiceBehavior {
     }
 
     /**
-     * Checks the format of the vault unlock reason.
+     * Determine whether vault unlock is allowed for KEK_DEVICE_PRIVATE based on application configuration.
+     * @param authenticationCodeType Authentication code type.
+     * @param applicationId          Application identifier.
+     * @return Whether vault unlock is allowed for KEK_DEVICE_PRIVATE.
+     */
+    private boolean isUnlockAllowedKekDevicePrivate(AuthenticationCodeType authenticationCodeType, String applicationId) {
+        if (authenticationCodeType.equals(AuthenticationCodeType.POSSESSION_KNOWLEDGE)) {
+            return true;
+        }
+        if (authenticationCodeType.equals(AuthenticationCodeType.POSSESSION_BIOMETRY)) {
+            final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
+            configRequest.setApplicationId(applicationId);
+            final GetApplicationConfigResponse configResponse = applicationConfigServiceBehavior.getApplicationConfig(configRequest);
+            for (ApplicationConfigurationItem config: configResponse.getApplicationConfigs()) {
+                if (config.getKey().equals(CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE)) {
+                    // Configuration is set for disable_biometry_unlock_kek_device_private, use the setting
+                    return config.getValues().size() == 1 && !config.getValues().get(0).equals("true");
+                }
+            }
+            // Configuration is not set for disable_biometry_unlock_kek_device_private = true, biometry can be used
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check the format of the vault unlock reason.
      *
      * @param reason Vault unlock reason.
      * @throws GenericServiceException Thrown in case vault unlock reason format is invalid.
