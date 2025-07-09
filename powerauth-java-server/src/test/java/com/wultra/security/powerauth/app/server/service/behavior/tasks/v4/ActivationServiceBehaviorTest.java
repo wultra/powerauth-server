@@ -37,9 +37,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
-import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
@@ -565,6 +563,19 @@ class ActivationServiceBehaviorTest {
     }
 
     @Test
+    void testPrepareActivationWithCommitAfterKeyExchangeWithConfirmation() throws Exception {
+        final GetApplicationDetailResponse detailResponse = createApplication();
+        final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_COMMIT, ActivationOtpValidation.NONE, null, null);
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationResponse.getActivationId()));
+        assertTrue(isConfirmationPending(activationResponse.getActivationId()));
+        confirmActivation(activationResponse.getActivationId());
+        assertFalse(isConfirmationPending(activationResponse.getActivationId()));
+        commitActivation(activationResponse.getActivationId(), null);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+        assertFalse(isConfirmationPending(activationResponse.getActivationId()));
+    }
+
+    @Test
     void testPrepareActivationWithOtpMissing() throws Exception {
         final GetApplicationDetailResponse detailResponse = createApplication();
         assertThrows(GenericServiceException.class, () ->
@@ -612,6 +623,12 @@ class ActivationServiceBehaviorTest {
         final KeyPair keyPair = PQC_DSA.generateKeyPair();
         final byte[] publicKeyBytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(keyPair.getPublic());
         return Base64.getEncoder().encodeToString(publicKeyBytes);
+    }
+
+    private void confirmActivation(String activationId) throws Exception {
+        final ConfirmActivationRequest confirmActivationRequest = new ConfirmActivationRequest();
+        confirmActivationRequest.setActivationId(activationId);
+        activationServiceBehavior.confirmActivation(confirmActivationRequest);
     }
 
     private void commitActivation(String activationId, String otp) throws Exception {
@@ -728,6 +745,13 @@ class ActivationServiceBehaviorTest {
         statusRequest.setActivationId(activationId);
         final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
         return statusResponse.getActivationStatus();
+    }
+
+    private boolean isConfirmationPending(String activationId) throws Exception {
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
+        return statusResponse.isConfirmationPending();
     }
 
     private JWTClaimsSet requestTemporaryKeyJwt(final RequestCryptogram requestCryptogram, final GetApplicationDetailResponse detailResponse) throws Exception {

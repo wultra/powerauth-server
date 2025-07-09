@@ -66,3 +66,8 @@ GO
 
 ALTER TABLE pa_temporary_key ALTER COLUMN public_key_base64 varchar(255) NULL;
 GO
+
+-- Changeset powerauth-java-server/2.0.x/20250709-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Add column confirmation_pending to pa_activation table
+ALTER TABLE pa_activation ADD confirmation_pending bit CONSTRAINT DF_pa_activation_confirmation_pending DEFAULT 0;
+GO

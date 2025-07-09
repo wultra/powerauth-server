@@ -114,7 +114,6 @@ public class ActivationProcessServiceBehavior {
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
             // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            // TODO - add biometry confirmation for crypto4 to decouple state transition from OTP check
             final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
             final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
@@ -140,6 +139,8 @@ public class ActivationProcessServiceBehavior {
             activation.setVersion(4);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
+            // Confirmation pending is tracked for V4
+            activation.setConfirmationPending(true);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
@@ -292,17 +293,41 @@ public class ActivationProcessServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
-        // Store derived shared secret into database
+        storeActivationSecretKey(activation, responseCryptogram);
+        storeInitialFactorKeys(activation, responseCryptogram);
+        return activationLayer2Response;
+    }
+
+    /**
+     * Store derived activation secret key.
+     * @param activation Activation entity.
+     * @param responseCryptogram Response cryptogram.
+     * @throws GenericServiceException Thrown in case of any cryptography error.
+     */
+    private void storeActivationSecretKey(ActivationRecordEntity activation, ResponseCryptogram responseCryptogram) throws GenericServiceException {
         final byte[] sharedSecretBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(responseCryptogram.getSecretKey());
+        final SharedSecret sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activation.getActivationId());
+        activation.setSharedSecret(sharedSecretDb.sharedSecretBase64());
+        activation.setSharedSecretEncryption(sharedSecretDb.encryptionMode());
+    }
+
+    /**
+     * Set initial factor keys for knowledge and biometry.
+     * @param activation Activation entity.
+     * @param responseCryptogram Response cryptogram.
+     * @throws GenericCryptoException Thrown in case of any cryptography error.
+     */
+    private void storeInitialFactorKeys(ActivationRecordEntity activation, ResponseCryptogram responseCryptogram) throws GenericCryptoException {
         // Set knowledge factor key to initial value
         final SecretKey knowledgeFactorKey = authenticationKeyFactory.generateKnowledgeFactorKey(responseCryptogram.getSecretKey());
         final byte[] knowledgeFactorKeyBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(knowledgeFactorKey);
         activation.setKnowledgeFactorKey(Base64.getEncoder().encodeToString(knowledgeFactorKeyBytes));
-        final SharedSecret sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activationId);
-        activation.setSharedSecret(sharedSecretDb.sharedSecretBase64());
-        activation.setSharedSecretEncryption(sharedSecretDb.encryptionMode());
-        return activationLayer2Response;
+        // Set biometry factor key to initial value
+        final SecretKey biometryFactorKey = authenticationKeyFactory.generateBiometryFactorKey(responseCryptogram.getSecretKey());
+        final byte[] biometryFactorKeyBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(biometryFactorKey);
+        activation.setBiometricFactorKey(Base64.getEncoder().encodeToString(biometryFactorKeyBytes));
     }
+
 
     /**
      * Handle case when public key is invalid. Remove provided activation (mark as REMOVED),

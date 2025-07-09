@@ -137,6 +137,8 @@ public class ActivationProcessServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
+            // Activation confirmation is not tracked for V3
+            activation.setConfirmationPending(false);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 

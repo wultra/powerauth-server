@@ -270,7 +270,7 @@ public class ActivationRecordEntity implements Serializable {
      * Whether biometric factor is enabled.
      */
     @Column(name = "biometric_factor_enabled")
-    private Boolean biometricFactorEnabled;
+    private boolean biometricFactorEnabled;
 
     /**
      * Current biometry factor key.
@@ -295,6 +295,12 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "knowledge_factor_key_next")
     private String knowledgeFactorKeyNext;
+
+    /**
+     * Whether confirmation is pending.
+     */
+    @Column(name = "confirmation_pending")
+    private boolean confirmationPending;
 
     /**
      * PowerAuth protocol major version for activation.
@@ -356,8 +362,6 @@ public class ActivationRecordEntity implements Serializable {
                 + ", platform=" + platform
                 + ", deviceInfo=" + deviceInfo
                 + ", flags=" + flags
-                + ", serverPublicKeyBase64=" + serverPublicKeyBase64
-                + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter
                 + ", ctrDataBase64=" + ctrDataBase64
                 + ", failedAttempts=" + failedAttempts
@@ -367,8 +371,8 @@ public class ActivationRecordEntity implements Serializable {
                 + ", timestampLastUsed=" + timestampLastUsed
                 + ", timestampLastChange=" + timestampLastChange
                 + ", status=" + activationStatus
+                + ", confirmationPending=" + confirmationPending
                 + ", blockedReason=" + blockedReason
-                + ", masterKeyPair=" + masterKeyPair
                 + ", version=" + version
                 + ", application=" + application
                 + '}';

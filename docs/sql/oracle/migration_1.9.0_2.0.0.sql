@@ -47,3 +47,7 @@ ALTER TABLE pa_temporary_key ADD secret_key_encryption INTEGER DEFAULT '0' NOT N
 ALTER TABLE pa_temporary_key MODIFY private_key_base64 NULL;
 
 ALTER TABLE pa_temporary_key MODIFY public_key_base64 NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20250709-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Add column confirmation_pending to pa_activation table
+ALTER TABLE pa_activation ADD confirmation_pending BOOLEAN DEFAULT 0;

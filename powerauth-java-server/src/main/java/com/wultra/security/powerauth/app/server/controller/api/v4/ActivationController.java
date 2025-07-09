@@ -21,11 +21,13 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.ConfirmActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
@@ -131,6 +133,24 @@ public class ActivationController {
         logger.info("action: updateActivationOtp, state: succeeded");
         logger.debug("action: updateActivationOtp, state: succeeded, response: {}", response);
         return response;
+    }
+
+    /**
+     * Confirm activation.
+     *
+     * @param request Confirm activation request.
+     * @return Confirm activation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/confirm")
+    public Response confirmActivation(@Valid @RequestBody ObjectRequest<ConfirmActivationRequest> request) throws Exception {
+        final ConfirmActivationRequest req = request.getRequestObject();
+        logger.info("action: confirmActivation, state: initiated, activationId: {}", req.getActivationId());
+        logger.debug("action: confirmActivation, state: initiated, request: {}", request);
+        activationServiceBehavior.confirmActivation(req);
+        logger.info("action: confirmActivation, state: succeeded");
+        logger.debug("action: confirmActivation, state: succeeded, response: emtpy");
+        return new Response();
     }
 
     /**
