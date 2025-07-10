@@ -280,6 +280,35 @@ public interface PowerAuthClient {
     CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException;
 
     /**
+     * Call the confirmActivation method of the PowerAuth Server interface.
+     *
+     * @param request {@link CommitActivationRequest} instance
+     * @return {@link Response}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response confirmActivation(ConfirmActivationRequest request) throws PowerAuthClientException;
+
+    /**
+     * Call the confirmActivation method of the PowerAuth Server interface.
+     *
+     * @param request {@link ConfirmActivationRequest} instance
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return {@link Response}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response confirmActivation(ConfirmActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Call the confirmActivation method of the PowerAuth Server interface.
+     *
+     * @param activationId   Activation ID for activation to be confirmed.
+     * @return {@link Response}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response confirmActivation(String activationId) throws PowerAuthClientException;
+
+    /**
      * Call the getActivationStatus method of the PowerAuth Server interface.
      *
      * @param request {@link GetActivationStatusRequest} instance
