@@ -175,7 +175,7 @@ public class VaultUnlockServiceBehavior {
      * Decrypt the incoming AEAD request.
      *
      * @param request Vault unlock request.
-     * @return Vault unlok decryption result.
+     * @return Vault unlock decryption result.
      * @throws GenericServiceException Thrown in case of any cryptography error.
      */
     private DecryptionResultVaultUnlock decryptRequest(VaultUnlockRequest request) throws GenericServiceException {
