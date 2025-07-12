@@ -18,26 +18,18 @@
  */
 package com.wultra.security.powerauth.app.server.service.model.request.v4;
 
-import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
-import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import lombok.Data;
 
 /**
- * Request object for activation layer 2 request (V4).
+ * Request object for vault unlock AEAD payload.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
 @Data
-public class ActivationLayer2Request {
+public class VaultUnlockRequestPayload {
 
-    private SharedSecretRequest sharedSecretRequest;
-    private DevicePublicKeys devicePublicKeys;
-    private String activationName;
-    private String activationOtp;
-    private String externalId;
-    private String platform;
-    private String deviceInfo;
-    private String extras;
+    private String keyIdentifier;
+    private String reason;
 
 }

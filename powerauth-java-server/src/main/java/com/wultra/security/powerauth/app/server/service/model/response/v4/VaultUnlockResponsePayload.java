@@ -16,28 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package com.wultra.security.powerauth.app.server.service.model.request.v4;
+package com.wultra.security.powerauth.app.server.service.model.response.v4;
 
-import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
-import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import lombok.Data;
+import lombok.ToString;
 
 /**
- * Request object for activation layer 2 request (V4).
+ * Response object for vault unlock AEAD payload.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
 @Data
-public class ActivationLayer2Request {
+public class VaultUnlockResponsePayload {
 
-    private SharedSecretRequest sharedSecretRequest;
-    private DevicePublicKeys devicePublicKeys;
-    private String activationName;
-    private String activationOtp;
-    private String externalId;
-    private String platform;
-    private String deviceInfo;
-    private String extras;
+    @ToString.Exclude
+    private String vaultEncryptionKey;
 
 }
