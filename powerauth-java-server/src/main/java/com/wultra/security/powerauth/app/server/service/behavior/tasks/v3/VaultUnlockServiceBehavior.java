@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Behavior class implementing the vault unlock related processes (V3).
@@ -78,6 +79,8 @@ public class VaultUnlockServiceBehavior {
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
     private final ObjectMapper objectMapper;
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
+
+    private static final Pattern VAULT_UNLOCK_REASON_PATTERN = Pattern.compile("[A-Za-z0-9_\\-.]{3,255}");
 
     /**
      * Method to retrieve the vault unlock key.
@@ -162,7 +165,7 @@ public class VaultUnlockServiceBehavior {
 
             final String reason = vaultUnlockRequest.getReason();
 
-            if (reason != null && !reason.matches("[A-Za-z0-9_\\-.]{3,255}")) {
+            if (reason != null && !VAULT_UNLOCK_REASON_PATTERN.matcher(reason).matches()) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);

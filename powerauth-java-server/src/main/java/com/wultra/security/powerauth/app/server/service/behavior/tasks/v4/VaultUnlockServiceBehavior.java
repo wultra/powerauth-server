@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior.CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE;
 
@@ -93,6 +94,8 @@ public class VaultUnlockServiceBehavior {
     private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+
+    private static final Pattern VAULT_UNLOCK_REASON_PATTERN = Pattern.compile("[A-Za-z0-9_\\-.]{3,255}");
 
     /**
      * Method to retrieve the vault unlock key.
@@ -360,7 +363,7 @@ public class VaultUnlockServiceBehavior {
      * @throws GenericServiceException Thrown in case vault unlock reason format is invalid.
      */
     private void checkVaultUnlockReason(String reason) throws GenericServiceException {
-        if (reason != null && !reason.matches("[A-Za-z0-9_\\-.]{3,255}")) {
+        if (reason != null && !VAULT_UNLOCK_REASON_PATTERN.matcher(reason).matches()) {
             logger.warn("Invalid vault unlock reason: {}", reason);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         }
