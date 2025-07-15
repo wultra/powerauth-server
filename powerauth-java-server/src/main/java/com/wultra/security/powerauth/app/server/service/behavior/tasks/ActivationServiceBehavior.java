@@ -353,6 +353,16 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
+            // Check whether activation was not confirmed before
+            if (!activation.isConfirmationPending()) {
+                logger.info("Activation is already confirmed, activation ID: {}, activation state: {}", activationId, activation.getActivationStatus());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Enable the biometric factor in case it was enabled in mobile SDK
+            activation.setBiometricFactorEnabled(request.isEnableBiometry());
+
             activation.setConfirmationPending(false);
             activationRepository.save(activation);
 

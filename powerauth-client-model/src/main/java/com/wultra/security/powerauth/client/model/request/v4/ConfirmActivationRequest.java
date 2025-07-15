@@ -34,4 +34,7 @@ public class ConfirmActivationRequest {
     @NotBlank(message = "Activation ID must not be empty when confirming activation")
     private String activationId;
 
+    @Schema(description = "Enable biometric factor during activation confirmation")
+    private boolean enableBiometry;
+
 }
