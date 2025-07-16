@@ -145,28 +145,28 @@ class ReplayVerificationServiceTest {
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-2", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0y"),
 
                 // Timestamp range test cases
-                // --- 3.0 Expiration
+                // --- 3.0 ---
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3001", null, "bm9uY2U=", Date.from(now.minusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzAwMQ=="),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3002", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededExtendedExpirationSeconds)), false, null),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3003", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzAwMw=="),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3004", null, "bm9uY2U=", Date.from(now.plusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzAwNA=="),
                 new TestCase("3.0", UniqueValueType.MAC_TOKEN, null, "token-id-3005", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededExtendedExpirationSeconds)), false, null),
 
-                // --- 3.1 Expiration
+                // --- 3.1 ---
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3101", null, "bm9uY2U=", Date.from(now.minusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzEwMQ=="),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3102", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededExtendedExpirationSeconds)), false, null),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3103", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzEwMw=="),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3104", null, "bm9uY2U=", Date.from(now.plusSeconds(withinExtendedExpirationSeconds)), true, "AG5vbmNldG9rZW4taWQtMzEwNA=="),
                 new TestCase("3.1", UniqueValueType.MAC_TOKEN, null, "token-id-3105", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededExtendedExpirationSeconds)), false, null),
 
-                // --- 3.2 Expiration
+                // --- 3.2 ---
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3201", null, "bm9uY2U=", Date.from(now.minusSeconds(withinReplayTresholdSeconds)), true, "AG5vbmNldG9rZW4taWQtMzIwMQ=="),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3202", null, "bm9uY2U=", Date.from(now.minusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3203", null, "bm9uY2U=", Date.from(now), true, "AG5vbmNldG9rZW4taWQtMzIwMw=="),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3204", null, "bm9uY2U=", Date.from(now.plusSeconds(withinReplayTresholdSeconds)), true, "AG5vbmNldG9rZW4taWQtMzIwNA=="),
                 new TestCase("3.2", UniqueValueType.MAC_TOKEN, null, "token-id-3205", null, "bm9uY2U=", Date.from(now.plusSeconds(exceededReplayTresholdSeconds)), false, null),
 
-                // --- 3.3 Expiration
+                // --- 3.3 ---
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3301", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(withinReplayTresholdSeconds)), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0zMzAx"),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3302", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now.minusSeconds(exceededReplayTresholdSeconds)), false, null),
                 new TestCase("3.3", UniqueValueType.ECIES_WITH_TEMPORARY_KEY, null, "temp-key-id-3303", "ZXBoZW1lcmFsLXB1YmxpYy1rZXk=", "bm9uY2U=", Date.from(now), true, "A2VwaGVtZXJhbC1wdWJsaWMta2V5bm9uY2V0ZW1wLWtleS1pZC0zMzAz"),
