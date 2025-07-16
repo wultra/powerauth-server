@@ -104,13 +104,15 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
         final Instant now = Instant.now();
         final Instant requestTime = requestTimestamp.toInstant();
         final Instant limitOldest;
+        final Instant limitNewest;
         if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
             // MAC TOKEN only has extended expiration, ECIES is checked only in protocol versions 3.2+
             limitOldest = now.minus(powerAuthServiceConfiguration.getRequestExpirationExtended());
+            limitNewest = now.plus(powerAuthServiceConfiguration.getRequestExpirationExtended());
         } else {
             limitOldest = now.minus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
+            limitNewest = now.plus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
         }
-        final Instant limitNewest = now.plus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
         if (requestTime.isBefore(limitOldest) || requestTime.isAfter(limitNewest)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}, protocol version: {}", requestTime, limitOldest, limitNewest, protocolVersion);
