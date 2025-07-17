@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
+import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
@@ -106,6 +107,9 @@ class AuditingServiceBehaviorTest {
         assertEquals(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE, params.get("activationStatus"));
         assertEquals("Test note", params.get("note"));
 
-        assertEquals("{\"type\":\"POWERAUTH\",\"authDataMethod\":\"POST\",\"authDataUriId\":\"/pa/signature/validate\"}", params.get("signatureMetadata"));
+        final PowerAuthAuthenticationCodeMetadata signatureMetadata = new PowerAuthAuthenticationCodeMetadata();
+        signatureMetadata.setAuthDataMethod("POST");
+        signatureMetadata.setAuthDataUriId("/pa/signature/validate");
+        assertEquals(signatureMetadata, params.get("signatureMetadata"));
     }
 }

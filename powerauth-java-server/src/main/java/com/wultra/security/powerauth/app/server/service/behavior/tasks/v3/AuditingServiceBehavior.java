@@ -69,7 +69,6 @@ public class AuditingServiceBehavior {
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
-    private final AuthenticationCodeMetadataConverter authMetadataConverter = new AuthenticationCodeMetadataConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
     // Generic auditing capability
@@ -202,7 +201,7 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
-                .param("signatureMetadata", authMetadataConverter.convertToDatabaseColumn(authMetadata))
+                .param("signatureMetadata", authMetadata)
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())
