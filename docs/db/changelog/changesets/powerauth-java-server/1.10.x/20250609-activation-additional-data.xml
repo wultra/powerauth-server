@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.10.x/20250609-activation-additional-data.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="additional_data"/>
+            </not>
+        </preConditions>
+        <comment>Add additional_data column to pa_activation table.</comment>
+        <addColumn tableName="pa_activation">
+            <column name="additional_data" type="text" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

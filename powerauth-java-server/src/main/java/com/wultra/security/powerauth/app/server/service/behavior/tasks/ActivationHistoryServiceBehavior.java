@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -55,6 +57,7 @@ public class ActivationHistoryServiceBehavior {
 
     private final ActivationRepository activationRepository;
     private final AuditingServiceBehavior audit;
+    private final ObjectMapper objectMapper;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -154,9 +157,7 @@ public class ActivationHistoryServiceBehavior {
         }
     }
 
-    // Private methods
-
-    private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
+    protected void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         // Prepare shared parameters
         final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
                 .type(AuditType.ACTIVATION.getCode())
@@ -181,6 +182,15 @@ public class ActivationHistoryServiceBehavior {
         if (externalUserId != null) {
             auditDetailBuilder
                     .param("externalUserId", externalUserId);
+        }
+
+        if (activation.getAdditionalData() != null) {
+            try {
+                final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
+                auditDetailBuilder.param("additionalData", additionalData);
+            } catch (JsonProcessingException e) {
+                logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
+            }
         }
 
         // Build audit log message

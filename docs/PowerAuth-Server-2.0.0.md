@@ -1,4 +1,4 @@
-# Migration from 1.9.x to 2.0.0
+# Migration from 1.10.x to 2.0.0
 
 ## Database Changes
 

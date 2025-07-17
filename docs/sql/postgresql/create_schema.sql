@@ -421,6 +421,10 @@ ALTER TABLE pa_application_callback ADD timestamp_created TIMESTAMP(6) WITHOUT T
 ALTER TABLE pa_application_callback ADD timestamp_last_updated TIMESTAMP(6) WITHOUT TIME ZONE;
 
 -- Changeset powerauth-java-server/1.9.x/20241003-add-tag-1.9.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/1.10.x/20250609-activation-additional-data.xml::1::Lubos Racansky
+-- Add additional_data column to pa_activation table.
+ALTER TABLE pa_activation ADD additional_data TEXT;
+
 -- Changeset powerauth-java-server/2.0.x/20250314-crypto4-pqc.xml::1::Roman Strobl
 -- Add column crypto_algorithm to pa_activation table
 ALTER TABLE pa_activation ADD crypto_algorithm VARCHAR(32);

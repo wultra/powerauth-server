@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
@@ -77,6 +79,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlAuthenticationEncryptor callbackUrlAuthenticationEncryptor;
     private final LoadingCache<String, CachedRestClient> restClientCache;
     private final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private final ObjectMapper objectMapper;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -339,7 +342,7 @@ public class CallbackUrlBehavior {
      * @param activation Activation entity.
      * @return Callback data to send.
      */
-    private Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
+    protected Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
         final Map<String, Object> callbackData = new HashMap<>();
         callbackData.put("type", "ACTIVATION");
         callbackData.put("activationId", activation.getActivationId());
@@ -370,9 +373,16 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("applicationId")) {
             callbackData.put("applicationId", activation.getApplication().getId());
         }
+        if (callbackUrlEntity.getAttributes().contains("additionalData") && activation.getAdditionalData() != null) {
+            try {
+                final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
+                callbackData.put("additionalData", additionalData);
+            } catch (JsonProcessingException e) {
+                logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
+            }
+        }
         return callbackData;
     }
-
 
     /**
      * Tries to asynchronously notify all operation callbacks that are registered for given application.

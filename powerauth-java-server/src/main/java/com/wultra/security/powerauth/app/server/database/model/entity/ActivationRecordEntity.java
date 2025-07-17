@@ -102,10 +102,16 @@ public class ActivationRecordEntity implements Serializable {
     private String activationName;
 
     /**
-     * Extra parameter.
+     * Authenticator extra parameter.
      */
     @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
+
+    /**
+     * Optional additional data, structure is customer-specific JSON. Could be set during creation or initialization.
+     */
+    @Column(name = "additional_data", columnDefinition = "CLOB")
+    private String additionalData;
 
     /**
      * Protocol.
