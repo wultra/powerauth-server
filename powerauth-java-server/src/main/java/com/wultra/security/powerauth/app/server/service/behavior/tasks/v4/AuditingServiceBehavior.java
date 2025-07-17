@@ -25,7 +25,6 @@ import com.wultra.security.powerauth.app.server.converter.ActivationStatusConver
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
-import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
