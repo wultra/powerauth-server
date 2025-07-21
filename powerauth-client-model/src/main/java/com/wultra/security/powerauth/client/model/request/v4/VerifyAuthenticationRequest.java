@@ -19,12 +19,16 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Model class representing request for authentication code verification (V4).
@@ -61,5 +65,8 @@ public class VerifyAuthenticationRequest {
 
     @Schema(description = "Forced authentication protocol version used during protocol upgrade")
     private Integer forcedAuthenticationVersion;
+
+    @Schema(description = "Activation states which are allowed when verifying authentication")
+    private List<@NotNull ActivationStatus> allowedStates = new ArrayList<>();
 
 }

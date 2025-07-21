@@ -73,6 +73,11 @@ public class ActivationStatusServiceBehavior {
      */
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x4;
 
+    private static final byte STATUS_FLAG_ACTIVATION_CONFIRMATION = 1;
+    private static final byte STATUS_FLAG_UPGRADE_CONFIRMATION    = 2;
+    private static final byte STATUS_FLAG_UNSUPPORTED_ALGORITHM   = 4;
+    private static final byte STATUS_FLAG_BIOMETRY_FACTOR_ON      = 8;
+
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -141,6 +146,7 @@ public class ActivationStatusServiceBehavior {
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
+                    response.setConfirmationPending(activation.isConfirmationPending());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
                     response.setApplicationId(applicationId);
@@ -185,6 +191,12 @@ public class ActivationStatusServiceBehavior {
                     statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
                     statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
                     statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
+                    statusBlobInfo.setStatusFlags(computeStatusFlags(
+                            activation.isConfirmationPending(),
+                            false, // TODO - update when implementing upgrade
+                            false, // TODO - implement algorithm check
+                            activation.isBiometricFactorEnabled())
+                    );
                     final byte[] statusBlobData = powerAuthServerActivation.generateStatusBlob(statusBlobInfo, ProtocolVersion.V40);
                     final byte[] statusBlobMac = powerAuthServerActivation.calculateStatusMac(statusBlobData, keyStatusMac, ProtocolVersion.V40);
                     final byte[] statusBlob = ByteBuffer
@@ -210,6 +222,7 @@ public class ActivationStatusServiceBehavior {
                     response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
                     response.setBlockedReason(activation.getBlockedReason());
+                    response.setConfirmationPending(activation.isConfirmationPending());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
                     response.setExtras(activation.getExtras());
@@ -298,6 +311,15 @@ public class ActivationStatusServiceBehavior {
             case FIDO2 -> ActivationProtocol.FIDO2;
             case POWERAUTH -> ActivationProtocol.POWERAUTH;
         };
+    }
+
+    private static byte computeStatusFlags(boolean activationConfirmationPending, boolean upgradeConfirmation, boolean unsupportedAlgorithm, boolean biometryOn) {
+        byte flags = 0;
+        if (activationConfirmationPending) flags |= STATUS_FLAG_ACTIVATION_CONFIRMATION;
+        if (upgradeConfirmation) flags |= STATUS_FLAG_UPGRADE_CONFIRMATION;
+        if (unsupportedAlgorithm) flags |= STATUS_FLAG_UNSUPPORTED_ALGORITHM;
+        if (biometryOn) flags |= STATUS_FLAG_BIOMETRY_FACTOR_ON;
+        return flags;
     }
 
 }

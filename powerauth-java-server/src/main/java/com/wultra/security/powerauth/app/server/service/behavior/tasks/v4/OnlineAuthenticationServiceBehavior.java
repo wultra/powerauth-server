@@ -89,7 +89,20 @@ public class OnlineAuthenticationServiceBehavior {
             if (request.getForcedAuthenticationVersion() != null && request.getForcedAuthenticationVersion() == 4) {
                 forcedAuthenticationVersion = 4;
             }
-            return verifyAuthenticationImpl(activationId, authenticationCodeType, authenticationCode, authenticationVersion, additionalInfo, dataString, applicationKey, forcedAuthenticationVersion);
+            boolean pendingCommitAllowed = false;
+            if (request.getAllowedStates() != null) {
+                for (com.wultra.security.powerauth.client.model.enumeration.ActivationStatus requestedState: request.getAllowedStates()) {
+                    if (requestedState == com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.CREATED
+                        || requestedState == com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.BLOCKED
+                        || requestedState == com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.REMOVED) {
+                        logger.warn("Invalid requested allowed states: {}", request.getAllowedStates());
+                        // Rollback is not required, cryptography methods are executed before database is used for writing
+                        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                    }
+                }
+                pendingCommitAllowed = request.getAllowedStates().contains(com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.PENDING_COMMIT);
+            }
+            return verifyAuthenticationImpl(activationId, authenticationCodeType, authenticationCode, authenticationVersion, additionalInfo, dataString, applicationKey, forcedAuthenticationVersion, pendingCommitAllowed);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -125,6 +138,7 @@ public class OnlineAuthenticationServiceBehavior {
      * @param dataString                  Authentication data.
      * @param applicationKey              Application key.
      * @param forcedAuthenticationVersion Forced authentication version during upgrade.
+     * @param pendingCommitStateAllowed   Whether authentication is allowed in PENDING_COMMIT state.
      * @return Verify offline authentication response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
      * @throws InvalidKeyException     In case a key is invalid.
@@ -133,7 +147,8 @@ public class OnlineAuthenticationServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyAuthenticationResponse verifyAuthenticationImpl(String activationId, AuthenticationCodeType authenticationCodeType, String authenticationCode, String authenticationVersion, List<KeyValue> additionalInfo,
-                                                                  String dataString, String applicationKey, Integer forcedAuthenticationVersion)
+                                                                  String dataString, String applicationKey, Integer forcedAuthenticationVersion,
+                                                                  boolean pendingCommitStateAllowed)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -170,7 +185,11 @@ public class OnlineAuthenticationServiceBehavior {
         final AuthenticationData authenticationData = new AuthenticationData(data, authenticationCode, authCodeConfig, authenticationVersion, additionalInfo, forcedAuthenticationVersion);
         final OnlineAuthenticationRequest authenticationRequest = new OnlineAuthenticationRequest(authenticationData, authenticationCodeType);
 
-        if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
+        boolean verificationInPendingConfirmationState = activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT
+                && pendingCommitStateAllowed
+                && activation.isConfirmationPending();
+
+        if (activation.getActivationStatus() == ActivationStatus.ACTIVE || verificationInPendingConfirmationState) {
 
             // Double-check that there are at least some remaining attempts
             if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked

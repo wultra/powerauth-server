@@ -282,7 +282,7 @@ public class AuthenticationSharedServiceBehavior {
      * @throws GenericServiceException In case biometry is not set up yet.
      */
     private void checkBiometryAvailable(AuthenticationCodeType codeType, ActivationRecordEntity activation) throws GenericServiceException {
-        if (hasBiometryComponent(codeType) && !Boolean.TRUE.equals(activation.getBiometricFactorEnabled())) {
+        if (hasBiometryComponent(codeType) && !activation.isBiometricFactorEnabled()) {
             logger.info("Invalid authentication attempt skipped, biometry is not set up yet, authentication code type: {}", codeType);
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
         }
@@ -603,7 +603,7 @@ public class AuthenticationSharedServiceBehavior {
         final SecretKey knowledgeSecretCurrent = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(knowledgeKeyCurrent));
         final SecretKey knowledgeSecretNext = knowledgeKeyNext != null ? KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(knowledgeKeyNext)) : null;
 
-        final boolean biometryEnabled = Boolean.TRUE.equals(activation.getBiometricFactorEnabled());
+        final boolean biometryEnabled = activation.isBiometricFactorEnabled();
         final String biometryKeyCurrent = biometryEnabled ? activation.getBiometricFactorKey() : null;
         final String biometryKeyNext = biometryEnabled ? activation.getBiometricFactorKeyNext() : null;
         final SecretKey biometrySecretCurrent = biometryKeyCurrent != null ? KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(biometryKeyCurrent)) : null;

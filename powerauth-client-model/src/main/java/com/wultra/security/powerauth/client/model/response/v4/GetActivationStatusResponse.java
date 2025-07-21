@@ -46,6 +46,7 @@ public class GetActivationStatusResponse {
     private ActivationOtpValidation activationOtpValidation;
     private CommitPhase commitPhase;
     private String blockedReason;
+    private boolean confirmationPending;
     private String activationName;
     private String userId;
 

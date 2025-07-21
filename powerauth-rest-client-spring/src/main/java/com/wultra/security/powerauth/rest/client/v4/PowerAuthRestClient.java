@@ -308,6 +308,24 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public Response confirmActivation(ConfirmActivationRequest request) throws PowerAuthClientException {
+        return confirmActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public Response confirmActivation(ConfirmActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/activation/confirm", request, queryParams, httpHeaders, Response.class);
+    }
+
+    @Override
+    public Response confirmActivation(String activationId) throws PowerAuthClientException {
+        final ConfirmActivationRequest request = new ConfirmActivationRequest();
+        request.setActivationId(activationId);
+        return confirmActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+
+    }
+
+    @Override
     public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
         return getActivationStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }

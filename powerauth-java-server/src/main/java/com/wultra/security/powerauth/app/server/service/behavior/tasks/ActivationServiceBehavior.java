@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
+import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -32,6 +33,7 @@ import com.wultra.security.powerauth.app.server.service.persistence.ActivationQu
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v4.ConfirmActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
@@ -61,11 +63,6 @@ import java.util.stream.Stream;
 @AllArgsConstructor
 public class ActivationServiceBehavior {
 
-    /**
-     * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
-     */
-    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
-
     // Minimum date for SQL timestamps: 01/01/1970 @ 12:00am (UTC)
     private static final Date MIN_TIMESTAMP = new Date(1L);
 
@@ -83,6 +80,7 @@ public class ActivationServiceBehavior {
     private final PowerAuthPageableConfiguration powerAuthPageableConfiguration;
 
     private final ActivationQueryService activationQueryService;
+    private final ActivationRepository activationRepository;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -310,6 +308,69 @@ public class ActivationServiceBehavior {
             response.setUpdated(true);
 
             return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    /**
+     * Confirm activation with given ID.
+     *
+     * @param request Confirm activation request.
+     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
+     */
+    @Transactional
+    public void confirmActivation(ConfirmActivationRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+
+            // Find activation
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
+
+            // Get current timestamp
+            final Date timestamp = new Date();
+
+            // Check already deactivated activation
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, true);
+            if (activation.getActivationStatus() == ActivationStatus.REMOVED) {
+                logger.info("Activation is already REMOVED, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
+
+            // Check whether activation is in correct state for confirmation:
+            // - PENDING_COMMIT for activation without autocommit
+            // - ACTIVE for activation with autocommit
+            if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT && activation.getActivationStatus() != ActivationStatus.ACTIVE) {
+                logger.info("Activation is in invalid state during confirmation, activation ID: {}, activation state: {}", activationId, activation.getActivationStatus());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Check whether activation was not confirmed before
+            if (!activation.isConfirmationPending()) {
+                logger.info("Activation is already confirmed, activation ID: {}, activation state: {}", activationId, activation.getActivationStatus());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Enable the biometric factor in case it was enabled in mobile SDK
+            activation.setBiometricFactorEnabled(request.isEnableBiometry());
+
+            activation.setConfirmationPending(false);
+            activationRepository.save(activation);
+
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
