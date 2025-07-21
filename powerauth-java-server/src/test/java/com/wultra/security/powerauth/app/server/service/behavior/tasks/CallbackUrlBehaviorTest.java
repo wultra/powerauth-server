@@ -17,14 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
-import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
-import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
-import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
@@ -35,6 +27,13 @@ import com.wultra.security.powerauth.app.server.service.callbacks.model.Callback
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.task.CleaningTask;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
+import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -44,6 +43,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -245,8 +245,38 @@ class CallbackUrlBehaviorTest {
         final RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlEntity.getId());
 
-        final RemoveCallbackUrlResponse response = tested.removeCallbackUrl(request);
+        tested.removeCallbackUrl(request);
         entityManager.flush();
     }
 
+    @Test
+    void testPrepareCallbackDataActivation_withAdditionalData() {
+        final CallbackUrlEntity callbackUrlEntity = new CallbackUrlEntity();
+        callbackUrlEntity.setAttributes(List.of("additionalData"));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setActivationId("activation-123");
+        activation.setAdditionalData("""
+                {"foo":"bar"}
+                """);
+
+        final Map<String, Object> result = tested.prepareCallbackDataActivation(callbackUrlEntity, activation);
+
+        assertTrue(result.containsKey("additionalData"));
+        assertEquals(Map.of("foo", "bar"), result.get("additionalData"));
+    }
+
+    @Test
+    void testPrepareCallbackDataActivation_withAdditionalData_invalid() {
+        final CallbackUrlEntity callbackUrlEntity = new CallbackUrlEntity();
+        callbackUrlEntity.setAttributes(List.of("additionalData"));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setActivationId("activation-123");
+        activation.setAdditionalData("invalid json");
+
+        final Map<String, Object> result = tested.prepareCallbackDataActivation(callbackUrlEntity, activation);
+
+        assertFalse(result.containsKey("additionalData"));
+    }
 }

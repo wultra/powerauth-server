@@ -1,4 +1,4 @@
-# Migration from 1.9.x to 2.0.0
+# Migration from 1.10.x to 2.0.0
 
 ## Database Changes
 
@@ -6,9 +6,9 @@ For convenience, you can use liquibase for your database migration.
 
 For manual changes use SQL scripts:
 
-- [PostgreSQL script](./sql/postgresql/migration_1.9.0_2.0.0.sql)
-- [Oracle script](./sql/oracle/migration_1.9.0_2.0.0.sql)
-- [MSSQL script](./sql/mssql/migration_1.9.0_2.0.0.sql)
+- [PostgreSQL script](sql/postgresql/migration_1.10.0_2.0.0.sql)
+- [Oracle script](sql/oracle/migration_1.10.0_2.0.0.sql)
+- [MSSQL script](sql/mssql/migration_1.10.0_2.0.0.sql)
 
 ### Added new columns for cryptography protocol version 4
 

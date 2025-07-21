@@ -147,6 +147,7 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                     activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
+                    activationServiceItem.setAdditionalData(activation.getAdditionalData());
                     response.getActivations().add(activationServiceItem);
                 }
             }
@@ -258,6 +259,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
+                activationServiceItem.setAdditionalData(activation.getAdditionalData());
                 response.getActivations().add(activationServiceItem);
             }
 

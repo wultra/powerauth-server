@@ -198,7 +198,10 @@ public class TokenBehavior {
                 param.setEphemeralPublicKey(null);
                 param.setNonce(request.getNonce());
                 param.setIdentifier(tokenId);
-                replayVerificationService.checkAndPersistUniqueValue(request.getProtocolVersion(), new Date(request.getTimestamp()), param);
+                replayVerificationService.checkAndPersistUniqueValue(request.getProtocolVersion(),
+                        new Date(request.getTimestamp()),
+                        param
+                );
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
             }

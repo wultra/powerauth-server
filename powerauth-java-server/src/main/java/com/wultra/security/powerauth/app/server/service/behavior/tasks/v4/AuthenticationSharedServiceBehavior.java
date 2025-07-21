@@ -224,12 +224,13 @@ public class AuthenticationSharedServiceBehavior {
         final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
 
         final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
-
-        final boolean authenticationValid = result.authenticated();
-        final Long ctrNext = authenticationValid ? result.nextCounter() : null;
-        final byte[] ctrDataNext = authenticationValid ? result.nextCtrData() : null;
-        final AuthenticationCodeType usedAuthenticationCodeType = authenticationValid ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
-        return new AuthenticationResponse(authenticationValid, ctrNext, ctrDataNext, authenticationVersion, usedAuthenticationCodeType);
+        final AuthenticationCodeType usedAuthenticationCodeType = result.authenticated() ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
+        return new AuthenticationResponse(result.authenticated(),
+                result.nextCounter(),
+                result.nextCtrData(),
+                authenticationVersion,
+                usedAuthenticationCodeType
+        );
     }
 
     /**

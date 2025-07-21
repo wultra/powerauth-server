@@ -244,6 +244,7 @@ public class ActivationStatusServiceBehavior {
                     response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                    response.setAdditionalData(activation.getAdditionalData());
                     return response;
                 }
             } else {

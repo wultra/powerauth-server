@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
@@ -69,6 +70,7 @@ public class ActivationInitServiceBehavior {
     private final CallbackUrlBehavior callbackUrlBehavior;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
+    private final ObjectMapper objectMapper;
 
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
@@ -202,6 +204,9 @@ public class ActivationInitServiceBehavior {
             activation.setTimestampLastChange(null);
             activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
+            if (request.getAdditionalData() != null) {
+                activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
+            }
             if (flags != null) {
                 activation.getFlags().addAll(flags);
             }

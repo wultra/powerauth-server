@@ -19,10 +19,12 @@
 
 package com.wultra.security.powerauth.client.model.response.v3;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
@@ -46,6 +48,8 @@ public class GetActivationStatusResponse {
     private String blockedReason;
     private String activationName;
     private String userId;
+
+    @Schema(description = "Any custom attributes set through SDK")
     private String extras;
     private ActivationProtocol protocol;
     private String externalId;
@@ -71,4 +75,7 @@ public class GetActivationStatusResponse {
     private List<String> activationFlags = new ArrayList<>();
     private List<String> applicationRoles = new ArrayList<>();
 
+    @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
+    @JsonRawValue
+    private Object additionalData;
 }

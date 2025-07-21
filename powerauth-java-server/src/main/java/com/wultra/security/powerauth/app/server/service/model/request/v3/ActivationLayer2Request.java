@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.app.server.service.model.request.v3;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Request object for activation layer 2 request (V3).
@@ -28,7 +27,6 @@ import lombok.NoArgsConstructor;
  *
  */
 @Data
-@NoArgsConstructor
 public class ActivationLayer2Request {
 
     private String devicePublicKey;

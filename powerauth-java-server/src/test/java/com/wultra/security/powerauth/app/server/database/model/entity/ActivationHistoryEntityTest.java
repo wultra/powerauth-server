@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.app.server.database.model.entity;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Mode;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +52,7 @@ class ActivationHistoryEntityTest {
         activationHistory2.setTimestampCreated(new Date(2));
 
         EqualsVerifier.forClass(ActivationHistoryEntity.class)
+                .set(Mode.skipMockito())
                 .withOnlyTheseFields("activation", "timestampCreated")
                 // TODO (racansky, 2023-11-09) equals and hashCode is using getActivation().getActivationId() but still getting false positive; https://jqno.nl/equalsverifier/manual/jpa-entities/
                 .suppress(Warning.JPA_GETTER)
