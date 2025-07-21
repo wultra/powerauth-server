@@ -149,7 +149,7 @@ public class ActivationController {
         logger.debug("action: confirmActivation, state: initiated, request: {}", request);
         activationServiceBehavior.confirmActivation(req);
         logger.info("action: confirmActivation, state: succeeded");
-        logger.debug("action: confirmActivation, state: succeeded, response: emtpy");
+        logger.debug("action: confirmActivation, state: succeeded, response: empty");
         return new Response();
     }
 
