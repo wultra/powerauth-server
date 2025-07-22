@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
@@ -23,7 +24,6 @@ import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v3.SignatureData;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
