@@ -59,7 +59,7 @@ public class EncryptorController {
     @PostMapping
     public ObjectResponse<ExtractEncryptorResponse> extractEncryptor(@Valid @RequestBody ObjectRequest<ExtractEncryptorRequest> request) throws Exception {
         final ExtractEncryptorRequest req = request.getRequestObject();
-        logger.info("action: extractEncryptor, state: initiated, applicationKey: {}", req.getApplicationKey());
+        logger.info("action: extractEncryptor, state: initiated, applicationKey: {}, requestTimestamp: {}", req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: extractEncryptor, state: initiated, request: {}", request);
         final ObjectResponse<ExtractEncryptorResponse> response = new ObjectResponse<>(service.extractEncryptor(req));
         logger.info("action: extractEncryptor, state: succeeded");

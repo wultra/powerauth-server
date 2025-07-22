@@ -63,7 +63,7 @@ public class TokenController {
     @PostMapping("/create")
     public ObjectResponse<CreateTokenResponse> createToken(@Valid @RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
         final CreateTokenRequest req = request.getRequestObject();
-        logger.info("action: createToken, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
+        logger.info("action: createToken, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: createToken, state: initiated, request: {}", request);
         final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(req));
         logger.info("action: createToken, state: succeeded");
@@ -81,7 +81,7 @@ public class TokenController {
     @PostMapping("/validate")
     public ObjectResponse<ValidateTokenResponse> validateToken(@Valid @RequestBody ObjectRequest<ValidateTokenRequest> request) throws Exception {
         final ValidateTokenRequest req = request.getRequestObject();
-        logger.info("action: validateToken, state: initiated, tokenId: {}", req.getTokenId());
+        logger.info("action: validateToken, state: initiated, tokenId: {}, requestTimestamp: {}", req.getTokenId(), req.getTimestamp());
         logger.debug("action: validateToken, state: initiated, request: {}", request);
         final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateTokenV4(req));
         logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.getResponseObject().isTokenValid());
