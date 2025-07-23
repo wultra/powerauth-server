@@ -18,7 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import lombok.Data;
 
 import java.util.List;

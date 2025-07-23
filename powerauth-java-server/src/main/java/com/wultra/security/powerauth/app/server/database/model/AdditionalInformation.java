@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.server.database.model;
 
 /**
- * Constants for additional information related to activations and signature audit records.
+ * Constants for additional information related to activations and authentication audit records.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */

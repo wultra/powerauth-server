@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_temporary_key" columnName="secret_key_base64" />
+                <columnExists tableName="pa_temporary_key" columnName="secret_key_encryption" />
+            </not>
+        </preConditions>
+        <comment>Add columns for crypto4 shared secret storage to pa_temporary_key table</comment>
+        <addColumn tableName="pa_temporary_key">
+            <column name="secret_key_base64" type="varchar(255)"/>
+            <column name="secret_key_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20250320-crypto4-temporary-keys.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="pa_temporary_key" columnName="private_key_base64" />
+                <columnExists tableName="pa_temporary_key" columnName="public_key_base64" />
+            </and>
+        </preConditions>
+        <comment>Change the temporary keypair columns to nullable in pa_temporary_key table</comment>
+        <dropNotNullConstraint tableName="pa_temporary_key" columnName="private_key_base64" columnDataType="varchar(255)" />
+        <dropNotNullConstraint tableName="pa_temporary_key" columnName="public_key_base64" columnDataType="varchar(255)" />
+    </changeSet>
+
+</databaseChangeLog>

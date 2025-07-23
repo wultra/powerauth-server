@@ -16,7 +16,7 @@
 
 package com.wultra.security.app.admin.controller;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.*;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
@@ -111,15 +111,9 @@ public class ApplicationController {
     public String applicationDetail(@PathVariable("applicationId") String id, Map<String, Object> model) {
         try {
             GetApplicationDetailResponse applicationDetails = client.getApplicationDetail(id);
-            GetRecoveryConfigResponse recoveryConfig = client.getRecoveryConfig(id);
             GetCallbackUrlListResponse callbackUrlList = client.getCallbackUrlList(id);
             model.put("id", applicationDetails.getApplicationId());
             model.put("masterPublicKey", applicationDetails.getMasterPublicKey());
-            model.put("activationRecoveryEnabled", recoveryConfig.isActivationRecoveryEnabled());
-            model.put("recoveryPostcardEnabled", recoveryConfig.isRecoveryPostcardEnabled());
-            model.put("allowMultipleRecoveryCodes", recoveryConfig.isAllowMultipleRecoveryCodes());
-            model.put("postcardPublicKey", recoveryConfig.getPostcardPublicKey());
-            model.put("remotePostcardPublicKey", recoveryConfig.getRemotePostcardPublicKey());
             model.put("versions", reverse(applicationDetails.getVersions()));
             model.put("roles", applicationDetails.getApplicationRoles());
             model.put("callbacks", callbackUrlList.getCallbackUrlList());
@@ -584,35 +578,6 @@ public class ApplicationController {
         try {
             client.removeApplicationRoles(id, Collections.singletonList(name));
             return "redirect:/application/detail/" + id + "#roles";
-        } catch (PowerAuthClientException ex) {
-            logger.warn(ex.getMessage(), ex);
-            return "error";
-        }
-    }
-
-    /**
-     * Update recovery configuration.
-     * @param id Application ID.
-     * @param activationRecoveryEnabled Whether activation recovery is enabled.
-     * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
-     * @param allowMultipleRecoveryCodes Whether multiple recovery codes are allowed per user.
-     * @param remotePostcardPublicKey Base64 encoded printing center public key.
-     * @return Redirect to application detail, recovery tab.
-     */
-    @PostMapping("/application/detail/{applicationId}/recovery/update/do.submit")
-    public String applicationUpdateRecoveryConfigAction(
-            @PathVariable("applicationId") String id,
-            @RequestParam(value = "activationRecoveryEnabled", required = false) boolean activationRecoveryEnabled,
-            @RequestParam(value = "recoveryPostcardEnabled", required = false) boolean recoveryPostcardEnabled,
-            @RequestParam(value = "allowMultipleRecoveryCodes", required = false) boolean allowMultipleRecoveryCodes,
-            @RequestParam(value = "remotePostcardPublicKey", required = false) String remotePostcardPublicKey) {
-        try {
-            if (!activationRecoveryEnabled && recoveryPostcardEnabled) {
-                // Turn off recovery postcard in case activation recovery is disabled
-                recoveryPostcardEnabled = false;
-            }
-            client.updateRecoveryConfig(id, activationRecoveryEnabled, recoveryPostcardEnabled, allowMultipleRecoveryCodes, remotePostcardPublicKey);
-            return "redirect:/application/detail/" + id + "#recovery";
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
             return "error";

@@ -18,7 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Response class with JWT encoded temporary public key response.
@@ -26,6 +28,8 @@ import lombok.Data;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class TemporaryPublicKeyResponse {
 
     private String jwt;

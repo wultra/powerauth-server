@@ -31,6 +31,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationRolesServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -45,18 +46,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("applicationRolesController")
-@RequestMapping("/rest/v3/application/roles")
-@Tag(name = "PowerAuth Application Roles Controller (V3)")
+@RequestMapping({"/rest/v3/application/roles", "/rest/v4/application/roles"})
+@Tag(name = "PowerAuth Application Roles Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class ApplicationRolesController {
 
     private final ApplicationRolesServiceBehavior service;
-
-    @Autowired
-    public ApplicationRolesController(ApplicationRolesServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * List application roles.

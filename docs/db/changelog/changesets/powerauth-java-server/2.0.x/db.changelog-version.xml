@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <include file="20250314-crypto4-pqc.xml" relativeToChangelogFile="true" />
+    <include file="20250317-crypto4-master-keys.xml" relativeToChangelogFile="true" />
+    <include file="20250318-crypto4-dynamic-keys.xml" relativeToChangelogFile="true" />
+    <include file="20250320-crypto4-temporary-keys.xml" relativeToChangelogFile="true" />
+    <include file="20250709-crypto4-activation-confirmation.xml" relativeToChangelogFile="true" />
+
+</databaseChangeLog>

@@ -22,7 +22,7 @@ import com.wultra.powerauth.fido2.database.entity.Fido2AuthenticatorEntity;
 import com.wultra.powerauth.fido2.database.repository.Fido2AuthenticatorRepository;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

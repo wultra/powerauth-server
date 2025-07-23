@@ -71,14 +71,27 @@ public class TemporaryKeyEntity implements Serializable {
     /**
      * Temporary private key.
      */
-    @Column(name = "private_key_base64", nullable = false)
+    @Column(name = "private_key_base64")
     private String privateKeyBase64;
 
     /**
      * Temporary public key.
      */
-    @Column(name = "public_key_base64", nullable = false)
+    @Column(name = "public_key_base64")
     private String publicKeyBase64;
+
+    /**
+     * Secret key stored in Base-64 encoding.
+     */
+    @Column(name = "secret_key_base64")
+    private String secretKeyBase64;
+
+    /**
+     * Mode of secret key encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     */
+    @Column(name = "secret_key_encryption", nullable = false)
+    @Enumerated
+    private EncryptionMode secretKeyEncryption;
 
     /**
      * Timestamp when operation expired.

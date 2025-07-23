@@ -27,7 +27,7 @@ import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequestWrapper;
 import com.wultra.powerauth.fido2.rest.model.validator.RegistrationRequestValidator;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
-import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.powerauth.fido2.service.provider.Fido2CryptographyService;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
@@ -56,7 +56,7 @@ public class RegistrationService {
     private final RegistrationChallengeConverter registrationChallengeConverter;
     private final RegistrationConverter registrationConverter;
     private final RegistrationRequestValidator registrationRequestValidator;
-    private final CryptographyService cryptographyService;
+    private final Fido2CryptographyService cryptographyService;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
     private final RegistrationRequestWrapperConverter registrationRequestWrapperConverter;
 

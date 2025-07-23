@@ -13,7 +13,7 @@
 **Implementation Tutorials**
 
 - [Mobile-First Authentication in Banking (SCA)](https://developers.wultra.com/tutorials/posts/Mobile-First-Authentication/)
-- [Verifying PowerAuth Signatures On The Server](https://developers.wultra.com/tutorials/posts/Manual-Signature-Verification/)
+- [Verifying Authentication Codes On The Server](https://developers.wultra.com/tutorials/posts/Manual-Signature-Verification/)
 
 **Reference Manual**
 
@@ -29,12 +29,11 @@
 - [Deploying PowerAuth Admin on JBoss/Wildfly](./Admin-Deploying-Wildfly.md)
 - [Setting Up LDAP Authentication](./Setting-Up-LDAP-Authentication.md)
 - [Setting Up AD Authentication](./Setting-Up-Active-Directory-Authentication.md)
-- [Configuration of Activation Recovery](./Activation-Recovery.md)
 - [Configuration Properties](./Configuration-Properties-Admin.md)
 
 **Advanced Topics**
 
 - [Encrypting DB Records](./Encrypting-Records-in-Database.md)
-- [Offline Signatures](./Offline-Signatures.md)
+- [Offline Authentication Codes](./Offline-Authentication-Codes)
 - [Integrating with HashiCorp Vault](./Using-HashiCorp-Vault.md)
 - [Database Sizing](./Database-Sizing.md)

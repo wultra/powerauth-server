@@ -109,13 +109,6 @@ public class PowerAuthServiceConfiguration {
     private int activationGenerateActivationCodeIterations;
 
     /**
-     * When a duplicate recovery code is encountered, how many times generate a new one.
-     */
-    @Value("${powerauth.service.crypto.generateRecoveryCodeIterations}")
-    @Min(1)
-    private int generateRecoveryCodeIterations;
-
-    /**
      * When a duplicate operation ID is encountered, how many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateOperationIterations}")
@@ -138,29 +131,29 @@ public class PowerAuthServiceConfiguration {
     private int activationsCleanupLookBackInMilliseconds;
 
     /**
-     * How many failed signatures cause activation record blocking. The maximum supported value is 64.
+     * How many failed authentication code verifications cause activation record blocking. The maximum supported value is 64.
      */
-    @Value("${powerauth.service.crypto.signatureMaxFailedAttempts}")
+    @Value("${powerauth.service.crypto.authenticationCodeMaxFailedAttempts}")
     @Min(0)
     @Max(64)
-    private long signatureMaxFailedAttempts;
+    private long authenticationCodeMaxFailedAttempts;
 
     /**
-     * When validating the signature, how many iterations ahead to look in case signature fails for the first
+     * When validating the authentication code, how many iterations ahead to look in case authentication code verification fails for the first
      * counter value. The maximum supported value is 64.
      */
-    @Value("${powerauth.service.crypto.signatureValidationLookahead}")
+    @Value("${powerauth.service.crypto.authenticationCodeValidationLookahead}")
     @Min(1)
     @Max(64)
-    private long signatureValidationLookahead;
+    private long authenticationCodeValidationLookahead;
 
     /**
-     * When validating the offline (or decimalized) signature, how many digits should a factor-related component have.
+     * When validating the offline (or decimalized) authentication code, how many digits should a factor-related component have.
      */
-    @Value("${powerauth.service.crypto.offlineSignatureComponentLength}")
+    @Value("${powerauth.service.crypto.offlineAuthenticationCodeComponentLength}")
     @Min(4)
     @Max(8)
-    private int offlineSignatureComponentLength;
+    private int offlineAuthenticationCodeComponentLength;
 
     /**
      * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.2+.
@@ -250,14 +243,6 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
-
-    /**
-     * How many failed usages of recovery code block the recovery code. The maximum supported value is 64.
-     */
-    @Value("${powerauth.service.recovery.maxFailedAttempts}")
-    @Min(0)
-    @Max(64)
-    private long recoveryMaxFailedAttempts;
 
     /**
      * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.
@@ -436,22 +421,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get number of recovery code generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getGenerateRecoveryCodeIterations() {
-        return generateRecoveryCodeIterations;
-    }
-
-    /**
-     * Set number of recovery code generation attempts in case of collision.
-     * @param generateRecoveryCodeIterations Retry iteration count (10, by default).
-     */
-    public void setGenerateRecoveryCodeIterations(int generateRecoveryCodeIterations) {
-        this.generateRecoveryCodeIterations = generateRecoveryCodeIterations;
-    }
-
-    /**
      * Get number of operation ID generation attempts in case of collision.
      * @return Retry iteration count (10, by default).
      */
@@ -471,16 +440,16 @@ public class PowerAuthServiceConfiguration {
      * Get default number of maximum failed attempts.
      * @return Maximum failed attempts (5, by default).
      */
-    public long getSignatureMaxFailedAttempts() {
-        return signatureMaxFailedAttempts;
+    public long getAuthenticationCodeMaxFailedAttempts() {
+        return authenticationCodeMaxFailedAttempts;
     }
 
     /**
      * Set default number of maximum failed attempts.
-     * @param signatureMaxFailedAttempts Maximum failed attempts (5, by default).
+     * @param authenticationCodeMaxFailedAttempts Maximum failed attempts (5, by default).
      */
-    public void setSignatureMaxFailedAttempts(long signatureMaxFailedAttempts) {
-        this.signatureMaxFailedAttempts = signatureMaxFailedAttempts;
+    public void setAuthenticationCodeMaxFailedAttempts(long authenticationCodeMaxFailedAttempts) {
+        this.authenticationCodeMaxFailedAttempts = authenticationCodeMaxFailedAttempts;
     }
 
     /**
@@ -515,38 +484,36 @@ public class PowerAuthServiceConfiguration {
         this.activationsCleanupLookBackInMilliseconds = activationsCleanupLookBackInMilliseconds;
     }
 
-
-
     /**
-     * Get the signature validation lookahead.
-     * @return Signature validation lookahead.
+     * Get the authentication code validation lookahead.
+     * @return Authentication code validation lookahead.
      */
-    public long getSignatureValidationLookahead() {
-        return signatureValidationLookahead;
+    public long getAuthenticationCodeValidationLookahead() {
+        return authenticationCodeValidationLookahead;
     }
 
     /**
-     * Set the signature validation lookahead.
-     * @param signatureValidationLookahead Signature validation lookahead.
+     * Set the authentication code validation lookahead.
+     * @param authenticationCodeValidationLookahead Authentication code validation lookahead.
      */
-    public void setSignatureValidationLookahead(long signatureValidationLookahead) {
-        this.signatureValidationLookahead = signatureValidationLookahead;
+    public void setAuthenticationCodeValidationLookahead(long authenticationCodeValidationLookahead) {
+        this.authenticationCodeValidationLookahead = authenticationCodeValidationLookahead;
     }
 
     /**
-     * Get offline signature factor-related component length.
+     * Get offline authentication code factor-related component length.
      * @return Factor-related component length.
      */
-    public int getOfflineSignatureComponentLength() {
-        return offlineSignatureComponentLength;
+    public int getOfflineAuthenticationCodeComponentLength() {
+        return offlineAuthenticationCodeComponentLength;
     }
 
     /**
-     * Set offline signature factor-related component length.
-     * @param offlineSignatureComponentLength Factor-related component length.
+     * Set offline authentication code factor-related component length.
+     * @param offlineAuthenticationCodeComponentLength Factor-related component length.
      */
-    public void setOfflineSignatureComponentLength(int offlineSignatureComponentLength) {
-        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
+    public void setOfflineAuthenticationCodeComponentLength(int offlineAuthenticationCodeComponentLength) {
+        this.offlineAuthenticationCodeComponentLength = offlineAuthenticationCodeComponentLength;
     }
 
     /**
@@ -707,22 +674,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
-    }
-
-    /**
-     * Get default number of maximum failed attempts for recovery codes.
-     * @return Maximum failed attempts for recovery codes (5, by default).
-     */
-    public long getRecoveryMaxFailedAttempts() {
-        return recoveryMaxFailedAttempts;
-    }
-
-    /**
-     * Set default number of maximum failed attempts for recovery codes.
-     * @param recoveryMaxFailedAttempts Maximum failed attempts for recovery codes (5, by default).
-     */
-    public void setRecoveryMaxFailedAttempts(long recoveryMaxFailedAttempts) {
-        this.recoveryMaxFailedAttempts = recoveryMaxFailedAttempts;
     }
 
     /**

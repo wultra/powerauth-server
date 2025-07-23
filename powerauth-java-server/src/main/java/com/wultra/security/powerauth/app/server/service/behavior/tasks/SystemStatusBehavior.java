@@ -18,8 +18,9 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
@@ -32,16 +33,11 @@ import java.util.Date;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SystemStatusBehavior {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-
     private BuildProperties buildProperties;
-
-    @Autowired
-    public SystemStatusBehavior(PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-    }
 
     @Autowired(required = false)
     public void setBuildProperties(BuildProperties buildProperties) {

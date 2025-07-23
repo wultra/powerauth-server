@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 @AllArgsConstructor
 public class ServerPrivateKeyConverter {
 
-    private final EncryptionService encryptionService;
+    private final DatabaseEncryptionService encryptionService;
 
     /**
      * Convert server private key from composite database value to Base64-encoded string value.

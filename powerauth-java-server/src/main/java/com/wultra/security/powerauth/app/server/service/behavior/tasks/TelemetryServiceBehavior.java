@@ -18,9 +18,9 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.response.TelemetryReportResponse;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.TelemetryReportException;
+import com.wultra.security.powerauth.client.model.response.TelemetryReportResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

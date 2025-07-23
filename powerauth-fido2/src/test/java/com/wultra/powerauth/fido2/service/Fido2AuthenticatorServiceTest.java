@@ -21,7 +21,7 @@ package com.wultra.powerauth.fido2.service;
 import com.wultra.powerauth.fido2.database.entity.Fido2AuthenticatorEntity;
 import com.wultra.powerauth.fido2.database.repository.Fido2AuthenticatorRepository;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

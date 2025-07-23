@@ -30,6 +30,8 @@ public enum UniqueValueType {
 
     ECIES_ACTIVATION_SCOPE,
 
-    ECIES_WITH_TEMPORARY_KEY
+    ECIES_WITH_TEMPORARY_KEY,
+
+    AEAD_V4
 
 }

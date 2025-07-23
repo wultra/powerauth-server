@@ -49,6 +49,9 @@ public class ReplayAttackUtils {
         } else if (protocolVersion.equals("3.3")) {
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
+        } else {
+            param.setIdentifier(temporaryKeyId);
+            param.setUniqueValueType(UniqueValueType.AEAD_V4);
         }
         return param;
     }
@@ -73,6 +76,9 @@ public class ReplayAttackUtils {
         } else if (protocolVersion.equals("3.3")) {
             param.setIdentifier(temporaryKeyId);
             param.setUniqueValueType(UniqueValueType.ECIES_WITH_TEMPORARY_KEY);
+        } else {
+            param.setIdentifier(temporaryKeyId);
+            param.setUniqueValueType(UniqueValueType.AEAD_V4);
         }
         return param;
     }

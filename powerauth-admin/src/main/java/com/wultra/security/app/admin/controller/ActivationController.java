@@ -16,7 +16,8 @@
 
 package com.wultra.security.app.admin.controller;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
@@ -67,13 +68,11 @@ public class ActivationController {
      *
      * @param userId User ID to lookup the activations for.
      * @param showAllActivations Indicates if activations in REMOVED state should be returned.
-     * @param showAllRecoveryCodes Indicates if recovery codes in REVOKED state should be returned.
      * @param model Model with passed parameters.
      * @return "activations" view.
      */
     @GetMapping("/activation/list")
-    public String activationList(@RequestParam(value = "userId", required = false) String userId, @RequestParam(value = "showAllActivations", required = false) Boolean showAllActivations,
-                                 @RequestParam(value = "showAllRecoveryCodes", required = false) Boolean showAllRecoveryCodes, Map<String, Object> model) {
+    public String activationList(@RequestParam(value = "userId", required = false) String userId, @RequestParam(value = "showAllActivations", required = false) Boolean showAllActivations, Map<String, Object> model) {
         try {
             if (userId != null) {
                 List<Activation> activationList = client.getActivationListForUser(userId);
@@ -82,13 +81,10 @@ public class ActivationController {
                 model.put("activations", activationList);
                 model.put("userId", userId);
                 model.put("showAllActivations", showAllActivations);
-                model.put("showAllRecoveryCodes", showAllRecoveryCodes);
 
                 final GetApplicationListResponse applications = client.getApplicationList();
                 model.put("applications", applications.getApplications());
 
-                LookupRecoveryCodesResponse response = client.lookupRecoveryCodes(userId, null, null, null, null);
-                model.put("recoveryCodes", response.getRecoveryCodes());
             }
             return "activations";
         } catch (PowerAuthClientException ex) {
@@ -170,9 +166,6 @@ public class ActivationController {
 
             GetApplicationDetailResponse application = client.getApplicationDetail(activation.getApplicationId());
             model.put("applicationId", application.getApplicationId());
-
-            LookupRecoveryCodesResponse response = client.lookupRecoveryCodes(activation.getUserId(), activation.getActivationId(), activation.getApplicationId(), null, null);
-            model.put("recoveryCodes", response.getRecoveryCodes());
 
             final List<com.wultra.security.powerauth.client.model.entity.SignatureAuditItem> auditItems = client.getSignatureAuditLog(activation.getUserId(), application.getApplicationId(), startingDate, endingDate);
             List<SignatureAuditItem> auditItemsFixed = new ArrayList<>();
@@ -426,32 +419,6 @@ public class ActivationController {
         try {
             client.removeActivationFlags(activationId, Collections.singletonList(name));
             return "redirect:/activation/detail/" + activationId;
-        } catch (PowerAuthClientException ex) {
-            logger.warn(ex.getMessage(), ex);
-            return "error";
-        }
-    }
-
-    /**
-     * Revoke recovery code.
-     * @param recoveryCodeId Recovery code ID.
-     * @param activationId Activation ID.
-     * @param userId User ID.
-     * @param model Request model.
-     * @return Redirect user to given URL or to activation detail - recovery tab, in case 'redirect' is null or empty.
-     */
-    @PostMapping("/activation/recovery/revoke/do.submit")
-    public String revokeRecoveryCode(@RequestParam("recoveryCodeId") Long recoveryCodeId, @RequestParam(value = "activationId", required = false) String activationId,
-                                     @RequestParam(value = "userId", required = false) String userId, Map<String, Object> model) {
-        try {
-            List<Long> recoveryCodeIds = new ArrayList<>();
-            recoveryCodeIds.add(recoveryCodeId);
-            client.revokeRecoveryCodes(recoveryCodeIds);
-            if (activationId != null) {
-                return "redirect:/activation/detail/" + activationId + "#recovery";
-            } else {
-                return "redirect:/activation/list?userId=" + userId;
-            }
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
             return "error";

@@ -19,33 +19,30 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.impl.ECDSA;
-import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
-import com.wultra.security.powerauth.client.model.request.SignECDSARequest;
-import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
-import com.wultra.security.powerauth.client.model.response.SignECDSAResponse;
-import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
+import com.wultra.security.powerauth.client.model.request.v3.SignECDSARequest;
+import com.wultra.security.powerauth.client.model.request.v3.VerifyECDSASignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
+import com.wultra.security.powerauth.client.model.response.v3.SignECDSAResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -57,24 +54,13 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class AsymmetricSignatureServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
-
-    private final SignatureUtils signatureUtils = new SignatureUtils();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-
-    @Autowired
-    public AsymmetricSignatureServiceBehavior(LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ActivationContextValidator activationValidator, ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.localizationProvider = localizationProvider;
-        this.activationQueryService = activationQueryService;
-        this.activationValidator = activationValidator;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-    }
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Sign data with ECDSA signature for given data using public key associated with given activation ID.
@@ -101,32 +87,14 @@ public class AsymmetricSignatureServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Decrypt server private key (depending on encryption mode)
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
-
-            // Sign data with the private key
-            final byte[] signature = signatureUtils.computeECDSASignature(Base64.getDecoder().decode(data), serverPrivateKey);
+            final byte[] dataRaw = Base64.getDecoder().decode(data);
+            // TODO - v4 support
+            final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(KeyType.ECDSA_P256, dataRaw, activation);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
             final SignECDSAResponse response = new SignECDSAResponse();
             response.setSignature(signatureBase64);
             return response;
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
@@ -138,6 +106,11 @@ public class AsymmetricSignatureServiceBehavior {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
 
+    }
+
+    public SignAsymmetricResponse signData(SignAsymmetricRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new SignAsymmetricResponse();
     }
 
     /**
@@ -165,30 +138,16 @@ public class AsymmetricSignatureServiceBehavior {
             final ActivationRecordEntity activation = activationOptional.get();
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
-
             final byte[] dataBytes = Base64.getDecoder().decode(data);
             final byte[] signatureBytes = Base64.getDecoder().decode(signature);
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
-            final boolean matches = signatureUtils.validateECDSASignature(dataBytes, signatureBytesDER, devicePublicKey);
+            // TODO - v4 support
+            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
 
             return VerifyECDSASignatureResponse.builder()
                     .signatureValid(matches)
                     .build();
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
@@ -202,6 +161,14 @@ public class AsymmetricSignatureServiceBehavior {
 
     }
 
+    @Transactional
+    public VerifyAsymmetricSignatureResponse verifySignature(VerifyAsymmetricSignatureRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return VerifyAsymmetricSignatureResponse.builder()
+                .signatureValid(false)
+                .build();
+    }
+
     /**
      * Helper method to convert signature to DER format if needed.
      * @param signatureFormat Expected signature format.
@@ -209,7 +176,7 @@ public class AsymmetricSignatureServiceBehavior {
      * @return Signature value in DER format.
      * @throws JOSEException In case JOSE conversion fails.
      */
-    private byte[] signatureDER(ECDSASignatureFormat signatureFormat, byte[] signature) throws JOSEException {;
+    private byte[] signatureDER(ECDSASignatureFormat signatureFormat, byte[] signature) throws JOSEException {
         return (signatureFormat == ECDSASignatureFormat.JOSE) ? ECDSA.transcodeSignatureToDER(signature) : signature;
     }
 

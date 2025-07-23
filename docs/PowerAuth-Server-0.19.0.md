@@ -151,7 +151,7 @@ In release 0.19.0 this endpoint has been split into two endpoints depending on w
 * `createPersonalizedOfflineSignaturePayload`
 * `createNonPersonalizedOfflineSignaturePayload` 
 
-For more information about migration to the new endpoints, see [Offline Signatures](./Offline-Signatures.md).
+For more information about migration to the new endpoints, see [Offline Signatures](./Offline-Authentication-Codes).
 
 ## Updated error codes
 

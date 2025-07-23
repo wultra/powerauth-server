@@ -30,6 +30,7 @@ import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -44,18 +45,14 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("operationTemplatesController")
-@RequestMapping("/rest/v3/operation/template")
-@Tag(name = "PowerAuth Operation Templates Controller (V3)")
+@RequestMapping({"/rest/v3/operation/template", "/rest/v4/operation/template"})
+@Tag(name = "PowerAuth Operation Templates Controller")
+@AllArgsConstructor
 @Validated
 @Slf4j
 public class OperationTemplatesController {
 
     private final OperationTemplateServiceBehavior service;
-
-    @Autowired
-    public OperationTemplatesController(OperationTemplateServiceBehavior service) {
-        this.service = service;
-    }
 
     /**
      * Get all operation templates.

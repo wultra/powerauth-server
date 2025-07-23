@@ -94,14 +94,14 @@ public final class ServiceError {
     public static final String INVALID_INPUT_FORMAT = "ERR0011";
 
     /**
-     * Invalid Signature Provided.
+     * Invalid authentication code provided.
      */
-    public static final String INVALID_SIGNATURE = "ERR0012";
+    public static final String INVALID_AUTHENTICATION_CODE = "ERR0012";
 
     /**
-     * Unable to compute signature.
+     * Unable to compute authentication code.
      */
-    public static final String UNABLE_TO_COMPUTE_SIGNATURE = "ERR0013";
+    public static final String UNABLE_TO_COMPUTE_AUTHENTICATION_CODE = "ERR0013";
 
     /**
      * Invalid URL format.
@@ -159,31 +159,6 @@ public final class ServiceError {
      * Invalid request error.
      */
     public static final String INVALID_REQUEST = "ERR0024";
-
-    /**
-     * Could not generate recovery code because a valid recovery code already exists.
-     */
-    public static final String RECOVERY_CODE_ALREADY_EXISTS = "ERR0025";
-
-    /**
-     * Too many failed attempts to generate recovery code.
-     */
-    public static final String UNABLE_TO_GENERATE_RECOVERY_CODE = "ERR0026";
-
-    /**
-     * Recovery code was not found.
-     */
-    public static final String RECOVERY_CODE_NOT_FOUND = "ERR0027";
-
-    /**
-     * Invalid recovery code.
-     */
-    public static final String INVALID_RECOVERY_CODE = "ERR0028";
-
-    /**
-     * Recovery code configuration is missing or incomplete.
-     */
-    public static final String INVALID_RECOVERY_CONFIGURATION = "ERR0029";
 
     /**
      * Token timestamp is too old.
@@ -280,8 +255,8 @@ public final class ServiceError {
         list.add(ACTIVATION_NOT_FOUND);
         list.add(INVALID_KEY_FORMAT);
         list.add(INVALID_INPUT_FORMAT);
-        list.add(INVALID_SIGNATURE);
-        list.add(UNABLE_TO_COMPUTE_SIGNATURE);
+        list.add(INVALID_AUTHENTICATION_CODE);
+        list.add(UNABLE_TO_COMPUTE_AUTHENTICATION_CODE);
         list.add(INVALID_URL_FORMAT);
         list.add(INVALID_APPLICATION);
         list.add(INVALID_TOKEN);
@@ -293,11 +268,6 @@ public final class ServiceError {
         list.add(GENERIC_CRYPTOGRAPHY_ERROR);
         list.add(INVALID_CRYPTO_PROVIDER);
         list.add(INVALID_REQUEST);
-        list.add(RECOVERY_CODE_ALREADY_EXISTS);
-        list.add(UNABLE_TO_GENERATE_RECOVERY_CODE);
-        list.add(RECOVERY_CODE_NOT_FOUND);
-        list.add(INVALID_RECOVERY_CODE);
-        list.add(INVALID_RECOVERY_CONFIGURATION);
         list.add(TOKEN_TIMESTAMP_TOO_OLD);
         list.add(INVALID_ACTIVATION_OTP);
         list.add(INVALID_ACTIVATION_OTP_MODE);

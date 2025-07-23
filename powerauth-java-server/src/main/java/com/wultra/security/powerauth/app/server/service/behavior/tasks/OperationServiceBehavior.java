@@ -21,13 +21,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.core.http.common.headers.UserAgent;
-import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationListResponse;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -39,20 +32,29 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.OperationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.OperationTemplateRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.persistence.OperationQueryService;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringSubstitutor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -73,6 +75,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
@@ -113,31 +116,6 @@ public class OperationServiceBehavior {
          * @return True in case the operation can be approved, false to fail operation approval.
          */
         boolean operationShouldFail(OperationEntity operationEntity, OperationApproveRequest request);
-    }
-
-    @Autowired
-    public OperationServiceBehavior(
-            CallbackUrlBehavior callbackUrlBehavior, OperationRepository operationRepository,
-            OperationTemplateRepository templateRepository,
-            ApplicationRepository applicationRepository,
-            ActivationRepository activationRepository, OperationQueryService operationQueryService, ActivationQueryService activationQueryService,
-            AuditingServiceBehavior audit,
-            PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration) {
-        this.callbackUrlBehavior = callbackUrlBehavior;
-        this.operationRepository = operationRepository;
-        this.templateRepository = templateRepository;
-        this.applicationRepository = applicationRepository;
-        this.operationQueryService = operationQueryService;
-        this.activationQueryService = activationQueryService;
-        this.audit = audit;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.activationRepository = activationRepository;
-        this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
     }
 
     @Transactional
@@ -242,7 +220,7 @@ public class OperationServiceBehavior {
                     .param("parameters", parameters)
                     .param("additionalData", additionalData)
                     .param("status", OperationStatusDo.PENDING.name())
-                    .param("allowedSignatureType", templateEntity.getSignatureType())
+                    .param("allowedAuthCodeType", templateEntity.getSignatureType())
                     .param("maxFailureCount", operationEntity.getMaxFailureCount())
                     .param("timestampExpires", timestampExpires)
                     .param("proximityCheckEnabled", operationEntity.getTotpSeed() != null)
@@ -334,7 +312,7 @@ public class OperationServiceBehavior {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final String data = request.getData();
-            final SignatureType signatureType = request.getSignatureType();
+            final SignatureType authenticationCodeType = request.getSignatureType();
             final Map<String, Object> additionalData = request.getAdditionalData();
 
             // Check if the operation exists
@@ -371,7 +349,7 @@ public class OperationServiceBehavior {
             }
 
             // Check the operation properties match the request
-            final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
+            final PowerAuthCodeType factorEnum = PowerAuthCodeType.getEnumFromString(authenticationCodeType.toString());
             final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
@@ -955,7 +933,7 @@ public class OperationServiceBehavior {
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
                 .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
-                .collect(Collectors.toList());
+                .toList();
         destination.setSignatureType(signatureTypeList);
         destination.setFailureCount(source.getFailureCount());
         destination.setMaxFailureCount(source.getMaxFailureCount());
@@ -1010,15 +988,15 @@ public class OperationServiceBehavior {
         return operationEntity;
     }
 
-    private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthSignatureTypes usedFactor) {
+    private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthCodeType usedFactor) {
         final String operationId = operation.getId();
-        final PowerAuthSignatureTypes[] allowedFactors = operation.getSignatureType();
+        final PowerAuthCodeType[] allowedFactors = operation.getSignatureType();
         if (usedFactor == null) { // the used factor is unknown
             logger.warn("Null authentication factors used for operation ID: {} - allowed: {}", operationId, Arrays.toString(allowedFactors));
             return false;
         }
         if (allowedFactors == null) {
-            logger.error("Null allowed signature types for operation ID: {}. Check your configuration in pa_operation_template table.", operationId);
+            logger.error("Null allowed factors for operation ID: {}. Check your configuration in pa_operation_template table.", operationId);
             return false; // likely a misconfiguration
         }
         if (Arrays.asList(allowedFactors).contains(usedFactor)) {

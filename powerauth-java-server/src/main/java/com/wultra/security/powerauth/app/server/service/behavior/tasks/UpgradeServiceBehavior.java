@@ -19,51 +19,37 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
-import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
-import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
-import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
-import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
-import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.model.response.UpgradeResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
+import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.SecretKey;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.Date;
 
 /**
  * Behavior class implementing the activation upgrade process.
@@ -72,24 +58,20 @@ import java.util.Date;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class UpgradeServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final ActivationRepository activationRepository;
+    private final EncryptionServiceEcies encryptionService;
 
     // Helper classes
-    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
-    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Start upgrade of activation to version 3.
@@ -98,15 +80,14 @@ public class UpgradeServiceBehavior {
      * @throws GenericServiceException In case upgrade fails.
      */
     @Transactional
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException{
+    public com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse startUpgrade(com.wultra.security.powerauth.client.model.request.v3.StartUpgradeRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String protocolVersion = request.getProtocolVersion();
-            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build and validate encrypted request
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -114,21 +95,6 @@ public class UpgradeServiceBehavior {
                     request.getNonce(),
                     request.getTimestamp()
             );
-            if (!encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
-                logger.warn("Invalid start upgrade request");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-            }
-
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
-            if (encryptedRequest.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        protocolVersion,
-                        new Date(encryptedRequest.getTimestamp()),
-                        uniqueValueParam
-                );
-            }
 
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
@@ -145,49 +111,17 @@ public class UpgradeServiceBehavior {
 
             // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
 
-            // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
-            // Get the server private key, decrypt it if required
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-
-            // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
-
-            // Get ECIES parameters
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
-            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
-
-            // Get temporary or server key, depending on availability
-            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
-
-            // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.UPGRADE,
-                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
-            );
-
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
-            serverEncryptor.decryptRequest(encryptedRequest);
+            final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, activationId, EncryptorId.UPGRADE);
+            // TODO - v4 support
+            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
 
             // Request is valid, generate hash based counter if it does not exist yet
             final String ctrDataBase64;
             boolean activationShouldBeSaved = false;
             if (activation.getCtrDataBase64() == null) {
                 // Initialize hash based counter
-                final HashBasedCounter hashBasedCounter = new HashBasedCounter();
+                final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V33.getVersion());
                 final byte[] ctrData = hashBasedCounter.init();
                 ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
                 activation.setCtrDataBase64(ctrDataBase64);
@@ -206,9 +140,10 @@ public class UpgradeServiceBehavior {
             // Encrypt response payload and return it
             final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(payloadBytes);
+            // TODO - v4 support
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(payloadBytes);
 
-            final StartUpgradeResponse response = new StartUpgradeResponse();
+            final com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse response = new com.wultra.security.powerauth.client.model.response.v3.StartUpgradeResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
             response.setNonce(encryptedResponse.getNonce());
@@ -220,10 +155,6 @@ public class UpgradeServiceBehavior {
             }
 
             return response;
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -250,7 +181,12 @@ public class UpgradeServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
 
+    @Transactional
+    public com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse startUpgrade(com.wultra.security.powerauth.client.model.request.v4.StartUpgradeRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse();
     }
 
     /**

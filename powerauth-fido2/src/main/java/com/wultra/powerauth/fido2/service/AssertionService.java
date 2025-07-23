@@ -31,7 +31,7 @@ import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
-import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.powerauth.fido2.service.provider.Fido2CryptographyService;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
@@ -56,7 +56,7 @@ import java.util.Base64;
 @AllArgsConstructor
 public class AssertionService {
 
-    private final CryptographyService cryptographyService;
+    private final Fido2CryptographyService cryptographyService;
     private final AuthenticatorProvider authenticatorProvider;
     private final AssertionProvider assertionProvider;
     private final AssertionConverter assertionConverter;

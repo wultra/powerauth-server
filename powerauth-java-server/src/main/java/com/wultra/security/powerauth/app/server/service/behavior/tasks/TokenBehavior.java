@@ -19,58 +19,45 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
-import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
-import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
-import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
-import com.wultra.security.powerauth.client.model.response.CreateTokenResponse;
-import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
-import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.TokenEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.TokenRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.TokenInfo;
+import com.wultra.security.powerauth.app.server.service.model.UniqueValueParam;
+import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
+import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
+import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
+import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.ValidateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import com.wultra.security.powerauth.crypto.server.token.ServerTokenVerifier;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.SecretKey;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
@@ -83,31 +70,26 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class TokenBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
-    private final TemporaryKeyBehavior temporaryKeyBehavior;
     private final TokenRepository tokenRepository;
+    private final EncryptionServiceEcies encryptionService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
-    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     private final ObjectMapper objectMapper;
-    private final ApplicationVersionRepository applicationVersionRepository;
 
     /**
      * Method that creates a new token provided activation.
@@ -122,15 +104,14 @@ public class TokenBehavior {
      * @throws GenericServiceException In case a business error occurs.
      */
     @Transactional
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
+    public CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String version = request.getProtocolVersion();
             final SignatureType signatureType = request.getSignatureType();
-            final String temporaryKeyId = request.getTemporaryKeyId();
 
-            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+            final EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest(
                     request.getTemporaryKeyId(),
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -138,7 +119,7 @@ public class TokenBehavior {
                     request.getNonce(),
                     request.getTimestamp()
             );
-            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, temporaryKeyId, keyConvertor);
+            final EciesEncryptedResponse encryptedResponse = (EciesEncryptedResponse) createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version);
             final CreateTokenResponse response = new CreateTokenResponse();
             response.setEncryptedData(encryptedResponse.getEncryptedData());
             response.setMac(encryptedResponse.getMac());
@@ -155,6 +136,12 @@ public class TokenBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    @Transactional
+    public com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse();
     }
 
     /**
@@ -250,6 +237,11 @@ public class TokenBehavior {
         }
     }
 
+    public com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse validateTokenV4(com.wultra.security.powerauth.client.model.request.ValidateTokenRequest request) throws GenericServiceException {
+        // TODO - v4 support
+        return new com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse();
+    }
+
     /**
      * Remove token with provided ID.
      *
@@ -291,14 +283,13 @@ public class TokenBehavior {
      * @param activationId Activation ID.
      * @param applicationKey Application key.
      * @param encryptedRequest Encrypted request.
-     * @param signatureType Signature type.
-     * @param protocolVersion Protocol version.
-     * @param keyConversion Key conversion utility class.
+     * @param authenticationCodeType Authentication code type.
+     * @param version Protocol version.
      * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
-                                          String signatureType, String protocolVersion, String temporaryKeyId, KeyConvertor keyConversion) throws GenericServiceException {
+    private EncryptedResponse createToken(String activationId, String applicationKey, EciesEncryptedRequest encryptedRequest,
+                                          String authenticationCodeType, String version) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
@@ -311,44 +302,9 @@ public class TokenBehavior {
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
-            final UniqueValueParam uniqueValueParam = ReplayAttackUtils.deriveUniqueValuesActivationScope(protocolVersion, encryptedRequest.getEphemeralPublicKey(), encryptedRequest.getNonce(), temporaryKeyId, activationId);
-            if (encryptedRequest.getTimestamp() != null) {
-                // Check ECIES request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        protocolVersion,
-                        new Date(encryptedRequest.getTimestamp()),
-                        uniqueValueParam
-                );
-            }
-
-            // Get the server private key, decrypt it if required
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-
-            // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
-            final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
-
-            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
-            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
-
-            // Get temporary or server key, depending on availability
-            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
-
-            // Get server encryptor
-            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.CREATE_TOKEN,
-                    new EncryptorParameters(protocolVersion, applicationKey, activationId, temporaryKeyId),
-                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
-            );
-            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
-            serverEncryptor.decryptRequest(encryptedRequest);
+            // TODO - v4 support
+            final EncryptionContext context = new EncryptionContext(version, applicationKey, activationId, EncryptorId.CREATE_TOKEN);
+            final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
 
             // Generate unique token ID.
             String tokenId = null;
@@ -366,7 +322,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
             // Perform the following operations before writing to database to avoid rollbacks.
-            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret());
+            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret(version));
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
@@ -374,7 +330,7 @@ public class TokenBehavior {
             final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response bytes
-            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(tokenBytes);
+            final EncryptedResponse encryptedResponse = decryptionResult.getServerEncryptor().encryptResponse(tokenBytes);
 
             // Create a new token
             final TokenEntity token = new TokenEntity();
@@ -382,15 +338,11 @@ public class TokenBehavior {
             token.setTokenSecret(tokenSecret);
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
-            token.setSignatureTypeCreated(signatureType);
+            token.setSignatureTypeCreated(authenticationCodeType);
             tokenRepository.save(token);
 
             return encryptedResponse;
 
-        } catch (InvalidKeyException | InvalidKeySpecException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -409,6 +361,5 @@ public class TokenBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
-
 
 }

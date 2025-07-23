@@ -17,34 +17,38 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.Application;
-import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import lombok.RequiredArgsConstructor;
+import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,15 +60,19 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ApplicationServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
-
-    private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ApplicationRepository applicationRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final PublicKeysConverter publicKeysConverter;
+
+    private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
+    private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
+    private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
 
     /**
      * Get application details by ID.
@@ -100,6 +108,31 @@ public class ApplicationServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        String publicKeyP384 = null;
+        String publicKeyMlDsa65 = null;
+        if (masterKeyPairEntity.getMasterPublicKeys() != null) {
+            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
+            publicKeyP384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
+                    .map(publicKey -> {
+                        try {
+                            byte[] bytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey);
+                            return Base64.getEncoder().encodeToString(bytes);
+                        } catch (CryptoProviderException e) {
+                            logger.warn("Public key conversion failed", e);
+                            return null;
+                        }
+                    }).orElse(null);
+            publicKeyMlDsa65 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65)
+                    .map(publicKey -> {
+                        try {
+                            byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
+                            return Base64.getEncoder().encodeToString(bytes);
+                        } catch (GenericCryptoException e) {
+                            logger.warn("Public key conversion failed", e);
+                            return null;
+                        }
+                    }).orElse(null);
+        }
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
@@ -107,7 +140,7 @@ public class ApplicationServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64());
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyP384, publicKeyMlDsa65);
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
@@ -206,23 +239,16 @@ public class ApplicationServiceBehavior {
             application.setId(applicationId);
             application = applicationRepository.save(application);
 
-            final KeyGenerator keyGen = new KeyGenerator();
-            final KeyPair kp = keyGen.generateKeyPair();
-            final PrivateKey privateKey = kp.getPrivate();
-            final PublicKey publicKey = kp.getPublic();
+            for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
+                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
+                // Generate key pairs for all supported algorithms
+                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
+                cryptographyServiceFactory.getService(algorithm).generateMasterKeyPair(application);
+            }
 
             // Use cryptography methods before writing to database to avoid rollbacks
-            final byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-            final byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
-
-            // Generate the default master key pair
-            final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
-            keyPair.setApplication(application);
-            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(publicKey)));
-            keyPair.setTimestampCreated(new Date());
-            keyPair.setName(applicationId + " Default Keypair");
-            masterKeyPairRepository.save(keyPair);
+            final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
+            final byte[] applicationSecretBytes = KEY_GENERATOR.generateRandomBytes(16);
 
             // Create the default application version
             final ApplicationVersionEntity version = new ApplicationVersionEntity();

@@ -28,12 +28,14 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
 import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +50,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ActivationHistoryServiceBehavior {
 
     private final ActivationHistoryRepository activationHistoryRepository;

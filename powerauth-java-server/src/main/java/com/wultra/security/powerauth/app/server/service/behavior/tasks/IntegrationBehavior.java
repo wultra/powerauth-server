@@ -17,20 +17,19 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import com.wultra.security.powerauth.app.server.database.model.entity.IntegrationEntity;
+import com.wultra.security.powerauth.app.server.database.repository.IntegrationRepository;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.entity.Integration;
 import com.wultra.security.powerauth.client.model.request.CreateIntegrationRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveIntegrationRequest;
 import com.wultra.security.powerauth.client.model.response.CreateIntegrationResponse;
 import com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveIntegrationResponse;
-import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.database.model.entity.IntegrationEntity;
-import com.wultra.security.powerauth.app.server.database.repository.IntegrationRepository;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,20 +43,11 @@ import java.util.UUID;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class IntegrationBehavior {
 
     private final IntegrationRepository integrationRepository;
     private PowerAuthServiceConfiguration configuration;
-
-    @Autowired
-    public IntegrationBehavior(IntegrationRepository integrationRepository, LocalizationProvider localizationProvider) {
-        this.integrationRepository = integrationRepository;
-    }
-
-    @Autowired
-    public void setConfiguration(PowerAuthServiceConfiguration configuration) {
-        this.configuration = configuration;
-    }
 
     /**
      * Creates a new integration record for application with given name, and automatically generates credentials.

@@ -17,6 +17,11 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.request.AddApplicationRolesRequest;
 import com.wultra.security.powerauth.client.model.request.ListApplicationRolesRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveApplicationRolesRequest;
@@ -25,11 +30,6 @@ import com.wultra.security.powerauth.client.model.response.AddApplicationRolesRe
 import com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

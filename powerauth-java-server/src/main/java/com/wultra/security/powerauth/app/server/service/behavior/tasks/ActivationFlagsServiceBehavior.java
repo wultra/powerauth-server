@@ -19,6 +19,14 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.AuditType;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.client.model.request.AddActivationFlagsRequest;
 import com.wultra.security.powerauth.client.model.request.ListActivationFlagsRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveActivationFlagsRequest;
@@ -27,12 +35,6 @@ import com.wultra.security.powerauth.client.model.response.AddActivationFlagsRes
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse;
-import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

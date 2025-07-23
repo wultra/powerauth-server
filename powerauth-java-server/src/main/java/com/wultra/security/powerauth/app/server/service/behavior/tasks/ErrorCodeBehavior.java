@@ -18,12 +18,12 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.ErrorInfo;
-import com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.client.model.entity.ErrorInfo;
+import com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,14 +34,10 @@ import java.util.Locale;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ErrorCodeBehavior {
 
     private final LocalizationProvider localizationProvider;
-
-    @Autowired
-    public ErrorCodeBehavior(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
 
     /**
      * Return error code list
