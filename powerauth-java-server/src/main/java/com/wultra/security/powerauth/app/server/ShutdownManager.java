@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  * Ensures proper shutdown of OpenTelemetry and Prometheus components
  * and removal of BouncyCastle provider.
  *
- * @author Roman Strobl
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
 @AllArgsConstructor
