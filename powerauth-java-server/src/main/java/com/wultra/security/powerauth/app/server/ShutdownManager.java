@@ -51,13 +51,6 @@ public class ShutdownManager {
     private final SdkLoggerProvider sdkLoggerProvider;
     private final MeterRegistry meterRegistry;
 
-    // Threads that are known to hang on shutdown and need to be interrupted as a last resort
-    private static final String[] THREAD_NAME_PREFIXES = {
-            "BatchSpanProcessor_WorkerThread",
-            "BatchLogRecordProcessor_WorkerThread",
-            "prometheus-metrics-scheduler"
-    };
-
     /**
      * Handles graceful application shutdown.
      * Called automatically by Spring during context shutdown phase.
@@ -90,16 +83,6 @@ public class ShutdownManager {
                 }
             } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
                 logger.warn("Could not stop Prometheus metrics scheduler", e);
-            }
-        }
-
-        // Last resort: forcibly interrupt known problematic threads
-        for (Thread thread : Thread.getAllStackTraces().keySet()) {
-            for (String prefix : THREAD_NAME_PREFIXES) {
-                if (thread.getName().startsWith(prefix) && thread.isAlive()) {
-                    thread.interrupt();
-                    logger.info("Interrupted lingering thread: {}", thread.getName());
-                }
             }
         }
     }
