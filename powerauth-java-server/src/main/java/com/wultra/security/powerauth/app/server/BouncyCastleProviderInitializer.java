@@ -19,10 +19,10 @@
 
 package com.wultra.security.powerauth.app.server;
 
-import jakarta.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import java.security.Security;
@@ -34,13 +34,13 @@ import java.security.Security;
  */
 @Component
 @Slf4j
-public class BouncyCastleProviderInitializer {
+public class BouncyCastleProviderInitializer implements ApplicationListener<ApplicationReadyEvent> {
 
-    @PostConstruct
-    public void register() {
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
         if (Security.getProvider("BC") == null) {
             Security.addProvider(new BouncyCastleProvider());
-            logger.info("BouncyCastle provider initialized during startup.");
+            logger.info("BouncyCastle provider initialized after application ready.");
         }
     }
 }
