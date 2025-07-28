@@ -31,7 +31,6 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
@@ -67,9 +66,9 @@ public class WebSecurityConfig {
             logger.info("Initializing basic http authentication");
             return http
                     .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(new AntPathRequestMatcher("/rest/**"))
+                        .requestMatchers("/rest/**")
                             .authenticated()
-                        .requestMatchers(new AntPathRequestMatcher("/actuator/**"), new AntPathRequestMatcher("/swagger-resources/**"))
+                        .requestMatchers("/actuator/**", "/swagger-resources/**")
                             .permitAll()
                         .anyRequest()
                             .permitAll())
