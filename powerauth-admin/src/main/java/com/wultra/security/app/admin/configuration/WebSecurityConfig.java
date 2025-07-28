@@ -28,7 +28,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Spring Security configuration class.
@@ -60,9 +59,9 @@ public class WebSecurityConfig {
                             .dispatcherTypeMatchers(DispatcherType.FORWARD)
                             .permitAll()
                             .requestMatchers(
-                                    new AntPathRequestMatcher("/resources/**"),
-                                    new AntPathRequestMatcher("/api/service/**"),
-                                    new AntPathRequestMatcher("/actuator/**"))
+                                    "/resources/**",
+                                    "/api/service/**",
+                                    "/actuator/**")
                             .permitAll()
                             .anyRequest()
                             .fullyAuthenticated())
