@@ -154,20 +154,6 @@ public class TokenBehavior {
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         try {
-            // Verify the token timestamp validity
-            final long currentTimeMillis = System.currentTimeMillis();
-            final long requestTimestamp = request.getTimestamp();
-            if (requestTimestamp < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
-                logger.warn("Invalid request - token timestamp is too old for token ID: {}, request timestamp: {}", request.getTokenId(), requestTimestamp);
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
-            }
-            if (requestTimestamp > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
-                logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}, request timestamp: {}", request.getTokenId(), requestTimestamp);
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
-            }
-
             final String tokenId = request.getTokenId();
             final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
             final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());

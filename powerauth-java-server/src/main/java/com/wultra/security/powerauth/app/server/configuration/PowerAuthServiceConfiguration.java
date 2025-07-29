@@ -218,20 +218,6 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Token timestamp validity, checked before validating the token.
-     */
-    @Value("${powerauth.service.token.timestamp.validity}")
-    @DurationMin(millis = 1)
-    private Duration tokenTimestampValidity;
-
-    /**
-     * Token timestamp validity to future, checked before validating the token.
-     */
-    @Value("${powerauth.service.token.timestamp.forward.validity}")
-    @DurationMin(millis = 0)
-    private Duration tokenTimestampForwardValidity;
-
-    /**
      * Token timestamp validity to future, checked before validating the token.
      */
     @Value("${powerauth.service.replay.timestamp.threshold}")
@@ -626,38 +612,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setHttpProxyPassword(String httpProxyPassword) {
         this.httpProxyPassword = httpProxyPassword;
-    }
-
-    /**
-     * Get the token timestamp validity.
-     * @return Token timestamp validity.
-     */
-    public Duration getTokenTimestampValidity() {
-        return tokenTimestampValidity;
-    }
-
-    /**
-     * Set the token timestamp validity.
-     * @param tokenTimestampValidity Token timestamp validity.
-     */
-    public void setTokenTimestampValidity(Duration tokenTimestampValidity) {
-        this.tokenTimestampValidity = tokenTimestampValidity;
-    }
-
-    /**
-     * Get the token timestamp validity into future.
-     * @return Token timestamp validity into future.
-     */
-    public Duration getTokenTimestampForwardValidity() {
-        return tokenTimestampForwardValidity;
-    }
-
-    /**
-     * Set the token timestamp validity into future in milliseconds.
-     * @param tokenTimestampForwardValidity Token timestamp validity into future in milliseconds
-     */
-    public void setTokenTimestampForwardValidity(Duration tokenTimestampForwardValidity) {
-        this.tokenTimestampForwardValidity = tokenTimestampForwardValidity;
     }
 
     /**
