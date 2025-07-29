@@ -81,3 +81,7 @@ Following property names were changed:
 - `powerauth.service.crypto.offlineSignatureComponentLength` is now `powerauth.service.crypto.offlineAuthenticationCodeComponentLength`
 
 Usually there is no reason to change these configuration properties, default values are used in most of the deployments. Please double-check if this change affects existing deployments.
+
+### Updated MAC Token Request Timestamp Validations
+
+We have unified validations in PowerAuth server REST API. The error code returned for failed MAC token request timestamp validation is always `ERR0024`. As a side effect, error codes `ERR0030` and `ERR0044` used for the case when MAC token request timestamp validation fails are no longer returned.
