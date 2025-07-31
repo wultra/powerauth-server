@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.AsymmetricSignatureServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.AsymmetricSignatureServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;

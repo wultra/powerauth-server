@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,9 +14,10 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.enumeration;
+package com.wultra.security.powerauth.client.model.enumeration.v3;
 
 /**
  * Enum with possible ECDSA signature formats.
@@ -24,6 +25,7 @@ package com.wultra.security.powerauth.client.model.enumeration;
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum ECDSASignatureFormat {
+
     /**
      * Signature is in a standard DER format.
      */
@@ -33,4 +35,5 @@ public enum ECDSASignatureFormat {
      * Signature is a JOSE format (used in JWT).
      */
     JOSE
+
 }

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.impl.ECDSA;
@@ -28,15 +29,11 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
-import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
+import com.wultra.security.powerauth.client.model.enumeration.v3.ECDSASignatureFormat;
 import com.wultra.security.powerauth.client.model.request.v3.SignECDSARequest;
 import com.wultra.security.powerauth.client.model.request.v3.VerifyECDSASignatureRequest;
-import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricRequest;
-import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v3.SignECDSAResponse;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
-import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
-import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +49,7 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Service
+@Service("asymmetricSignatureServiceBehaviorV3")
 @Slf4j
 @AllArgsConstructor
 public class AsymmetricSignatureServiceBehavior {
@@ -88,7 +85,6 @@ public class AsymmetricSignatureServiceBehavior {
             }
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
-            // TODO - v4 support
             final byte[] signature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(KeyType.ECDSA_P256, dataRaw, activation);
             final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
 
@@ -105,12 +101,6 @@ public class AsymmetricSignatureServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-
-    }
-
-    public SignAsymmetricResponse signData(SignAsymmetricRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new SignAsymmetricResponse();
     }
 
     /**
@@ -142,7 +132,6 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytes = Base64.getDecoder().decode(signature);
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
-            // TODO - v4 support
             final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
 
             return VerifyECDSASignatureResponse.builder()
@@ -159,14 +148,6 @@ public class AsymmetricSignatureServiceBehavior {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
 
-    }
-
-    @Transactional
-    public VerifyAsymmetricSignatureResponse verifySignature(VerifyAsymmetricSignatureRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return VerifyAsymmetricSignatureResponse.builder()
-                .signatureValid(false)
-                .build();
     }
 
     /**
