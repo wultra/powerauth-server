@@ -19,7 +19,8 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
-import com.wultra.security.powerauth.client.model.enumeration.ECDSASignatureFormat;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureFormat;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -47,7 +48,11 @@ public class VerifyAsymmetricSignatureRequest {
     @ToString.Exclude
     private String signature;
 
+    @Schema(description = "Signature type")
+    @NotNull
+    private AsymmetricSignatureType signatureType = AsymmetricSignatureType.ECDSA;
+
     @Schema(description = "Signature format")
-    private ECDSASignatureFormat signatureFormat = ECDSASignatureFormat.DER;
+    private AsymmetricSignatureFormat signatureFormat = AsymmetricSignatureFormat.DER;
 
 }

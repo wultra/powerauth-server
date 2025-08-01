@@ -25,7 +25,7 @@ import com.wultra.security.powerauth.client.model.response.v3.SignECDSAResponse;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.AsymmetricSignatureServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AsymmetricSignatureServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
