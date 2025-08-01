@@ -102,7 +102,7 @@ public class TokenServiceBehavior {
      * </ul>
      *
      * @param request Request with the activation ID, signature type and ephemeral public key.
-     * @return Response with a newly created token information (ECIES encrypted).
+     * @return Response with a newly created token information (AEAD encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
     @Transactional
