@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TokenBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.TokenServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TokenController {
 
-    private final TokenBehavior service;
+    private final TokenServiceBehavior service;
 
     /**
      * Create a token.
@@ -83,7 +83,7 @@ public class TokenController {
         final ValidateTokenRequest req = request.getRequestObject();
         logger.info("action: validateToken, state: initiated, tokenId: {}, requestTimestamp: {}", req.getTokenId(), req.getTimestamp());
         logger.debug("action: validateToken, state: initiated, request: {}", request);
-        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateTokenV4(req));
+        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(req));
         logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.getResponseObject().isTokenValid());
         logger.debug("action: validateToken, state: succeeded, response: {}", response);
         return response;

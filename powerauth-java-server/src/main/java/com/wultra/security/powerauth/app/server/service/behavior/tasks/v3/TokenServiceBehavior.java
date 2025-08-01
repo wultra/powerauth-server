@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,8 +14,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +42,7 @@ import com.wultra.security.powerauth.app.server.service.validator.ActivationCont
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
+import com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v3.ValidateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
@@ -68,10 +70,10 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Service
+@Service("tokenServiceBehaviorV3")
 @Slf4j
 @AllArgsConstructor
-public class TokenBehavior {
+public class TokenServiceBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
@@ -97,6 +99,9 @@ public class TokenBehavior {
      * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
+     *     <li>3.1</li>
+     *     <li>3.2</li>
+     *     <li>3.3</li>
      * </ul>
      *
      * @param request Request with the activation ID, signature type and ephemeral public key.
@@ -104,7 +109,7 @@ public class TokenBehavior {
      * @throws GenericServiceException In case a business error occurs.
      */
     @Transactional
-    public CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest request) throws GenericServiceException {
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
@@ -138,14 +143,16 @@ public class TokenBehavior {
         }
     }
 
-    @Transactional
-    public com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse createToken(com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse();
-    }
-
     /**
      * Method that validates provided token-based authentication credentials.
+     *
+     * <p><b>PowerAuth protocol versions:</b>
+     * <ul>
+     *     <li>3.0</li>
+     *     <li>3.1</li>
+     *     <li>3.2</li>
+     *     <li>3.3</li>
+     * </ul>
      *
      * @param request Request with the token-based authentication credentials.
      * @return Response with the validation results.
@@ -237,11 +244,6 @@ public class TokenBehavior {
         }
     }
 
-    public com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse validateTokenV4(com.wultra.security.powerauth.client.model.request.ValidateTokenRequest request) throws GenericServiceException {
-        // TODO - v4 support
-        return new com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse();
-    }
-
     /**
      * Remove token with provided ID.
      *
@@ -302,7 +304,6 @@ public class TokenBehavior {
 
             activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
-            // TODO - v4 support
             final EncryptionContext context = new EncryptionContext(version, applicationKey, activationId, EncryptorId.CREATE_TOKEN);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
 
