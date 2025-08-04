@@ -718,7 +718,7 @@ public class PowerAuthServiceConfiguration {
     }
 
     @PostConstruct
-    public void validateReplayConfiguration() {
+    void validateReplayConfiguration() {
         Assert.state(temporaryKeyValidity.toMillis() <= requestExpiration.toMillis(),
                 "Temporary key validity %d ms exceeds request expiration %d ms"
                         .formatted(temporaryKeyValidity.toMillis(), requestExpiration.toMillis())
