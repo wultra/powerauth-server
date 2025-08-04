@@ -113,8 +113,6 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
         final Instant limitNewest;
         if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
             // Only MAC_TOKEN uses extended expiration, ECIES timestamps are checked only in protocol versions 3.2+
-            // The presence or absence of ECIES timestamps is checked before decryption in PowerAuth crypto library:
-            // https://github.com/wultra/powerauth-crypto/blob/develop/powerauth-java-crypto/src/main/java/com/wultra/security/powerauth/crypto/lib/encryptor/ecies/EciesRequestResponseValidator.java
             if (uniqueValueType != UniqueValueType.MAC_TOKEN) {
                 // Rollback is not required, error occurs before writing to database
                 logger.warn("Rejected request due to invalid unique value type: {}, protocol version: {}", uniqueValueType, protocolVersion);
