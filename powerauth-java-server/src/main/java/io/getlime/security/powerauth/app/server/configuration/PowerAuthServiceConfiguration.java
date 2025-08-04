@@ -708,8 +708,17 @@ public class PowerAuthServiceConfiguration {
     }
 
     @PostConstruct
-    void validate() {
+    void validateProximityConfiguration() {
         Assert.state(proximityCheckOtpLength >= MINIMAL_PROXIMITY_CHECK_OTP_LENGTH,
                 "Proximity check OTP length %d is smaller then required minimal %d".formatted(proximityCheckOtpLength, MINIMAL_PROXIMITY_CHECK_OTP_LENGTH));
     }
+
+    @PostConstruct
+    void validateReplayConfiguration() {
+        Assert.state(temporaryKeyValidity.toMillis() <= requestExpiration.toMillis(),
+                "Temporary key validity %d ms exceeds request expiration %d ms"
+                        .formatted(temporaryKeyValidity.toMillis(), requestExpiration.toMillis())
+        );
+    }
+
 }
