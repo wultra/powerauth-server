@@ -93,7 +93,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi-starter-webmvc-ui.version>2.8.9</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.34</swagger-annotations-jakarta.version>
+        <swagger-annotations-jakarta.version>2.2.35</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
         <shedlock.version>6.9.2</shedlock.version>
@@ -101,11 +101,11 @@
         <!-- Other Dependencies -->
         <commons-text.version>1.13.1</commons-text.version>
         <logstash.version>8.1</logstash.version>
-        <equalsverifier.version>4.0.6</equalsverifier.version>
+        <equalsverifier.version>4.0.7</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.29.4.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.29.5.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>

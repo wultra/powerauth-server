@@ -218,13 +218,6 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Token timestamp validity to future, checked before validating the token.
-     */
-    @Value("${powerauth.service.replay.timestamp.threshold}")
-    @DurationMin(millis = 0)
-    private Duration replayTimestampThreshold;
-
-    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")

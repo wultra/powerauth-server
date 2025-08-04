@@ -17,23 +17,23 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.response.v4;
-
-import lombok.Data;
-import lombok.ToString;
+package com.wultra.security.powerauth.client.model.enumeration.v4;
 
 /**
- * Model class representing response for signing data using asymmetric cryptography (V4).
+ * Enum with possible asymmetric signature formats.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-public class SignAsymmetricResponse {
+public enum AsymmetricSignatureFormat {
 
-    @ToString.Exclude
-    private String signatureEcdsa;
+    /**
+     * Signature is in a standard DER format.
+     */
+    DER,
 
-    @ToString.Exclude
-    private String signatureMldsa;
+    /**
+     * Signature is a JOSE format (used in JWT).
+     */
+    JOSE
 
 }

@@ -17,23 +17,23 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.response.v4;
-
-import lombok.Data;
-import lombok.ToString;
+package com.wultra.security.powerauth.client.model.enumeration.v4;
 
 /**
- * Model class representing response for signing data using asymmetric cryptography (V4).
+ * Enum with possible asymmetric signature types.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-public class SignAsymmetricResponse {
+public enum AsymmetricSignatureType {
 
-    @ToString.Exclude
-    private String signatureEcdsa;
+    /**
+     * Signature is an ECDSA signature type.
+     */
+    ECDSA,
 
-    @ToString.Exclude
-    private String signatureMldsa;
+    /**
+     * Signature is a ML-DSA signature type.
+     */
+    MLDSA
 
 }
