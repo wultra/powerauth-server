@@ -33,7 +33,6 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.crypto.replayVerificationService`               | `default` | Request replay verification service, options: `default`, `none`                         |
 | `powerauth.service.token.timestamp.validity`                       | `7200000` | PowerAuth MAC token timestamp validity in miliseconds                                   |
 | `powerauth.service.token.timestamp.forward.validity`               | `1800000` | PowerAuth MAC token forward timestamp validity in milliseconds                             |
-| `powerauth.service.replay.timestamp.threshold`                     | `10000`   | Replay attack time threshold in milliseconds to handle potential client time fluctuations. |
 | `powerauth.service.secureVault.enableBiometricAuthentication`      | `false`   | Whether biometric authentication is enabled when accessing Secure Vault                 |
 | `powerauth.server.db.master.encryption.key`                        | `_empty_` | Master DB encryption key for decryption of server private key in database               |
 | `powerauth.service.proximity-check.otp.length`                     | `8`       | Length of OTP generated for proximity check                                             |
