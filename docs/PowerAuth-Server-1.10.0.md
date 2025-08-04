@@ -37,3 +37,7 @@ The attribute name is `additionalData` and available in these endpoints:
 We have unified validations in PowerAuth server REST API. The error code returned for failed request validations is always `ERR0024`. As a side effect, the error code `ERR0002` used for the case when no application ID was set in request is no longer returned.
 
 The validation of requests is now stricter and more complete to ensure data integrity. In case you get the `ERR0024` error in your integration with PowerAuth server, please make sure the requests contain all parameters, as seen in REST API documentation available at `http[s]://[hostname]:[port]/powerauth-java-server/swagger-ui/index.html`.
+
+### Updated MAC Token Request Timestamp Validations
+
+We have unified validations in PowerAuth server REST API. The error code returned for failed MAC token request timestamp validation is always `ERR0024`. As a side effect, error codes `ERR0030` and `ERR0044` used for the case when MAC token request timestamp validation fails are no longer returned.
