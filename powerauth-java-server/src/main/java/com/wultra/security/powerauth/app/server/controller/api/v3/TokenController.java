@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v3.ValidateTokenResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TokenBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.TokenServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -51,7 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TokenController {
 
-    private final TokenBehavior service;
+    private final TokenServiceBehavior service;
 
     /**
      * Create a token.
