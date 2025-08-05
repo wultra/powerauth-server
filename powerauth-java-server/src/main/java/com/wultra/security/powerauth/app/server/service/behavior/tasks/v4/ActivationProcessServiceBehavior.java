@@ -134,6 +134,11 @@ public class ActivationProcessServiceBehavior {
             } else {
                 activation.setPlatform("unknown");
             }
+            if (layer2Request.getSharedSecretRequest().getMlkem() != null) {
+                activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+            } else {
+                activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384);
+            }
             activation.setDeviceInfo(layer2Request.getDeviceInfo());
             // PowerAuth protocol version 4.0 uses 0x4 as version in activation status
             activation.setVersion(4);
