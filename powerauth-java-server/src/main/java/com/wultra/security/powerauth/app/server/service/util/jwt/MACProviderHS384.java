@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -20,42 +20,32 @@ package com.wultra.security.powerauth.app.server.service.util.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.KeyLengthException;
 import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.crypto.impl.BaseJWSProvider;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * MAC provider that allows shorter secret key size of 16 bytes.
+ * MAC provider that enforces algorithm HS384.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-public abstract class MACProvider16B extends BaseJWSProvider {
+public abstract class MACProviderHS384 extends BaseJWSProvider {
     public static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS;
     private final byte[] secret;
 
     protected static String getJCAAlgorithmName(JWSAlgorithm alg) throws JOSEException {
-        if (alg.equals(JWSAlgorithm.HS256)) {
-            return "HMACSHA256";
-        } else if (alg.equals(JWSAlgorithm.HS384)) {
+        if (alg.equals(JWSAlgorithm.HS384)) {
             return "HMACSHA384";
-        } else if (alg.equals(JWSAlgorithm.HS512)) {
-            return "HMACSHA512";
-        } else {
-            throw new JOSEException(AlgorithmSupportMessage.unsupportedJWSAlgorithm(alg, SUPPORTED_ALGORITHMS));
         }
+        throw new JOSEException(AlgorithmSupportMessage.unsupportedJWSAlgorithm(alg, SUPPORTED_ALGORITHMS));
     }
 
-    protected MACProvider16B(byte[] secret, Set<JWSAlgorithm> supportedAlgs) throws KeyLengthException {
+    protected MACProviderHS384(byte[] secret, Set<JWSAlgorithm> supportedAlgs) {
         super(supportedAlgs);
-        if (secret.length < 16) {
-            throw new KeyLengthException("The secret length must be at least 128 bits");
-        }
         this.secret = secret;
     }
 
@@ -74,10 +64,7 @@ public abstract class MACProvider16B extends BaseJWSProvider {
     }
 
     static {
-        final Set<JWSAlgorithm> algs = new LinkedHashSet<>();
-        algs.add(JWSAlgorithm.HS256);
-        algs.add(JWSAlgorithm.HS384);
-        algs.add(JWSAlgorithm.HS512);
-        SUPPORTED_ALGORITHMS = Collections.unmodifiableSet(algs);
+        SUPPORTED_ALGORITHMS = Collections.singleton(JWSAlgorithm.HS384);
     }
+
 }
