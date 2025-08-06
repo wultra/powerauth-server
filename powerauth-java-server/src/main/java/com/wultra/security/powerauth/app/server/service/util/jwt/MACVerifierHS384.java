@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -31,15 +31,15 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.Set;
 
 /**
- * MAC verifier that allows shorter secret key size of 16 bytes.
+ * MAC verifier that enforces algorithm HS384.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @ThreadSafe
-public class MACVerifier16B extends MACProvider16B implements JWSVerifier, CriticalHeaderParamsAware {
+public class MACVerifierHS384 extends MACProviderHS384 implements JWSVerifier, CriticalHeaderParamsAware {
     private final CriticalHeaderParamsDeferral critPolicy;
 
-    public MACVerifier16B(byte[] secret) throws JOSEException {
+    public MACVerifierHS384(byte[] secret) throws JOSEException {
         super(secret, SUPPORTED_ALGORITHMS);
         this.critPolicy = new CriticalHeaderParamsDeferral();
         this.critPolicy.setDeferredCriticalHeaderParams(null);

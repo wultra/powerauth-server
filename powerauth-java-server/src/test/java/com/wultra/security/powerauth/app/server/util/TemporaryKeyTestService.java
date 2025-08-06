@@ -173,12 +173,12 @@ public class TemporaryKeyTestService {
      * @throws CryptoProviderException Thrown in case crypto provider is not initialized properly.
      */
     public String signJwt(JWTClaimsSet jwtClaims, byte[] signingKey) throws GenericCryptoException, CryptoProviderException {
-        final JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS256);
+        final JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS384);
         final byte[] payloadBytes = jwtClaims.toPayload().toBytes();
         final Base64URL encodedHeader = jwsHeader.toBase64URL();
         final Base64URL encodedPayload = Base64URL.encode(payloadBytes);
         final String signingInput = encodedHeader + "." + encodedPayload;
-        final byte[] hash = new HMACHashUtilities().hash(signingKey, signingInput.getBytes(StandardCharsets.UTF_8));
+        final byte[] hash = new HMACHashUtilities().hash384(signingKey, signingInput.getBytes(StandardCharsets.UTF_8));
         final Base64URL signature = Base64URL.encode(hash);
         return encodedHeader + "." + encodedPayload + "." + signature;
     }

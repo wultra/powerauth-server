@@ -20,12 +20,8 @@
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObjectJSON;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -49,6 +45,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.v4.TemporaryKeyResult;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
+import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifierHS384;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MLDSASigner;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
 import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
@@ -145,7 +142,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
             // Obtain verifier secret and check JWT signature
             final TemporaryKeyResult temporaryKeyResult = obtainTemporaryKeyResult(requestClaims, algorithm);
-            final MACVerifier verifier = new MACVerifier(temporaryKeyResult.getSecretKeyBytes());
+            final JWSVerifier verifier = new MACVerifierHS384(temporaryKeyResult.getSecretKeyBytes());
             boolean verified = decodedJWT.verify(verifier);
             if (!verified) {
                 logger.debug("JWT token verification failed.");
