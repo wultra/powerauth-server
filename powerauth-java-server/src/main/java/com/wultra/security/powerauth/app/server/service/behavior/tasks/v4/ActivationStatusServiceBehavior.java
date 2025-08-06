@@ -212,10 +212,18 @@ public class ActivationStatusServiceBehavior {
                             .put(statusBlobMac)
                             .array();
 
+                    // Resolve shared secret algorithm
+                    final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
+                    if (sharedSecretAlgorithm == null) {
+                        logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
+                        // Rollback is not required, database is not used for writing
+                        throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                    }
+
                     // Assign the activation fingerprint
                     final String activationFingerPrint;
                     if (activation.getVersion() == 4) {
-                        activationFingerPrint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).generateActivationFingerprint(activation);
+                        activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
                     } else {
                         logger.error("Unsupported activation version: {}", activation.getVersion());
                         // Rollback is not required, database is not used for writing

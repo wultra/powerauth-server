@@ -35,8 +35,10 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.crypto.*;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.model.ActivationVersion;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.util.HybridPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -44,6 +46,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jcajce.interfaces.MLDSAPublicKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +55,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
@@ -252,8 +256,34 @@ public class CryptographyServiceHybrid extends CryptographyService {
 
     @Override
     public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
-        // TODO - activation fingerprint needs to be defined for crypto4 first
-        return "";
+        try {
+            final PublicKeyRegistry devicePublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
+            final ECPublicKey devicePublicKeyEcdsa = (ECPublicKey) devicePublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing ECDSA device public key for application ID: {}", activation.getApplication().getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            final MLDSAPublicKey devicePublicKeyMldsa = (MLDSAPublicKey) devicePublicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                logger.error("Missing ML-DSA device public key for application ID: {}", activation.getApplication().getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            final PublicKeyRegistry serverPublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getServerPublicKeys());
+            final ECPublicKey serverPublicKeyEcdsa = (ECPublicKey) serverPublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+                logger.error("Missing ECDSA server public key for application ID: {}", activation.getApplication().getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            final MLDSAPublicKey serverPublicKeyMldsa = (MLDSAPublicKey) serverPublicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                logger.error("Missing ML-DSA server public key for application ID: {}", activation.getApplication().getId());
+                // Rollback is not required, database is not used for writing
+                return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            });
+            return HybridPublicKeyFingerprint.computeHybridFingerprint(devicePublicKeyEcdsa, devicePublicKeyMldsa, serverPublicKeyEcdsa, serverPublicKeyMldsa, activation.getActivationId(), ActivationVersion.VERSION_4);
+        } catch (GenericCryptoException e) {
+            logger.error("Could not calculate activation fingerprint", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
     }
 
     @Override
