@@ -67,7 +67,9 @@ public class GetActivationStatusResponse {
     @ToString.Exclude
     private String activationCode;
     @ToString.Exclude
-    private String activationSignature;
+    private String activationSignatureEcdsa;
+    @ToString.Exclude
+    private String activationSignatureMldsa;
     @ToString.Exclude
     private String devicePublicKeyFingerprint;
     private long version;

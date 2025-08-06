@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -131,12 +132,17 @@ public class ActivationStatusServiceBehavior {
                     // since both keys were not exchanged yet and transport cannot be secured.
                     final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
 
-                    final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384)
-                            .generateSignatureForApplication(
-                                    KeyType.ECDSA_P384,
-                                    activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                                    application
-                            );
+                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
+                    final byte[] activationSignatureEcdsa = cryptographyService.generateSignatureForApplication(
+                            KeyType.ECDSA_P384,
+                            activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
+                            application
+                    );
+                    final byte[] activationSignatureMldsa = cryptographyService.generateSignatureForApplication(
+                            KeyType.MLDSA_65,
+                            activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
+                            application
+                    );
 
                     // return the data
                     final GetActivationStatusResponse response = new GetActivationStatusResponse();
@@ -157,7 +163,8 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
+                    response.setActivationSignatureEcdsa(Base64.getEncoder().encodeToString(activationSignatureEcdsa));
+                    response.setActivationSignatureMldsa(Base64.getEncoder().encodeToString(activationSignatureMldsa));
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
@@ -234,7 +241,8 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
                     response.setActivationCode(null);
-                    response.setActivationSignature(null);
+                    response.setActivationSignatureEcdsa(null);
+                    response.setActivationSignatureMldsa(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
@@ -277,7 +285,8 @@ public class ActivationStatusServiceBehavior {
                 response.setMaxFailedAttempts(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts());
                 response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                 response.setActivationCode(null);
-                response.setActivationSignature(null);
+                response.setActivationSignatureEcdsa(null);
+                response.setActivationSignatureMldsa(null);
                 response.setDevicePublicKeyFingerprint(null);
                 // Use 0 as version when version is undefined
                 response.setVersion(0L);
