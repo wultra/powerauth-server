@@ -20,6 +20,7 @@
 package io.getlime.security.powerauth.app.server.service.replay;
 
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -54,7 +55,7 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     public void checkAndPersistUniqueValue(String protocolVersion, Date requestTimestamp, UniqueValueParam param) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, request timestamp: {}, identifier: {}", param.getUniqueValueType(), requestTimestamp, param.getIdentifier());
 
-        checkTimestamp(protocolVersion, requestTimestamp);
+        checkTimestamp(protocolVersion, requestTimestamp, param.getUniqueValueType());
 
         final byte uniqueValueType = (byte) param.getUniqueValueType().ordinal();
         final byte[] ephemeralPublicKeyBytes = param.getEphemeralPublicKey() != null ? Base64.getDecoder().decode(param.getEphemeralPublicKey()) : new byte[0];
@@ -86,31 +87,43 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
      *
      * <p>Version 3.0 and 3.1:
      * <ul>
-     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - EXPIRATION, then reject request</li>
-     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + TIMESTAMP_THRESHOLD, then reject request</li>
+     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - EXTENDED_EXPIRATION, then reject request</li>
+     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + EXTENDED_EXPIRATION, then reject request</li>
      * </ul>
      *
      * <p>Version 3.2+:
      * <ul>
-     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - TIMESTAMP_THRESHOLD, then reject request</li>
-     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + TIMESTAMP_THRESHOLD, then reject request</li>
+     * <li>If TIMESTAMP < CURRENT_TIMESTAMP - EXPIRATION, then reject request</li>
+     * <li>If TIMESTAMP > CURRENT_TIMESTAMP + EXPIRATION, then reject request</li>
      * </ul>
      *
      * @param protocolVersion Protocol version.
      * @param requestTimestamp Request timestamp.
      * @throws GenericServiceException Thrown in case request is rejected due to its timestamp.
      */
-    private void checkTimestamp(String protocolVersion, Date requestTimestamp) throws GenericServiceException {
+    private void checkTimestamp(String protocolVersion, Date requestTimestamp, UniqueValueType uniqueValueType) throws GenericServiceException {
+        if (requestTimestamp == null) {
+            // Rollback is not required, error occurs before writing to database
+            logger.warn("Rejected request due to missing timestamp, protocol version: {}", protocolVersion);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         final Instant now = Instant.now();
         final Instant requestTime = requestTimestamp.toInstant();
         final Instant limitOldest;
+        final Instant limitNewest;
         if ("3.0".equals(protocolVersion) || "3.1".equals(protocolVersion)) {
-            // MAC TOKEN only has extended expiration, ECIES is checked only in protocol versions 3.2+
+            // Only MAC_TOKEN uses extended expiration, ECIES timestamps are checked only in protocol versions 3.2+
+            if (uniqueValueType != UniqueValueType.MAC_TOKEN) {
+                // Rollback is not required, error occurs before writing to database
+                logger.warn("Rejected request due to invalid unique value type: {}, protocol version: {}", uniqueValueType, protocolVersion);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
             limitOldest = now.minus(powerAuthServiceConfiguration.getRequestExpirationExtended());
+            limitNewest = now.plus(powerAuthServiceConfiguration.getRequestExpirationExtended());
         } else {
-            limitOldest = now.minus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
+            limitOldest = now.minus(powerAuthServiceConfiguration.getRequestExpiration());
+            limitNewest = now.plus(powerAuthServiceConfiguration.getRequestExpiration());
         }
-        final Instant limitNewest = now.plus(powerAuthServiceConfiguration.getReplayTimestampThreshold());
         if (requestTime.isBefore(limitOldest) || requestTime.isAfter(limitNewest)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Rejected request due to invalid timestamp: {}, allowed range: {} - {}, protocol version: {}", requestTime, limitOldest, limitNewest, protocolVersion);

@@ -187,7 +187,10 @@ public final class ServiceError {
 
     /**
      * Token timestamp is too old.
+     *
+     * @deprecated replaced by {@link #INVALID_REQUEST}
      */
+    @Deprecated
     public static final String TOKEN_TIMESTAMP_TOO_OLD = "ERR0030";
 
     /**
@@ -257,7 +260,10 @@ public final class ServiceError {
 
     /**
      * Token timestamp is too much in the future.
+     *
+     * @deprecated replaced by {@link #INVALID_REQUEST}
      */
+    @Deprecated
     public static final String TOKEN_TIMESTAMP_TOO_IN_FUTURE = "ERR0044";
 
     /**

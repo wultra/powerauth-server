@@ -225,27 +225,6 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Token timestamp validity, checked before validating the token.
-     */
-    @Value("${powerauth.service.token.timestamp.validity}")
-    @DurationMin(millis = 1)
-    private Duration tokenTimestampValidity;
-
-    /**
-     * Token timestamp validity to future, checked before validating the token.
-     */
-    @Value("${powerauth.service.token.timestamp.forward.validity}")
-    @DurationMin(millis = 0)
-    private Duration tokenTimestampForwardValidity;
-
-    /**
-     * Token timestamp validity to future, checked before validating the token.
-     */
-    @Value("${powerauth.service.replay.timestamp.threshold}")
-    @DurationMin(millis = 0)
-    private Duration replayTimestampThreshold;
-
-    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
@@ -662,38 +641,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get the token timestamp validity.
-     * @return Token timestamp validity.
-     */
-    public Duration getTokenTimestampValidity() {
-        return tokenTimestampValidity;
-    }
-
-    /**
-     * Set the token timestamp validity.
-     * @param tokenTimestampValidity Token timestamp validity.
-     */
-    public void setTokenTimestampValidity(Duration tokenTimestampValidity) {
-        this.tokenTimestampValidity = tokenTimestampValidity;
-    }
-
-    /**
-     * Get the token timestamp validity into future.
-     * @return Token timestamp validity into future.
-     */
-    public Duration getTokenTimestampForwardValidity() {
-        return tokenTimestampForwardValidity;
-    }
-
-    /**
-     * Set the token timestamp validity into future in milliseconds.
-     * @param tokenTimestampForwardValidity Token timestamp validity into future in milliseconds
-     */
-    public void setTokenTimestampForwardValidity(Duration tokenTimestampForwardValidity) {
-        this.tokenTimestampForwardValidity = tokenTimestampForwardValidity;
-    }
-
-    /**
      * Get master DB encryption key.
      * @return Master DB encryption key.
      */
@@ -761,8 +708,17 @@ public class PowerAuthServiceConfiguration {
     }
 
     @PostConstruct
-    void validate() {
+    void validateProximityConfiguration() {
         Assert.state(proximityCheckOtpLength >= MINIMAL_PROXIMITY_CHECK_OTP_LENGTH,
                 "Proximity check OTP length %d is smaller then required minimal %d".formatted(proximityCheckOtpLength, MINIMAL_PROXIMITY_CHECK_OTP_LENGTH));
     }
+
+    @PostConstruct
+    void validateReplayConfiguration() {
+        Assert.state(temporaryKeyValidity.toMillis() <= requestExpiration.toMillis(),
+                "Temporary key validity %d ms exceeds request expiration %d ms"
+                        .formatted(temporaryKeyValidity.toMillis(), requestExpiration.toMillis())
+        );
+    }
+
 }
