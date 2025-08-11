@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.getlime.security</groupId>
+        <groupId>com.wultra.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
         <version>1.10.1-SNAPSHOT</version>
     </parent>

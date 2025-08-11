@@ -25,7 +25,7 @@
     <description>powerauth-fido2</description>
 
     <parent>
-        <groupId>io.getlime.security</groupId>
+        <groupId>com.wultra.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
         <version>1.10.1-SNAPSHOT</version>
     </parent>
@@ -53,7 +53,7 @@
         </dependency>
 
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
         <dependency>
@@ -61,11 +61,11 @@
             <artifactId>rest-client-base</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
 

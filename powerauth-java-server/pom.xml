@@ -27,7 +27,7 @@
     <packaging>war</packaging>
 
     <parent>
-        <groupId>io.getlime.security</groupId>
+        <groupId>com.wultra.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
         <version>1.10.1-SNAPSHOT</version>
     </parent>
@@ -85,11 +85,11 @@
 
         <!-- PowerAuth Dependencies -->
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
         <dependency>
@@ -109,7 +109,7 @@
             <artifactId>http-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-fido2</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -202,7 +202,7 @@
         </dependency>
 
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-rest-client-spring</artifactId>
             <scope>test</scope>
         </dependency>

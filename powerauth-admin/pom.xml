@@ -9,7 +9,7 @@
     <packaging>war</packaging>
 
     <parent>
-        <groupId>io.getlime.security</groupId>
+        <groupId>com.wultra.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
         <version>1.10.1-SNAPSHOT</version>
     </parent>
@@ -46,7 +46,7 @@
 
         <!-- PowerAuth Dependencies -->
         <dependency>
-            <groupId>io.getlime.security</groupId>
+            <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-rest-client-spring</artifactId>
         </dependency>
 
