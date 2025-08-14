@@ -242,7 +242,6 @@ public class ApplicationServiceBehavior {
             for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
                 if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
                 // Generate key pairs for all supported algorithms
-                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
                 cryptographyServiceFactory.getService(algorithm).generateMasterKeyPair(application);
             }
 
