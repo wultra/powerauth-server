@@ -26,7 +26,7 @@ import com.nimbusds.jose.crypto.impl.AlgorithmSupportMessage;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import lombok.AllArgsConstructor;
 
@@ -40,6 +40,7 @@ import java.util.Set;
  */
 @AllArgsConstructor
 public class MLDSASigner implements JWSSigner {
+
     private static final PqcDsa PQC_DSA = new MlDsa();
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(JWSAlgorithmMLDSA.MLDSA65);
     private final JCAContext jcaContext = new JCAContext();

@@ -51,12 +51,13 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.context.AeadSecrets;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.SharedSecretClientContextHybrid;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
@@ -103,7 +104,7 @@ class ActivationServiceBehaviorTest {
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final PqcDsa PQC_DSA = new MlDsa();
-    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
+    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String VERSION = "4.0";

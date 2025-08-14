@@ -29,7 +29,8 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ import java.util.Iterator;
 public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyRegistry> {
 
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
+    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
     @Override
     public PrivateKeyRegistry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {

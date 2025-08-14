@@ -50,9 +50,10 @@ import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.util.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
@@ -91,7 +92,7 @@ public class ActivationProcessServiceBehavior {
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-    private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new PqcDsaKeyConvertor();
+    private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
     private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
 

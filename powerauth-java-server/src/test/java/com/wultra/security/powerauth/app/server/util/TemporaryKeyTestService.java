@@ -39,7 +39,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
-import com.wultra.security.powerauth.crypto.lib.v4.PqcDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
