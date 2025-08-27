@@ -74,7 +74,7 @@ public class ActivationContextValidator {
      * @throws GenericServiceException Thrown when activation status is invalid.
      */
     public void validateActiveStatusForEncryptor(final ActivationStatus activationStatus, final List<ActivationStatus> allowedStates, final String activationId, final LocalizationProvider localizationProvider) throws GenericServiceException {
-        if (allowedStates.contains(ActivationStatus.CREATED) || allowedStates.contains(ActivationStatus.REMOVED)) {
+        if (allowedStates.contains(ActivationStatus.CREATED)) {
             logger.info("Requested allow states are invalid, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
