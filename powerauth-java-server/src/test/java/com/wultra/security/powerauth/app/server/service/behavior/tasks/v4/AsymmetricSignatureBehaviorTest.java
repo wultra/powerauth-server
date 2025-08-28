@@ -35,6 +35,7 @@ import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricReque
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,6 +86,7 @@ class AsymmetricSignatureBehaviorTest {
         activation = new ActivationRecordEntity();
         activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setProtocol(ActivationProtocol.POWERAUTH);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
     }
 
     @Test
