@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
+import com.wultra.security.powerauth.client.model.annotation.Base64Encoded;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -52,6 +53,7 @@ public class VerifyAuthenticationRequest {
 
     @Schema(description = "Authentication code")
     @NotBlank(message = "Authentication code must not be empty when verifying authentication")
+    @Base64Encoded(message = "Authentication code must be a valid Base-64 encoded string")
     @ToString.Exclude
     private String authenticationCode;
 

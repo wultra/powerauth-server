@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.request.v3;
 
+import com.wultra.security.powerauth.client.model.annotation.Base64Encoded;
 import com.wultra.security.powerauth.client.model.enumeration.v3.ECDSASignatureFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -44,6 +45,7 @@ public class VerifyECDSASignatureRequest {
 
     @Schema(description = "Signature")
     @NotBlank(message = "Signature must not be empty when verifying signature")
+    @Base64Encoded(message = "Signature must be a valid Base-64 encoded string")
     @ToString.Exclude
     private String signature;
 

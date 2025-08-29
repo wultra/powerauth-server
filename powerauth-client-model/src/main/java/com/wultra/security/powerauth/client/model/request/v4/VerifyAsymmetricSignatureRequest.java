@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.request.v4;
 
+import com.wultra.security.powerauth.client.model.annotation.Base64Encoded;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureFormat;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -45,6 +46,7 @@ public class VerifyAsymmetricSignatureRequest {
 
     @Schema(description = "Signature")
     @NotBlank(message = "Signature must not be empty when verifying signature")
+    @Base64Encoded(message = "Signature must be a valid Base-64 encoded string")
     @ToString.Exclude
     private String signature;
 
