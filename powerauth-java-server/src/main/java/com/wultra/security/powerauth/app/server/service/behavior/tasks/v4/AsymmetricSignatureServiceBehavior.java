@@ -85,10 +85,15 @@ public class AsymmetricSignatureServiceBehavior {
             }
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
-            final byte[] signatureEcdsa = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
+            final byte[] signatureEcdsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
             final String signatureEcdsBase64 = Base64.getEncoder().encodeToString(signatureEcdsa);
-            final byte[] signatureMldsa = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateSignatureForActivation(KeyType.MLDSA_65, dataRaw, activation);
-            final String signatureMldsaBase64 = Base64.getEncoder().encodeToString(signatureMldsa);
+            final String signatureMldsaBase64;
+            if (activation.getCryptoAlgorithm() == SharedSecretAlgorithm.EC_P384_ML_L3) {
+                final byte[] signatureMldsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.MLDSA_65, dataRaw, activation);
+                signatureMldsaBase64 = Base64.getEncoder().encodeToString(signatureMldsa);
+            } else {
+                signatureMldsaBase64 = null;
+            }
 
             final SignAsymmetricResponse response = new SignAsymmetricResponse();
             response.setSignatureEcdsa(signatureEcdsBase64);
@@ -142,8 +147,8 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
             final boolean matches = switch (signatureType) {
-                case ECDSA -> cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).verifySignatureForActivation(KeyType.ECDSA_P384, dataBytes, signatureBytesDER, activation);
-                case MLDSA -> cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).verifySignatureForActivation(KeyType.MLDSA_65, dataBytes, signatureBytesDER, activation);
+                case ECDSA -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.ECDSA_P384, dataBytes, signatureBytesDER, activation);
+                case MLDSA -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_65, dataBytes, signatureBytesDER, activation);
             };
 
             return VerifyAsymmetricSignatureResponse.builder()

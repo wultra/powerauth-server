@@ -42,7 +42,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.v4.authentication.PowerAuthServerAuthentication;
 import lombok.Builder;
 import lombok.Getter;
@@ -217,7 +216,7 @@ public class AuthenticationSharedServiceBehavior {
      */
     private AuthenticationResponse verifyAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, List<AuthenticationCodeType> authenticationCodeTypes) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-        final SecretKey keyActivationSecret = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).deriveSharedSecretKey(activation);
+        final SecretKey keyActivationSecret = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).deriveSharedSecretKey(activation);
         final Integer authenticationVersion = resolveAuthenticationVersion(activation, authenticationData.getForcedAuthenticationVersion());
 
         final long ctr = activation.getCounter();
