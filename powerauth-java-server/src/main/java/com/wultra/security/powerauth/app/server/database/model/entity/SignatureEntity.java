@@ -87,7 +87,7 @@ public class SignatureEntity implements Serializable {
     /**
      * Base64 encoded data that entered the signature.
      */
-    @Column(name = "data_base64", updatable = false)
+    @Column(name = "data_base64", updatable = false, columnDefinition = "CLOB")
     private String dataBase64;
 
     /**
@@ -118,7 +118,7 @@ public class SignatureEntity implements Serializable {
     /**
      * Signature data body.
      */
-    @Column(name = "signature_data_body", updatable = false)
+    @Column(name = "signature_data_body", updatable = false, columnDefinition = "CLOB")
     private String signatureDataBody;
 
     /**
