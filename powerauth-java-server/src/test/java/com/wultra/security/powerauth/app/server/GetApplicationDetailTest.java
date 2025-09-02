@@ -17,10 +17,11 @@
  */
 package com.wultra.security.powerauth.app.server;
 
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ApplicationDetailServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
-import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -44,10 +45,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class GetApplicationDetailTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
+    private final ApplicationDetailServiceBehavior applicationDetailServiceBehavior;
 
     @Autowired
-    public GetApplicationDetailTest(ApplicationServiceBehavior applicationServiceBehavior) {
+    GetApplicationDetailTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
+        this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
     }
 
     @Test
@@ -56,7 +59,7 @@ class GetApplicationDetailTest {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(application.getId());
 
-        GetApplicationDetailResponse response = applicationServiceBehavior.getApplicationDetail(request);
+        GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
         assertEquals(application.getId(), response.getApplicationId());
     }
 
@@ -64,7 +67,7 @@ class GetApplicationDetailTest {
     public void testGetApplicationDetailByNotExistingId() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId("NOT_EXISTING_NAME");
-        assertThrows(GenericServiceException.class, ()-> applicationServiceBehavior.getApplicationDetail(request));
+        assertThrows(GenericServiceException.class, ()-> applicationDetailServiceBehavior.getApplicationDetail(request));
     }
 
     @Test
@@ -73,7 +76,7 @@ class GetApplicationDetailTest {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(application.getId());
 
-        GetApplicationDetailResponse response = applicationServiceBehavior.getApplicationDetail(request);
+        GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
         assertEquals(application.getId(), response.getApplicationId());
     }
 
@@ -81,7 +84,7 @@ class GetApplicationDetailTest {
     public void testGetApplicationDetailByNotExistingName() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId("NOT_EXISTING_NAME");
-        assertThrows(GenericServiceException.class, ()-> applicationServiceBehavior.getApplicationDetail(request));
+        assertThrows(GenericServiceException.class, ()-> applicationDetailServiceBehavior.getApplicationDetail(request));
     }
 
     private ApplicationEntity createApplication() throws Exception {

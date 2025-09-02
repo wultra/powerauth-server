@@ -3,6 +3,7 @@ package com.wultra.security.powerauth.app.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ActivationCreateServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ApplicationDetailServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OnlineSignatureServiceBehavior;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -11,7 +12,7 @@ import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequ
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse;
-import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
@@ -24,10 +25,10 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -39,23 +40,17 @@ import java.util.*;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @Disabled("The test requires running database.")
+@AllArgsConstructor
 public class VerifyAuthCodeConcurrencyTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
+    private final ApplicationDetailServiceBehavior applicationDetailServiceBehavior;
     private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final OnlineSignatureServiceBehavior onlineAuthenticationServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-
-    @Autowired
-    public VerifyAuthCodeConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, OnlineSignatureServiceBehavior onlineAuthenticationServiceBehavior) {
-        this.applicationServiceBehavior = applicationServiceBehavior;
-        this.activationServiceBehavior = activationServiceBehavior;
-        this.activationCreateServiceBehavior = activationCreateServiceBehavior;
-        this.onlineAuthenticationServiceBehavior = onlineAuthenticationServiceBehavior;
-    }
 
     @Test
     public void testVerifyAuthCodeConcurrent() throws Exception {
@@ -88,7 +83,7 @@ public class VerifyAuthCodeConcurrencyTest {
 
         GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        GetApplicationDetailResponse detailResponse = applicationServiceBehavior.getApplicationDetail(detailRequest);
+        GetApplicationDetailResponse detailResponse = applicationDetailServiceBehavior.getApplicationDetail(detailRequest);
 
         PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
