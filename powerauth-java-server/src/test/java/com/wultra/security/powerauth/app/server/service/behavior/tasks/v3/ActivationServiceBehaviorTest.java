@@ -34,6 +34,7 @@ import com.wultra.security.powerauth.app.server.service.model.request.v3.Activat
 import com.wultra.security.powerauth.app.server.service.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.v3.PrepareActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
@@ -73,6 +74,7 @@ class ActivationServiceBehaviorTest {
     private ActivationCreateServiceBehavior tested;
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
+    private final ApplicationDetailServiceBehavior applicationDetailServiceBehavior;
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
@@ -83,8 +85,9 @@ class ActivationServiceBehaviorTest {
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
+    ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
+        this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
         this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         this.activationInitServiceBehavior = activationInitServiceBehavior;
@@ -481,7 +484,7 @@ class ActivationServiceBehaviorTest {
 
         final GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        return applicationServiceBehavior.getApplicationDetail(detailRequest);
+        return applicationDetailServiceBehavior.getApplicationDetail(detailRequest);
     }
 
     private ActivationStatus getActivationStatus(String activationId) throws Exception {

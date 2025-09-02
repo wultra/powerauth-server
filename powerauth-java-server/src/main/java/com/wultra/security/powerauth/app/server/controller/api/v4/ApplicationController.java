@@ -22,11 +22,12 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ApplicationDetailServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.request.LookupApplicationByAppKeyRequest;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
-import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationListResponse;
 import com.wultra.security.powerauth.client.model.response.LookupApplicationByAppKeyResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ApplicationController {
 
     private final ApplicationServiceBehavior applicationService;
+    private final ApplicationDetailServiceBehavior applicationDetailService;
 
     /**
      * Get the list of applications.
@@ -100,7 +102,7 @@ public class ApplicationController {
         final GetApplicationDetailRequest req = request.getRequestObject();
         logger.info("action: getApplicationDetail, state: initiated, applicationId: {}", req.getApplicationId());
         logger.debug("action: getApplicationDetail, state: initiated, request: {}", request);
-        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationService.getApplicationDetail(req));
+        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationDetailService.getApplicationDetail(req));
         logger.info("action: getApplicationDetail, state: succeeded");
         logger.debug("action: getApplicationDetail, state: succeeded, response: {}", response);
         return response;

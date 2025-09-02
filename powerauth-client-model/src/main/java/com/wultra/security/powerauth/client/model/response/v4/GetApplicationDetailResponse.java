@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,9 +14,10 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.response;
+package com.wultra.security.powerauth.client.model.response.v4;
 
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import lombok.Data;
@@ -27,13 +28,12 @@ import java.util.List;
 /**
  * Model class representing response with application detail.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
 public class GetApplicationDetailResponse {
 
     private String applicationId;
-    private String masterPublicKey;
     private List<String> applicationRoles = new ArrayList<>();
     private List<ApplicationVersion> versions = new ArrayList<>();
 
