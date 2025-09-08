@@ -176,58 +176,61 @@ public class ActivationStatusServiceBehavior {
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
                 } else {
-
-                    final String ctrDataBase64 = activation.getCtrDataBase64();
-                    final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
                     final String sharedSecretEncrypted = activation.getSharedSecret();
-                    final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
-                    final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
-                    final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
-                    final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
-                    final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);
-                    final SecretKey keyStatusMac = SERVER_KEY_FACTORY.generateKeyMacStatus(sharedSecretKey);
 
-                    final byte[] ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, keyCtrDataMac, ProtocolVersion.V40);
-
-                    final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
-                    statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
-                    statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
-                    statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
-                    statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
-                    statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
-                    statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
-                    statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
-                    statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
-                    statusBlobInfo.setStatusFlags(computeStatusFlags(
-                            activation.isConfirmationPending(),
-                            false, // TODO - update when implementing upgrade
-                            false, // TODO - implement algorithm check
-                            activation.isBiometricFactorEnabled())
-                    );
-                    final byte[] statusBlobData = powerAuthServerActivation.generateStatusBlob(statusBlobInfo, ProtocolVersion.V40);
-                    final byte[] statusBlobMac = powerAuthServerActivation.calculateStatusMac(statusBlobData, keyStatusMac, ProtocolVersion.V40);
-                    final byte[] statusBlob = ByteBuffer
-                            .allocate(statusBlobData.length + statusBlobMac.length)
-                            .put(statusBlobData)
-                            .put(statusBlobMac)
-                            .array();
-
-                    // Resolve shared secret algorithm
-                    final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
-                    if (sharedSecretAlgorithm == null) {
-                        logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
-                        // Rollback is not required, database is not used for writing
-                        throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                    }
-
-                    // Assign the activation fingerprint
+                    final byte[] statusBlob;
+                    final SharedSecretAlgorithm sharedSecretAlgorithm;
                     final String activationFingerPrint;
-                    if (activation.getVersion() == 4) {
-                        activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
+                    if (sharedSecretEncrypted != null) {
+                        final String ctrDataBase64 = activation.getCtrDataBase64();
+                        final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
+                        final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
+                        statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
+                        statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
+                        statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
+                        statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
+                        statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
+                        statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
+                        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
+                        statusBlobInfo.setStatusFlags(computeStatusFlags(
+                                activation.isConfirmationPending(),
+                                false, // TODO - update when implementing upgrade
+                                false, // TODO - implement algorithm check
+                                activation.isBiometricFactorEnabled())
+                        );
+                        final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
+                        final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
+                        final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
+                        final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
+                        final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);
+                        final SecretKey keyStatusMac = SERVER_KEY_FACTORY.generateKeyMacStatus(sharedSecretKey);
+                        final byte[] ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, keyCtrDataMac, ProtocolVersion.V40);
+                        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
+                        final byte[] statusBlobData = powerAuthServerActivation.generateStatusBlob(statusBlobInfo, ProtocolVersion.V40);
+                        final byte[] statusBlobMac = powerAuthServerActivation.calculateStatusMac(statusBlobData, keyStatusMac, ProtocolVersion.V40);
+                        statusBlob = ByteBuffer
+                                .allocate(statusBlobData.length + statusBlobMac.length)
+                                .put(statusBlobData)
+                                .put(statusBlobMac)
+                                .array();
+                        // Resolve shared secret algorithm
+                        sharedSecretAlgorithm = activation.getCryptoAlgorithm();
+                        if (sharedSecretAlgorithm == null) {
+                            logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
+                            // Rollback is not required, database is not used for writing
+                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                        }
+                        // Assign the activation fingerprint
+                        if (activation.getVersion() == 4) {
+                            activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
+                        } else {
+                            logger.error("Unsupported activation version: {}", activation.getVersion());
+                            // Rollback is not required, database is not used for writing
+                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                        }
                     } else {
-                        logger.error("Unsupported activation version: {}", activation.getVersion());
-                        // Rollback is not required, database is not used for writing
-                        throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                        statusBlob = null;
+                        activationFingerPrint = null;
                     }
 
                     // return the data
@@ -247,7 +250,9 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampCreated(activation.getTimestampCreated());
                     response.setTimestampLastUsed(activation.getTimestampLastUsed());
                     response.setTimestampLastChange(activation.getTimestampLastChange());
-                    response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
+                    if (statusBlob != null) {
+                        response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
+                    }
                     response.setActivationCode(null);
                     response.setActivationSignatureEcdsa(null);
                     response.setActivationSignatureMldsa(null);
@@ -264,7 +269,6 @@ public class ActivationStatusServiceBehavior {
                     return response;
                 }
             } else {
-
                 // Activations that do not exist should return REMOVED state and
                 // a random status blob
                 final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
