@@ -22,7 +22,7 @@ import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v3.OperationDetailResponse;
 import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;

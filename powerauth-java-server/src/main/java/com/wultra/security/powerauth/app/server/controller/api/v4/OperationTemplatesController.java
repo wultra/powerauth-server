@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,25 +14,25 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.app.server.controller.api;
+package com.wultra.security.powerauth.app.server.controller.api.v4;
 
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OperationTemplateServiceBehavior;
+import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDetailRequest;
+import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateUpdateRequest;
+import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateListResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,10 +42,10 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Controller managing the endpoints related to operation templates.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@RestController("operationTemplatesController")
-@RequestMapping({"/rest/v3/operation/template", "/rest/v4/operation/template"})
+@RestController("operationTemplatesControllerV4")
+@RequestMapping( "/rest/v4/operation/template")
 @Tag(name = "PowerAuth Operation Templates Controller")
 @AllArgsConstructor
 @Validated

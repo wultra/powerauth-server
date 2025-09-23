@@ -19,9 +19,9 @@ package com.wultra.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
 import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v3.OperationDetailResponse;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OperationServiceBehavior;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

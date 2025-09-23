@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,13 +14,14 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateCreateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +32,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@link OperationTemplateServiceBehavior}.
+ * Test for {@link com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OperationTemplateServiceBehavior}.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
@@ -59,7 +60,7 @@ class OperationTemplateServiceBehaviorTest {
         request.setTemplateName(templateName);
         request.setOperationType(templateName);
         request.setDataTemplate("A2");
-        request.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
+        request.getAuthenticationCodeType().add(AuthenticationCodeType.POSSESSION_KNOWLEDGE);
         request.setMaxFailureCount(5L);
         request.setExpiration(300L);
         return request;
