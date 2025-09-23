@@ -36,9 +36,6 @@ import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationC
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v3.OperationApproveRequest;
-import com.wultra.security.powerauth.client.model.request.v3.OperationTemplateCreateRequest;
-import com.wultra.security.powerauth.client.model.request.v3.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v4.*;
