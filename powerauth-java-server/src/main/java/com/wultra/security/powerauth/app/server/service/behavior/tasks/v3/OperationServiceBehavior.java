@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,9 +14,10 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.app.server.service.behavior.tasks;
+package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
@@ -32,7 +33,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.OperationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.OperationTemplateRepository;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.AuditType;
@@ -43,9 +44,10 @@ import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationListResponse;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
+import com.wultra.security.powerauth.client.model.request.v3.OperationApproveRequest;
+import com.wultra.security.powerauth.client.model.response.v3.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v3.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.v3.OperationUserActionResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -72,8 +74,9 @@ import java.util.stream.Stream;
  * Behavior class implementing the operation related processes.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Service
+@Service("operationServiceBehaviorV3")
 @Slf4j
 @AllArgsConstructor
 public class OperationServiceBehavior {

@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.task;
 
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OperationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.persistence.TemporaryKeyPersistenceService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayPersistenceService;
 import lombok.AllArgsConstructor;

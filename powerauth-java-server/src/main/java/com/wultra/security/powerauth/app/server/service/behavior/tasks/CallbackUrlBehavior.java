@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.*;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OperationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationEncryptor;
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;

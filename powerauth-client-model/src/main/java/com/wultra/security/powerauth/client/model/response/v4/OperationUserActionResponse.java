@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,28 +14,23 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.client.model.response;
 
-import com.wultra.security.powerauth.client.model.response.v3.OperationDetailResponse;
-import org.junit.jupiter.api.Test;
+package com.wultra.security.powerauth.client.model.response.v4;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
+import lombok.Data;
 
 /**
- * Test for {@link OperationDetailResponse}.
+ * Response object for operation approval.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-class OperationDetailResponseTest {
+@Data
+public class OperationUserActionResponse {
 
-    @Test
-    void testToString() {
-        final OperationDetailResponse tested = new OperationDetailResponse();
-        tested.setProximityOtp("top secret");
+    private UserActionResult result;
+    private OperationDetailResponse operation;
 
-        final String result = tested.toString();
-
-        assertFalse(result.contains("top secret"));
-    }
 }

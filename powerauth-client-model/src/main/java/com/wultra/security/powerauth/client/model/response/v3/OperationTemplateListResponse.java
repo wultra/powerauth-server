@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,28 +14,27 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
-package com.wultra.security.powerauth.client.model.response;
 
-import com.wultra.security.powerauth.client.model.response.v3.OperationDetailResponse;
-import org.junit.jupiter.api.Test;
+package com.wultra.security.powerauth.client.model.response.v3;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import java.io.Serial;
+import java.util.ArrayList;
 
 /**
- * Test for {@link OperationDetailResponse}.
+ * Operation template list response.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
-class OperationDetailResponseTest {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class OperationTemplateListResponse extends ArrayList<OperationTemplateDetailResponse> {
 
-    @Test
-    void testToString() {
-        final OperationDetailResponse tested = new OperationDetailResponse();
-        tested.setProximityOtp("top secret");
+    @Serial
+    private static final long serialVersionUID = -4732152578937870213L;
 
-        final String result = tested.toString();
-
-        assertFalse(result.contains("top secret"));
-    }
 }
