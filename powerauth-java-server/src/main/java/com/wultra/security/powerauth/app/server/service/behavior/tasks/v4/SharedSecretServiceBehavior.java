@@ -89,7 +89,7 @@ public class SharedSecretServiceBehavior {
         final String activationId = activation.getActivationId();
         final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
         if (sharedSecretRequest == null) {
-            logger.warn("Invalid activation request, activation ID: {}", activationId);
+            logger.warn("Invalid shared secret request, activation ID: {}", activationId);
             // Activation failed due to invalid request, rollback transaction
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -98,7 +98,7 @@ public class SharedSecretServiceBehavior {
 
         final DevicePublicKeys devicePublicKeys = requestPayload.getDevicePublicKeys();
         if (devicePublicKeys == null) {
-            logger.warn("Invalid activation request, activation ID: {}", activationId);
+            logger.warn("Invalid shared secret request, activation ID: {}", activationId);
             // Activation failed due to invalid request, rollback transaction
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -106,7 +106,7 @@ public class SharedSecretServiceBehavior {
         // Ensure presence of the devicePublicKey
         final String ecDevicePublicKey = devicePublicKeys.getEcdsa();
         if (!StringUtils.hasText(ecDevicePublicKey)) {
-            logger.warn("Invalid activation request, activation ID: {}", activationId);
+            logger.warn("Invalid shared secret request, activation ID: {}", activationId);
             // Activation failed due to invalid request, rollback transaction
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -142,7 +142,7 @@ public class SharedSecretServiceBehavior {
                 final String serverPublicKeys = activation.getServerPublicKeys();
                 final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
                 final PublicKey ecServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                    logger.warn("Missing ECDSA public key in activation request, activation ID: {}", activationId);
+                    logger.warn("Missing ECDSA public key in shared secret request, activation ID: {}", activationId);
                     // Activation failed due to invalid request, rollback transaction
                     return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 });
