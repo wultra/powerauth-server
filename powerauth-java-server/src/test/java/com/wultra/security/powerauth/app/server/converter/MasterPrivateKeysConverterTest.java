@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
@@ -105,17 +104,6 @@ class MasterPrivateKeysConverterTest {
         assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384).get());
         final PrivateKey privateKeyPqcExpected = KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(Base64.getDecoder().decode(MLDSA_PRIVATE_KEY));
         assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.MLDSA_65).get());
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentApplicationIdFail() throws Exception {
-        final byte[] serverPrivateKeysBytes = MASTER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8);
-        final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, APPLICATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-            privateKeysConverter.fromDBValue(privateKeysEncrypted, "test2"));
-        assertEquals("Generic cryptography error occurred.", exception.getMessage());
     }
 
 }

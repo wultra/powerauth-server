@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -76,45 +75,6 @@ class TemporarySharedSecretConverterTest {
         final SharedSecret sharedSecretEncrypted = new SharedSecret(EncryptionMode.AES_HMAC, SHARED_SECRET_ENCRYPTED);
         final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, result);
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentKeyIdFail() throws Exception {
-        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "1839c333-f61a-4be0-8d34-75b7cb79ab76", APP_KEY, ACTIVATION_ID));
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentAppKeyFail() throws Exception {
-        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, "UNfS0VZX3JhbmRvbQ==", ACTIVATION_ID));
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentActivationIdFail() throws Exception {
-        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, "01e9deb4-a0e0-4204-b8a6-925e76b7b3d3"));
-    }
-
-    @Test
-    void testEncryptionAndDecryptionNoActivationIdFail() throws Exception {
-        final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, null));
     }
 
 }

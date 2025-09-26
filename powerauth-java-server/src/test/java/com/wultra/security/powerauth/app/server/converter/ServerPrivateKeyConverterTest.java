@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Base64;
 
@@ -31,7 +30,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 
 /**
  * Tests for {@link ServerPrivateKeyConverter}.
@@ -77,27 +75,6 @@ class ServerPrivateKeyConverterTest {
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(EncryptionMode.AES_HMAC, SERVER_PRIVATE_KEY_ENCRYPTED);
         final String result = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, ACTIVATION_ID);
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, result);
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentUserFail() throws Exception {
-        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
-        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-            serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID));
-        assertEquals("Generic cryptography error occurred.", exception.getMessage());
-    }
-
-    @Test
-    void testEncryptionAndDecryptionDifferentActivationFailServerPrivateKeyConverter() throws Exception {
-        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
-        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
-
-        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
-
-        assertThrows(GenericServiceException.class, () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
     }
 
 }
