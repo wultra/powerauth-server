@@ -65,6 +65,8 @@ import java.util.Base64;
 
 /**
  * Service behavior for handling the shared secret derivation.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
 @Slf4j
