@@ -949,21 +949,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
-        return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException {
+        return confirmUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV4RestApi("/upgrade/commit", request, queryParams, httpHeaders, CommitUpgradeResponse.class);
-    }
-
-    @Override
-    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
-        final CommitUpgradeRequest request = new CommitUpgradeRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/upgrade/confirm", request, queryParams, httpHeaders, ConfirmUpgradeResponse.class);
     }
 
     @Override

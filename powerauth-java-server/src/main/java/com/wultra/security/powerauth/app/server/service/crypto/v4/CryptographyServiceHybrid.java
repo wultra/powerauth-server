@@ -135,14 +135,20 @@ public class CryptographyServiceHybrid extends CryptographyService {
             logger.error("Unsupported key type in master keypair request: {}", keyType);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
-        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+        MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             logger.error("Missing master key pair for application ID: {}", application.getId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         try {
-            final String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+            String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+            if (masterPrivateKeysBase64 == null) {
+                // In case of upgrade to V4, keys need to be generated dynamically
+                generateMasterKeyPair(application);
+                masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+                masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+            }
             final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
             final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeysEncryption, masterPrivateKeysBase64);
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());

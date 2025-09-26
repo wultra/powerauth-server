@@ -1312,34 +1312,24 @@ public interface PowerAuthClient {
     StartUpgradeResponse startUpgrade(StartUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Commit upgrade of activations to version 3.
+     * Confirm upgrade of activations to version 4.
      *
-     * @param request Commit upgrade request.
-     * @return Commit upgrade response.
+     * @param request Confirm upgrade request.
+     * @return Confirm upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException;
+    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException;
 
     /**
-     * Commit upgrade of activations to version 3.
+     * Confirm upgrade of activations to version 4.
      *
-     * @param request Commit upgrade request.
+     * @param request Confirm upgrade request.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
-     * @return Commit upgrade response.
+     * @return Confirm upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Commit upgrade of activations to version 3.
-     *
-     * @param activationId   Activation ID.
-     * @param applicationKey Application key.
-     * @return Commit upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException;
+    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * List activation flags.

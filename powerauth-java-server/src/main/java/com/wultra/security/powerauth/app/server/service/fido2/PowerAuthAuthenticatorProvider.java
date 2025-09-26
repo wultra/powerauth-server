@@ -222,7 +222,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activation.setDeviceInfo(authenticatorDetail.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
-            // Set initial counter data
+            // Set initial counter data (V3)
             activation.setCtrDataBase64(ctrDataBase64);
 
             // Persist activation report and notify listeners

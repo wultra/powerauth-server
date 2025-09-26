@@ -28,8 +28,11 @@ import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.*;
+import com.wultra.security.powerauth.client.model.request.v4.ConfirmUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v3.*;
+import com.wultra.security.powerauth.client.model.response.v4.ConfirmUpgradeResponse;
+import com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Duration;
@@ -1400,7 +1403,7 @@ public interface PowerAuthClient {
                                                 String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException;
 
     /**
-     * Start upgrade of activations to version 3.
+     * Start upgrade of activations to version 4.
      *
      * @param request Start upgrade request.
      * @return Start upgrade response.
@@ -1409,7 +1412,7 @@ public interface PowerAuthClient {
     StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException;
 
     /**
-     * Start upgrade of activations to version 3.
+     * Start upgrade of activations to version 4.
      *
      * @param request Start upgrade request.
      * @param queryParams HTTP query parameters.
@@ -1420,55 +1423,24 @@ public interface PowerAuthClient {
     StartUpgradeResponse startUpgrade(StartUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Start upgrade of activations to version 3.
+     * Confirm upgrade of activations to version 4.
      *
-     * @deprecated use {@link #startUpgrade(StartUpgradeRequest)}
-     *
-     * @param activationId       Activation ID.
-     * @param applicationKey     Application key.
-     * @param ephemeralPublicKey Ephemeral key used for response encryption.
-     * @param encryptedData      Encrypted request data.
-     * @param mac                MAC computed for request key and data.
-     * @param nonce              Nonce for ECIES.
-     * @param protocolVersion    Crypto protocol version.
-     * @param timestamp          Unix timestamp in milliseconds for ECIES.
-     * @return Start upgrade response.
+     * @param request Confirm upgrade request.
+     * @return Confirm upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    @Deprecated
-    StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                      String encryptedData, String mac, String nonce,
-                                      String protocolVersion, Long timestamp) throws PowerAuthClientException;
+    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException;
 
     /**
-     * Commit upgrade of activations to version 3.
+     * Confirm upgrade of activations to version 4.
      *
-     * @param request Commit upgrade request.
-     * @return Commit upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException;
-
-    /**
-     * Commit upgrade of activations to version 3.
-     *
-     * @param request Commit upgrade request.
+     * @param request Confirm upgrade request.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
-     * @return Commit upgrade response.
+     * @return Confirm upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Commit upgrade of activations to version 3.
-     *
-     * @param activationId   Activation ID.
-     * @param applicationKey Application key.
-     * @return Commit upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException;
+    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * List activation flags.

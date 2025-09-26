@@ -27,10 +27,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationCreateServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.ActivationStatusServiceBehavior;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v4.ConfirmActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v4.CreateActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
-import com.wultra.security.powerauth.client.model.request.v4.PrepareActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v4.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreateActivationResponse;

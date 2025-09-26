@@ -71,3 +71,11 @@ GO
 -- Add column confirmation_pending to pa_activation table
 ALTER TABLE pa_activation ADD confirmation_pending bit CONSTRAINT DF_pa_activation_confirmation_pending DEFAULT 0;
 GO
+
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::1::Roman Strobl
+-- Add column upgrade_confirmation_pending to pa_activation table
+ALTER TABLE pa_activation ADD upgrade_confirmation_pending bit CONSTRAINT DF_pa_upgrade_confirmation_pending DEFAULT 0;
+GO
+
+ALTER TABLE pa_activation ADD ctr_data_v4 varchar(255);
+GO

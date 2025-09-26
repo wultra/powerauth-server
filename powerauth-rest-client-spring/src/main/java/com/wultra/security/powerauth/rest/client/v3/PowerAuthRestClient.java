@@ -25,6 +25,9 @@ import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.request.v4.ConfirmUpgradeRequest;
+import com.wultra.security.powerauth.client.model.response.v4.ConfirmUpgradeResponse;
+import com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
@@ -1028,37 +1031,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                             String encryptedData, String mac, String nonce, String protocolVersion,
-                                             Long timestamp) throws PowerAuthClientException {
-        final StartUpgradeRequest request = new StartUpgradeRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setEncryptedData(encryptedData);
-        request.setMac(mac);
-        request.setNonce(nonce);
-        request.setProtocolVersion(protocolVersion);
-        request.setTimestamp(timestamp);
-        return startUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException {
+        return confirmUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
-        return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/upgrade/commit", request, queryParams, httpHeaders, CommitUpgradeResponse.class);
-    }
-
-    @Override
-    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
-        final CommitUpgradeRequest request = new CommitUpgradeRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/upgrade/commit", request, queryParams, httpHeaders, ConfirmUpgradeResponse.class);
     }
 
     @Override

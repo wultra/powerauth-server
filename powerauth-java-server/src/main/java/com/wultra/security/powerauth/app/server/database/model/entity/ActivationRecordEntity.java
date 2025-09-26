@@ -170,6 +170,12 @@ public class ActivationRecordEntity implements Serializable {
     private String ctrDataBase64;
 
     /**
+     * Base64 encoded counter data (V4).
+     */
+    @Column(name = "ctr_data_v4")
+    private String ctrDataV4Base64;
+
+    /**
      * Current number of failed attempts.
      */
     @Column(name = "failed_attempts", nullable = false)
@@ -309,6 +315,12 @@ public class ActivationRecordEntity implements Serializable {
     private boolean confirmationPending;
 
     /**
+     * Whether upgrade confirmation is pending.
+     */
+    @Column(name = "upgrade_confirmation_pending")
+    private boolean upgradeConfirmationPending;
+
+    /**
      * PowerAuth protocol major version for activation.
      */
     // Version must be nullable, it is not known yet during init activation step
@@ -370,6 +382,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", flags=" + flags
                 + ", counter=" + counter
                 + ", ctrDataBase64=" + ctrDataBase64
+                + ", ctrDataV4Base64=" + ctrDataV4Base64
                 + ", failedAttempts=" + failedAttempts
                 + ", maxFailedAttempts=" + maxFailedAttempts
                 + ", timestampCreated=" + timestampCreated
@@ -378,6 +391,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", timestampLastChange=" + timestampLastChange
                 + ", status=" + activationStatus
                 + ", confirmationPending=" + confirmationPending
+                + ", upgradeConfirmationPending=" + upgradeConfirmationPending
                 + ", blockedReason=" + blockedReason
                 + ", version=" + version
                 + ", application=" + application

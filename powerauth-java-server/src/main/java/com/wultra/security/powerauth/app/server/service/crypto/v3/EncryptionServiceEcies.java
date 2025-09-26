@@ -106,7 +106,7 @@ public class EncryptionServiceEcies extends EncryptionService {
 
             final EncryptorScope scope = switch (encryptorId) {
                 case APPLICATION_SCOPE_GENERIC, ACTIVATION_LAYER_2 -> EncryptorScope.APPLICATION_SCOPE;
-                case ACTIVATION_SCOPE_GENERIC, UPGRADE, VAULT_UNLOCK, CREATE_TOKEN -> EncryptorScope.ACTIVATION_SCOPE;
+                case ACTIVATION_SCOPE_GENERIC, UPGRADE_START, VAULT_UNLOCK, CREATE_TOKEN -> EncryptorScope.ACTIVATION_SCOPE;
                 default -> {
                     logger.warn("Invalid encryptor ID: {}", encryptorId);
                     // Rollback is not required, error occurs before writing to database

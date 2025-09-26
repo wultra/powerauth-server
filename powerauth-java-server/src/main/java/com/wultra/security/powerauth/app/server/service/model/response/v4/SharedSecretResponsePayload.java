@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,25 +14,26 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.security.powerauth.client.model.response.v3;
+package com.wultra.security.powerauth.app.server.service.model.response.v4;
 
+import com.wultra.security.powerauth.client.model.entity.v4.response.ServerPublicKeys;
+import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import lombok.Data;
-import lombok.ToString;
 
 /**
- * Model class representing response with information about started protocol upgrade (V3).
+ * Response object for deriving a shared secret (V4).
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
+ *
  */
 @Data
-public class StartUpgradeResponse {
+public class SharedSecretResponsePayload {
 
-    private String encryptedData;
-    private String mac;
-    @ToString.Exclude
-    private String nonce;
-    private Long timestamp;
+    private SharedSecretResponse sharedSecretResponse;
+    private ServerPublicKeys serverPublicKeys;
+    private String ctrData;
 
 }

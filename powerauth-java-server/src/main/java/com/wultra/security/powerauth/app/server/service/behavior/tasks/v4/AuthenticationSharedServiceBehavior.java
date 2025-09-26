@@ -220,7 +220,7 @@ public class AuthenticationSharedServiceBehavior {
         final Integer authenticationVersion = resolveAuthenticationVersion(activation, authenticationData.getForcedAuthenticationVersion());
 
         final long ctr = activation.getCounter();
-        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
+        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataV4Base64());
 
         final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
         final AuthenticationCodeType usedAuthenticationCodeType = result.authenticated() ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
@@ -386,8 +386,8 @@ public class AuthenticationSharedServiceBehavior {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         if (verificationResponse.getForcedAuthenticationVersion() == 4) {
-            // Set the ctrData to next valid ctrData value
-            activation.setCtrDataBase64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
+            // Set the ctrData (V4) to next valid ctrData value
+            activation.setCtrDataV4Base64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
         }
 
         // Set the activation record counter to next valid counter value
@@ -527,7 +527,7 @@ public class AuthenticationSharedServiceBehavior {
                 .activationId(activation.getActivationId())
                 .applicationId(activation.getApplication().getId())
                 .counter(activation.getCounter())
-                .ctrDataBase64(activation.getCtrDataBase64())
+                .ctrDataBase64(activation.getCtrDataV4Base64())
                 .userId(activation.getUserId())
                 .activationStatus(activation.getActivationStatus())
                 .build();
