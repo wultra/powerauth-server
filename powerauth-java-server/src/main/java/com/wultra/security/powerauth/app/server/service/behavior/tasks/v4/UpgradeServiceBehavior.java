@@ -46,6 +46,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -151,6 +152,7 @@ public class UpgradeServiceBehavior {
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
+            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
 
             // Generate and encrypt response
             final byte[] responseBytes = generatedResponsePayload(responsePayload, activationId);
