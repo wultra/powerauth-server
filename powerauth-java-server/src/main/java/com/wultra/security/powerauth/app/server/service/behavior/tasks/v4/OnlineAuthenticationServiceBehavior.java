@@ -84,11 +84,6 @@ public class OnlineAuthenticationServiceBehavior {
             final String authenticationCode = request.getAuthenticationCode();
             final String authenticationVersion = request.getAuthenticationVersion();
             final AuthenticationCodeType authenticationCodeType = request.getAuthenticationCodeType();
-            // Forced authentication version during upgrade, only version 4 is supported
-            Integer forcedAuthenticationVersion = null;
-            if (request.getForcedAuthenticationVersion() != null && request.getForcedAuthenticationVersion() == 4) {
-                forcedAuthenticationVersion = 4;
-            }
             boolean pendingCommitAllowed = false;
             if (request.getAllowedStates() != null) {
                 for (com.wultra.security.powerauth.client.model.enumeration.ActivationStatus requestedState: request.getAllowedStates()) {
@@ -102,7 +97,7 @@ public class OnlineAuthenticationServiceBehavior {
                 }
                 pendingCommitAllowed = request.getAllowedStates().contains(com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.PENDING_COMMIT);
             }
-            return verifyAuthenticationImpl(activationId, authenticationCodeType, authenticationCode, authenticationVersion, additionalInfo, dataString, applicationKey, forcedAuthenticationVersion, pendingCommitAllowed);
+            return verifyAuthenticationImpl(activationId, authenticationCodeType, authenticationCode, authenticationVersion, additionalInfo, dataString, applicationKey, pendingCommitAllowed);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -137,7 +132,6 @@ public class OnlineAuthenticationServiceBehavior {
      * @param additionalInfo              Additional information related to authentication verification.
      * @param dataString                  Authentication data.
      * @param applicationKey              Application key.
-     * @param forcedAuthenticationVersion Forced authentication version during upgrade.
      * @param pendingCommitStateAllowed   Whether authentication is allowed in PENDING_COMMIT state.
      * @return Verify offline authentication response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
@@ -147,8 +141,7 @@ public class OnlineAuthenticationServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyAuthenticationResponse verifyAuthenticationImpl(String activationId, AuthenticationCodeType authenticationCodeType, String authenticationCode, String authenticationVersion, List<KeyValue> additionalInfo,
-                                                                  String dataString, String applicationKey, Integer forcedAuthenticationVersion,
-                                                                  boolean pendingCommitStateAllowed)
+                                                                  String dataString, String applicationKey, boolean pendingCommitStateAllowed)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -173,7 +166,7 @@ public class OnlineAuthenticationServiceBehavior {
             logger.warn("Application version is incorrect, application key: {}", applicationKey);
             // Get the data and append application KEY in this case, just for auditing reasons
             final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-            final AuthenticationData authenticationData = new AuthenticationData(data, authenticationCode, authCodeConfig, authenticationVersion, additionalInfo, forcedAuthenticationVersion);
+            final AuthenticationData authenticationData = new AuthenticationData(data, authenticationCode, authCodeConfig, authenticationVersion, additionalInfo);
             final OnlineAuthenticationRequest authenticationRequest = new OnlineAuthenticationRequest(authenticationData, authenticationCodeType);
             authenticationSharedServiceBehavior.handleInvalidApplicationVersion(activation, authenticationRequest, currentTimestamp);
 
@@ -182,7 +175,7 @@ public class OnlineAuthenticationServiceBehavior {
         }
 
         final byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
-        final AuthenticationData authenticationData = new AuthenticationData(data, authenticationCode, authCodeConfig, authenticationVersion, additionalInfo, forcedAuthenticationVersion);
+        final AuthenticationData authenticationData = new AuthenticationData(data, authenticationCode, authCodeConfig, authenticationVersion, additionalInfo);
         final OnlineAuthenticationRequest authenticationRequest = new OnlineAuthenticationRequest(authenticationData, authenticationCodeType);
 
         boolean verificationInPendingConfirmationState = activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT

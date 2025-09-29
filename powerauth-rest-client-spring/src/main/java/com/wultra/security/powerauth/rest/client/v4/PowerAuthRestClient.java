@@ -440,7 +440,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion, Integer forcedAuthenticationVersion) throws PowerAuthClientException {
+    public VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion) throws PowerAuthClientException {
         final VerifyAuthenticationRequest request = new VerifyAuthenticationRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -448,7 +448,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setAuthenticationCode(authenticationCode);
         request.setAuthenticationCodeType(authenticationCodeType);
         request.setAuthenticationVersion(authenticationVersion);
-        request.setForcedAuthenticationVersion(forcedAuthenticationVersion);
         return verifyAuthentication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 

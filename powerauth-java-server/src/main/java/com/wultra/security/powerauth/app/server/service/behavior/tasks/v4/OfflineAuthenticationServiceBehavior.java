@@ -386,7 +386,7 @@ public class OfflineAuthenticationServiceBehavior {
         if (request.getExpectedComponentLength() != null) {
             powerAuthConfiguration.setLength(request.getExpectedComponentLength());
         }
-        final AuthenticationData authenticationData = new AuthenticationData(data, request.getAuthenticationCode(), powerAuthConfiguration, null, request.getAdditionalInfo(), null);
+        final AuthenticationData authenticationData = new AuthenticationData(data, request.getAuthenticationCode(), powerAuthConfiguration, null, request.getAdditionalInfo());
         return new OfflineAuthenticationRequest(authenticationData, request.getAuthenticationCodeTypes());
     }
 

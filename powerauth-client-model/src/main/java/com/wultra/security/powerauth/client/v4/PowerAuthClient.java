@@ -490,11 +490,10 @@ public interface PowerAuthClient {
      * @param authenticationCode          Request authentication code.
      * @param authenticationCodeType      Request authentication code type.
      * @param authenticationVersion       Authentication version.
-     * @param forcedAuthenticationVersion Forced authentication version.
      * @return Verify authentication and return REST response with the verification results.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion, Integer forcedAuthenticationVersion) throws PowerAuthClientException;
+    VerifyAuthenticationResponse verifyAuthentication(String activationId, String applicationKey, String data, String authenticationCode, AuthenticationCodeType authenticationCodeType, String authenticationVersion) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineAuthPayload method of the PowerAuth Server interface.

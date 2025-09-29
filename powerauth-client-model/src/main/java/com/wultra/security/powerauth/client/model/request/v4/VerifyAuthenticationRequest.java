@@ -65,9 +65,6 @@ public class VerifyAuthenticationRequest {
     @NotBlank(message = "Authentication version must not be empty when verifying authentication")
     private String authenticationVersion;
 
-    @Schema(description = "Forced authentication protocol version used during protocol upgrade")
-    private Integer forcedAuthenticationVersion;
-
     @Schema(description = "Activation states which are allowed when verifying authentication")
     private List<@NotNull ActivationStatus> allowedStates = new ArrayList<>();
 

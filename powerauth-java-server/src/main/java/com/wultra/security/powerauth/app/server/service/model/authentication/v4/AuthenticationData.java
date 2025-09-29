@@ -36,7 +36,6 @@ public class AuthenticationData {
     private String authenticationVersion;
     private AuthenticationCodeConfiguration authCodeConfiguration;
     private List<KeyValue> additionalInfo;
-    private Integer forcedAuthenticationVersion;
 
     /**
      * No-arg constructor.
@@ -51,15 +50,13 @@ public class AuthenticationData {
      * @param authCodeConfiguration Format of authentication code with associated parameters.
      * @param authenticationVersion Version of requested authentication.
      * @param additionalInfo Additional information related to the authentication.
-     * @param forcedAuthenticationVersion Forced authentication version during upgrade.
      */
-    public AuthenticationData(byte[] data, String authenticationCode, AuthenticationCodeConfiguration authCodeConfiguration, String authenticationVersion, List<KeyValue> additionalInfo, Integer forcedAuthenticationVersion) {
+    public AuthenticationData(byte[] data, String authenticationCode, AuthenticationCodeConfiguration authCodeConfiguration, String authenticationVersion, List<KeyValue> additionalInfo) {
         this.data = data;
         this.authenticationCode = authenticationCode;
         this.authenticationVersion = authenticationVersion;
         this.authCodeConfiguration = authCodeConfiguration;
         this.additionalInfo = additionalInfo;
-        this.forcedAuthenticationVersion = forcedAuthenticationVersion;
         this.requestData = AuthenticationDataParser.parseRequestData(data);
     }
 
@@ -101,14 +98,6 @@ public class AuthenticationData {
      */
     public List<KeyValue> getAdditionalInfo() {
         return additionalInfo;
-    }
-
-    /**
-     * Get forced authentication version.
-     * @return Forced authentication version.
-     */
-    public Integer getForcedAuthenticationVersion() {
-        return forcedAuthenticationVersion;
     }
 
     /**
