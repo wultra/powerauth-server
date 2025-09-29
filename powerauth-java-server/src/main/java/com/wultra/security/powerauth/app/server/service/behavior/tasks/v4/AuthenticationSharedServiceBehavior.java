@@ -383,8 +383,11 @@ public class AuthenticationSharedServiceBehavior {
         // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
-        // Set the activation record counter to next valid counter value
+        // Set the activation numeric counter to next valid counter value
         activation.setCounter(verificationResponse.getCtrNext());
+
+        // Set the activation counter data for V4 to next counter data value
+        activation.setCtrDataV4Base64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
 
         // Reset failed attempt count
         if (notPossessionFactorAuthentication(verificationResponse.getUsedAuthenticationCodeType())) {
