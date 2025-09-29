@@ -49,12 +49,11 @@ import com.wultra.security.powerauth.client.model.response.v4.ValidateTokenRespo
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
-import com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenGenerator;
-import com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenVerifier;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,8 +83,10 @@ public class TokenServiceBehavior {
     private final EncryptionServiceAead encryptionService;
 
     // Business logic implementation classes
-    private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
-    private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
+    private static final com.wultra.security.powerauth.crypto.server.token.ServerTokenGenerator TOKEN_GENERATOR_V3 = new com.wultra.security.powerauth.crypto.server.token.ServerTokenGenerator();
+    private static final com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenGenerator TOKEN_GENERATOR_V4 = new com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenGenerator();
+    private static final com.wultra.security.powerauth.crypto.server.token.ServerTokenVerifier TOKEN_VERIFIER_V3 = new com.wultra.security.powerauth.crypto.server.token.ServerTokenVerifier();
+    private static final com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenVerifier TOKEN_VERIFIER_V4 = new com.wultra.security.powerauth.crypto.server.v4.token.ServerTokenVerifier();
 
     // Helper classes
     private final AuthenticationCodeTypeConverter authenticationCodeTypeConverter = new AuthenticationCodeTypeConverter();
@@ -148,8 +149,9 @@ public class TokenServiceBehavior {
         try {
             final String tokenId = request.getTokenId();
             final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
-            final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
+            final byte[] timestamp = TOKEN_VERIFIER_V4.convertTokenTimestamp(request.getTimestamp());
             final byte[] tokenDigest = Base64.getDecoder().decode(request.getTokenDigest());
+            final ProtocolVersion protocolVersion = ProtocolVersion.fromValue(request.getProtocolVersion());
 
             // Lookup the token
             final Optional<TokenEntity> tokenEntityOptional = tokenRepository.findById(tokenId);
@@ -181,7 +183,11 @@ public class TokenServiceBehavior {
                         param
                 );
                 // Validate MAC token
-                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
+                if (protocolVersion.getMajorVersion() == 3) {
+                    isTokenValid = TOKEN_VERIFIER_V3.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
+                } else {
+                    isTokenValid = TOKEN_VERIFIER_V4.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
+                }
             }
 
             final ValidateTokenResponse response = new ValidateTokenResponse();
@@ -264,6 +270,8 @@ public class TokenServiceBehavior {
     private EncryptedResponse createToken(String activationId, String applicationKey, AeadEncryptedRequest encryptedRequest,
                                           String authenticationCodeType, String version) throws GenericServiceException {
         try {
+            final ProtocolVersion protocolVersion = ProtocolVersion.fromValue(version);
+
             // Lookup the activation
             final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
@@ -281,7 +289,7 @@ public class TokenServiceBehavior {
             // Generate unique token ID.
             String tokenId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateTokenIdIterations(); i++) {
-                String tmpTokenId = tokenGenerator.generateTokenId();
+                String tmpTokenId = TOKEN_GENERATOR_V4.generateTokenId();
                 final Optional<TokenEntity> tmpTokenOptional = tokenRepository.findById(tmpTokenId);
                 if (tmpTokenOptional.isEmpty()) {
                     tokenId = tmpTokenId;
@@ -294,7 +302,13 @@ public class TokenServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
             // Perform the following operations before writing to database to avoid rollbacks.
-            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret(version));
+            final String tokenSecret;
+            if (protocolVersion.getMajorVersion() == 3) {
+                tokenSecret = Base64.getEncoder().encodeToString(TOKEN_GENERATOR_V3.generateTokenSecret(version));
+            } else {
+                tokenSecret = Base64.getEncoder().encodeToString(TOKEN_GENERATOR_V4.generateTokenSecret(version));
+            }
+
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
