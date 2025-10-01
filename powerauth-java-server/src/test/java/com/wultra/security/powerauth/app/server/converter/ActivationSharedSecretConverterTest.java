@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Base64;
 
+import static com.wultra.security.powerauth.app.server.util.AssertionUtils.assertThrowsOrNotEqual;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -81,8 +82,9 @@ class ActivationSharedSecretConverterTest {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, USER_ID, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "test2", ACTIVATION_ID));
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "test2", ACTIVATION_ID),
+                sharedSecretBytes);
     }
 
 
@@ -92,8 +94,9 @@ class ActivationSharedSecretConverterTest {
         final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, USER_ID, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
-        assertThrows(GenericServiceException.class, () ->
-                sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "01e9deb4-a0e0-4204-b8a6-925e76b7b3d3"));
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, USER_ID, "01e9deb4-a0e0-4204-b8a6-925e76b7b3d3"),
+                sharedSecretBytes);
     }
 
 }

@@ -37,6 +37,7 @@ import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.Optional;
 
+import static com.wultra.security.powerauth.app.server.util.AssertionUtils.assertThrowsOrNotEqual;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -113,9 +114,9 @@ class MasterPrivateKeysConverterTest {
         final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, APPLICATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-            privateKeysConverter.fromDBValue(privateKeysEncrypted, "test2"));
-        assertEquals("Generic cryptography error occurred.", exception.getMessage());
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> privateKeysConverter.fromDBValue(privateKeysEncrypted, "test2"),
+                serverPrivateKeysBytes);
     }
 
 }

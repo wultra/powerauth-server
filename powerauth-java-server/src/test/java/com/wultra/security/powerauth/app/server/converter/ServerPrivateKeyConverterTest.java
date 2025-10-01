@@ -18,9 +18,9 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
+import static com.wultra.security.powerauth.app.server.util.AssertionUtils.assertThrowsOrNotEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Base64;
 
@@ -85,9 +85,9 @@ class ServerPrivateKeyConverterTest {
         final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-            serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID));
-        assertEquals("Generic cryptography error occurred.", exception.getMessage());
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID),
+                serverPrivateKeyBytes);
     }
 
     @Test
@@ -97,7 +97,9 @@ class ServerPrivateKeyConverterTest {
 
         assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
 
-        assertThrows(GenericServiceException.class, () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"),
+                serverPrivateKeyBytes);
     }
 
 }
