@@ -16,23 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 package com.wultra.security.powerauth.app.server.service.model.response.v4;
 
 import com.wultra.security.powerauth.client.model.entity.v4.response.ServerPublicKeys;
 import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Response object for deriving a shared secret (V4).
+ * Response object for upgrade stat (V4).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
 @Data
-public class SharedSecretResponsePayload {
+@NoArgsConstructor
+public class UpgradeStartResponsePayload {
 
     private SharedSecretResponse sharedSecretResponse;
     private ServerPublicKeys serverPublicKeys;
+    private String ctrData;
 
 }

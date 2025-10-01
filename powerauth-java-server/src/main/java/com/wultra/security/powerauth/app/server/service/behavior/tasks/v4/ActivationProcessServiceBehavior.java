@@ -96,7 +96,10 @@ public class ActivationProcessServiceBehavior {
             requestPayload.setDevicePublicKeys(layer2Request.getDevicePublicKeys());
             requestPayload.setEnableBiometry(false);
 
-            final SharedSecretResponsePayload responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload, ctrDataBase64);
+            // Set counter data for V4
+            activation.setCtrDataV4Base64(ctrDataBase64);
+
+            final SharedSecretResponsePayload responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
 
             // Update and persist the activation record
             activation.setActivationStatus(activationStatus);

@@ -87,7 +87,7 @@ public class SharedSecretServiceBehavior {
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
     private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
 
-    public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload, String ctrDataBase64) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+    public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = activation.getActivationId();
         final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
         if (sharedSecretRequest == null) {
@@ -127,9 +127,6 @@ public class SharedSecretServiceBehavior {
 
         final ResponseCryptogram responseCryptogram;
         final SharedSecretResponsePayload responsePayload = new SharedSecretResponsePayload();
-        // Counter data is stored in V4 ctr_data column
-        activation.setCtrDataV4Base64(ctrDataBase64);
-        responsePayload.setCtrData(ctrDataBase64);
         switch (algorithm) {
             case EC_P384 -> {
                 final SharedSecretRequestEcdhe sharedSecretRequestEcdhe = new SharedSecretRequestEcdhe();

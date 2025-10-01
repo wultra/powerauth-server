@@ -21,7 +21,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
@@ -32,6 +31,7 @@ import com.wultra.security.powerauth.app.server.service.model.request.Encryption
 import com.wultra.security.powerauth.app.server.service.model.request.v4.SharedSecretRequestPayload;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.SharedSecretResponsePayload;
+import com.wultra.security.powerauth.app.server.service.model.response.v4.UpgradeStartResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.v4.request.DevicePublicKeys;
@@ -134,12 +134,20 @@ public class UpgradeServiceBehavior {
             final byte[] ctrData = hashBasedCounter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
-            // Derive shared secret, store device public keys and initial factor keys, enable biometry if requested, store counter data
-            final SharedSecretResponsePayload responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload, ctrDataBase64);
+            // Set counter data for V4
+            activation.setCtrDataV4Base64(ctrDataBase64);
+
+            // Derive shared secret, store device public keys and initial factor keys, enable biometry if requested
+            final SharedSecretResponsePayload sharedSecretResponsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
             activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
+
+            final UpgradeStartResponsePayload responsePayload = new UpgradeStartResponsePayload();
+            responsePayload.setSharedSecretResponse(sharedSecretResponsePayload.getSharedSecretResponse());
+            responsePayload.setServerPublicKeys(sharedSecretResponsePayload.getServerPublicKeys());
+            responsePayload.setCtrData(ctrDataBase64);
 
             // Generate and encrypt response
             final byte[] responseBytes = generatedResponsePayload(responsePayload, activationId);
@@ -237,12 +245,12 @@ public class UpgradeServiceBehavior {
     /**
      * Generate response payload as JSON.
      *
-     * @param responsePayload Shared secret response payload.
+     * @param responsePayload Upgrade start response payload.
      * @param activationId    Activation identifier.
      * @return Generated response as byte array.
      * @throws GenericServiceException Thrown in case of serialization errors.
      */
-    private byte[] generatedResponsePayload(SharedSecretResponsePayload responsePayload, String activationId) throws GenericServiceException {
+    private byte[] generatedResponsePayload(UpgradeStartResponsePayload responsePayload, String activationId) throws GenericServiceException {
         try {
             return objectMapper.writeValueAsBytes(responsePayload);
         } catch (IOException ex) {
