@@ -21,7 +21,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -68,7 +67,6 @@ public class UpgradeServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final ActivationContextValidator activationValidator;
-    private final ApplicationVersionRepository applicationVersionRepository;
     private final EncryptionServiceAead encryptionService;
     private final SharedSecretServiceBehavior sharedSecretServiceBehavior;
 
