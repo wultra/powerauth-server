@@ -23,16 +23,16 @@ import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
-import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.*;
-import com.wultra.security.powerauth.client.model.request.v4.ConfirmUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v3.*;
-import com.wultra.security.powerauth.client.model.response.v4.ConfirmUpgradeResponse;
-import com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse;
 import org.springframework.util.MultiValueMap;
 
 import java.time.Duration;
@@ -1401,46 +1401,6 @@ public interface PowerAuthClient {
      */
     GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
                                                 String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException;
-
-    /**
-     * Start upgrade of activations to version 4.
-     *
-     * @param request Start upgrade request.
-     * @return Start upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException;
-
-    /**
-     * Start upgrade of activations to version 4.
-     *
-     * @param request Start upgrade request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Start upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    StartUpgradeResponse startUpgrade(StartUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Confirm upgrade of activations to version 4.
-     *
-     * @param request Confirm upgrade request.
-     * @return Confirm upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException;
-
-    /**
-     * Confirm upgrade of activations to version 4.
-     *
-     * @param request Confirm upgrade request.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return Confirm upgrade response.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * List activation flags.

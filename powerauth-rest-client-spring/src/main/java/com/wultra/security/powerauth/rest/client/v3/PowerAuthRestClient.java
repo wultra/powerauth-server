@@ -24,25 +24,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
-import com.wultra.security.powerauth.client.model.request.v4.ConfirmUpgradeRequest;
-import com.wultra.security.powerauth.client.model.response.v4.ConfirmUpgradeResponse;
-import com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.core.rest.model.base.request.ObjectRequest;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
-import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.core.rest.model.base.request.ObjectRequest;
-import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.response.v3.*;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1018,26 +1018,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setTimestamp(timestamp);
         request.setTemporaryKeyId(temporaryKeyId);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
-        return startUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/upgrade/start", request, queryParams, httpHeaders, StartUpgradeResponse.class);
-    }
-
-    @Override
-    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request) throws PowerAuthClientException {
-        return confirmUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public ConfirmUpgradeResponse confirmUpgrade(ConfirmUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/upgrade/commit", request, queryParams, httpHeaders, ConfirmUpgradeResponse.class);
     }
 
     @Override
