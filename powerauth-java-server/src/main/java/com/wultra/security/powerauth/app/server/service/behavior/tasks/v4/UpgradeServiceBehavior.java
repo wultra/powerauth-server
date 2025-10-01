@@ -113,27 +113,21 @@ public class UpgradeServiceBehavior {
             // Decrypt request data to obtain shared secret request, device public keys and enable biometry flag
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.UPGRADE_START);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
-            final SharedSecretRequestPayload payload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
+            final SharedSecretRequestPayload requestPayload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
 
             // Verify request payload
-            final SharedSecretRequest sharedSecretRequest = payload.getSharedSecretRequest();
+            final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
             if (sharedSecretRequest == null) {
                 logger.warn("Shared secret request is missing during upgrade start, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final DevicePublicKeys devicePublicKeys = payload.getDevicePublicKeys();
+            final DevicePublicKeys devicePublicKeys = requestPayload.getDevicePublicKeys();
             if (devicePublicKeys == null) {
                 logger.warn("Device public keys are missing during upgrade start, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final boolean enableBiometry = payload.isEnableBiometry();
-
-            final SharedSecretRequestPayload requestPayload = new SharedSecretRequestPayload();
-            requestPayload.setSharedSecretRequest(sharedSecretRequest);
-            requestPayload.setDevicePublicKeys(devicePublicKeys);
-            requestPayload.setEnableBiometry(enableBiometry);
 
             // Generate new counter data for V4 ctd_data column
             final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
