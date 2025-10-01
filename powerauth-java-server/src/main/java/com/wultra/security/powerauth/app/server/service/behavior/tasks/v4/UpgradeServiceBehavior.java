@@ -190,14 +190,6 @@ public class UpgradeServiceBehavior {
 
             activationValidator.validateVersion(activation.getVersion(), 3, activationId, localizationProvider);
 
-            // Lookup the application version and check that it is supported
-            final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(request.getApplicationKey());
-            if (applicationVersion == null || !applicationVersion.getSupported()) {
-                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-
             if (!activation.isUpgradeConfirmationPending()) {
                 logger.warn("Activation upgrade is not pending, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
