@@ -115,13 +115,6 @@ public class UpgradeServiceBehavior {
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final SharedSecretRequestPayload payload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
 
-            // Invalid request in case activation is upgraded or older version
-            if (activation.getVersion() != 3) {
-                logger.info("Activation version is invalid during upgrade start, activation ID: {}, version: {}", activationId, activation.getVersion());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
-
             // Verify request payload
             final SharedSecretRequest sharedSecretRequest = payload.getSharedSecretRequest();
             if (sharedSecretRequest == null) {
