@@ -22,6 +22,7 @@ package com.wultra.security.powerauth.app.server.service.model.response.v4;
 import com.wultra.security.powerauth.client.model.entity.v4.response.ServerPublicKeys;
 import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Response object for deriving a shared secret (V4).
@@ -34,6 +35,7 @@ public class SharedSecretResponsePayload {
 
     private SharedSecretResponse sharedSecretResponse;
     private ServerPublicKeys serverPublicKeys;
+    @ToString.Exclude
     private String ctrData;
 
 }
