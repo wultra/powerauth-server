@@ -217,17 +217,15 @@ public class AuthenticationSharedServiceBehavior {
     private AuthenticationResponse verifyAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, List<AuthenticationCodeType> authenticationCodeTypes) throws GenericServiceException, CryptoProviderException, GenericCryptoException {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
         final SecretKey keyActivationSecret = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).deriveSharedSecretKey(activation);
-        final Integer authenticationVersion = resolveAuthenticationVersion(activation, authenticationData.getForcedAuthenticationVersion());
 
         final long ctr = activation.getCounter();
-        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
+        final byte[] ctrHash = Base64.getDecoder().decode(activation.getCtrDataV4Base64());
 
         final AuthenticationResult result = authenticate(activation, authenticationData, authenticationCodeTypes, keyActivationSecret, ctr, ctrHash);
         final AuthenticationCodeType usedAuthenticationCodeType = result.authenticated() ? result.usedAuthenticationCodeType() : authenticationCodeTypes.iterator().next();
         return new AuthenticationResponse(result.authenticated(),
                 result.nextCounter(),
                 result.nextCtrData(),
-                authenticationVersion,
                 usedAuthenticationCodeType
         );
     }
@@ -385,13 +383,11 @@ public class AuthenticationSharedServiceBehavior {
         // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
-        if (verificationResponse.getForcedAuthenticationVersion() == 4) {
-            // Set the ctrData to next valid ctrData value
-            activation.setCtrDataBase64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
-        }
-
-        // Set the activation record counter to next valid counter value
+        // Set the activation numeric counter to next valid counter value
         activation.setCounter(verificationResponse.getCtrNext());
+
+        // Set the activation counter data for V4 to next counter data value
+        activation.setCtrDataV4Base64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
 
         // Reset failed attempt count
         if (notPossessionFactorAuthentication(verificationResponse.getUsedAuthenticationCodeType())) {
@@ -405,7 +401,7 @@ public class AuthenticationSharedServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record with activation values of ctrDataBase64 and counter before calculating next ones.
-        auditingServiceBehavior.logAuthenticationAuditRecord(activationDto, authenticationData, verificationResponse.getUsedAuthenticationCodeType(), true, verificationResponse.getForcedAuthenticationVersion(), "authentication_ok", currentTimestamp);
+        auditingServiceBehavior.logAuthenticationAuditRecord(activationDto, authenticationData, verificationResponse.getUsedAuthenticationCodeType(), true, activation.getVersion(), "authentication_ok", currentTimestamp);
     }
 
     /**
@@ -460,7 +456,7 @@ public class AuthenticationSharedServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logAuthenticationAuditRecord(activationDto, authenticationData, authenticationCodeType,false,
-                verificationResponse.getForcedAuthenticationVersion(), "authentication_code_does_not_match", currentTimestamp);
+                activation.getVersion(), "authentication_code_does_not_match", currentTimestamp);
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
@@ -527,7 +523,7 @@ public class AuthenticationSharedServiceBehavior {
                 .activationId(activation.getActivationId())
                 .applicationId(activation.getApplication().getId())
                 .counter(activation.getCounter())
-                .ctrDataBase64(activation.getCtrDataBase64())
+                .ctrDataBase64(activation.getCtrDataV4Base64())
                 .userId(activation.getUserId())
                 .activationStatus(activation.getActivationStatus())
                 .build();
@@ -540,28 +536,6 @@ public class AuthenticationSharedServiceBehavior {
      */
     private boolean notPossessionFactorAuthentication(AuthenticationCodeType authenticationCodeType) {
         return authenticationCodeType != null && !authenticationCodeType.equals(AuthenticationCodeType.POSSESSION);
-    }
-
-    /**
-     * Resolve authentication version based on activation version and forced authentication version from request.
-     * @param activation Activation entity.
-     * @param forcedAuthenticationVersion Forced authentication version from request.
-     * @return Resolved authentication version.
-     * @throws GenericServiceException Thrown in case activation state is invalid.
-     */
-    private Integer resolveAuthenticationVersion(ActivationRecordEntity activation, Integer forcedAuthenticationVersion) throws GenericServiceException {
-        // Validate activation version
-        activationValidator.validateVersionValid(activation.getVersion(), localizationProvider);
-
-        // Set authentication version based on activation version as default
-        Integer authenticationVersion = activation.getVersion();
-
-        // Handle upgrade from version 3 to version 4, the version is forced during upgrade commit
-        if (forcedAuthenticationVersion != null && forcedAuthenticationVersion == 4 && activation.getVersion() == 3) {
-            // Version 4 is forced by client during upgrade from version 3, ctr_data already exists -> switch authentication to version 4
-            authenticationVersion = 4;
-        }
-        return authenticationVersion;
     }
 
     /**

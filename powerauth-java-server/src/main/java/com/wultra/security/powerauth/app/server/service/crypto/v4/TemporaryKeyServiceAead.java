@@ -48,8 +48,8 @@ import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLD
 import com.wultra.security.powerauth.app.server.service.util.jwt.MACVerifierHS384;
 import com.wultra.security.powerauth.app.server.service.util.jwt.MLDSASigner;
 import com.wultra.security.powerauth.client.model.entity.v4.request.SharedSecretRequest;
-import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import com.wultra.security.powerauth.client.model.entity.v4.request.TemporaryPublicKeyRequestClaims;
+import com.wultra.security.powerauth.client.model.entity.v4.response.SharedSecretResponse;
 import com.wultra.security.powerauth.client.model.entity.v4.response.TemporaryPublicKeyResponseClaims;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;

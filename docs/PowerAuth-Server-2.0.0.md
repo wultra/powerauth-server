@@ -20,6 +20,8 @@ Following columns were added for keys used in cryptography protocol version 4:
 * A new column `server_public_keys` has been added to the `pa_activation` table to store server public keys for new cryptography algorithms.
 * A new column `shared_secret` has been added to the `pa_activation` table to store share secret for new cryptography algorithms.
 * A new column `shared_secret_encryption` has been added to the `pa_activation` table to configure encryption of shared secret values.
+* A new column `confirmation_pending` has been added to the `pa_activation` table to store whether activation confirmation is pending.
+* A new column `upgrade_confirmation_pending` has been added to the `pa_activation` table to store whether activation upgrade confirmation is pending.
 * A new column `master_private_keys` has been added to the `pa_master_keypair` table to store master private keys for new cryptography algorithms.
 * A new column `master_public_keys` has been added to the `pa_master_keypair` table to store master public keys for new cryptography algorithms.
 

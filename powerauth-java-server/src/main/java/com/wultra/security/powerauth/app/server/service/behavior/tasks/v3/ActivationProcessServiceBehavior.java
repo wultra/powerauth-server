@@ -135,7 +135,7 @@ public class ActivationProcessServiceBehavior {
             activation.setDeviceInfo(layer2Request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
-            // Set initial counter data
+            // Set initial counter data (V3)
             activation.setCtrDataBase64(ctrDataBase64);
             // Activation confirmation is not tracked for V3
             activation.setConfirmationPending(false);

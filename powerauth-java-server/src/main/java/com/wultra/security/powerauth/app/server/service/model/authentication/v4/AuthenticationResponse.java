@@ -30,7 +30,6 @@ public class AuthenticationResponse {
     private boolean authenticationValid;
     private Long ctrNext;
     private byte[] ctrDataNext;
-    private Integer forcedAuthenticationVersion;
     private AuthenticationCodeType usedAuthenticationCodeType;
 
     /**
@@ -44,14 +43,12 @@ public class AuthenticationResponse {
      * @param authenticationValid Whether authentication is valid.
      * @param ctrNext Next numeric counter value in case authentication is valid.
      * @param ctrDataNext Next hash based counter data in case authentication is valid.
-     * @param forcedAuthenticationVersion Authentication version which may differ from activation version during upgrade.
      * @param usedAuthenticationCodeType Authentication code type which was used during verification of the authentication code.
      */
-    public AuthenticationResponse(boolean authenticationValid, Long ctrNext, byte[] ctrDataNext, Integer forcedAuthenticationVersion, AuthenticationCodeType usedAuthenticationCodeType) {
+    public AuthenticationResponse(boolean authenticationValid, Long ctrNext, byte[] ctrDataNext, AuthenticationCodeType usedAuthenticationCodeType) {
         this.authenticationValid = authenticationValid;
         this.ctrNext = ctrNext;
         this.ctrDataNext = ctrDataNext;
-        this.forcedAuthenticationVersion = forcedAuthenticationVersion;
         this.usedAuthenticationCodeType = usedAuthenticationCodeType;
     }
 
@@ -77,14 +74,6 @@ public class AuthenticationResponse {
      */
     public byte[] getCtrDataNext() {
         return ctrDataNext;
-    }
-
-    /**
-     * Get authentication version.
-     * @return Authentication version.
-     */
-    public Integer getForcedAuthenticationVersion() {
-        return forcedAuthenticationVersion;
     }
 
     /**

@@ -189,6 +189,7 @@ public class ActivationInitServiceBehavior {
             activation.setActivationStatus(ActivationStatus.CREATED);
             activation.setCounter(0L);
             activation.setCtrDataBase64(null);
+            activation.setCtrDataV4Base64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
             activation.setProtocol(convertProtocol(protocol));

@@ -19,13 +19,13 @@
 
 package com.wultra.security.powerauth.app.server.controller.api.v4;
 
-import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
+import com.wultra.security.powerauth.client.model.request.v4.ConfirmUpgradeRequest;
 import com.wultra.security.powerauth.client.model.request.v4.StartUpgradeRequest;
-import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
+import com.wultra.security.powerauth.client.model.response.v4.ConfirmUpgradeResponse;
 import com.wultra.security.powerauth.client.model.response.v4.StartUpgradeResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.UpgradeServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.UpgradeServiceBehavior;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -70,20 +70,20 @@ public class UpgradeController {
     }
 
     /**
-     * Commit the upgrade process.
+     * Confirm the upgrade.
      *
-     * @param request Commit upgrade request.
-     * @return Commit upgrade response.
+     * @param request Confirm upgrade request.
+     * @return Confirm upgrade response.
      * @throws Exception In case the service throws exception.
      */
-    @PostMapping("/commit")
-    public ObjectResponse<CommitUpgradeResponse> commitUpgrade(@Valid @RequestBody ObjectRequest<CommitUpgradeRequest> request) throws Exception {
-        final CommitUpgradeRequest req = request.getRequestObject();
-        logger.info("action: commitUpgrade, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
-        logger.debug("action: commitUpgrade, state: initiated, request: {}", request);
-        final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>(service.commitUpgrade(req));
-        logger.info("action: commitUpgrade, state: succeeded");
-        logger.debug("action: commitUpgrade, state: succeeded, response: {}", response);
+    @PostMapping("/confirm")
+    public ObjectResponse<ConfirmUpgradeResponse> confirmUpgrade(@Valid @RequestBody ObjectRequest<ConfirmUpgradeRequest> request) throws Exception {
+        final ConfirmUpgradeRequest req = request.getRequestObject();
+        logger.info("action: confirmUpgrade, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
+        logger.debug("action: confirmUpgrade, state: initiated, request: {}", request);
+        final ObjectResponse<ConfirmUpgradeResponse> response = new ObjectResponse<>(service.confirmUpgrade(req));
+        logger.info("action: confirmUpgrade, state: succeeded");
+        logger.debug("action: confirmUpgrade, state: succeeded, response: {}", response);
         return response;
     }
 

@@ -182,7 +182,7 @@ public class ActivationStatusServiceBehavior {
                     final SharedSecretAlgorithm sharedSecretAlgorithm;
                     final String activationFingerPrint;
                     if (sharedSecretEncrypted != null) {
-                        final String ctrDataBase64 = activation.getCtrDataBase64();
+                        final String ctrDataBase64 = activation.getCtrDataV4Base64();
                         final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
                         final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
                         statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
@@ -194,7 +194,7 @@ public class ActivationStatusServiceBehavior {
                         statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
                         statusBlobInfo.setStatusFlags(computeStatusFlags(
                                 activation.isConfirmationPending(),
-                                false, // TODO - update when implementing upgrade
+                                activation.isUpgradeConfirmationPending(),
                                 false, // TODO - implement algorithm check
                                 activation.isBiometricFactorEnabled())
                         );
