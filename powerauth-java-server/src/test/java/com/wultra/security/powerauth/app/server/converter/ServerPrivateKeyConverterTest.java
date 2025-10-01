@@ -18,6 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
+import static com.wultra.security.powerauth.app.server.util.AssertionUtils.assertThrowsOrNotEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -30,6 +31,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 
 /**
  * Tests for {@link ServerPrivateKeyConverter}.
@@ -75,6 +77,29 @@ class ServerPrivateKeyConverterTest {
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(EncryptionMode.AES_HMAC, SERVER_PRIVATE_KEY_ENCRYPTED);
         final String result = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, ACTIVATION_ID);
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, result);
+    }
+
+    @Test
+    void testEncryptionAndDecryptionDifferentUserFail() throws Exception {
+        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
+        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
+
+        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", ACTIVATION_ID),
+                serverPrivateKeyBytes);
+    }
+
+    @Test
+    void testEncryptionAndDecryptionDifferentActivationFailServerPrivateKeyConverter() throws Exception {
+        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
+        final ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, USER_ID, ACTIVATION_ID);
+
+        assertEquals(EncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.encryptionMode());
+
+        assertThrowsOrNotEqual(GenericServiceException.class,
+                () -> serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"),
+                serverPrivateKeyBytes);
     }
 
 }
