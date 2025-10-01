@@ -77,7 +77,7 @@ class AuditingServiceBehaviorTest {
                 .build();
 
         final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDJGMWRHZ3ZkbUZzYVdSaGRHVT0mMmlUekcvQjM1UUpmN0h4WmZjbHlGZz09JlFXeHNJSGx2ZFhJZ1ltVm5ZbVZuWW1WblltVm5ZbVZuSUhWdklHUnZidz09Jm85NzBnVUJMdndDVGRiSU9Qa1owbHc9PQ==");
-        final AuthenticationData authData = new AuthenticationData(data, "39319618-09892741", AuthenticationCodeConfiguration.decimal(), "3.0", List.of());
+        final AuthenticationData authData = new AuthenticationData(data, "39319618-09892741", AuthenticationCodeConfiguration.decimal(), "4.0", List.of());
 
         final AuthenticationCodeType authCodeType = AuthenticationCodeType.POSSESSION;
 
