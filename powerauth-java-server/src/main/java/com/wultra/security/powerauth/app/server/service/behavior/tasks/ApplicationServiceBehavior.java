@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -30,7 +30,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,10 +49,10 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ApplicationServiceBehavior {
 
+    private final MasterKeyGenerationService masterKeyGenerationService;
     private final LocalizationProvider localizationProvider;
     private final ApplicationRepository applicationRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
@@ -140,11 +139,8 @@ public class ApplicationServiceBehavior {
             application.setId(applicationId);
             application = applicationRepository.save(application);
 
-            for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
-                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
-                // Generate key pairs for all supported algorithms
-                cryptographyServiceFactory.getService(algorithm).generateMasterKeyPair(application);
-            }
+            // Generate master server key pairs
+            masterKeyGenerationService.generateMasterKeyPairs(application);
 
             // Use cryptography methods before writing to database to avoid rollbacks
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);

@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -43,8 +44,8 @@ import com.wultra.security.powerauth.crypto.lib.util.HybridPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -63,8 +64,10 @@ import java.util.Base64;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class CryptographyServiceEc384 extends CryptographyService {
 
+    private final MasterKeyGenerationService masterKeyGenerationService;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
@@ -77,52 +80,9 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
 
-    @Autowired
-    public CryptographyServiceEc384(MasterKeyPairRepository masterKeyPairRepository, LocalizationProvider localizationProvider, MasterPrivateKeysConverter masterPrivateKeysConverter, ServerPrivateKeysConverter serverPrivateKeysConverter, ActivationSharedSecretConverter sharedSecretConverter, PublicKeysConverter publicKeysConverter) {
-        this.masterKeyPairRepository = masterKeyPairRepository;
-        this.localizationProvider = localizationProvider;
-        this.masterPrivateKeysConverter = masterPrivateKeysConverter;
-        this.serverPrivateKeysConverter = serverPrivateKeysConverter;
-        this.sharedSecretConverter = sharedSecretConverter;
-        this.publicKeysConverter = publicKeysConverter;
-    }
-
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
-        try {
-            // Generate P-384 key pair
-            final KeyPair kp = SERVER_ACTIVATION.generateEcServerKeyPair();
-            final PrivateKey privateKey = kp.getPrivate();
-            final PublicKey publicKey = kp.getPublic();
-
-            // Key pairs for multiple algorithms are stored for the same entity in order:
-            // 1. EC_P256 (ECDSA keypair)
-            // 2. EC_P384 (ECDSA keypair)
-            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
-            MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
-            if (keyPair == null) {
-                logger.error("Key pair generation called in invalid order");
-                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-            }
-            final PrivateKeys privateKeys = new PrivateKeys(keyPair.getMasterPrivateKeysEncryption(), keyPair.getMasterPrivateKeys());
-            final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
-            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(keyPair.getMasterPublicKeys());
-
-            // Store ECDSA keypair in JSON format
-            privateKeyRegistry.storePrivateKey(KeyType.ECDSA_P384, privateKey);
-            final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
-            keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-            keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-
-            publicKeyRegistry.storePublicKey(KeyType.ECDSA_P384, publicKey);
-            final String publicKeys384Json = publicKeysConverter.toDBValue(publicKeyRegistry);
-            keyPair.setMasterPublicKeys(publicKeys384Json);
-
-            masterKeyPairRepository.save(keyPair);
-        } catch (CryptoProviderException e) {
-            logger.error("Could not generate keypair", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        }
+        masterKeyGenerationService.generateMasterKeyPairs(application);
     }
 
     @Override
