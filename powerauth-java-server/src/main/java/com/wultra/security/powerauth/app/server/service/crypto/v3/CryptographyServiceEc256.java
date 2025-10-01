@@ -19,8 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v3;
 
-import com.wultra.security.powerauth.app.server.converter.MasterPrivateKeysConverter;
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -29,6 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -43,8 +42,8 @@ import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -55,7 +54,6 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.Date;
 
 /**
  * Cryptography Service V3 implementation based on EC curve P-256.
@@ -64,26 +62,15 @@ import java.util.Date;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class CryptographyServiceEc256 extends CryptographyService {
 
+    private final MasterKeyGenerationService masterKeyGenerationService;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final MasterPrivateKeysConverter masterPrivateKeysConverter;
-    private final PublicKeysConverter publicKeysConverter;
 
     private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
-
-    @Autowired
-    public CryptographyServiceEc256(MasterKeyPairRepository masterKeyPairRepository,
-                                    LocalizationProvider localizationProvider1,
-                                    ServerPrivateKeyConverter serverPrivateKeyConverter, MasterPrivateKeysConverter masterPrivateKeysConverter, PublicKeysConverter publicKeysConverter) {
-        this.masterKeyPairRepository = masterKeyPairRepository;
-        this.localizationProvider = localizationProvider1;
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.masterPrivateKeysConverter = masterPrivateKeysConverter;
-        this.publicKeysConverter = publicKeysConverter;
-    }
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
@@ -91,39 +78,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
 
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
-        try {
-            final KeyPair kp = SERVER_ACTIVATION.generateServerKeyPair();
-            final PrivateKey privateKey = kp.getPrivate();
-            final PublicKey publicKey = kp.getPublic();
-
-            // Key pairs for multiple algorithms are stored for the same entity in order:
-            // 1. EC_P256 (ECDSA keypair)
-            // 2. EC_P384 (ECDSA keypair)
-            // 3. EC_P384_ML_L3 (ECDSA keypair and MLDSA keypair, ECDSA keypair is reused from algorithm EC_P384)
-            MasterKeyPairEntity keyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
-            if (keyPair != null) {
-                logger.error("Key pair generation called in invalid order");
-                throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-            }
-            keyPair = new MasterKeyPairEntity();
-            final PrivateKeyRegistry privateKeyRegistry = new PrivateKeyRegistry();
-            final PublicKeyRegistry publicKeyRegistry = new PublicKeyRegistry();
-            keyPair.setTimestampCreated(new Date());
-            keyPair.setName(application.getId() + " Default Keypair");
-            // Store empty registries for V4
-            final PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, application.getId());
-            keyPair.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-            keyPair.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-            final String masterPublicKeys = publicKeysConverter.toDBValue(publicKeyRegistry);
-            keyPair.setMasterPublicKeys(masterPublicKeys);
-            keyPair.setApplication(application);
-            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
-            masterKeyPairRepository.save(keyPair);
-        } catch (CryptoProviderException e) {
-            logger.error("Could not generate keypair", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        }
+         masterKeyGenerationService.generateMasterKeyPairs(application);
     }
 
     @Override
