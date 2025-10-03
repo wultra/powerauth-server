@@ -13,7 +13,7 @@ Mind that this table supports encryption, see [Encrypting Records in Database](.
 
 ### Required Configuration
 
-- `allowedTargetApplicationIds` - List of application IDs to which the activation is allowed to transfer.
+- `allowedTargetApplicationIds` - List of application IDs to which the activation is allowed to be transferred.
 - `type` - Type of activation transfer, currently only `SPAWN` is supported.
 
 
