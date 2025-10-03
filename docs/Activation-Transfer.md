@@ -1,6 +1,6 @@
 # Activation Transfer
 
-PowerAuth server allows the transfer of the existing activation.
+PowerAuth server allows the transfer of existing activations.
 
 
 ## Activation Transfer Configuration
