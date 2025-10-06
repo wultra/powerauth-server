@@ -132,13 +132,19 @@ public class ActivationStatusServiceBehavior {
                     // since both keys were not exchanged yet and transport cannot be secured.
                     final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
 
-                    final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-                    final byte[] activationSignatureEcdsa = cryptographyService.generateSignatureForApplication(
+                    final byte[] activationSignatureV3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
+                            .generateSignatureForApplication(
+                                    KeyType.ECDSA_P256,
+                                    activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
+                                    application
+                            );
+                    final CryptographyService cryptographyServiceV4 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
+                    final byte[] activationSignatureV4Ecdsa = cryptographyServiceV4.generateSignatureForApplication(
                             KeyType.ECDSA_P384,
                             activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
                             application
                     );
-                    final byte[] activationSignatureMldsa = cryptographyService.generateSignatureForApplication(
+                    final byte[] activationSignatureV4Mldsa = cryptographyServiceV4.generateSignatureForApplication(
                             KeyType.MLDSA_65,
                             activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
                             application
@@ -163,8 +169,9 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignatureEcdsa(Base64.getEncoder().encodeToString(activationSignatureEcdsa));
-                    response.setActivationSignatureMldsa(Base64.getEncoder().encodeToString(activationSignatureMldsa));
+                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignatureV3));
+                    response.setActivationSignatureEcdsa(Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa));
+                    response.setActivationSignatureMldsa(Base64.getEncoder().encodeToString(activationSignatureV4Mldsa));
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));

@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -164,17 +165,29 @@ public class ActivationInitServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
-            // Compute activation signature
-            // TODO - provide crypto4 signatures based on application configuration
-            final byte[] activationSignature = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
+            // Compute activation signatures
+            final byte[] activationSignatureV3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
                     .generateSignatureForApplication(
                             KeyType.ECDSA_P256,
                             activationCode.getBytes(StandardCharsets.UTF_8),
                             application
                     );
+            final CryptographyService cryptographyServiceV4 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
+            final byte[] activationSignatureV4Ecdsa = cryptographyServiceV4.generateSignatureForApplication(
+                    KeyType.ECDSA_P384,
+                    activationCode.getBytes(StandardCharsets.UTF_8),
+                    application
+            );
+            final byte[] activationSignatureV4Mldsa = cryptographyServiceV4.generateSignatureForApplication(
+                    KeyType.MLDSA_65,
+                    activationCode.getBytes(StandardCharsets.UTF_8),
+                    application
+            );
 
             // Encode the signature
-            final String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
+            final String activationSignatureV3Base64 = Base64.getEncoder().encodeToString(activationSignatureV3);
+            final String activationSignatureV4EcdsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa);
+            final String activationSignatureV4MldsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa);
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation
@@ -230,7 +243,9 @@ public class ActivationInitServiceBehavior {
             response.setActivationId(activationId);
             response.setActivationCode(activationCode);
             response.setUserId(userId);
-            response.setActivationSignature(activationSignatureBase64);
+            response.setActivationSignature(activationSignatureV3Base64);
+            response.setActivationSignatureEcdsa(activationSignatureV4EcdsaBase64);
+            response.setActivationSignatureMldsa(activationSignatureV4MldsaBase64);
             response.setApplicationId(activation.getApplication().getId());
 
             return response;
