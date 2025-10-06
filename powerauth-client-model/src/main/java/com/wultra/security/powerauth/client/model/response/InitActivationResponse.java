@@ -30,11 +30,22 @@ import lombok.ToString;
 public class InitActivationResponse {
 
     private String activationId;
+
     @ToString.Exclude
     private String activationCode;
+
     @ToString.Exclude
+    @Deprecated
     private String activationSignature;
+
+    @ToString.Exclude
+    private String activationSignatureEcdsa;
+
+    @ToString.Exclude
+    private String activationSignatureMldsa;
+
     private String userId;
+
     private String applicationId;
 
 }

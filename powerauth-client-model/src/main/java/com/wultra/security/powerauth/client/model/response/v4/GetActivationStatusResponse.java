@@ -67,6 +67,9 @@ public class GetActivationStatusResponse {
     @ToString.Exclude
     private String activationCode;
     @ToString.Exclude
+    @Deprecated
+    private String activationSignature;
+    @ToString.Exclude
     private String activationSignatureEcdsa;
     @ToString.Exclude
     private String activationSignatureMldsa;
