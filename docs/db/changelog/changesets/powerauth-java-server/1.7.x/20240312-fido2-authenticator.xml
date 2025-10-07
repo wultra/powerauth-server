@@ -20,7 +20,7 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.30.xsd">
 
     <!--  Create table pa_fido2_authenticator -->
     <changeSet id="1" logicalFilePath="powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml" author="Jan Pesek">
