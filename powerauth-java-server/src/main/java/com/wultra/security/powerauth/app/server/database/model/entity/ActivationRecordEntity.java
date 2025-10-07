@@ -350,6 +350,13 @@ public class ActivationRecordEntity implements Serializable {
     @OrderBy("timestampCreated")
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
+    /**
+     * If the activation is created as transfer (spawn, or move) the parent activation is present.
+     */
+    @ManyToOne
+    @JoinColumn(name = "parent_activation_id", referencedColumnName = "activation_id")
+    private ActivationRecordEntity parentActivation;
+
     @Override
     public int hashCode() {
         return Objects.hash(activationCode);

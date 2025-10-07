@@ -81,4 +81,6 @@ public class InitActivationRequest {
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     private Map<String, Object> additionalData;
 
+    @Schema(description = "If the activation is created as transfer (spawn, or move) fill the parent activation ID.")
+    private String parentActivationId;
 }

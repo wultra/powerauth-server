@@ -33,6 +33,10 @@ Following columns were added for dynamic keys used in cryptography protocol vers
 * A new column `knowledge_factor_key` has been added to the `pa_activation` table to store current knowledge factor key.
 * A new column `knowledge_factor_key_next` has been added to the `pa_activation` table to store next knowledge factor key.
 
+### Activation Parent ID
+
+Init activation request has been updated to support a parent activation ID.
+
 ## Updated Package Names
 
 Package names in Java code have been updated from historical `io.getlime` to `com.wultra`. Please update package imports in your source code which uses any `io.getlime` packages from PowerAuth server.
@@ -74,6 +78,10 @@ Following endpoints are no longer available:
 Callback property `signatureType` name was changed to `authenticationCodeType` for operation callbacks. Please check that services processing operation callbacks do not rely on this property, otherwise update the property name.
 
 Audit records for operation callbacks have also been updated to reflect the property change from `signatureType` to `authenticationCodeType`.
+
+### Init Activation Request
+
+Init activation request has been updated to support a parent activation ID.
 
 ## Configuration Updates
 

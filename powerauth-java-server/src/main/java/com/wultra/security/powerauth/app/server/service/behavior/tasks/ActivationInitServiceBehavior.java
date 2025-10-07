@@ -218,6 +218,7 @@ public class ActivationInitServiceBehavior {
             activation.setTimestampLastChange(null);
             activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
+            activation.setParentActivation(findActivation(request.getParentActivationId()));
             if (request.getAdditionalData() != null) {
                 activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
             }
@@ -263,6 +264,17 @@ public class ActivationInitServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private ActivationRecordEntity findActivation(final String activationId) throws GenericServiceException {
+        if (activationId == null) {
+            return null;
+        }
+
+        return activationRepository.findById(activationId).orElseThrow(() -> {
+            logger.warn("Activation ID: {} not found", activationId);
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
     }
 
     private void validateOtpValidationAndCommitPhase(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, com.wultra.security.powerauth.client.model.enumeration.CommitPhase commitPhase, String activationOtp) throws GenericServiceException {
