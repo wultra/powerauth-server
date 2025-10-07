@@ -57,3 +57,9 @@ ALTER TABLE pa_activation ADD confirmation_pending BOOLEAN DEFAULT FALSE;
 ALTER TABLE pa_activation ADD upgrade_confirmation_pending BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE pa_activation ADD ctr_data_v4 VARCHAR(255);
+
+-- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::1::Lubos Racansky
+-- Add column parent_activation_id to pa_activation table
+ALTER TABLE pa_activation ADD parent_activation_id VARCHAR(37);
+
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_parent_activation_id_fk FOREIGN KEY (parent_activation_id) REFERENCES pa_activation (activation_id);

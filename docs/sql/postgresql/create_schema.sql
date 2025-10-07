@@ -472,3 +472,9 @@ ALTER TABLE pa_temporary_key ADD secret_key_encryption INTEGER DEFAULT 0 NOT NUL
 ALTER TABLE pa_temporary_key ALTER COLUMN  private_key_base64 DROP NOT NULL;
 
 ALTER TABLE pa_temporary_key ALTER COLUMN  public_key_base64 DROP NOT NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::1::Lubos Racansky
+-- Add column parent_activation_id to pa_activation table
+ALTER TABLE pa_activation ADD parent_activation_id VARCHAR(37);
+
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_parent_activation_id_fk FOREIGN KEY (parent_activation_id) REFERENCES pa_activation (activation_id);
