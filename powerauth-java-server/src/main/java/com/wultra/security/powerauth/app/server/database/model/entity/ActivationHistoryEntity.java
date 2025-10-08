@@ -104,18 +104,12 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         } else {
             final ActivationHistoryEntity that = (ActivationHistoryEntity) o;
-            return Objects.equals(getActivationId(), that.getActivationId()) && Objects.equals(getTimestampCreated(), that.getTimestampCreated());
+            return Objects.equals(getActivation(), that.getActivation()) && Objects.equals(getTimestampCreated(), that.getTimestampCreated());
         }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getActivationId(), timestampCreated);
+        return Objects.hash(getActivation(), timestampCreated);
     }
-
-    // TODO (racansky, 2023-11-08) remove when activation equals and hashCode implemented correctly
-    private String getActivationId() {
-        return getActivation() == null ? null : getActivation().getActivationId();
-    }
-
 }
