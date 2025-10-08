@@ -157,6 +157,7 @@ public class ActivationStatusServiceBehavior {
                     response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
                     return response;
                 } else {
                     // Get the server private and device public keys to compute the transport key
@@ -255,6 +256,7 @@ public class ActivationStatusServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     response.setAdditionalData(activation.getAdditionalData());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
                     return response;
                 }
             } else {

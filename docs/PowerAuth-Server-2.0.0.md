@@ -81,7 +81,8 @@ Audit records for operation callbacks have also been updated to reflect the prop
 
 ### Init Activation Request
 
-Init activation request has been updated to support a parent activation ID.
+A new attribute _parent activation ID_ has been introduced.
+It may be passed to the init activation request and later on be available in the activation detail.
 
 ## Configuration Updates
 

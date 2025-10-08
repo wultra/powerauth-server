@@ -83,4 +83,6 @@ public class GetActivationStatusResponse {
     @JsonRawValue
     private Object additionalData;
 
+    @Schema(description = "The parent activation ID if the activation is created as transfer (spawn, or move).")
+    private String parentActivationId;
 }

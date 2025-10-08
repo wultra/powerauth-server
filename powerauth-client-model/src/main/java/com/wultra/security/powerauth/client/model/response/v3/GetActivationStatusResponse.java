@@ -78,4 +78,7 @@ public class GetActivationStatusResponse {
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     @JsonRawValue
     private Object additionalData;
+
+    @Schema(description = "The parent activation ID if the activation is created as transfer (spawn, or move).")
+    private String parentActivationId;
 }

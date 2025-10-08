@@ -181,6 +181,7 @@ public class ActivationStatusServiceBehavior {
                     response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
                     return response;
                 } else {
                     final String sharedSecretEncrypted = activation.getSharedSecret();
@@ -273,6 +274,7 @@ public class ActivationStatusServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     response.setAdditionalData(activation.getAdditionalData());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
                     return response;
                 }
             } else {

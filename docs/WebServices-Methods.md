@@ -712,6 +712,7 @@ REST endpoint: `POST /rest/v3/activation/status`
 | `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
 | `Long`                    | `version`                    | Activation version                                                                        |
 | `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure     |
+| `String`                  | `parentActivationId`         | The parent activation ID if the activation is created as transfer (spawn, or move)        |
 
 ### Method 'removeActivation'
 
