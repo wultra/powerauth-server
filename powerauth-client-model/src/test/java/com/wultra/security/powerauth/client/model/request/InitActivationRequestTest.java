@@ -94,7 +94,7 @@ class InitActivationRequestTest {
         assertEquals("Parent activation ID is mandatory when transfer type is present", constraintViolation.getMessage());
     }
 
-    private InitActivationRequest createValidRequest() {
+    private static InitActivationRequest createValidRequest() {
         final InitActivationRequest request = new InitActivationRequest();
         request.setUserId("test-user");
         request.setApplicationId("test-app");
