@@ -217,7 +217,7 @@ public class ActivationRecordEntity implements Serializable {
     private Date timestampLastChange;
 
     /**
-     * Transient property to keep the previous activation status the for entity listener.
+     * Transient property to keep the previous activation status for the entity listener.
      *
      * @see #setActivationStatus(ActivationStatus)
      * @see #postLoad()

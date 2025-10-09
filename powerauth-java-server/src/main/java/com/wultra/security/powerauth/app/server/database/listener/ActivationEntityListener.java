@@ -61,7 +61,7 @@ public class ActivationEntityListener {
 
             final ActivationRecordEntity parentActivation = activation.getParentActivation();
             if (parentActivation != null) {
-                logger.info("Deleting activation ID: {}, because is a parent of the moved activation ID :{}", parentActivation.getActivationId(), activation.getActivationId());
+                logger.info("Deleting activation ID: {}, because it is a parent of the moved activation ID :{}", parentActivation.getActivationId(), activation.getActivationId());
                 activationRemoveServiceBehavior.removeActivation(parentActivation, null);
             }
         }
