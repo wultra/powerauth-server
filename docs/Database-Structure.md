@@ -120,6 +120,7 @@ Stores activations. Activation is a unit associating signature / transport and e
 | commit_phase                   | INTEGER       | -                                   | When the activation is committed. Following values are supported: default ON_COMMIT(0), and ON_KEY_EXCHANGE(1).                                                                    |
 | additional_data                | TEXT          | -                                   | Optional additional data, structure is customer-specific JSON. Could be set during creation or initialization.                                                                     |
 | parent_activation_id           | VARCHAR(37)   | -                                   | The parent activation ID if the activation is created as transfer (spawn, or move).                                                                                                |
+| transfer_type                  | VARCHAR(32)   | -                                   | Mandatory when `parent_activation_id` is present. Represents the activation transfer type (`SPAWN`, or `MOVE`).                                                                    |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->

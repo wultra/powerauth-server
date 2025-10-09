@@ -455,7 +455,8 @@ REST endpoint: `POST /rest/v3/activation/init`
 | `CommitPhase`             | `commitPhase`               | Optional parameter to specify when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`.                                                                                                                   |
 | `String`                  | `activationOtp`             | Optional activation OTP                                                                                                                                                                                                                               |
 | `Object`                  | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure                                                                                                                                                                 |
-| `String`                  | `parentActivationId`        | If the activation is created as transfer (spawn, or move) fill the parent activation ID.                                                                                                                                                              |
+| `String`                  | `parentActivationId`        | The parent activation ID. Mandatory when `transferType` is present.                                                                                                                                                                                   |
+| `String`                  | `transferType`              | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.                                                                                                                                                    |
 
 This section describes how to change the activation commit flow:
 - By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
@@ -686,33 +687,34 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name                         | Description                                                                               |
-|---------------------------|------------------------------|-------------------------------------------------------------------------------------------|
-| `String`                  | `activationId`               | An identifier of an activation                                                            |
-| `ActivationStatus`        | `activationStatus`           | An activation status                                                                      |
-| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                          |
-| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                    |
-| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                |
-| `String`                  | `activationName`             | An activation name                                                                        |
-| `String`                  | `userId`                     | An identifier of a user                                                                   |
-| `String`                  | `extras`                     | Any custom attributes set through SDK                                                     |
-| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                           |
-| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                          |
-| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                              |
-| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
-| `String[]`                | `activationFlags`            | Activation flags                                                                          |
-| `String`                  | `applicationId`              | An identifier fo an application                                                           |
-| `String[]`                | `applicationRoles`           | Application roles                                                                         |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
-| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                 |
-| `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
-| `Long`                    | `version`                    | Activation version                                                                        |
-| `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure     |
-| `String`                  | `parentActivationId`         | The parent activation ID if the activation is created as transfer (spawn, or move)        |
+| Type                      | Name                         | Description                                                                                        |
+|---------------------------|------------------------------|----------------------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                                     |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                               |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode (*deprecated*)                                                   |
+| `CommitPhase`             | `commitPhase`                | Specifies when activation is committed                                                             |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                         |
+| `String`                  | `activationName`             | An activation name                                                                                 |
+| `String`                  | `userId`                     | An identifier of a user                                                                            |
+| `String`                  | `extras`                     | Any custom attributes set through SDK                                                              |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                    |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                                   |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                                       |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                                       |
+| `String[]`                | `activationFlags`            | Activation flags                                                                                   |
+| `String`                  | `applicationId`              | An identifier fo an application                                                                    |
+| `String[]`                | `applicationRoles`           | Application roles                                                                                  |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                                        |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                                      |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                                       |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                          |
+| `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character          |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                                 |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification              |
+| `Long`                    | `version`                    | Activation version                                                                                 |
+| `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure              |
+| `String`                  | `parentActivationId`         | The parent activation ID. Mandatory when `transferType` is present.                                |
+| `String`                  | `transferType`               | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present. |
 
 ### Method 'removeActivation'
 

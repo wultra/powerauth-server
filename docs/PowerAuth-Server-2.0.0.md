@@ -33,9 +33,9 @@ Following columns were added for dynamic keys used in cryptography protocol vers
 * A new column `knowledge_factor_key` has been added to the `pa_activation` table to store current knowledge factor key.
 * A new column `knowledge_factor_key_next` has been added to the `pa_activation` table to store next knowledge factor key.
 
-### Activation Parent ID
+### Added new columns for activation spawn or move
 
-Init activation request has been updated to support a parent activation ID.
+The columns `parent_activation_id` and `transfer_type` were added to the `pa_activation` table to track activation spawn or move.
 
 ## Updated Package Names
 
@@ -81,7 +81,7 @@ Audit records for operation callbacks have also been updated to reflect the prop
 
 ### Init Activation Request
 
-A new attribute _parent activation ID_ has been introduced.
+New attributes `parentActivationId` and `transferType` have been introduced to track activation spawn or move.
 It may be passed to the init activation request and later on be available in the activation detail.
 
 ## Configuration Updates

@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -219,6 +220,7 @@ public class ActivationInitServiceBehavior {
             activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
             activation.setParentActivation(findActivation(request.getParentActivationId()));
+            activation.setTransferType(convert(request.getTransferType()));
             if (request.getAdditionalData() != null) {
                 activation.setAdditionalData(objectMapper.writeValueAsString(request.getAdditionalData()));
             }
@@ -264,6 +266,16 @@ public class ActivationInitServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private static ActivationTransferType convert(final com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType source) {
+        if (source == null) {
+            return null;
+        }
+        return switch (source) {
+            case MOVE -> ActivationTransferType.MOVE;
+            case SPAWN -> ActivationTransferType.SPAWN;
+        };
     }
 
     private ActivationRecordEntity findActivation(final String activationId) throws GenericServiceException {

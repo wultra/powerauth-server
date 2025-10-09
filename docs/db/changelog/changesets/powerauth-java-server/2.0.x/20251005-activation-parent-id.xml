@@ -17,4 +17,16 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20251005-activation-parent-id.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="transfer_type" />
+            </not>
+        </preConditions>
+        <comment>Add column transfer_type to pa_activation table</comment>
+        <addColumn tableName="pa_activation">
+            <column name="transfer_type" type="varchar(32)" />
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>
