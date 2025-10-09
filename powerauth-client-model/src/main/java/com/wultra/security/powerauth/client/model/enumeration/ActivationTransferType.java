@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.client.model.enumeration;
 
 /**
- * Represent activation transfer type.
+ * Activation transfer type.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
