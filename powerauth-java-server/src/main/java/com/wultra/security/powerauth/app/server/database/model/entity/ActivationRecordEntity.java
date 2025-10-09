@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
 import com.wultra.security.powerauth.app.server.converter.ActivationProtocolConverter;
+import com.wultra.security.powerauth.app.server.database.listener.ActivationEntityListener;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
@@ -25,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.converter.Activat
 import com.wultra.security.powerauth.app.server.database.model.enumeration.*;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.util.ProxyUtils;
@@ -44,6 +46,7 @@ import java.util.Objects;
 @Entity
 @Table(name = "pa_activation")
 @Getter @Setter
+@EntityListeners(ActivationEntityListener.class)
 public class ActivationRecordEntity implements Serializable {
 
     @Serial
@@ -214,6 +217,16 @@ public class ActivationRecordEntity implements Serializable {
     private Date timestampLastChange;
 
     /**
+     * Transient property to keep the previous activation status the for entity listener.
+     *
+     * @see #setActivationStatus(ActivationStatus)
+     * @see #postLoad()
+     */
+    @Transient
+    @Setter(AccessLevel.NONE)
+    private ActivationStatus previousActivationStatus;
+
+    /**
      * Activation status.
      */
     @Column(name = "activation_status", nullable = false)
@@ -362,6 +375,16 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Enumerated(EnumType.STRING)
     private ActivationTransferType transferType;
+
+    @PostLoad
+    private void postLoad() {
+        this.previousActivationStatus = this.activationStatus;
+    }
+
+    public void setActivationStatus(final ActivationStatus status) {
+        this.previousActivationStatus = this.activationStatus;
+        this.activationStatus = status;
+    }
 
     @Override
     public int hashCode() {
