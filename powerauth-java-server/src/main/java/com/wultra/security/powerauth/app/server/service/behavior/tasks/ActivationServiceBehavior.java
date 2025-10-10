@@ -278,7 +278,7 @@ public class ActivationServiceBehavior {
         }
     }
 
-    private com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType convert(final ActivationTransferType source) {
+    private static com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType convert(final ActivationTransferType source) {
         if (source == null) {
             return null;
         }
