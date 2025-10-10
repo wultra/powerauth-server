@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
-import jakarta.persistence.PostUpdate;
+import jakarta.persistence.PreUpdate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -44,14 +44,14 @@ public class ActivationEntityListener {
     }
 
     /**
-     * Processes activation status changes after an update.
+     * Processes activation status changes.
      * If the activation status changes to ACTIVE and the activation is a result of a transfer operation type of MOVE,
      * this method handles the removal of the parent activation.
      * Parent removal is not performed if the previous activation status was BLOCKED.
      *
      * @param activation The activation record entity that was updated
      */
-    @PostUpdate
+    @PreUpdate
     public void processActivationStatusChange(final ActivationRecordEntity activation) {
         if (activation.getPreviousActivationStatus() != null
                 && activation.getPreviousActivationStatus() != activation.getActivationStatus()
@@ -60,8 +60,8 @@ public class ActivationEntityListener {
                 && activation.getTransferType() == ActivationTransferType.MOVE) {
 
             final ActivationRecordEntity parentActivation = activation.getParentActivation();
-            if (parentActivation != null) {
-                logger.info("Deleting activation ID: {}, because it is a parent of the moved activation ID :{}", parentActivation.getActivationId(), activation.getActivationId());
+            if (parentActivation != null && parentActivation.getActivationStatus() != ActivationStatus.REMOVED) {
+                logger.info("Removing activation ID: {}, because it is a parent of the moved activation ID: {}", parentActivation.getActivationId(), activation.getActivationId());
                 activationRemoveServiceBehavior.removeActivation(parentActivation, null);
             }
         }
