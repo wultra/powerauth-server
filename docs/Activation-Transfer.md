@@ -14,7 +14,11 @@ Mind that this table supports encryption, see [Encrypting Records in Database](.
 ### Required Configuration
 
 - `allowedTargetApplicationIds` - List of application IDs to which the activation is allowed to be transferred.
-- `type` - Type of activation transfer, currently only `SPAWN` is supported.
+- `type` - Type of activation transfer, currently `SPAWN`, and `MOVE` are supported.
+
+The configuration is exclusive. The allowed target application ID must not be specified for more than one type of activation transfer.
+
+If the `MOVE` type is specified, the parent activation will be removed, after the child activation status is changed to `ACTIVE`.
 
 
 ### Example
@@ -29,6 +33,12 @@ The value of `config_values` column may look like this:
       "application-2"
     ],
     "type": "SPAWN"
+  },
+  {
+    "allowedTargetApplicationIds": [
+      "application-3"
+    ],
+    "type": "MOVE"
   }
 ]
 ```
