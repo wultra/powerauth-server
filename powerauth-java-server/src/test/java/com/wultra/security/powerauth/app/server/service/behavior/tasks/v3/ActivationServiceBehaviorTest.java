@@ -19,19 +19,22 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
-import com.wultra.security.powerauth.client.model.enumeration.*;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
-import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
-import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
-import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
-import com.wultra.security.powerauth.app.server.service.model.response.v3.ActivationLayer2Response;
+import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
+import com.wultra.security.powerauth.client.model.request.v3.PrepareActivationRequest;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v3.CreateActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
@@ -50,14 +53,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.KeyPair;
 import java.security.interfaces.ECPublicKey;
 import java.util.Base64;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for {@link ActivationServiceBehavior} (V3).
@@ -66,7 +69,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 
 @SpringBootTest
-@Transactional
 @ActiveProfiles("test")
 class ActivationServiceBehaviorTest {
 
@@ -158,9 +160,7 @@ class ActivationServiceBehaviorTest {
         request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         request.setTimestamp(encryptedRequest.getTimestamp());
 
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> {
-            tested.prepareActivation(request);
-        });
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> tested.prepareActivation(request));
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
@@ -227,6 +227,28 @@ class ActivationServiceBehaviorTest {
         final GetApplicationDetailResponse detailResponse = createApplication();
         final PrepareActivationResponse activationResponse = prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, null, null);
         assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse.getActivationId()));
+    }
+
+    @Test
+    void testPrepareActivationTransferTypeMove() throws Exception {
+        // parent activation
+        final GetApplicationDetailResponse detailResponse1 = createApplication();
+        final PrepareActivationResponse activationResponse1 = prepareActivation(detailResponse1, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.NONE, null, null);
+        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationResponse1.getActivationId()));
+
+        final String parentActivationId = activationResponse1.getActivationId();
+
+        // child activation
+        final GetApplicationDetailResponse detailResponse2 = createApplication();
+        final InitActivationResponse initActivationResponse2 = initChildActivation(detailResponse2.getApplicationId(), parentActivationId);
+        final PrepareActivationResponse activationResponse2 = prepareActivation(detailResponse2, initActivationResponse2, null);
+        final GetActivationStatusResponse activationStatusResponse2 = getActivationStatusResponse(activationResponse2.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, activationStatusResponse2.getActivationStatus());
+        assertEquals(parentActivationId, activationStatusResponse2.getParentActivationId());
+        assertEquals(ActivationTransferType.MOVE, activationStatusResponse2.getTransferType());
+
+        // parent activation should be removed
+        assertEquals(ActivationStatus.REMOVED, getActivationStatus(activationResponse1.getActivationId()));
     }
 
     @Test
@@ -348,50 +370,6 @@ class ActivationServiceBehaviorTest {
                 prepareActivation(detailResponse, CommitPhase.ON_KEY_EXCHANGE, ActivationOtpValidation.ON_COMMIT, "1234", null));
     }
 
-    private ActivationLayer2Response createActivationAndGetResponsePayload(GetApplicationDetailResponse applicationDetail) throws Exception {
-        final String applicationId = applicationDetail.getApplicationId();
-
-        // Generate public key for a client device
-        final String publicKeyBytes = generatePublicKey();
-
-        // Build createActivation request payload
-        final ActivationLayer2Request activationLayer2Request = new ActivationLayer2Request();
-        activationLayer2Request.setDevicePublicKey(publicKeyBytes);
-
-        // Encrypt createActivation request payload
-        final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
-        final ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
-        final String applicationSecret = applicationDetail.getVersions().get(0).getApplicationSecret();
-
-        final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
-                EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, applicationKey, null, null),
-                new ClientEciesSecrets(masterPublicKey, applicationSecret));
-        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
-
-        // Create activation
-        final CreateActivationRequest request = new CreateActivationRequest();
-        request.setApplicationKey(applicationKey);
-        request.setUserId(userId);
-        request.setProtocolVersion(version);
-        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-        request.setNonce(encryptedRequest.getNonce());
-        request.setTimestamp(encryptedRequest.getTimestamp());
-        request.setMac(encryptedRequest.getMac());
-        request.setEncryptedData(encryptedRequest.getEncryptedData());
-        final CreateActivationResponse createActivationResponse = tested.createActivation(request);
-
-        final String activationId = createActivationResponse.getActivationId();
-        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
-
-        // Commit activation
-        commitActivation(activationId, null);
-        assertEquals(ActivationStatus.ACTIVE, getActivationStatus(activationId));
-
-        // Decrypt createActivation response payload
-        return decryptPayload(createActivationResponse, clientEncryptor);
-    }
-
     private String generatePublicKey() throws Exception {
         final KeyGenerator keyGenerator = new KeyGenerator();
         final KeyPair keyPair = keyGenerator.generateKeyPair(EcCurve.P256);
@@ -404,12 +382,6 @@ class ActivationServiceBehaviorTest {
         commitActivationRequest.setActivationId(activationId);
         commitActivationRequest.setActivationOtp(otp);
         activationServiceBehavior.commitActivation(commitActivationRequest);
-    }
-
-    private ActivationLayer2Response decryptPayload(CreateActivationResponse response, ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor) throws Exception {
-        final EciesEncryptedResponse encryptedResponse = new EciesEncryptedResponse(response.getEncryptedData(), response.getMac(), response.getNonce(), response.getTimestamp());
-        final byte[] decryptedActivationResponsePayload = clientEncryptor.decryptResponse(encryptedResponse);
-        return objectMapper.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
     }
 
     private EciesEncryptedRequest buildPrepareActivationPayload(
@@ -444,10 +416,23 @@ class ActivationServiceBehaviorTest {
         return activationInitServiceBehavior.initActivation(request);
     }
 
-    private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, String otpToUse) throws Exception {
-        // Initiate activation of a user
-        final InitActivationResponse initActivationResponse = initActivation(applicationDetail.getApplicationId(), commitPhase, otpValidation, otp);
+    private InitActivationResponse initChildActivation(String applicationId, String parentActivationId) throws Exception {
+        final InitActivationRequest request = new InitActivationRequest();
+        request.setProtocol(ActivationProtocol.POWERAUTH);
+        request.setApplicationId(applicationId);
+        request.setUserId(userId);
+        request.setCommitPhase(CommitPhase.ON_KEY_EXCHANGE);
+        request.setParentActivationId(parentActivationId);
+        request.setTransferType(ActivationTransferType.MOVE);
+        return activationInitServiceBehavior.initActivation(request);
+    }
 
+    private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, CommitPhase commitPhase, ActivationOtpValidation otpValidation, String otp, String otpToUse) throws Exception {
+        final InitActivationResponse initActivationResponse = initActivation(applicationDetail.getApplicationId(), commitPhase, otpValidation, otp);
+        return prepareActivation(applicationDetail, initActivationResponse, otpToUse);
+    }
+
+    private PrepareActivationResponse prepareActivation(GetApplicationDetailResponse applicationDetail, InitActivationResponse initActivationResponse, String otpToUse) throws Exception {
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
@@ -487,12 +472,13 @@ class ActivationServiceBehaviorTest {
         return applicationDetailServiceBehavior.getApplicationDetail(detailRequest);
     }
 
-    private ActivationStatus getActivationStatus(String activationId) throws Exception {
-        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
-        statusRequest.setActivationId(activationId);
-        final GetActivationStatusResponse statusResponse = activationStatusServiceBehavior.getActivationStatus(statusRequest);
-
-        return statusResponse.getActivationStatus();
+    private ActivationStatus getActivationStatus(final String activationId) throws Exception {
+        return getActivationStatusResponse(activationId).getActivationStatus();
     }
 
+    private GetActivationStatusResponse getActivationStatusResponse(final String activationId) throws Exception {
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        return activationStatusServiceBehavior.getActivationStatus(statusRequest);
+    }
 }

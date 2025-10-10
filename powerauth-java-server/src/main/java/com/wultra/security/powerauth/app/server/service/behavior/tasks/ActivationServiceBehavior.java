@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -429,8 +430,7 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Change activation state to ACTIVE
-            activation.setActivationStatus(ActivationStatus.ACTIVE);
+            changeActivationStatusToActiveAndDeleteParent(activation);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
@@ -447,6 +447,16 @@ public class ActivationServiceBehavior {
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    private void changeActivationStatusToActiveAndDeleteParent(final ActivationRecordEntity activation) {
+        activation.setActivationStatus(ActivationStatus.ACTIVE);
+
+        final ActivationRecordEntity parentActivation = activation.getParentActivation();
+        if (parentActivation != null && activation.getTransferType() == ActivationTransferType.MOVE) {
+            logger.info("Deleting activation ID: {}, because is parent of moved activation ID :{}", parentActivation.getActivationId(), activation.getActivationId());
+            activationRemoveServiceBehavior.removeActivation(parentActivation, null);
         }
     }
 

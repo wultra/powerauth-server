@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
@@ -65,6 +67,7 @@ public class ActivationProcessServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ObjectMapper objectMapper;
+    private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
 
     /**
      * Process a new activation which is initialized in the database.
@@ -101,10 +104,6 @@ public class ActivationProcessServiceBehavior {
             // Validate activation OTP for stage ON_KEY_EXCHANGE
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
-            // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
-            final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
-            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
-
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             BasePublicKey devicePublicKey = null;
@@ -123,7 +122,7 @@ public class ActivationProcessServiceBehavior {
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
             // Update and persist the activation record
-            activation.setActivationStatus(activationStatus);
+            changeActivationStatusAndDeleteParent(activation, layer2Request);
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
@@ -190,4 +189,16 @@ public class ActivationProcessServiceBehavior {
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
 
+    private void changeActivationStatusAndDeleteParent(final ActivationRecordEntity activation, final com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request layer2Request) {
+        // If activation OTP is provided and valid, or commit phase is ON_KEY_EXCHANGE, then the status is set directly to "ACTIVE".
+        final boolean isActive = StringUtils.hasText(layer2Request.getActivationOtp()) || activation.getCommitPhase() == CommitPhase.ON_KEY_EXCHANGE;
+        final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
+        activation.setActivationStatus(activationStatus);
+
+        final ActivationRecordEntity parentActivation = activation.getParentActivation();
+        if (isActive && parentActivation != null && activation.getTransferType() == ActivationTransferType.MOVE) {
+            logger.info("Removing activation ID: {}, because is parent of moved activation ID: {}", parentActivation.getActivationId(), activation.getActivationId());
+            activationRemoveServiceBehavior.removeActivation(parentActivation, null);
+        }
+    }
 }
