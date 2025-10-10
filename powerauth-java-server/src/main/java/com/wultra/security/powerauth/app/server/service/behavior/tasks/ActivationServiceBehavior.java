@@ -455,7 +455,7 @@ public class ActivationServiceBehavior {
 
         final ActivationRecordEntity parentActivation = activation.getParentActivation();
         if (parentActivation != null && activation.getTransferType() == ActivationTransferType.MOVE) {
-            logger.info("Deleting activation ID: {}, because is parent of moved activation ID :{}", parentActivation.getActivationId(), activation.getActivationId());
+            logger.info("Deleting activation ID: {}, because it is parent of moved activation ID: {}", parentActivation.getActivationId(), activation.getActivationId());
             activationRemoveServiceBehavior.removeActivation(parentActivation, null);
         }
     }
