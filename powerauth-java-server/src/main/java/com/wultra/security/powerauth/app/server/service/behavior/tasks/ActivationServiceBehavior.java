@@ -149,6 +149,8 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
                     activationServiceItem.setAdditionalData(activation.getAdditionalData());
+                    activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
+                    activationServiceItem.setTransferType(convert(activation.getTransferType()));
                     response.getActivations().add(activationServiceItem);
                 }
             }
@@ -261,6 +263,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
                 activationServiceItem.setAdditionalData(activation.getAdditionalData());
+                activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
+                activationServiceItem.setTransferType(convert(activation.getTransferType()));
                 response.getActivations().add(activationServiceItem);
             }
 
@@ -272,6 +276,16 @@ public class ActivationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType convert(final ActivationTransferType source) {
+        if (source == null) {
+            return null;
+        }
+        return switch (source) {
+            case MOVE -> com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType.MOVE;
+            case SPAWN -> com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType.SPAWN;
+        };
     }
 
     /**
