@@ -20,10 +20,7 @@
 package com.wultra.security.powerauth.client.model.response.v3;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
@@ -78,4 +75,10 @@ public class GetActivationStatusResponse {
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     @JsonRawValue
     private Object additionalData;
+
+    @Schema(description = "The parent activation ID. Mandatory when `transferType` is present.")
+    private String parentActivationId;
+
+    @Schema(description = "The activation transfer type. Mandatory when `parentActivationId` is present.")
+    private ActivationTransferType transferType;
 }

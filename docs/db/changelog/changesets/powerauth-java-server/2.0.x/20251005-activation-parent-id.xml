@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.30.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20251005-activation-parent-id.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="parent_activation_id" />
+            </not>
+        </preConditions>
+        <comment>Add column parent_activation_id to pa_activation table</comment>
+        <addColumn tableName="pa_activation">
+            <column name="parent_activation_id" type="varchar(37)">
+                <constraints foreignKeyName="pa_activation_parent_activation_id_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20251005-activation-parent-id.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="transfer_type" />
+            </not>
+        </preConditions>
+        <comment>Add column transfer_type to pa_activation table</comment>
+        <addColumn tableName="pa_activation">
+            <column name="transfer_type" type="varchar(32)" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

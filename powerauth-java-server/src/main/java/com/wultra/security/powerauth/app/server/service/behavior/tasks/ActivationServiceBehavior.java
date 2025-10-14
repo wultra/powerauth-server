@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CommitPhase;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -148,6 +149,8 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
                     activationServiceItem.setAdditionalData(activation.getAdditionalData());
+                    activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
+                    activationServiceItem.setTransferType(convert(activation.getTransferType()));
                     response.getActivations().add(activationServiceItem);
                 }
             }
@@ -260,6 +263,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
                 activationServiceItem.setAdditionalData(activation.getAdditionalData());
+                activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
+                activationServiceItem.setTransferType(convert(activation.getTransferType()));
                 response.getActivations().add(activationServiceItem);
             }
 
@@ -271,6 +276,16 @@ public class ActivationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private static com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType convert(final ActivationTransferType source) {
+        if (source == null) {
+            return null;
+        }
+        return switch (source) {
+            case MOVE -> com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType.MOVE;
+            case SPAWN -> com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType.SPAWN;
+        };
     }
 
     /**
@@ -429,8 +444,7 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Change activation state to ACTIVE
-            activation.setActivationStatus(ActivationStatus.ACTIVE);
+            changeActivationStatusToActiveAndDeleteParent(activation);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
@@ -447,6 +461,16 @@ public class ActivationServiceBehavior {
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    private void changeActivationStatusToActiveAndDeleteParent(final ActivationRecordEntity activation) {
+        activation.setActivationStatus(ActivationStatus.ACTIVE);
+
+        final ActivationRecordEntity parentActivation = activation.getParentActivation();
+        if (parentActivation != null && activation.getTransferType() == ActivationTransferType.MOVE) {
+            logger.info("Deleting activation ID: {}, because it is parent of moved activation ID: {}", parentActivation.getActivationId(), activation.getActivationId());
+            activationRemoveServiceBehavior.removeActivation(parentActivation, null);
         }
     }
 

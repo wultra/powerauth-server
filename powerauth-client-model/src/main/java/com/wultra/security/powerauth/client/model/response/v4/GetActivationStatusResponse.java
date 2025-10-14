@@ -20,10 +20,7 @@
 package com.wultra.security.powerauth.client.model.response.v4;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
@@ -83,4 +80,9 @@ public class GetActivationStatusResponse {
     @JsonRawValue
     private Object additionalData;
 
+    @Schema(description = "The parent activation ID. Mandatory when `transferType` is present.")
+    private String parentActivationId;
+
+    @Schema(description = "The activation transfer type. Mandatory when `parentActivationId` is present.")
+    private ActivationTransferType transferType;
 }

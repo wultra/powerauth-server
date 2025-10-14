@@ -79,3 +79,16 @@ GO
 
 ALTER TABLE pa_activation ADD ctr_data_v4 varchar(255);
 GO
+
+-- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::1::Lubos Racansky
+-- Add column parent_activation_id to pa_activation table
+ALTER TABLE pa_activation ADD parent_activation_id varchar(37);
+GO
+
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_parent_activation_id_fk FOREIGN KEY (parent_activation_id) REFERENCES pa_activation (activation_id);
+GO
+
+-- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::2::Lubos Racansky
+-- Add column transfer_type to pa_activation table
+ALTER TABLE pa_activation ADD transfer_type varchar(32);
+GO

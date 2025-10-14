@@ -51,11 +51,17 @@ class ActivationHistoryEntityTest {
         final ActivationHistoryEntity activationHistory2 = new ActivationHistoryEntity();
         activationHistory2.setTimestampCreated(new Date(2));
 
+        final ActivationRecordEntity activation1 = new ActivationRecordEntity();
+        activation1.setActivationCode("code1");
+        final ActivationRecordEntity activation2 = new ActivationRecordEntity();
+        activation2.setActivationCode("code2");
+
         EqualsVerifier.forClass(ActivationHistoryEntity.class)
                 .set(Mode.skipMockito())
                 .withOnlyTheseFields("activation", "timestampCreated")
                 // TODO (racansky, 2023-11-09) equals and hashCode is using getActivation().getActivationId() but still getting false positive; https://jqno.nl/equalsverifier/manual/jpa-entities/
                 .suppress(Warning.JPA_GETTER)
+                .withPrefabValues(ActivationRecordEntity.class, activation1, activation2)
                 .withPrefabValues(ApplicationEntity.class, application1, application2)
                 .withPrefabValues(ApplicationVersionEntity.class, applicationVersion1, applicationVersion2)
                 .withPrefabValues(List.class, List.of(activationHistory1), List.of(activationHistory2))

@@ -20,14 +20,13 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,4 +80,25 @@ public class InitActivationRequest {
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     private Map<String, Object> additionalData;
 
+    @Schema(description = "The parent activation ID. Mandatory when `transferType` is present.")
+    private String parentActivationId;
+
+    @Schema(description = "The activation transfer type. Mandatory when `parentActivationId` is present.")
+    private ActivationTransferType transferType;
+
+    @AssertTrue(message = "Transfer type is mandatory when parent activation ID is present")
+    private boolean isTransferTypeValidWhenParentActivationIdPresent() {
+        if (StringUtils.hasText(parentActivationId)) {
+            return transferType != null;
+        }
+        return true;
+    }
+
+    @AssertTrue(message = "Parent activation ID is mandatory when transfer type is present")
+    private boolean isParentActivationIdValidWhenTransferTypePresent() {
+        if (transferType != null) {
+            return StringUtils.hasText(parentActivationId);
+        }
+        return true;
+    }
 }

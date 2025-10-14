@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.entity;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -61,4 +62,8 @@ public class Activation {
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     @JsonRawValue
     private Object additionalData;
+
+    private String parentActivationId;
+
+    private ActivationTransferType transferType;
 }

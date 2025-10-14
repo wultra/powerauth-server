@@ -350,6 +350,19 @@ public class ActivationRecordEntity implements Serializable {
     @OrderBy("timestampCreated")
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
+    /**
+     * The parent activation. Mandatory when {@link #getTransferType()} is present.
+     */
+    @ManyToOne
+    @JoinColumn(name = "parent_activation_id", referencedColumnName = "activation_id")
+    private ActivationRecordEntity parentActivation;
+
+    /**
+     * The activation transfer type. Mandatory when {@link #getParentActivation()} is present.
+     */
+    @Enumerated(EnumType.STRING)
+    private ActivationTransferType transferType;
+
     @Override
     public int hashCode() {
         return Objects.hash(activationCode);

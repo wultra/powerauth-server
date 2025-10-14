@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.client.model.request.v3.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
@@ -157,6 +158,8 @@ public class ActivationStatusServiceBehavior {
                     response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
+                    response.setTransferType(convertTransferType(activation.getTransferType()));
                     return response;
                 } else {
                     // Get the server private and device public keys to compute the transport key
@@ -255,6 +258,8 @@ public class ActivationStatusServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     response.setAdditionalData(activation.getAdditionalData());
+                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
+                    response.setTransferType(convertTransferType(activation.getTransferType()));
                     return response;
                 }
             } else {
@@ -315,6 +320,16 @@ public class ActivationStatusServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private static ActivationTransferType convertTransferType(final com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType source) {
+        if (source == null) {
+            return null;
+        }
+        return switch (source) {
+            case MOVE -> ActivationTransferType.MOVE;
+            case SPAWN -> ActivationTransferType.SPAWN;
+        };
     }
 
     private static ActivationProtocol convertProtocol(final com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol source) {
