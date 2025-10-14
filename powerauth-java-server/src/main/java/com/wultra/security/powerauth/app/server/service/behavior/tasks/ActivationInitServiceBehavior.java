@@ -226,10 +226,8 @@ public class ActivationInitServiceBehavior {
             }
 
             // Generate server key pairs
-            for (SharedSecretAlgorithm algorithm: SharedSecretAlgorithm.values()) {
-                if (algorithm == SharedSecretAlgorithm.ML_L3) continue;
-                cryptographyServiceFactory.getService(algorithm).generateServerKeyPair(activation);
-            }
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateServerKeyPair(activation);
 
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);

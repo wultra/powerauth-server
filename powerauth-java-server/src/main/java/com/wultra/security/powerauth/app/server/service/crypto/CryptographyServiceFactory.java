@@ -53,7 +53,7 @@ public class CryptographyServiceFactory {
         return switch (algorithm) {
             case EC_P256 -> cryptographyServiceEc256;
             case EC_P384 -> cryptographyServiceEc384;
-            case EC_P384_ML_L3 -> cryptographyServiceV4Hybrid;
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> cryptographyServiceV4Hybrid;
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         };
     }
