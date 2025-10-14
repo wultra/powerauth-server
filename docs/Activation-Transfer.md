@@ -13,8 +13,9 @@ Mind that this table supports encryption, see [Encrypting Records in Database](.
 
 ### Required Configuration
 
-- `allowedTargetApplicationIds` - List of application IDs to which the activation is allowed to be transferred.
-- `type` - Type of activation transfer, `SPAWN` and `MOVE` are supported.
+- `allowedTargetApplicationIds` - Mandatory. List of application IDs to which the activation is allowed to be transferred.
+- `type` - Mandatory. Type of activation transfer, `SPAWN` and `MOVE` are supported.
+- `initialFlags` - Optional. List of flags to be set on the child activation.
 
 The configuration is exclusive. The allowed target application ID must not be specified for more than one type of activation transfer.
 
@@ -32,7 +33,8 @@ The value of `config_values` column may look like this:
       "application-1",
       "application-2"
     ],
-    "type": "SPAWN"
+    "type": "SPAWN",
+    "initialFlags": ["my-custom-flag"]
   },
   {
     "allowedTargetApplicationIds": [
