@@ -23,6 +23,14 @@ package com.wultra.security.powerauth.app.server.database.model.enumeration;
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 public enum ActivationTransferType {
+
+    /**
+     * Activation is spawned.
+     */
     SPAWN,
+
+    /**
+     * Activation is moved, the parent activation is to be removed after the child activation status is changed to {@code ACTIVE}.
+     */
     MOVE,
 }
