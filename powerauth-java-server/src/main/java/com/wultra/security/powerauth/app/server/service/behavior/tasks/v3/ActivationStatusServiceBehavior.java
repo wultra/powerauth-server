@@ -159,7 +159,7 @@ public class ActivationStatusServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
-                    response.setTransferType(convert(activation.getTransferType()));
+                    response.setTransferType(convertTransferType(activation.getTransferType()));
                     return response;
                 } else {
                     // Get the server private and device public keys to compute the transport key
@@ -259,7 +259,7 @@ public class ActivationStatusServiceBehavior {
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     response.setAdditionalData(activation.getAdditionalData());
                     response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
-                    response.setTransferType(convert(activation.getTransferType()));
+                    response.setTransferType(convertTransferType(activation.getTransferType()));
                     return response;
                 }
             } else {
@@ -322,7 +322,7 @@ public class ActivationStatusServiceBehavior {
         }
     }
 
-    private static ActivationTransferType convert(final com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType source) {
+    private static ActivationTransferType convertTransferType(final com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType source) {
         if (source == null) {
             return null;
         }
