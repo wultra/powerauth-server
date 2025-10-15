@@ -86,7 +86,7 @@ public class AsymmetricSignatureServiceBehavior {
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
             final byte[] signatureEcdsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
-            final String signatureEcdsBase64 = Base64.getEncoder().encodeToString(signatureEcdsa);
+            final String signatureEcdsaBase64 = Base64.getEncoder().encodeToString(signatureEcdsa);
             final String signatureMldsaBase64;
             if (activation.getCryptoAlgorithm() == SharedSecretAlgorithm.EC_P384_ML_L3) {
                 final byte[] signatureMldsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.MLDSA_65, dataRaw, activation);
@@ -96,7 +96,7 @@ public class AsymmetricSignatureServiceBehavior {
             }
 
             final SignAsymmetricResponse response = new SignAsymmetricResponse();
-            response.setSignatureEcdsa(signatureEcdsBase64);
+            response.setSignatureEcdsa(signatureEcdsaBase64);
             response.setSignatureMldsa(signatureMldsaBase64);
             return response;
         } catch (GenericServiceException ex) {
@@ -115,7 +115,7 @@ public class AsymmetricSignatureServiceBehavior {
      * Validate ECDSA or ML-DSA signature for given data using public key associated with given activation ID.
      *
      * @param request Request with ECDSA verification request.
-     * @return True in case signature validates for given data with provided public key, false otherwise.
+     * @return Result of signature verification.
      * @throws GenericServiceException In case signature verification fails.
      */
     @Transactional
