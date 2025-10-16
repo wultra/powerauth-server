@@ -518,6 +518,24 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public SignAsymmetricResponse signAsymmetric(SignAsymmetricRequest request) throws PowerAuthClientException {
+        return signAsymmetric(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public SignAsymmetricResponse signAsymmetric(SignAsymmetricRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/dsa/sign", request, queryParams, httpHeaders, SignAsymmetricResponse.class);
+    }
+
+    @Override
+    public SignAsymmetricResponse signAsymmetric(String activationId, String data) throws PowerAuthClientException {
+        final SignAsymmetricRequest request = new SignAsymmetricRequest();
+        request.setActivationId(activationId);
+        request.setData(data);
+        return signAsymmetric(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public VerifyAsymmetricSignatureResponse verifyAsymmetricSignature(VerifyAsymmetricSignatureRequest request) throws PowerAuthClientException {
         return verifyAsymmetricSignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
@@ -534,6 +552,26 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setData(data);
         request.setSignature(signature);
         return verifyAsymmetricSignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public SignJwtResponse signJwt(SignJwtRequest request) throws PowerAuthClientException {
+        return signJwt(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public SignJwtResponse signJwt(SignJwtRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/jwt/sign", request, queryParams, httpHeaders, SignJwtResponse.class);
+    }
+
+    @Override
+    public VerifyJwtSignatureResponse verifyJwtSignature(VerifyJwtSignatureRequest request) throws PowerAuthClientException {
+        return verifyJwtSignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public VerifyJwtSignatureResponse verifyJwtSignature(VerifyJwtSignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/jwt/verify", request, queryParams, httpHeaders, VerifyJwtSignatureResponse.class);
     }
 
     @Override
