@@ -20,9 +20,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -37,6 +35,7 @@ import com.wultra.security.powerauth.app.server.service.model.request.v4.VaultUn
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.VaultUnlockResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.util.SharedSecretExtractor;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
@@ -90,8 +89,8 @@ public class VaultUnlockServiceBehavior {
     private final EncryptionServiceAead encryptionService;
     private final ObjectMapper objectMapper;
     private final OnlineAuthenticationServiceBehavior onlineAuthenticationServiceBehavior;
-    private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
+    private final SharedSecretExtractor sharedSecretExtractor;
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -252,7 +251,7 @@ public class VaultUnlockServiceBehavior {
      * @throws GenericCryptoException  Thrown in case key derivation fails.
      */
     private String deriveVaultEncryptionKey(String keyIdentifier, ActivationRecordEntity activation) throws GenericServiceException, GenericCryptoException {
-        final SecretKey activationSecretKey = extractActivationSecretKey(activation);
+        final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
         final SecretKey vaultEncryptionKey = deriveVaultEncryptionKey(keyIdentifier, activationSecretKey);
         final byte[] keyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(vaultEncryptionKey);
         return Base64.getEncoder().encodeToString(keyBytes);
@@ -367,20 +366,6 @@ public class VaultUnlockServiceBehavior {
             logger.warn("Invalid vault unlock reason: {}", reason);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         }
-    }
-
-    /**
-     * Extract the activation secret key from activation entity.
-     *
-     * @param activation Activation entity.
-     * @return Activation shared secret key.
-     * @throws GenericServiceException Thrown in case key conversion fails.
-     */
-    private SecretKey extractActivationSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
-        final SharedSecret activationSharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
-        final String activationSecretBase64 = activationSharedSecretConverter.fromDBValue(activationSharedSecret, activation.getUserId(), activation.getActivationId());
-        final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
-        return KEY_CONVERTOR.convertBytesToSharedSecretKey(activationSecretBytes);
     }
 
 }

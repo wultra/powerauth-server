@@ -19,10 +19,12 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
-import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
-import com.wultra.security.powerauth.app.server.database.model.*;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
@@ -37,6 +39,7 @@ import com.wultra.security.powerauth.app.server.service.model.response.Decryptio
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import com.wultra.security.powerauth.app.server.service.util.ReplayAttackUtils;
+import com.wultra.security.powerauth.app.server.service.util.SharedSecretExtractor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
@@ -57,7 +60,6 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
 import java.util.Date;
 
 /**
@@ -74,21 +76,21 @@ public class EncryptionServiceAead extends EncryptionService {
     private final ReplayVerificationService replayVerificationService;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final PublicKeysConverter publicKeysConverter;
-    private final ActivationSharedSecretConverter activationSharedSecretConverter;
+    private final SharedSecretExtractor sharedSecretExtractor;
 
     private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter, ActivationSharedSecretConverter activationSharedSecretConverter) {
+    public EncryptionServiceAead(ApplicationVersionRepository applicationVersionRepository, LocalizationProvider localizationProvider, TemporaryKeyServiceAead temporaryKeyService, ActivationQueryService activationQueryService, ReplayVerificationService replayVerificationService, ServerPrivateKeysConverter serverPrivateKeysConverter, PublicKeysConverter publicKeysConverter, SharedSecretExtractor sharedSecretExtractor) {
         super(localizationProvider, applicationVersionRepository, activationQueryService);
         this.localizationProvider = localizationProvider;
         this.temporaryKeyService = temporaryKeyService;
         this.replayVerificationService = replayVerificationService;
         this.serverPrivateKeysConverter = serverPrivateKeysConverter;
         this.publicKeysConverter = publicKeysConverter;
-        this.activationSharedSecretConverter = activationSharedSecretConverter;
+        this.sharedSecretExtractor = sharedSecretExtractor;
     }
 
     @Override
@@ -155,10 +157,7 @@ public class EncryptionServiceAead extends EncryptionService {
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(devicePublicKeys);
         final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
-        final SharedSecret activationSharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
-        final String activationSecretBase64 = activationSharedSecretConverter.fromDBValue(activationSharedSecret, activation.getUserId(), activation.getActivationId());
-        final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
-        final SecretKey activationSecret = KEY_CONVERTOR.convertBytesToSharedSecretKey(activationSecretBytes);
+        final SecretKey activationSecret = sharedSecretExtractor.extractActivationSecretKey(activation);
         final SecretKey sharedInfo2Key = SERVER_KEY_FACTORY.generateSharedInfo2Key(activationSecret);
         final byte[] sharedInfo2KeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(sharedInfo2Key);
 
