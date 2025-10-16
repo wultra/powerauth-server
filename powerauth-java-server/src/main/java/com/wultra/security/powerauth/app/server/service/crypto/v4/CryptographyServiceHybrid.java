@@ -228,23 +228,23 @@ public class CryptographyServiceHybrid extends CryptographyService {
         try {
             final PublicKeyRegistry devicePublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
             final ECPublicKey devicePublicKeyEcdsa = (ECPublicKey) devicePublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                logger.error("Missing ECDSA device public key for application ID: {}", activation.getApplication().getId());
+                logger.error("Missing device ECDSA public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
             final MLDSAPublicKey devicePublicKeyMldsa = (MLDSAPublicKey) devicePublicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                logger.error("Missing ML-DSA device public key for application ID: {}", activation.getApplication().getId());
+                logger.error("Missing device ML-DSA public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
             final PublicKeyRegistry serverPublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getServerPublicKeys());
             final ECPublicKey serverPublicKeyEcdsa = (ECPublicKey) serverPublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                logger.error("Missing ECDSA server public key for application ID: {}", activation.getApplication().getId());
+                logger.error("Missing server ECDSA public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
             final MLDSAPublicKey serverPublicKeyMldsa = (MLDSAPublicKey) serverPublicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                logger.error("Missing ML-DSA server public key for application ID: {}", activation.getApplication().getId());
+                logger.error("Missing server ML-DSA public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
@@ -330,7 +330,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                 try {
                     final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
                     final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                        logger.error("Missing device public key for ECDSA for activation ID: {}", activation.getActivationId());
+                        logger.error("Missing device ECDSA public key for activation ID: {}", activation.getActivationId());
                         // Rollback is not required, database is not used for writing
                         return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     });
@@ -344,7 +344,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                 try {
                     final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
                     final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                        logger.error("Missing device public key for ML-DSA for activation ID: {}", activation.getActivationId());
+                        logger.error("Missing device ML-DSA public key for activation ID: {}", activation.getActivationId());
                         // Rollback is not required, database is not used for writing
                         return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     });
