@@ -42,6 +42,6 @@ public class VerifyJwtSignatureRequest {
     private String signedData;
 
     @Schema(description = "Signature format")
-    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWT;
+    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWS_COMPACT;
 
 }

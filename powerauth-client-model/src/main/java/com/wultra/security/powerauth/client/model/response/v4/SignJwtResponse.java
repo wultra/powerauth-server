@@ -36,6 +36,6 @@ public class SignJwtResponse {
     private String signedData;
 
     @Schema(description = "Signature format")
-    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWT;
+    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWS_COMPACT;
 
 }

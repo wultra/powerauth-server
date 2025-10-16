@@ -43,7 +43,7 @@ public class SignJwtRequest {
     private String data;
 
     @Schema(description = "Signature format")
-    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWT;
+    private JwtSignatureFormat signatureFormat = JwtSignatureFormat.JWS_COMPACT;
 
     @Schema(description = "Signature type")
     private AsymmetricSignatureType signatureType;

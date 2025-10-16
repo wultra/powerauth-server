@@ -105,13 +105,13 @@ class JwtSignatureServiceBehaviorTest {
         SignJwtRequest request = new SignJwtRequest();
         request.setActivationId(activationId);
         request.setData(dataToSign.toString());
-        request.setSignatureFormat(JwtSignatureFormat.JWT);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);
         request.setSignatureType(AsymmetricSignatureType.ECDSA);
 
         SignJwtResponse response = tested.signJwt(request);
 
         assertNotNull(response.getSignedData());
-        assertEquals(JwtSignatureFormat.JWT, response.getSignatureFormat());
+        assertEquals(JwtSignatureFormat.JWS_COMPACT, response.getSignatureFormat());
         SignedJWT jwt = SignedJWT.parse(response.getSignedData());
         assertEquals("ES384", jwt.getHeader().getAlgorithm().getName());
         assertEquals(signatureEcdsa, jwt.getSignature().toString());
@@ -160,7 +160,7 @@ class JwtSignatureServiceBehaviorTest {
         SignJwtRequest request = new SignJwtRequest();
         request.setActivationId(activationId);
         request.setData(dataToSign.toString());
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         SignJwtResponse response = tested.signJwt(request);
         assertNotNull(response.getSignedData());
@@ -194,7 +194,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         VerifyJwtSignatureResponse response = tested.verifyJwtSignature(request);
         assertTrue(response.isSignatureValid());
@@ -209,7 +209,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData("not-a-jwt");
-        request.setSignatureFormat(JwtSignatureFormat.JWT);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);
 
         assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
     }
@@ -223,7 +223,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData("fake");
-        request.setSignatureFormat(JwtSignatureFormat.JWT);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);
 
         assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
     }
@@ -254,7 +254,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         VerifyJwtSignatureResponse response = tested.verifyJwtSignature(request);
         assertTrue(response.isSignatureValid());
@@ -288,7 +288,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         VerifyJwtSignatureResponse response = tested.verifyJwtSignature(request);
         assertFalse(response.isSignatureValid());
@@ -320,7 +320,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         VerifyJwtSignatureResponse response = tested.verifyJwtSignature(request);
         assertFalse(response.isSignatureValid());
@@ -340,7 +340,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(malformedJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
     }
@@ -367,7 +367,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
     }
@@ -388,7 +388,7 @@ class JwtSignatureServiceBehaviorTest {
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
-        request.setSignatureFormat(JwtSignatureFormat.JWS);
+        request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
         assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
     }

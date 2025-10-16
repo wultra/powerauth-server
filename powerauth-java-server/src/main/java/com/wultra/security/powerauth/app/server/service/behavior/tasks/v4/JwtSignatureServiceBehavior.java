@@ -87,15 +87,15 @@ public class JwtSignatureServiceBehavior {
         final byte[] dataBytes = Base64URL.from(data).decode();
         final AsymmetricSignatureType signatureType = request.getSignatureType();
         return switch (request.getSignatureFormat()) {
-            case JWT -> signJwtInternal(dataBytes, signatureType, activation);
-            case JWS -> signJwsInternal(dataBytes, signatureType, activation);
+            case JWS_COMPACT -> signJwtInternal(dataBytes, signatureType, activation);
+            case JWS_JSON -> signJwsInternal(dataBytes, signatureType, activation);
         };
     }
 
     public SignJwtResponse signJwtInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
         final SignJwtResponse signJwtResponse = new SignJwtResponse();
-        signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWT);
+        signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);
         final JWSSigner signer = new JWSActivationSigner(
                 cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()),
                 activation
@@ -135,7 +135,7 @@ public class JwtSignatureServiceBehavior {
     private SignJwtResponse signJwsInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
         final SignJwtResponse signJwtResponse = new SignJwtResponse();
-        signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS);
+        signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
         final JWSSigner signer = new JWSActivationSigner(
                 cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()),
                 activation
@@ -200,7 +200,7 @@ public class JwtSignatureServiceBehavior {
         activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
         try {
-            if (request.getSignatureFormat() == JwtSignatureFormat.JWT) {
+            if (request.getSignatureFormat() == JwtSignatureFormat.JWS_COMPACT) {
                 final SignedJWT signedJWT = SignedJWT.parse(signedData);
                 final JWSActivationVerifier verifier = new JWSActivationVerifier(
                         cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()),

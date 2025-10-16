@@ -27,13 +27,13 @@ package com.wultra.security.powerauth.client.model.enumeration.v4;
 public enum JwtSignatureFormat {
 
     /**
-     * Signature is in a JWT format.
+     * Signature is in a JWS compact serialization format.
      */
-    JWT,
+    JWS_COMPACT,
 
     /**
-     * Signature is in a JWS format.
+     * Signature is in a JWS JSON serialization format.
      */
-    JWS
+    JWS_JSON
 
 }
