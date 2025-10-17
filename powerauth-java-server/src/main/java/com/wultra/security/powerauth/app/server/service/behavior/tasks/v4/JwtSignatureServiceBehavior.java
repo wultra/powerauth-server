@@ -101,17 +101,17 @@ public class JwtSignatureServiceBehavior {
                 activation
         );
         final JWSHeader header = switch (sharedSecretAlgorithm) {
-            case EC_P256 -> new JWSHeader.Builder(JWSAlgorithm.ES256).build();
-            case EC_P384 -> new JWSHeader.Builder(JWSAlgorithm.ES384).build();
+            case EC_P256 -> new JWSHeader(JWSAlgorithm.ES256);
+            case EC_P384 -> new JWSHeader(JWSAlgorithm.ES384);
             case EC_P384_ML_L3 -> {
                 if (signatureType == null) {
-                    yield new JWSHeader.Builder(JWSAlgorithm.ES384).build();
+                    yield new JWSHeader(JWSAlgorithm.ES384);
                 } else {
                     final JWSAlgorithm alg = switch (signatureType) {
                         case ECDSA -> JWSAlgorithm.ES384;
                         case MLDSA -> new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65);
                     };
-                    yield new JWSHeader.Builder(alg).build();
+                    yield new JWSHeader(alg);
                 }
             }
             default -> {
@@ -145,17 +145,17 @@ public class JwtSignatureServiceBehavior {
             final JWSObjectJSON jwsObject = new JWSObjectJSON(payload);
             switch (sharedSecretAlgorithm) {
                 case EC_P256 -> {
-                    final JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).build();
+                    final JWSHeader header = new JWSHeader(JWSAlgorithm.ES256);
                     jwsObject.sign(header, signer);
                 }
                 case EC_P384 -> {
-                    final JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES384).build();
+                    final JWSHeader header = new JWSHeader(JWSAlgorithm.ES384);
                     jwsObject.sign(header, signer);
                 }
                 case EC_P384_ML_L3 -> {
                     if (signatureType == null) {
-                        final JWSHeader ecdsaHeader = new JWSHeader.Builder(JWSAlgorithm.ES384).build();
-                        final JWSHeader mldsaHeader = new JWSHeader.Builder(new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65)).build();
+                        final JWSHeader ecdsaHeader = new JWSHeader(JWSAlgorithm.ES384);
+                        final JWSHeader mldsaHeader = new JWSHeader(new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65));
                         jwsObject.sign(ecdsaHeader, signer);
                         jwsObject.sign(mldsaHeader, signer);
                     } else {
@@ -163,7 +163,7 @@ public class JwtSignatureServiceBehavior {
                             case ECDSA -> JWSAlgorithm.ES384;
                             case MLDSA -> new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65);
                         };
-                        final JWSHeader header = new JWSHeader.Builder(alg).build();
+                        final JWSHeader header = new JWSHeader(alg);
                         jwsObject.sign(header, signer);
                     }
                 }
