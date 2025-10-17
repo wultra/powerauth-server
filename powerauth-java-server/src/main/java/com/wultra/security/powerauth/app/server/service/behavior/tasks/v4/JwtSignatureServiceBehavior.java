@@ -217,21 +217,23 @@ public class JwtSignatureServiceBehavior {
                         activation
                 );
 
-                int verifiedCount = 0;
-                for (JWSObjectJSON.Signature signature : jwsObject.getSignatures()) {
-                    final JWSHeader header = signature.getHeader();
-                    if (verifier.supportedJWSAlgorithms().contains(header.getAlgorithm())) {
-                        if (signature.verify(verifier)) {
-                            verifiedCount++;
-                        }
-                    }
-                }
+                final boolean allSignaturesValid = jwsObject.getSignatures().stream()
+                        .allMatch(sig -> {
+                            try {
+                                return sig.verify(verifier);
+                            } catch (JOSEException e) {
+                                logger.warn("Error occurred while verifying JWT signature: {}", e.getMessage(), e);
+                                return false;
+                            }
+                        });
+
                 return VerifyJwtSignatureResponse.builder()
-                        .signatureValid(verifiedCount == jwsObject.getSignatures().size())
+                        .signatureValid(allSignaturesValid)
                         .build();
+
             }
         } catch (Exception e) {
-            logger.warn("Error occurred while verifying JWT/JWS: {}", e.getMessage(), e);
+            logger.warn("Error occurred while verifying JWT signature: {}", e.getMessage(), e);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
     }

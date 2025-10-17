@@ -281,9 +281,9 @@ class JwtSignatureServiceBehaviorTest {
         when(activationQueryService.findActivationWithoutLock(activationId)).thenReturn(Optional.of(activation));
         when(cryptographyServiceFactory.getService(any())).thenReturn(cryptographyService);
         when(cryptographyService.verifySignatureForActivation(eq(KeyType.ECDSA_P384), any(), any(), eq(activation)))
-                .thenReturn(false);
-        when(cryptographyService.verifySignatureForActivation(eq(KeyType.MLDSA_65), any(), any(), eq(activation)))
                 .thenReturn(true);
+        when(cryptographyService.verifySignatureForActivation(eq(KeyType.MLDSA_65), any(), any(), eq(activation)))
+                .thenReturn(false);
 
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
@@ -346,7 +346,7 @@ class JwtSignatureServiceBehaviorTest {
     }
 
     @Test
-    void verifyJwsSignature_invalidBase64Payload() {
+    void verifyJwsSignature_invalidBase64Payload() throws GenericServiceException {
         String jwsJson = """
         {
           "payload": "UGF5bG9h#ZA",
@@ -361,15 +361,15 @@ class JwtSignatureServiceBehaviorTest {
 
         when(activationQueryService.findActivationWithoutLock(activationId))
                 .thenReturn(Optional.of(activation));
-        when(localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST))
-                .thenReturn(new GenericServiceException(ServiceError.INVALID_REQUEST, "Invalid Base64 payload"));
+        when(cryptographyServiceFactory.getService(any())).thenReturn(cryptographyService);
 
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
         request.setSignedData(jwsJson);
         request.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
 
-        assertThrows(GenericServiceException.class, () -> tested.verifyJwtSignature(request));
+        VerifyJwtSignatureResponse response = tested.verifyJwtSignature(request);
+        assertFalse(response.isSignatureValid());
     }
 
     @Test
@@ -383,7 +383,7 @@ class JwtSignatureServiceBehaviorTest {
         when(activationQueryService.findActivationWithoutLock(activationId))
                 .thenReturn(Optional.of(activation));
         when(localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST))
-                .thenReturn(new GenericServiceException(ServiceError.INVALID_REQUEST, "Missing signatures array"));
+                .thenReturn(new GenericServiceException(ServiceError.INVALID_REQUEST, "Missing signatures"));
 
         VerifyJwtSignatureRequest request = new VerifyJwtSignatureRequest();
         request.setActivationId(activationId);
