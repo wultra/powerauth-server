@@ -165,7 +165,6 @@ public class OfflineSignatureServiceBehavior {
             // {DATA} consist of data from request plus optional generated proximity TOTP value
             final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            // TODO - v4 support
             final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(KeyType.ECDSA_P256, signatureBase, activation);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
@@ -245,7 +244,6 @@ public class OfflineSignatureServiceBehavior {
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            // TODO - v4 support
             final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForApplication(KeyType.ECDSA_P256, signatureBase, application);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 

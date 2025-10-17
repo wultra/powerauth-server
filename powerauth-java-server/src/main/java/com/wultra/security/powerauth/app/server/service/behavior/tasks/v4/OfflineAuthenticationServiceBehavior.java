@@ -18,6 +18,10 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
@@ -33,6 +37,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.*;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.util.SharedSecretExtractor;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
@@ -46,6 +51,8 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
+import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
+import com.wultra.security.powerauth.crypto.lib.v4.kdf.Kmac;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +60,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -73,7 +81,7 @@ public class OfflineAuthenticationServiceBehavior {
 
     private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
     private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
-    private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
+    private static final byte[] KMAC_JOSE_SIGNATURE_CUSTOM_BYTES = "JOSE".getBytes(StandardCharsets.UTF_8);
 
     private final AuthenticationSharedServiceBehavior authenticationSharedServiceBehavior;
     private final ActivationQueryService activationQueryService;
@@ -82,6 +90,7 @@ public class OfflineAuthenticationServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationRepository applicationRepository;
+    private final SharedSecretExtractor sharedSecretExtractor;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -158,16 +167,20 @@ public class OfflineAuthenticationServiceBehavior {
 
             final String nonce = fetchNonce(offlineAuthenticationParameter);
 
-            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
+            // Compute KMAC-256 of '{DATA}\n{NONCE}
             // {DATA} consist of data from request plus optional generated proximity TOTP value
             final String dataPlusNonce = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
-            final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            // TODO - v4 support using KMAC
-            final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, signatureBase, activation);
-            final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
+            final byte[] kmacData = (dataPlusNonce).getBytes(StandardCharsets.UTF_8);
 
-            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
-            final String offlineData = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
+            final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
+            final SecretKey keyMacPersonalisedData = KeyFactory.deriveKeyMacPersonalizedData(activationSecretKey);
+
+            // Construct KMAC-256 tag
+            final byte[] tagKmac = Kmac.kmac256(keyMacPersonalisedData, kmacData, KMAC_JOSE_SIGNATURE_CUSTOM_BYTES, 64);
+            final String signature = createJwsJson(Base64URL.encode(tagKmac));
+
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{SIGNATURE}'
+            final String offlineData = (dataPlusNonce + "\n" + signature);
 
             // Return the result
             final CreatePersonalizedOfflineAuthPayloadResponse response = new CreatePersonalizedOfflineAuthPayloadResponse();
@@ -188,6 +201,20 @@ public class OfflineAuthenticationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    /**
+     * Create a JSON with JWS signatures from a KMAC-256 tag.
+     * @param kmacTag KMAC-256 tag.
+     * @return JSON with JWS signatures array.
+     */
+    private String createJwsJson(Base64URL kmacTag) {
+        final JWSHeader header = new JWSHeader.Builder(new JWSAlgorithm("KMAC256")).build();
+        final Base64URL protectedHeader = header.toBase64URL();
+        final Map<String, Object> signatureMap = new LinkedHashMap<>();
+        signatureMap.put("protected", protectedHeader.toString());
+        signatureMap.put("signature", kmacTag.toString());
+        return "[" + JSONObjectUtils.toJSONString(signatureMap) + "]";
     }
 
     private static String fetchDataAndTotp(OfflineAuthenticationParameter request, int digitsNumber) throws CryptoProviderException {
@@ -242,7 +269,6 @@ public class OfflineAuthenticationServiceBehavior {
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
-            // TODO - v4 support using KMAC
             final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).generateSignatureForApplication(KeyType.ECDSA_P384, signatureBase, application);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
