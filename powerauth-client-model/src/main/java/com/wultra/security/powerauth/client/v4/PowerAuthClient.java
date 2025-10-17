@@ -608,6 +608,36 @@ public interface PowerAuthClient {
     VaultUnlockResponse unlockVault(VaultUnlockRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
+     * Call the signAsymmetric method of the PowerAuth Server interface.
+     *
+     * @param request {@link SignAsymmetricRequest} instance.
+     * @return {@link SignAsymmetricResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    SignAsymmetricResponse signAsymmetric(SignAsymmetricRequest request) throws PowerAuthClientException;
+
+    /**
+     * Call the signAsymmetric method of the PowerAuth Server interface.
+     *
+     * @param request {@link SignAsymmetricRequest} instance.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return {@link SignAsymmetricResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    SignAsymmetricResponse signAsymmetric(SignAsymmetricRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Call the signAsymmetric method of the PowerAuth Server interface.
+     *
+     * @param activationId Activation ID of activation to be used for authentication.
+     * @param data         Data to be signed by asymmetric signature algorithm.
+     * @return Sign data using asymmetric signature algorithm and return REST response with results
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    SignAsymmetricResponse signAsymmetric(String activationId, String data) throws PowerAuthClientException;
+
+    /**
      * Call the verifyAsymmetricSignature method of the PowerAuth Server interface.
      *
      * @param request {@link VerifyAsymmetricSignatureRequest} instance.
@@ -637,6 +667,46 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     VerifyAsymmetricSignatureResponse verifyAsymmetricSignature(String activationId, String data, String signature) throws PowerAuthClientException;
+
+    /**
+     * Call the signJwt method of the PowerAuth Server interface.
+     *
+     * @param request {@link SignJwtRequest} instance.
+     * @return {@link SignJwtResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    SignJwtResponse signJwt(SignJwtRequest request) throws PowerAuthClientException;
+
+    /**
+     * Call the signJwt method of the PowerAuth Server interface.
+     *
+     * @param request {@link SignJwtRequest} instance.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return {@link SignJwtResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    SignJwtResponse signJwt(SignJwtRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Call the verifyJwtSignature method of the PowerAuth Server interface.
+     *
+     * @param request {@link VerifyJwtSignatureRequest} instance.
+     * @return {@link VerifyJwtSignatureResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    VerifyJwtSignatureResponse verifyJwtSignature(VerifyJwtSignatureRequest request) throws PowerAuthClientException;
+
+    /**
+     * Call the verifyJwtSignature method of the PowerAuth Server interface.
+     *
+     * @param request {@link VerifyJwtSignatureRequest} instance.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return {@link VerifyJwtSignatureResponse}
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    VerifyJwtSignatureResponse verifyJwtSignature(VerifyJwtSignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getSignatureAuditLog method of the PowerAuth Server interface.
