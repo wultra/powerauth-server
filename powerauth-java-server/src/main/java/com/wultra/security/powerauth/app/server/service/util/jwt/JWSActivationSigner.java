@@ -38,16 +38,12 @@ import java.util.Set;
  */
 public class JWSActivationSigner implements JWSSigner {
 
-    public static final String JWT_ALGORITHM_NAME_ES256 = "ES256";
-    public static final String JWT_ALGORITHM_NAME_ES384 = "ES384";
-    public static final String JWT_ALGORITHM_NAME_MLDSA_65 = "MLDSA-65";
-
     private final CryptographyService cryptoService;
     private final ActivationRecordEntity activation;
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_ES256),
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_ES384),
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65)
+            JWSAlgorithm.ES256,
+            JWSAlgorithm.ES384,
+            JWSAlgorithmMLDSA.MLDSA65
     );
     private final JCAContext jcaContext = new JCAContext();
 
@@ -78,9 +74,9 @@ public class JWSActivationSigner implements JWSSigner {
 
     private KeyType convertToKeyType(JWSHeader jwsHeader) {
         return switch (jwsHeader.getAlgorithm().getName()) {
-            case JWT_ALGORITHM_NAME_ES256 -> KeyType.ECDSA_P256;
-            case JWT_ALGORITHM_NAME_ES384 -> KeyType.ECDSA_P384;
-            case JWT_ALGORITHM_NAME_MLDSA_65 -> KeyType.MLDSA_65;
+            case "ES256" -> KeyType.ECDSA_P256;
+            case "ES384" -> KeyType.ECDSA_P384;
+            case "ML-DSA-65" -> KeyType.MLDSA_65;
             default -> throw new IllegalArgumentException("Unsupported JWT algorithm: " + jwsHeader.getAlgorithm().getName());
         };
     }

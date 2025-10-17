@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSActivationSigner;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSActivationVerifier;
+import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.v4.JwtSignatureFormat;
@@ -42,8 +43,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.wultra.security.powerauth.app.server.service.util.jwt.JWSActivationSigner.JWT_ALGORITHM_NAME_MLDSA_65;
 
 /**
  * Behavior class implementing the asymmetric JWT signature related processes. The
@@ -109,7 +108,7 @@ public class JwtSignatureServiceBehavior {
                 } else {
                     final JWSAlgorithm alg = switch (signatureType) {
                         case ECDSA -> JWSAlgorithm.ES384;
-                        case MLDSA -> new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65);
+                        case MLDSA -> JWSAlgorithmMLDSA.MLDSA65;
                     };
                     yield new JWSHeader(alg);
                 }
@@ -155,13 +154,13 @@ public class JwtSignatureServiceBehavior {
                 case EC_P384_ML_L3 -> {
                     if (signatureType == null) {
                         final JWSHeader ecdsaHeader = new JWSHeader(JWSAlgorithm.ES384);
-                        final JWSHeader mldsaHeader = new JWSHeader(new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65));
+                        final JWSHeader mldsaHeader = new JWSHeader(JWSAlgorithmMLDSA.MLDSA65);
                         jwsObject.sign(ecdsaHeader, signer);
                         jwsObject.sign(mldsaHeader, signer);
                     } else {
                         final JWSAlgorithm alg = switch (signatureType) {
                             case ECDSA -> JWSAlgorithm.ES384;
-                            case MLDSA -> new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65);
+                            case MLDSA -> JWSAlgorithmMLDSA.MLDSA65;
                         };
                         final JWSHeader header = new JWSHeader(alg);
                         jwsObject.sign(header, signer);

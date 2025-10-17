@@ -31,8 +31,6 @@ import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServi
 
 import java.util.Set;
 
-import static com.wultra.security.powerauth.app.server.service.util.jwt.JWSActivationSigner.*;
-
 /**
  * Verifier for JWT for PowerAuth activations.
  *
@@ -45,9 +43,9 @@ public class JWSActivationVerifier implements JWSVerifier {
     private final JCAContext jcaContext = new JCAContext();
 
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_ES256),
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_ES384),
-            new JWSAlgorithm(JWT_ALGORITHM_NAME_MLDSA_65)
+            JWSAlgorithm.ES256,
+            JWSAlgorithm.ES384,
+            JWSAlgorithmMLDSA.MLDSA65
     );
 
     public JWSActivationVerifier(CryptographyService cryptoService, ActivationRecordEntity activation) {
@@ -78,9 +76,9 @@ public class JWSActivationVerifier implements JWSVerifier {
 
     private KeyType convertToKeyType(JWSHeader jwsHeader) {
         return switch (jwsHeader.getAlgorithm().getName()) {
-            case JWT_ALGORITHM_NAME_ES256 -> KeyType.ECDSA_P256;
-            case JWT_ALGORITHM_NAME_ES384 -> KeyType.ECDSA_P384;
-            case JWT_ALGORITHM_NAME_MLDSA_65 -> KeyType.MLDSA_65;
+            case "ES256" -> KeyType.ECDSA_P256;
+            case "ES384" -> KeyType.ECDSA_P384;
+            case "ML-DSA-65" -> KeyType.MLDSA_65;
             default -> throw new IllegalArgumentException("Unsupported JWT algorithm: " + jwsHeader.getAlgorithm().getName());
         };
     }

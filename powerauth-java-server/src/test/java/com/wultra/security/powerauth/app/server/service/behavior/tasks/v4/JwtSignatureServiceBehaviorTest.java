@@ -174,7 +174,7 @@ class JwtSignatureServiceBehaviorTest {
         assertEquals("eyJhbGciOiJFUzM4NCJ9", es384Sig.get("protected").asText());
         assertEquals(signatureEcdsa, es384Sig.get("signature").asText());
         JsonNode mlDsaSig = signatures.get(1);
-        assertEquals("eyJhbGciOiJNTERTQS02NSJ9", mlDsaSig.get("protected").asText());
+        assertEquals("eyJhbGciOiJNTC1EU0EtNjUifQ", mlDsaSig.get("protected").asText());
         assertEquals(signatureMldsa, mlDsaSig.get("signature").asText());
     }
 
@@ -239,7 +239,7 @@ class JwtSignatureServiceBehaviorTest {
           "signature": "c2lnMQ"
         },
         {
-          "protected": "eyJhbGciOiJNTERTQS02NSJ9",
+          "protected": "eyJhbGciOiJNTC1EU0EtNjUifQ",
           "signature": "c2lnMg"
         }
       ]
@@ -271,7 +271,7 @@ class JwtSignatureServiceBehaviorTest {
           "signature": "c2lnMQ"
         },
         {
-          "protected": "eyJhbGciOiJNTERTQS02NSJ9",
+          "protected": "eyJhbGciOiJNTC1EU0EtNjUifQ",
           "signature": "c2lnMg"
         }
       ]
