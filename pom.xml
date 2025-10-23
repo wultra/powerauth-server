@@ -103,6 +103,7 @@
         <logstash.version>8.1</logstash.version>
         <equalsverifier.version>4.2</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
+        <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.29.7.RELEASE</webauthn4j.version>
@@ -350,6 +351,11 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>${cyclonedx-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
