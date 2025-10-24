@@ -55,10 +55,12 @@ public class ApplicationConfigServiceBehavior {
 
     public static final String CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE = "disable_biometry_unlock_kek_device_private";
     public static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
+    public static final String CONFIG_KEY_ACTIVATION_TRANSFER = "activation_transfer";
 
     private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
             CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS,
-            CONFIG_KEY_OAUTH2_PROVIDERS, CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE);
+            CONFIG_KEY_OAUTH2_PROVIDERS, CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE,
+            CONFIG_KEY_ACTIVATION_TRANSFER);
 
     private final LocalizationProvider localizationProvider;
     private final ApplicationConfigService applicationConfigService;
