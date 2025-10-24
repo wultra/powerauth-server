@@ -86,12 +86,12 @@ public class JwtSignatureServiceBehavior {
         final byte[] dataBytes = Base64URL.from(data).decode();
         final AsymmetricSignatureType signatureType = request.getSignatureType();
         return switch (request.getSignatureFormat()) {
-            case JWS_COMPACT -> signJwtInternal(dataBytes, signatureType, activation);
-            case JWS_JSON -> signJwsInternal(dataBytes, signatureType, activation);
+            case JWS_COMPACT -> signJwsCompactInternal(dataBytes, signatureType, activation);
+            case JWS_JSON -> signJwsJsonInternal(dataBytes, signatureType, activation);
         };
     }
 
-    public SignJwtResponse signJwtInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
+    public SignJwtResponse signJwsCompactInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
         final SignJwtResponse signJwtResponse = new SignJwtResponse();
         signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);
@@ -131,7 +131,7 @@ public class JwtSignatureServiceBehavior {
         }
     }
 
-    private SignJwtResponse signJwsInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
+    private SignJwtResponse signJwsJsonInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
         final SignJwtResponse signJwtResponse = new SignJwtResponse();
         signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS_JSON);
