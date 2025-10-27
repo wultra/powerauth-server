@@ -25,6 +25,7 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
+import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
@@ -57,8 +58,17 @@ public class JWSActivationVerifier implements JWSVerifier {
     public boolean verify(JWSHeader header, byte[] signedData, Base64URL signature) throws JOSEException {
         try {
             final KeyType keyType = convertToKeyType(header);
-            final byte[] signatureBytes = signature.decode();
-            return cryptoService.verifySignatureForActivation(keyType, signedData, signatureBytes, activation);
+            final byte[] rawSignature = signature.decode();
+            final JWSAlgorithm alg = header.getAlgorithm();
+
+            final byte[] signatureToVerify;
+            if (JWSAlgorithm.Family.EC.contains(alg)) {
+                signatureToVerify = ECDSA.transcodeSignatureToDER(rawSignature);
+            } else {
+                signatureToVerify = rawSignature;
+            }
+
+            return cryptoService.verifySignatureForActivation(keyType, signedData, signatureToVerify, activation);
         } catch (Exception e) {
             throw new JOSEException("Verification failed", e);
         }

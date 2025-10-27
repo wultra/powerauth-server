@@ -23,6 +23,7 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
@@ -55,8 +56,16 @@ public class JWSActivationSigner implements JWSSigner {
     @Override
     public Base64URL sign(JWSHeader header, byte[] dataToSign) throws JOSEException {
         try {
-            final byte[] signatureBytes = cryptoService.generateSignatureForActivation(convertToKeyType(header), dataToSign, activation);
-            return Base64URL.encode(signatureBytes);
+            final byte[] derSignature = cryptoService.generateSignatureForActivation(convertToKeyType(header), dataToSign, activation);
+            final JWSAlgorithm alg = header.getAlgorithm();
+            final byte[] jwsSignature;
+            if (JWSAlgorithm.Family.EC.contains(alg)) {
+                jwsSignature = ECDSA.transcodeSignatureToConcat(derSignature, ECDSA.getSignatureByteArrayLength(alg));
+            } else {
+                jwsSignature = derSignature;
+            }
+
+            return Base64URL.encode(jwsSignature);
         } catch (Exception e) {
             throw new JOSEException("Signature generation failed", e);
         }
