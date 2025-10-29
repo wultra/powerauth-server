@@ -64,7 +64,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
 /**
- * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65.
+ * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65 / ML-DSA-87.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */

@@ -33,4 +33,6 @@ public final class JWSAlgorithmMLDSA {
 
     public static final JWSAlgorithm MLDSA65 = new JWSAlgorithm("ML-DSA-65");
 
+    public static final JWSAlgorithm MLDSA87 = new JWSAlgorithm("ML-DSA-87");
+
 }

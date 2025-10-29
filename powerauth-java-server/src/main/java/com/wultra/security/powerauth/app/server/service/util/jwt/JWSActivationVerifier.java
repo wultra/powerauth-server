@@ -89,6 +89,7 @@ public class JWSActivationVerifier implements JWSVerifier {
             case "ES256" -> KeyType.ECDSA_P256;
             case "ES384" -> KeyType.ECDSA_P384;
             case "ML-DSA-65" -> KeyType.MLDSA_65;
+            case "ML-DSA-87" -> KeyType.MLDSA_87;
             default -> throw new IllegalArgumentException("Unsupported JWT algorithm: " + jwsHeader.getAlgorithm().getName());
         };
     }
