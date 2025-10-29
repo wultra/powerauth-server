@@ -18,10 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.util.Base64URL;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
@@ -81,7 +77,8 @@ public class OfflineAuthenticationServiceBehavior {
 
     private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
     private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
-    private static final byte[] KMAC_JOSE_SIGNATURE_CUSTOM_BYTES = "JOSE".getBytes(StandardCharsets.UTF_8);
+    private static final String KEY_MAC_PERSONALIZED_DATA = "2";
+    private static final byte[] KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES = "PA4MAC-QR".getBytes(StandardCharsets.UTF_8);
 
     private final AuthenticationSharedServiceBehavior authenticationSharedServiceBehavior;
     private final ActivationQueryService activationQueryService;
@@ -167,20 +164,20 @@ public class OfflineAuthenticationServiceBehavior {
 
             final String nonce = fetchNonce(offlineAuthenticationParameter);
 
-            // Compute KMAC-256 of '{DATA}\n{NONCE}
+            // Compute KMAC-256 of '{DATA}\n{NONCE}\n{KEY_MAC_PERSONALIZED_DATA}
             // {DATA} consist of data from request plus optional generated proximity TOTP value
-            final String dataPlusNonce = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
-            final byte[] kmacData = (dataPlusNonce).getBytes(StandardCharsets.UTF_8);
+            final String signedData = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce + "\n" + KEY_MAC_PERSONALIZED_DATA;
+            final byte[] kmacData = (signedData).getBytes(StandardCharsets.UTF_8);
 
             final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
             final SecretKey keyMacPersonalisedData = KeyFactory.deriveKeyMacPersonalizedData(activationSecretKey);
 
             // Construct KMAC-256 tag
-            final byte[] tagKmac = Kmac.kmac256(keyMacPersonalisedData, kmacData, KMAC_JOSE_SIGNATURE_CUSTOM_BYTES, 64);
-            final String signature = createJwsJson(Base64URL.encode(tagKmac));
+            final byte[] tagKmac = Kmac.kmac256(keyMacPersonalisedData, kmacData, KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES, 32);
+            final String signature = Base64.getEncoder().encodeToString(tagKmac);
 
-            // Construct complete offline data as '{DATA}\n{NONCE}\n{SIGNATURE}'
-            final String offlineData = (dataPlusNonce + "\n" + signature);
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MAC_PERSONALIZED_DATA}{SIGNATURE}'
+            final String offlineData = (signedData + signature);
 
             // Return the result
             final CreatePersonalizedOfflineAuthPayloadResponse response = new CreatePersonalizedOfflineAuthPayloadResponse();
@@ -201,20 +198,6 @@ public class OfflineAuthenticationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-    }
-
-    /**
-     * Create a JSON with JWS signatures from a KMAC-256 tag.
-     * @param kmacTag KMAC-256 tag.
-     * @return JSON with JWS signatures array.
-     */
-    private String createJwsJson(Base64URL kmacTag) {
-        final JWSHeader header = new JWSHeader.Builder(new JWSAlgorithm("KMAC256")).build();
-        final Base64URL protectedHeader = header.toBase64URL();
-        final Map<String, Object> signatureMap = new LinkedHashMap<>();
-        signatureMap.put("protected", protectedHeader.toString());
-        signatureMap.put("signature", kmacTag.toString());
-        return "[" + JSONObjectUtils.toJSONString(signatureMap) + "]";
     }
 
     private static String fetchDataAndTotp(OfflineAuthenticationParameter request, int digitsNumber) throws CryptoProviderException {
