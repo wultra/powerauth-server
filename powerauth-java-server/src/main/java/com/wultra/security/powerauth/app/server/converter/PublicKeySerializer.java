@@ -64,7 +64,7 @@ public class PublicKeySerializer extends JsonSerializer<PublicKey> {
                     }
                     break;
                 }
-                case "ML-DSA-65": {
+                case "ML-DSA-65", "ML-DSA-87": {
                     gen.writeString(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
                     break;
                 }

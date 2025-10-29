@@ -19,7 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -72,7 +71,7 @@ public class PublicKeyRegistryDeserializer extends JsonDeserializer<PublicKeyReg
             return switch (keyType) {
                 case ECDSA_P256 -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P256, encodedKey);
                 case ECDSA_P384 -> KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, encodedKey);
-                case MLDSA_65 -> KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
+                case MLDSA_65, MLDSA_87 -> KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(encodedKey);
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug(e.getMessage(), e);

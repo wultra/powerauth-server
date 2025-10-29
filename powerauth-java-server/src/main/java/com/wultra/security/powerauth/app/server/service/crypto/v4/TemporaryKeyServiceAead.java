@@ -250,7 +250,8 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             return "Shared secret algorithm must be specified.";
         }
         if (!SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
-                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+                && !SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
             return "Invalid shared secret algorithm value.";
         }
         if (SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
@@ -258,12 +259,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 return "Shared secret ecdhe value must be specified for algorithm EC_P384.";
             }
         }
-        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+            || SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
             if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
-                return "Shared secret ecdhe value must be specified for algorithm EC_P384_ML_L3.";
+                return "Shared secret ecdhe value must be specified for hybrid algorithm.";
             }
             if (requestClaims.getSharedSecretRequest().getMlkem() == null) {
-                return "Shared secret mlkem value must be specified for algorithm EC_P384_ML_L3.";
+                return "Shared secret mlkem value must be specified for hybrid algorithm.";
             }
         }
         return null;

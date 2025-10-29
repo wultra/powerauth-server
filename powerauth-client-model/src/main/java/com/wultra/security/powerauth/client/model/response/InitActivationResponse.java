@@ -42,7 +42,10 @@ public class InitActivationResponse {
     private String activationSignatureEcdsa;
 
     @ToString.Exclude
-    private String activationSignatureMldsa;
+    private String activationSignatureMldsa65;
+
+    @ToString.Exclude
+    private String activationSignatureMldsa87;
 
     private String userId;
 

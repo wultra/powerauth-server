@@ -140,7 +140,7 @@ public class PasswordServiceBehavior {
                         throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     }
                 }
-                case EC_P384_ML_L3 -> {
+                case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                     try {
                         final SharedSecretRequestHybrid sharedSecretRequestHybrid = new SharedSecretRequestHybrid();
                         sharedSecretRequestHybrid.setEcClientPublicKey(sharedSecretRequest.getEcdhe());

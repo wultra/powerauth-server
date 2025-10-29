@@ -179,8 +179,13 @@ public class ActivationInitServiceBehavior {
                     activationCode.getBytes(StandardCharsets.UTF_8),
                     application
             );
-            final byte[] activationSignatureV4Mldsa = cryptographyServiceV4.generateSignatureForApplication(
+            final byte[] activationSignatureV4Mldsa65 = cryptographyServiceV4.generateSignatureForApplication(
                     KeyType.MLDSA_65,
+                    activationCode.getBytes(StandardCharsets.UTF_8),
+                    application
+            );
+            final byte[] activationSignatureV4Mldsa87 = cryptographyServiceV4.generateSignatureForApplication(
+                    KeyType.MLDSA_87,
                     activationCode.getBytes(StandardCharsets.UTF_8),
                     application
             );
@@ -188,7 +193,8 @@ public class ActivationInitServiceBehavior {
             // Encode the signature
             final String activationSignatureV3Base64 = Base64.getEncoder().encodeToString(activationSignatureV3);
             final String activationSignatureV4EcdsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa);
-            final String activationSignatureV4MldsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa);
+            final String activationSignatureV4Mldsa65Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa65);
+            final String activationSignatureV4Mldsa87Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa87);
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation
@@ -231,6 +237,7 @@ public class ActivationInitServiceBehavior {
             // Generate server key pairs
             cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
             cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateServerKeyPair(activation);
+            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L5).generateServerKeyPair(activation);
 
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);
@@ -246,7 +253,8 @@ public class ActivationInitServiceBehavior {
             response.setUserId(userId);
             response.setActivationSignature(activationSignatureV3Base64);
             response.setActivationSignatureEcdsa(activationSignatureV4EcdsaBase64);
-            response.setActivationSignatureMldsa(activationSignatureV4MldsaBase64);
+            response.setActivationSignatureMldsa65(activationSignatureV4Mldsa65Base64);
+            response.setActivationSignatureMldsa87(activationSignatureV4Mldsa87Base64);
             response.setApplicationId(activation.getApplication().getId());
 
             return response;
