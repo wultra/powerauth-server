@@ -164,10 +164,10 @@ public class OfflineAuthenticationServiceBehavior {
 
             final String nonce = fetchNonce(offlineAuthenticationParameter);
 
-            // Compute KMAC-256 of '{DATA}\n{NONCE}
+            // Compute KMAC-256 of '{DATA}\n{NONCE}\n{KEY_MAC_PERSONALIZED_DATA}
             // {DATA} consist of data from request plus optional generated proximity TOTP value
-            final String dataPlusNonce = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
-            final byte[] kmacData = (dataPlusNonce).getBytes(StandardCharsets.UTF_8);
+            final String signedData = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce + "\n" + KEY_MAC_PERSONALIZED_DATA;
+            final byte[] kmacData = (signedData).getBytes(StandardCharsets.UTF_8);
 
             final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
             final SecretKey keyMacPersonalisedData = KeyFactory.deriveKeyMacPersonalizedData(activationSecretKey);
@@ -177,7 +177,7 @@ public class OfflineAuthenticationServiceBehavior {
             final String signature = Base64.getEncoder().encodeToString(tagKmac);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MAC_PERSONALIZED_DATA}{SIGNATURE}'
-            final String offlineData = (dataPlusNonce + "\n" + KEY_MAC_PERSONALIZED_DATA + signature);
+            final String offlineData = (signedData + signature);
 
             // Return the result
             final CreatePersonalizedOfflineAuthPayloadResponse response = new CreatePersonalizedOfflineAuthPayloadResponse();
