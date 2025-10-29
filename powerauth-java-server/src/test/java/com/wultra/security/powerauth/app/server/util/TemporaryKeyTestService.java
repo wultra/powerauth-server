@@ -130,7 +130,7 @@ public class TemporaryKeyTestService {
             sharedSecretRequest.setAlgorithm("EC_P384");
             sharedSecretRequest.setEcdhe(ecdhe.getEcClientPublicKey());
         } else if (request instanceof SharedSecretRequestHybrid hybrid) {
-            sharedSecretRequest.setAlgorithm("EC_P384_ML_L3");
+            sharedSecretRequest.setAlgorithm("EC_P384_ML_L5");
             sharedSecretRequest.setEcdhe(hybrid.getEcClientPublicKey());
             sharedSecretRequest.setMlkem(hybrid.getPqcEncapsulationKey());
         } else {
@@ -202,7 +202,7 @@ public class TemporaryKeyTestService {
 
         return switch (signature.getHeader().getAlgorithm().getName()) {
             case "ES384" -> SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), convertRawSignatureToDER(signature.getSignature().decode()), publicKey);
-            case "ML-DSA-65" -> PQC_DSA.verify(publicKey, signingInput.getBytes(StandardCharsets.UTF_8), signature.getSignature().decode());
+            case "ML-DSA-87" -> PQC_DSA.verify(publicKey, signingInput.getBytes(StandardCharsets.UTF_8), signature.getSignature().decode());
             default -> throw new IllegalStateException("Unexpected value: " + signature.getHeader().getAlgorithm().getName());
         };
     }

@@ -191,7 +191,7 @@ class TemporaryKeyBehaviorTest {
 
         assertEquals(2, jws.getSignatures().size());
         assertTrue(hasValidSignature(jws, JWSAlgorithm.ES384, getMasterPublicEcKey(defaultVersion)));
-        assertTrue(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA65, getMasterPublicPqcKey(defaultVersion)));
+        assertTrue(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA87, getMasterPublicPqcKey(defaultVersion)));
 
         final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claims.getClaim("applicationKey"));
@@ -220,7 +220,7 @@ class TemporaryKeyBehaviorTest {
         final JWSObjectJSON jws = temporaryKeyTestService.fetchTemporaryKey(requestCryptogram, defaultVersion);
 
         assertEquals(2, jws.getSignatures().size());
-        assertFalse(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA65, PQC_DSA.generateKeyPair().getPublic()));
+        assertFalse(hasValidSignature(jws, JWSAlgorithmMLDSA.MLDSA87, PQC_DSA.generateKeyPair().getPublic()));
     }
 
     @Test
@@ -305,7 +305,7 @@ class TemporaryKeyBehaviorTest {
         final JWSObjectJSON decodedJWSActivation = JWSObjectJSON.parse(responseTempKeyActivation.getJwt());
         assertEquals(2, decodedJWSActivation.getSignatures().size());
         assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithm.ES384, getServerPublicEcKey(activationId)));
-        assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithmMLDSA.MLDSA65, getServerPublicPqcKey(activationId)));
+        assertTrue(hasValidSignature(decodedJWSActivation, JWSAlgorithmMLDSA.MLDSA87, getServerPublicPqcKey(activationId)));
 
         final JWTClaimsSet claimsActivation = JWTClaimsSet.parse(decodedJWSActivation.getPayload().toJSONObject());
         assertEquals(defaultVersion.getApplicationKey(), claimsActivation.getClaim("applicationKey"));
@@ -379,7 +379,7 @@ class TemporaryKeyBehaviorTest {
             activationLayer2Request.setDevicePublicKeys(devicePublicKeys);
             activationSharedSecretRequest = SHARED_SECRET_HYBRID.generateRequestCryptogram();
             final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
-            sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.toString());
+            sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5.toString());
             sharedSecretRequest.setEcdhe(((SharedSecretRequestHybrid)activationSharedSecretRequest.getSharedSecretRequest()).getEcClientPublicKey());
             sharedSecretRequest.setMlkem(((SharedSecretRequestHybrid)activationSharedSecretRequest.getSharedSecretRequest()).getPqcEncapsulationKey());
             activationLayer2Request.setSharedSecretRequest(sharedSecretRequest);
@@ -432,7 +432,7 @@ class TemporaryKeyBehaviorTest {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
         final String serverPublicKeys = activation.getServerPublicKeys();
         final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-        return publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        return publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
     private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
@@ -446,7 +446,7 @@ class TemporaryKeyBehaviorTest {
     private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws GenericCryptoException {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
         final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
-        final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyMlDsa65();
+        final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyMlDsa87();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterPublicKeyBytes);
     }

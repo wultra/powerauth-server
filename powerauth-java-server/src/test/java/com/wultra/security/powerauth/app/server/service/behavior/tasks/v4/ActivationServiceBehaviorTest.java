@@ -208,7 +208,7 @@ class ActivationServiceBehaviorTest {
         final String ecPublicKey = generateEcPublicKey();
         final String mlDsaPublicKey = generateMldDsaPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
-        sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.toString());
+        sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5.toString());
         sharedSecretRequest.setEcdhe(((SharedSecretRequestHybrid)requestCryptogramActivation.getSharedSecretRequest()).getEcClientPublicKey());
         sharedSecretRequest.setMlkem(((SharedSecretRequestHybrid)requestCryptogramActivation.getSharedSecretRequest()).getPqcEncapsulationKey());
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
