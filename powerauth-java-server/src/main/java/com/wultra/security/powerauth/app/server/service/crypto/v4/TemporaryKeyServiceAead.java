@@ -444,10 +444,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         final ECDSASigner ecdsaSigner = new ECDSASigner(temporaryKeyResult.getEcPrivateKey(), Curve.P_384);
         jws.sign(new JWSHeader(JWSAlgorithm.ES384), ecdsaSigner);
 
+        final MLDSASigner mldsaSigner = new MLDSASigner(temporaryKeyResult.getPqcPrivateKey());
         if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
-            final MLDSASigner mldsaSigner = new MLDSASigner(temporaryKeyResult.getPqcPrivateKey());
             jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA65), mldsaSigner);
+        } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+            jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA87), mldsaSigner);
         }
+
 
         return jws.serializeGeneral();
     }
