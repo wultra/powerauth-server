@@ -189,7 +189,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, devicePublicKey);
                     return EcPublicKey.builder().ecPublicKey(convertedPublicKey).build();
                 }
-                case MLDSA_65 -> {
+                case MLDSA_65, MLDSA_87 -> {
                     final PublicKey convertedPublicKey = KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(devicePublicKey);
                     return PqcPublicKey.builder().pqcPublicKey(convertedPublicKey).build();
                 }
