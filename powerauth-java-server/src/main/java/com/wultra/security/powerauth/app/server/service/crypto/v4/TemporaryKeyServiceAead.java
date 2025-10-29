@@ -409,7 +409,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 requestEcdhe.setEcClientPublicKey(request.getEcdhe());
                 return SHARED_SECRET_ECDHE.generateResponseCryptogram(requestEcdhe);
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final SharedSecretRequestHybrid requestHybrid = new SharedSecretRequestHybrid();
                 requestHybrid.setEcClientPublicKey(request.getEcdhe());
                 requestHybrid.setPqcEncapsulationKey(request.getMlkem());
