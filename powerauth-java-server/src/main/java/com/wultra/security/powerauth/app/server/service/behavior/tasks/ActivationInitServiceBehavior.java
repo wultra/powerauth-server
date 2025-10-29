@@ -237,7 +237,6 @@ public class ActivationInitServiceBehavior {
             // Generate server key pairs
             cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
             cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateServerKeyPair(activation);
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L5).generateServerKeyPair(activation);
 
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);
