@@ -354,7 +354,12 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     final PrivateKey pqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
                             .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
                     result.setPqcPrivateKey(pqcPrivateKey);
+                } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+                    final PrivateKey pqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_87)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
+                    result.setPqcPrivateKey(pqcPrivateKey);
                 }
+
                 return result;
             } else {
 
@@ -394,6 +399,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     final PrivateKey serverPqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
                             .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
                     result.setPqcPrivateKey(serverPqcPrivateKey);
+                } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+                    final PrivateKey serverPqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_87)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                    result.setPqcPrivateKey(serverPqcPrivateKey);
                 }
                 return result;
             }
@@ -427,7 +436,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 sharedSecretResponse.setEcdhe(sharedSecretResponseEcdhe.getEcServerPublicKey());
                 return sharedSecretResponse;
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final SharedSecretResponseHybrid sharedSecretResponseHybrid = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 sharedSecretResponse.setEcdhe(sharedSecretResponseHybrid.getEcServerPublicKey());
                 sharedSecretResponse.setMlkem(sharedSecretResponseHybrid.getPqcCiphertext());

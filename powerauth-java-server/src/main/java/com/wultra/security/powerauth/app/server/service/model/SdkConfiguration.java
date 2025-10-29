@@ -24,6 +24,6 @@ package com.wultra.security.powerauth.app.server.service.model;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record SdkConfiguration(String appKey, String appSecret, String masterPublicKeyP256, String masterPublicKeyP384, String masterPublicKeyMlDsa65) {
+public record SdkConfiguration(String appKey, String appSecret, String masterPublicKeyP256, String masterPublicKeyP384, String masterPublicKeyMlDsa65, String masterPublicKeyMlDsa87) {
 
 }

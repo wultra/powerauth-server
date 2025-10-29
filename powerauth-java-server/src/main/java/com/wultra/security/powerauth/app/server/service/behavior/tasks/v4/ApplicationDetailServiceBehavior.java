@@ -103,6 +103,7 @@ public class ApplicationDetailServiceBehavior {
         }
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
+        String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
             publicKeyP384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
@@ -125,6 +126,16 @@ public class ApplicationDetailServiceBehavior {
                             return null;
                         }
                     }).orElse(null);
+            publicKeyMlDsa87 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_87)
+                    .map(publicKey -> {
+                        try {
+                            byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
+                            return Base64.getEncoder().encodeToString(bytes);
+                        } catch (GenericCryptoException e) {
+                            logger.warn("Public key conversion failed", e);
+                            return null;
+                        }
+                    }).orElse(null);
         }
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
@@ -132,7 +143,7 @@ public class ApplicationDetailServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyP384, publicKeyMlDsa65);
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyP384, publicKeyMlDsa65, publicKeyMlDsa87);
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();

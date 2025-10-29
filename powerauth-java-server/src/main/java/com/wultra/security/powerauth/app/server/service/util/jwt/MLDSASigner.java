@@ -42,7 +42,7 @@ import java.util.Set;
 public class MLDSASigner implements JWSSigner {
 
     private static final PqcDsa PQC_DSA = new MlDsa();
-    private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(JWSAlgorithmMLDSA.MLDSA65);
+    private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(JWSAlgorithmMLDSA.MLDSA65, JWSAlgorithmMLDSA.MLDSA87);
     private final JCAContext jcaContext = new JCAContext();
 
     private final PrivateKey privateKey;
