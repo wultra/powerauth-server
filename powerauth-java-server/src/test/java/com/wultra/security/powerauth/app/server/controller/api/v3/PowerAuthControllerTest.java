@@ -1097,6 +1097,7 @@ class PowerAuthControllerTest {
         assertNotNull(initActivationResponse.getActivationSignature());
         assertNotNull(initActivationResponse.getActivationSignatureEcdsa());
         assertNotNull(initActivationResponse.getActivationSignatureMldsa65());
+        assertNotNull(initActivationResponse.getActivationSignatureMldsa87());
         assertNotNull(initActivationResponse.getApplicationId());
         assertEquals(PowerAuthControllerTestConfig.USER_ID, initActivationResponse.getUserId());
         assertEquals(config.getApplicationId(), initActivationResponse.getApplicationId());
