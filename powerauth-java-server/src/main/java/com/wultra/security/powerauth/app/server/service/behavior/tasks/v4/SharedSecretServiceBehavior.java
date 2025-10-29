@@ -150,7 +150,7 @@ public class SharedSecretServiceBehavior {
                 publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
                 responsePayload.setServerPublicKeys(publicKeysResponse);
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final String pqcDevicePublicKey = devicePublicKeys.getMldsa();
                 if (!StringUtils.hasText(pqcDevicePublicKey)) {
                     logger.warn("Invalid shared secret request, activation ID: {}", activationId);
@@ -189,11 +189,23 @@ public class SharedSecretServiceBehavior {
                     return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 });
                 final byte[] ecServerPublicKeyRaw = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecServerPublicKey);
-                final PublicKey pqcServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                    logger.warn("Missing MLDSA public key in shared secret request, activation ID: {}", activationId);
-                    // Activation failed due to invalid request, rollback transaction
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                });
+                final PublicKey pqcServerPublicKey = switch (algorithm) {
+                    case EC_P384_ML_L3 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                        logger.warn("Missing ML-DSA-65 public key in shared secret request, activation ID: {}", activationId);
+                        // Activation failed due to invalid request, rollback transaction
+                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                    });
+                    case EC_P384_ML_L5 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).orElseThrow(() -> {
+                        logger.warn("Missing ML-DSA-87 public key in shared secret request, activation ID: {}", activationId);
+                        // Activation failed due to invalid request, rollback transaction
+                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                    });
+                    default -> {
+                        logger.warn("Invalid algorithm in shared secret request, activation ID: {}, algorithm: {}", activationId, algorithm);
+                        // Activation failed due to invalid request, rollback transaction
+                        throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+                    }
+                };
                 final byte[] pqcServerPublicKeyRaw = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(pqcServerPublicKey);
                 final ServerPublicKeys publicKeysResponse = new ServerPublicKeys();
                 publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
