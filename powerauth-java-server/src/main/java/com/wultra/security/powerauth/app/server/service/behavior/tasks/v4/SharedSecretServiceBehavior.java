@@ -85,7 +85,9 @@ public class SharedSecretServiceBehavior {
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
 
     public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = activation.getActivationId();
@@ -173,7 +175,11 @@ public class SharedSecretServiceBehavior {
                 final SharedSecretRequestHybrid sharedSecretRequestHybrid = new SharedSecretRequestHybrid();
                 sharedSecretRequestHybrid.setEcClientPublicKey(sharedSecretRequest.getEcdhe());
                 sharedSecretRequestHybrid.setPqcEncapsulationKey(sharedSecretRequest.getMlkem());
-                responseCryptogram = SHARED_SECRET_HYBRID.generateResponseCryptogram(sharedSecretRequestHybrid);
+                responseCryptogram = switch (algorithm) {
+                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
+                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
+                    default -> null;
+                };
 
                 final SharedSecretResponseHybrid derivedResponse = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();

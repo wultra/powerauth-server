@@ -99,7 +99,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
+
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
@@ -422,7 +425,11 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final SharedSecretRequestHybrid requestHybrid = new SharedSecretRequestHybrid();
                 requestHybrid.setEcClientPublicKey(request.getEcdhe());
                 requestHybrid.setPqcEncapsulationKey(request.getMlkem());
-                return SHARED_SECRET_HYBRID.generateResponseCryptogram(requestHybrid);
+                return switch (algorithm) {
+                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(requestHybrid);
+                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(requestHybrid);
+                    default -> null;
+                };
             }
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         }
