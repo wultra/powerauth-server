@@ -467,7 +467,6 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA87), mldsaSigner);
         }
 
-
         return jws.serializeGeneral();
     }
 
