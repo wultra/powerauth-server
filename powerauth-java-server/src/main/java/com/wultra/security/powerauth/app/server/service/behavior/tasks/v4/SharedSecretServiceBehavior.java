@@ -164,7 +164,11 @@ public class SharedSecretServiceBehavior {
                 final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKey);
                 BasePublicKey pqcDevicePublicKeyDsa = null;
                 try {
-                    pqcDevicePublicKeyDsa = cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
+                    pqcDevicePublicKeyDsa = switch (algorithm) {
+                        case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
+                        case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_87, pqcDevicePublicKeyBytes);
+                        default -> null;
+                    };
                 } catch (GenericServiceException e) {
                     logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                     logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);

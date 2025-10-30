@@ -21,7 +21,8 @@ package com.wultra.security.powerauth.app.server.service.crypto;
 
 import com.wultra.security.powerauth.app.server.service.crypto.v3.CryptographyServiceEc256;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.CryptographyServiceEc384;
-import com.wultra.security.powerauth.app.server.service.crypto.v4.CryptographyServiceHybrid;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.CryptographyServiceEc384MlL3;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.CryptographyServiceEc384MlL5;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,8 @@ public class CryptographyServiceFactory {
 
     private final CryptographyServiceEc256 cryptographyServiceEc256;
     private final CryptographyServiceEc384 cryptographyServiceEc384;
-    private final CryptographyServiceHybrid cryptographyServiceV4Hybrid;
+    private final CryptographyServiceEc384MlL3 cryptographyServiceEc384MlL3;
+    private final CryptographyServiceEc384MlL5 cryptographyServiceEc384MlL5;
 
     /**
      * Get cryptography service for given algorithm.
@@ -53,7 +55,8 @@ public class CryptographyServiceFactory {
         return switch (algorithm) {
             case EC_P256 -> cryptographyServiceEc256;
             case EC_P384 -> cryptographyServiceEc384;
-            case EC_P384_ML_L3, EC_P384_ML_L5 -> cryptographyServiceV4Hybrid;
+            case EC_P384_ML_L3 -> cryptographyServiceEc384MlL3;
+            case EC_P384_ML_L5 -> cryptographyServiceEc384MlL5;
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         };
     }
