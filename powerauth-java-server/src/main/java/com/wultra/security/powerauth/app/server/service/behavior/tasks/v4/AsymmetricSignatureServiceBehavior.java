@@ -35,7 +35,6 @@ import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricReque
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -87,13 +86,17 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] dataRaw = Base64.getDecoder().decode(data);
             final byte[] signatureEcdsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
             final String signatureEcdsaBase64 = Base64.getEncoder().encodeToString(signatureEcdsa);
-            final String signatureMldsaBase64;
-            if (activation.getCryptoAlgorithm() == SharedSecretAlgorithm.EC_P384_ML_L3) {
-                final byte[] signatureMldsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.MLDSA_65, dataRaw, activation);
-                signatureMldsaBase64 = Base64.getEncoder().encodeToString(signatureMldsa);
-            } else {
-                signatureMldsaBase64 = null;
-            }
+            final String signatureMldsaBase64 = switch (activation.getCryptoAlgorithm()) {
+                case EC_P384_ML_L3 -> {
+                    final byte[] signatureMldsa65 = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.MLDSA_65, dataRaw, activation);
+                    yield Base64.getEncoder().encodeToString(signatureMldsa65);
+                }
+                case EC_P384_ML_L5 -> {
+                    final byte[] signatureMldsa87 = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.MLDSA_87, dataRaw, activation);
+                    yield Base64.getEncoder().encodeToString(signatureMldsa87);
+                }
+                default -> null;
+            };
 
             final SignAsymmetricResponse response = new SignAsymmetricResponse();
             response.setSignatureEcdsa(signatureEcdsaBase64);
@@ -148,7 +151,11 @@ public class AsymmetricSignatureServiceBehavior {
 
             final boolean matches = switch (signatureType) {
                 case ECDSA -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.ECDSA_P384, dataBytes, signatureBytesDER, activation);
-                case MLDSA -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_65, dataBytes, signatureBytesDER, activation);
+                case MLDSA -> switch (activation.getCryptoAlgorithm()) {
+                    case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_65, dataBytes, signatureBytesDER, activation);
+                    case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_87, dataBytes, signatureBytesDER, activation);
+                    default -> false;
+                };
             };
 
             return VerifyAsymmetricSignatureResponse.builder()
