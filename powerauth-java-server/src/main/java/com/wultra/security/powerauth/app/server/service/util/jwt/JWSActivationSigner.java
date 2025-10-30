@@ -44,7 +44,8 @@ public class JWSActivationSigner implements JWSSigner {
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
             JWSAlgorithm.ES256,
             JWSAlgorithm.ES384,
-            JWSAlgorithmMLDSA.MLDSA65
+            JWSAlgorithmMLDSA.MLDSA65,
+            JWSAlgorithmMLDSA.MLDSA87
     );
     private final JCAContext jcaContext = new JCAContext();
 

@@ -46,7 +46,8 @@ public class JWSActivationVerifier implements JWSVerifier {
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(
             JWSAlgorithm.ES256,
             JWSAlgorithm.ES384,
-            JWSAlgorithmMLDSA.MLDSA65
+            JWSAlgorithmMLDSA.MLDSA65,
+            JWSAlgorithmMLDSA.MLDSA87
     );
 
     public JWSActivationVerifier(CryptographyService cryptoService, ActivationRecordEntity activation) {
