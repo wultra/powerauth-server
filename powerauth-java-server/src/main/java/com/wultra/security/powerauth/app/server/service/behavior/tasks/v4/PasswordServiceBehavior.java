@@ -150,7 +150,7 @@ public class PasswordServiceBehavior {
                         final ResponseCryptogram responseCryptogram = switch (algorithm) {
                             case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
                             case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
-                            default -> null;
+                            default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
                         };
 
                         storeKnowledgeFactorKey(activationId, responseCryptogram.getSecretKey());

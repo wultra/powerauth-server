@@ -167,7 +167,7 @@ public class SharedSecretServiceBehavior {
                     pqcDevicePublicKeyDsa = switch (algorithm) {
                         case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
                         case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_87, pqcDevicePublicKeyBytes);
-                        default -> null;
+                        default -> throw new IllegalStateException("Unexpected algorithm during key conversion: " + algorithm);
                     };
                 } catch (GenericServiceException e) {
                     logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
@@ -182,7 +182,7 @@ public class SharedSecretServiceBehavior {
                 responseCryptogram = switch (algorithm) {
                     case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
                     case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
-                    default -> null;
+                    default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
                 };
 
                 final SharedSecretResponseHybrid derivedResponse = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
