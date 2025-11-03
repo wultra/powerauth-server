@@ -110,7 +110,14 @@ public class SdkConfigurationSerializer {
         final String publicKeyMlDsa87 = publicKeys.get(KEY_MASTER_MLDSA87_PUBLIC);
         final String appKeyBase64 = Base64.getEncoder().encodeToString(appKey);
         final String appSecretBase64 = Base64.getEncoder().encodeToString(appSecret);
-        return new SdkConfiguration(appKeyBase64, appSecretBase64, publicKeyP256, publicKeyP384, publicKeyMlDsa65, publicKeyMlDsa87);
+        return SdkConfiguration.builder()
+                .appKey(appKeyBase64)
+                .appSecret(appSecretBase64)
+                .masterPublicKeyP256(publicKeyP256)
+                .masterPublicKeyP384(publicKeyP384)
+                .masterPublicKeyMlDsa65(publicKeyMlDsa65)
+                .masterPublicKeyMlDsa87(publicKeyMlDsa87)
+                .build();
     }
 
     /**
