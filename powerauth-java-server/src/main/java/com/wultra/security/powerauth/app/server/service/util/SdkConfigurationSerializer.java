@@ -38,6 +38,7 @@ public class SdkConfigurationSerializer {
     private static final byte KEY_MASTER_ECDSA_P256_PUBLIC = 0x01;
     private static final byte KEY_MASTER_ECDSA_P384_PUBLIC = 0x02;
     private static final byte KEY_MASTER_MLDSA65_PUBLIC = 0x03;
+    private static final byte KEY_MASTER_MLDSA87_PUBLIC = 0x04;
 
     /**
      * Serialize SDK configuration into a single Base-64 encoded string.
@@ -50,6 +51,7 @@ public class SdkConfigurationSerializer {
         final String publicKeyP256 = config.masterPublicKeyP256();
         final String publicKeyP384 = config.masterPublicKeyP384();
         final String publicKeyMlDsa65 = config.masterPublicKeyMlDsa65();
+        final String publicKeyMlDsa87 = config.masterPublicKeyMlDsa87();
         if (appKey == null || appKey.isEmpty()) {
             throw new IllegalArgumentException("Invalid application key");
         }
@@ -65,6 +67,9 @@ public class SdkConfigurationSerializer {
         }
         if (publicKeyMlDsa65 != null) {
             publicKeys.put(KEY_MASTER_MLDSA65_PUBLIC, publicKeyMlDsa65);
+        }
+        if (publicKeyMlDsa87 != null) {
+            publicKeys.put(KEY_MASTER_MLDSA87_PUBLIC, publicKeyMlDsa87);
         }
         if (publicKeys.isEmpty()) {
             throw new IllegalArgumentException("Missing public keys");
@@ -102,9 +107,17 @@ public class SdkConfigurationSerializer {
         final String publicKeyP256 = publicKeys.get(KEY_MASTER_ECDSA_P256_PUBLIC);
         final String publicKeyP384 = publicKeys.get(KEY_MASTER_ECDSA_P384_PUBLIC);
         final String publicKeyMlDsa65 = publicKeys.get(KEY_MASTER_MLDSA65_PUBLIC);
+        final String publicKeyMlDsa87 = publicKeys.get(KEY_MASTER_MLDSA87_PUBLIC);
         final String appKeyBase64 = Base64.getEncoder().encodeToString(appKey);
         final String appSecretBase64 = Base64.getEncoder().encodeToString(appSecret);
-        return new SdkConfiguration(appKeyBase64, appSecretBase64, publicKeyP256, publicKeyP384, publicKeyMlDsa65);
+        return SdkConfiguration.builder()
+                .appKey(appKeyBase64)
+                .appSecret(appSecretBase64)
+                .masterPublicKeyP256(publicKeyP256)
+                .masterPublicKeyP384(publicKeyP384)
+                .masterPublicKeyMlDsa65(publicKeyMlDsa65)
+                .masterPublicKeyMlDsa87(publicKeyMlDsa87)
+                .build();
     }
 
     /**

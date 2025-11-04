@@ -71,7 +71,7 @@ public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyR
             return switch (keyType) {
                 case ECDSA_P256 -> KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P256, encodedKey);
                 case ECDSA_P384 -> KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, encodedKey);
-                case MLDSA_65 -> KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(encodedKey);
+                case MLDSA_65, MLDSA_87 -> KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(encodedKey);
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug("Key conversion failed: {}", e.getMessage(), e);

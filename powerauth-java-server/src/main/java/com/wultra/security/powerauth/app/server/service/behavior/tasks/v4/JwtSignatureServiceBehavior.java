@@ -113,6 +113,17 @@ public class JwtSignatureServiceBehavior {
                     yield new JWSHeader(alg);
                 }
             }
+            case EC_P384_ML_L5-> {
+                if (signatureType == null) {
+                    yield new JWSHeader(JWSAlgorithm.ES384);
+                } else {
+                    final JWSAlgorithm alg = switch (signatureType) {
+                        case ECDSA -> JWSAlgorithm.ES384;
+                        case MLDSA -> JWSAlgorithmMLDSA.MLDSA87;
+                    };
+                    yield new JWSHeader(alg);
+                }
+            }
             default -> {
                 logger.warn("Unsupported shared secret algorithm in JWT sign request: {}", sharedSecretAlgorithm);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -161,6 +172,21 @@ public class JwtSignatureServiceBehavior {
                         final JWSAlgorithm alg = switch (signatureType) {
                             case ECDSA -> JWSAlgorithm.ES384;
                             case MLDSA -> JWSAlgorithmMLDSA.MLDSA65;
+                        };
+                        final JWSHeader header = new JWSHeader(alg);
+                        jwsObject.sign(header, signer);
+                    }
+                }
+                case EC_P384_ML_L5 -> {
+                    if (signatureType == null) {
+                        final JWSHeader ecdsaHeader = new JWSHeader(JWSAlgorithm.ES384);
+                        final JWSHeader mldsaHeader = new JWSHeader(JWSAlgorithmMLDSA.MLDSA87);
+                        jwsObject.sign(ecdsaHeader, signer);
+                        jwsObject.sign(mldsaHeader, signer);
+                    } else {
+                        final JWSAlgorithm alg = switch (signatureType) {
+                            case ECDSA -> JWSAlgorithm.ES384;
+                            case MLDSA -> JWSAlgorithmMLDSA.MLDSA87;
                         };
                         final JWSHeader header = new JWSHeader(alg);
                         jwsObject.sign(header, signer);

@@ -46,10 +46,10 @@ import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.interfaces.MLDSAPublicKey;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -62,14 +62,14 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
 /**
- * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-DSA-65.
+ * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-KEM-768 + ML-DSA-65.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
 @Slf4j
 @AllArgsConstructor
-public class CryptographyServiceHybrid extends CryptographyService {
+public class CryptographyServiceEc384MlL3 extends CryptographyService {
 
     private final MasterKeyGenerationService masterKeyGenerationService;
     private final MasterKeyPairRepository masterKeyPairRepository;
@@ -82,9 +82,15 @@ public class CryptographyServiceHybrid extends CryptographyService {
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
-    private final PqcDsa PQC_DSA = new MlDsa();
+    private static PqcDsa pqcDsaMlL3;
 
-    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
+    static {
+        try {
+            pqcDsaMlL3 = new MlDsa(MLDSAParameterSpec.ml_dsa_65);
+        } catch (GenericCryptoException e) {
+            // impossible case
+        }
+    }
 
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
@@ -139,31 +145,6 @@ public class CryptographyServiceHybrid extends CryptographyService {
         final String activationSecretBase64 = sharedSecretConverter.fromDBValue(sharedSecret, activation.getUserId(), activation.getActivationId());
         final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
         return KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(activationSecretBytes);
-    }
-
-    @Override
-    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
-        try {
-            final KeyPair serverKeyPairEc = SERVER_ACTIVATION.generateEcServerKeyPair();
-            final KeyPair serverKeyPairPqc = SERVER_ACTIVATION.generatePqcServerKeyPair();
-
-            // Store server public key in JSON format
-            final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
-            serverPublicKeys.storePublicKey(KeyType.ECDSA_P384, serverKeyPairEc.getPublic());
-            serverPublicKeys.storePublicKey(KeyType.MLDSA_65, serverKeyPairPqc.getPublic());
-            activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
-
-            // Store server private key in JSON format
-            final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
-            serverPrivateKeys.storePrivateKey(KeyType.ECDSA_P384, serverKeyPairEc.getPrivate());
-            serverPrivateKeys.storePrivateKey(KeyType.MLDSA_65, serverKeyPairPqc.getPrivate());
-            final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
-            activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
-            activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
-        } catch (CryptoProviderException e) {
-            logger.error("Could not generate keypair", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        }
     }
 
     @Override
@@ -248,7 +229,7 @@ public class CryptographyServiceHybrid extends CryptographyService {
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
-            return HybridPublicKeyFingerprint.computeHybridFingerprint(devicePublicKeyEcdsa, devicePublicKeyMldsa, serverPublicKeyEcdsa, serverPublicKeyMldsa, activation.getActivationId(), ActivationVersion.VERSION_4);
+            return HybridPublicKeyFingerprint.computeHybridFingerprint(activation.getCryptoAlgorithm(), devicePublicKeyEcdsa, devicePublicKeyMldsa, serverPublicKeyEcdsa, serverPublicKeyMldsa, activation.getActivationId(), ActivationVersion.VERSION_4);
         } catch (GenericCryptoException e) {
             logger.error("Could not calculate activation fingerprint", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -270,9 +251,9 @@ public class CryptographyServiceHybrid extends CryptographyService {
             case MLDSA_65 -> {
                 try {
                     final KeyPair keyPair = getMasterKeyPair(keyType, application);
-                    yield PQC_DSA.sign(keyPair.getPrivate(), data);
+                    yield pqcDsaMlL3.sign(keyPair.getPrivate(), data);
                 } catch (GenericCryptoException e) {
-                    logger.error("Could not generate signature", e);
+                    logger.error("Could not generate signature for algorithm ML-DSA-65", e);
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 }
             }
@@ -306,11 +287,11 @@ public class CryptographyServiceHybrid extends CryptographyService {
                     final PrivateKeys privateKeys = new PrivateKeys(activation.getServerPrivateKeysEncryption(), activation.getServerPrivateKeys());
                     final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
                     final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                        logger.error("Missing server ML-DSA private key for activation ID: {}", activation.getActivationId());
+                        logger.error("Missing server ML-DSA-65 private key for activation ID: {}", activation.getActivationId());
                         // Rollback is not required, database is not used for writing
                         return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     });
-                    yield PQC_DSA.sign(serverPrivateKey, data);
+                    yield pqcDsaMlL3.sign(serverPrivateKey, data);
                 } catch (GenericCryptoException e) {
                     logger.error("Could not generate signature", e);
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -344,11 +325,11 @@ public class CryptographyServiceHybrid extends CryptographyService {
                 try {
                     final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
                     final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                        logger.error("Missing device ML-DSA public key for activation ID: {}", activation.getActivationId());
+                        logger.error("Missing device ML-DSA-65 public key for activation ID: {}", activation.getActivationId());
                         // Rollback is not required, database is not used for writing
                         return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     });
-                    yield PQC_DSA.verify(devicePublicKey, data, signature);
+                    yield pqcDsaMlL3.verify(devicePublicKey, data, signature);
                 } catch (GenericCryptoException e) {
                     logger.error("Could not generate signature", e);
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

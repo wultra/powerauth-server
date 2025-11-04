@@ -47,7 +47,7 @@ public class PrivateKeySerializer extends JsonSerializer<PrivateKey> {
                 gen.writeString(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
                 break;
             }
-            case "ML-DSA-65": {
+            case "ML-DSA-65", "ML-DSA-87": {
                 gen.writeString(Base64.getEncoder().encodeToString(privateKey.getEncoded()));
                 break;
             }

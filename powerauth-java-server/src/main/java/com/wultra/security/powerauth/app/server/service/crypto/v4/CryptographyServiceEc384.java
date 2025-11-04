@@ -43,7 +43,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.HybridPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
-import com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,8 +76,6 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
-
-    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
 
     @Override
     public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
@@ -133,28 +130,6 @@ public class CryptographyServiceEc384 extends CryptographyService {
         final String activationSecretBase64 = sharedSecretConverter.fromDBValue(sharedSecret, activation.getUserId(), activation.getActivationId());
         final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
         return KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(activationSecretBytes);
-    }
-
-    @Override
-    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
-        try {
-            final KeyPair serverKeyPair = SERVER_ACTIVATION.generateEcServerKeyPair();
-
-            // Store server public key in JSON format
-            final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
-            serverPublicKeys.storePublicKey(KeyType.ECDSA_P384, serverKeyPair.getPublic());
-            activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
-
-            // Store server private key in JSON format
-            final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
-            serverPrivateKeys.storePrivateKey(KeyType.ECDSA_P384, serverKeyPair.getPrivate());
-            final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
-            activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
-            activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
-        } catch (CryptoProviderException e) {
-            logger.error("Could not generate keypair", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        }
     }
 
     @Override

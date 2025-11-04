@@ -35,8 +35,6 @@ import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
@@ -44,7 +42,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.function.ThrowingFunction;
 
+import java.security.PublicKey;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -98,41 +98,44 @@ public class ApplicationDetailServiceBehavior {
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
             logger.error("Missing key pair for application ID: {}", applicationId);
-            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
+        String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-            publicKeyP384 = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384)
-                    .map(publicKey -> {
-                        try {
-                            byte[] bytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey);
-                            return Base64.getEncoder().encodeToString(bytes);
-                        } catch (CryptoProviderException e) {
-                            logger.warn("Public key conversion failed", e);
-                            return null;
-                        }
-                    }).orElse(null);
-            publicKeyMlDsa65 = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65)
-                    .map(publicKey -> {
-                        try {
-                            byte[] bytes = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(publicKey);
-                            return Base64.getEncoder().encodeToString(bytes);
-                        } catch (GenericCryptoException e) {
-                            logger.warn("Public key conversion failed", e);
-                            return null;
-                        }
-                    }).orElse(null);
+            publicKeyP384 = convertPublicKeyToBase64(
+                    publicKeyRegistry,
+                    KeyType.ECDSA_P384,
+                    publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
+            );
+            publicKeyMlDsa65 = convertPublicKeyToBase64(
+                    publicKeyRegistry,
+                    KeyType.MLDSA_65,
+                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+            );
+            publicKeyMlDsa87 = convertPublicKeyToBase64(
+                    publicKeyRegistry,
+                    KeyType.MLDSA_87,
+                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+            );
         }
+
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), publicKeyP384, publicKeyMlDsa65);
+            final SdkConfiguration sdkConfig = SdkConfiguration.builder()
+                    .appKey(version.getApplicationKey())
+                    .appSecret(version.getApplicationSecret())
+                    .masterPublicKeyP256(masterKeyPairEntity.getMasterKeyPublicBase64())
+                    .masterPublicKeyP384(publicKeyP384)
+                    .masterPublicKeyMlDsa65(publicKeyMlDsa65)
+                    .masterPublicKeyMlDsa87(publicKeyMlDsa87)
+                    .build();
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
@@ -146,6 +149,27 @@ public class ApplicationDetailServiceBehavior {
         }
 
         return response;
+    }
+
+    /**
+     * Converts a public key from the registry to a Base64-encoded string.
+     * @param registry Public key registry.
+     * @param keyType Key type.
+     * @param converter Key converter function with possible exception.
+     * @return Base-64 encoded public key.
+     */
+    private String convertPublicKeyToBase64(PublicKeyRegistry registry, KeyType keyType, ThrowingFunction<PublicKey, byte[]> converter) {
+        return registry.getPublicKey(keyType)
+                .map(publicKey -> {
+                    try {
+                        byte[] bytes = converter.apply(publicKey);
+                        return Base64.getEncoder().encodeToString(bytes);
+                    } catch (Exception e) {
+                        logger.warn("Public key conversion failed for {}: {}", keyType, e.getMessage());
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 
     /**

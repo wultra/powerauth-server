@@ -33,6 +33,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -70,6 +71,7 @@ public class ActivationInitServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
+    private final KeyPairGenerationService keyPairGenerationService;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final ObjectMapper objectMapper;
@@ -173,14 +175,20 @@ public class ActivationInitServiceBehavior {
                             activationCode.getBytes(StandardCharsets.UTF_8),
                             application
                     );
-            final CryptographyService cryptographyServiceV4 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-            final byte[] activationSignatureV4Ecdsa = cryptographyServiceV4.generateSignatureForApplication(
+            final CryptographyService cryptographyServiceP384MlL3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
+            final byte[] activationSignatureV4Ecdsa = cryptographyServiceP384MlL3.generateSignatureForApplication(
                     KeyType.ECDSA_P384,
                     activationCode.getBytes(StandardCharsets.UTF_8),
                     application
             );
-            final byte[] activationSignatureV4Mldsa = cryptographyServiceV4.generateSignatureForApplication(
+            final byte[] activationSignatureV4Mldsa65 = cryptographyServiceP384MlL3.generateSignatureForApplication(
                     KeyType.MLDSA_65,
+                    activationCode.getBytes(StandardCharsets.UTF_8),
+                    application
+            );
+            final CryptographyService cryptographyServiceP384MlL5 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L5);
+            final byte[] activationSignatureV4Mldsa87 = cryptographyServiceP384MlL5.generateSignatureForApplication(
+                    KeyType.MLDSA_87,
                     activationCode.getBytes(StandardCharsets.UTF_8),
                     application
             );
@@ -188,7 +196,8 @@ public class ActivationInitServiceBehavior {
             // Encode the signature
             final String activationSignatureV3Base64 = Base64.getEncoder().encodeToString(activationSignatureV3);
             final String activationSignatureV4EcdsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa);
-            final String activationSignatureV4MldsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa);
+            final String activationSignatureV4Mldsa65Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa65);
+            final String activationSignatureV4Mldsa87Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa87);
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation
@@ -229,8 +238,7 @@ public class ActivationInitServiceBehavior {
             }
 
             // Generate server key pairs
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateServerKeyPair(activation);
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3).generateServerKeyPair(activation);
+            keyPairGenerationService.generateServerKeyPairs(activation);
 
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);
@@ -246,7 +254,8 @@ public class ActivationInitServiceBehavior {
             response.setUserId(userId);
             response.setActivationSignature(activationSignatureV3Base64);
             response.setActivationSignatureEcdsa(activationSignatureV4EcdsaBase64);
-            response.setActivationSignatureMldsa(activationSignatureV4MldsaBase64);
+            response.setActivationSignatureMldsa65(activationSignatureV4Mldsa65Base64);
+            response.setActivationSignatureMldsa87(activationSignatureV4Mldsa87Base64);
             response.setApplicationId(activation.getApplication().getId());
 
             return response;

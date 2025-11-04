@@ -96,7 +96,11 @@ public class ApplicationDetailServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64(), null, null);
+            final SdkConfiguration sdkConfig = SdkConfiguration.builder()
+                    .appKey(version.getApplicationKey())
+                    .appSecret(version.getApplicationSecret())
+                    .masterPublicKeyP256(masterKeyPairEntity.getMasterKeyPublicBase64())
+                    .build();
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();

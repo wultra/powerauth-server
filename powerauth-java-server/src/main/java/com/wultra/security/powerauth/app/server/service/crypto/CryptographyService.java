@@ -66,14 +66,6 @@ public abstract class CryptographyService {
     public abstract SecretKey deriveSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException;
 
     /**
-     * Generate server key pair for an activation. The key pair can be composite in case of a hybrid algorithm.
-     *
-     * @param activation Activation.
-     * @throws GenericServiceException In case of a cryptography error.
-     */
-    public abstract void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException;
-
-    /**
      * Convert a device public key.
      * @param keyType Key type.
      * @param devicePublicKey Device public key bytes.

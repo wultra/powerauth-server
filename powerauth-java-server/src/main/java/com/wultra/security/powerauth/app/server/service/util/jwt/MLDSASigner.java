@@ -29,9 +29,13 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import lombok.AllArgsConstructor;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 
 import java.security.PrivateKey;
 import java.util.Set;
+
+import static com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA.MLDSA65;
+import static com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA.MLDSA87;
 
 /**
  * Implementation of the {@link JWSSigner} to support {@link PqcDsa}.
@@ -41,11 +45,22 @@ import java.util.Set;
 @AllArgsConstructor
 public class MLDSASigner implements JWSSigner {
 
-    private static final PqcDsa PQC_DSA = new MlDsa();
-    private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(JWSAlgorithmMLDSA.MLDSA65);
+    private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(MLDSA65, MLDSA87);
     private final JCAContext jcaContext = new JCAContext();
 
     private final PrivateKey privateKey;
+
+    private static PqcDsa pqcDsaMlL3;
+    private static PqcDsa pqcDsaMlL5;
+
+    static {
+        try {
+            pqcDsaMlL3 = new MlDsa(MLDSAParameterSpec.ml_dsa_65);
+            pqcDsaMlL5 = new MlDsa(MLDSAParameterSpec.ml_dsa_87);
+        } catch (GenericCryptoException e) {
+            // impossible case
+        }
+    }
 
     @Override
     public Base64URL sign(final JWSHeader header, final byte[] signingInput) throws JOSEException {
@@ -56,7 +71,11 @@ public class MLDSASigner implements JWSSigner {
         }
 
         try {
-            final byte[] signature = PQC_DSA.sign(privateKey, signingInput);
+            final byte[] signature = switch (alg.getName()) {
+                case "ML-DSA-65" -> pqcDsaMlL3.sign(privateKey, signingInput);
+                case "ML-DSA-87" -> pqcDsaMlL5.sign(privateKey, signingInput);
+                default -> throw new JOSEException(AlgorithmSupportMessage.unsupportedJWSAlgorithm(alg, this.supportedJWSAlgorithms()));
+            };
             return Base64URL.encode(signature);
         } catch (GenericCryptoException e) {
             throw new JOSEException(e.getMessage(), e);

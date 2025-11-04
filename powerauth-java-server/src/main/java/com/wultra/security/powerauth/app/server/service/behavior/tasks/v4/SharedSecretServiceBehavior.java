@@ -85,7 +85,9 @@ public class SharedSecretServiceBehavior {
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
 
     public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
         final String activationId = activation.getActivationId();
@@ -150,7 +152,7 @@ public class SharedSecretServiceBehavior {
                 publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
                 responsePayload.setServerPublicKeys(publicKeysResponse);
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final String pqcDevicePublicKey = devicePublicKeys.getMldsa();
                 if (!StringUtils.hasText(pqcDevicePublicKey)) {
                     logger.warn("Invalid shared secret request, activation ID: {}", activationId);
@@ -162,7 +164,11 @@ public class SharedSecretServiceBehavior {
                 final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKey);
                 BasePublicKey pqcDevicePublicKeyDsa = null;
                 try {
-                    pqcDevicePublicKeyDsa = cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
+                    pqcDevicePublicKeyDsa = switch (algorithm) {
+                        case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
+                        case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_87, pqcDevicePublicKeyBytes);
+                        default -> throw new IllegalStateException("Unexpected algorithm during key conversion: " + algorithm);
+                    };
                 } catch (GenericServiceException e) {
                     logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                     logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
@@ -173,7 +179,11 @@ public class SharedSecretServiceBehavior {
                 final SharedSecretRequestHybrid sharedSecretRequestHybrid = new SharedSecretRequestHybrid();
                 sharedSecretRequestHybrid.setEcClientPublicKey(sharedSecretRequest.getEcdhe());
                 sharedSecretRequestHybrid.setPqcEncapsulationKey(sharedSecretRequest.getMlkem());
-                responseCryptogram = SHARED_SECRET_HYBRID.generateResponseCryptogram(sharedSecretRequestHybrid);
+                responseCryptogram = switch (algorithm) {
+                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
+                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
+                    default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
+                };
 
                 final SharedSecretResponseHybrid derivedResponse = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
@@ -189,11 +199,23 @@ public class SharedSecretServiceBehavior {
                     return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 });
                 final byte[] ecServerPublicKeyRaw = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecServerPublicKey);
-                final PublicKey pqcServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                    logger.warn("Missing MLDSA public key in shared secret request, activation ID: {}", activationId);
-                    // Activation failed due to invalid request, rollback transaction
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                });
+                final PublicKey pqcServerPublicKey = switch (algorithm) {
+                    case EC_P384_ML_L3 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                        logger.warn("Missing ML-DSA-65 public key in shared secret request, activation ID: {}", activationId);
+                        // Activation failed due to invalid request, rollback transaction
+                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                    });
+                    case EC_P384_ML_L5 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).orElseThrow(() -> {
+                        logger.warn("Missing ML-DSA-87 public key in shared secret request, activation ID: {}", activationId);
+                        // Activation failed due to invalid request, rollback transaction
+                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                    });
+                    default -> {
+                        logger.warn("Invalid algorithm in shared secret request, activation ID: {}, algorithm: {}", activationId, algorithm);
+                        // Activation failed due to invalid request, rollback transaction
+                        throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+                    }
+                };
                 final byte[] pqcServerPublicKeyRaw = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(pqcServerPublicKey);
                 final ServerPublicKeys publicKeysResponse = new ServerPublicKeys();
                 publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));

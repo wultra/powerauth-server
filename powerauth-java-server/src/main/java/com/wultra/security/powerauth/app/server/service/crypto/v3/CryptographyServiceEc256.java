@@ -41,7 +41,6 @@ import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -69,8 +68,6 @@ public class CryptographyServiceEc256 extends CryptographyService {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-
-    private final PowerAuthServerActivation SERVER_ACTIVATION = new PowerAuthServerActivation();
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
@@ -132,26 +129,6 @@ public class CryptographyServiceEc256 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Key conversion failed", e);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        }
-    }
-
-    @Override
-    public void generateServerKeyPair(ActivationRecordEntity activation) throws GenericServiceException {
-        try {
-            final KeyPair serverKeyPair = SERVER_ACTIVATION.generateServerKeyPair();
-
-            final byte[] serverKeyPrivateBytes = KEY_CONVERTOR.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
-            final byte[] serverKeyPublicBytes = KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, serverKeyPair.getPublic());
-
-            activation.setServerPublicKeyBase64(Base64.getEncoder().encodeToString(serverKeyPublicBytes));
-
-            // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
-            final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activation.getActivationId());
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
-            activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
-        } catch (CryptoProviderException e) {
-            logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
     }

@@ -33,7 +33,9 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -96,7 +98,7 @@ public class MasterKeyGenerationService {
             writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
             masterKeyPairRepository.save(keyPair);
 
-        } catch (CryptoProviderException e) {
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
@@ -139,14 +141,18 @@ public class MasterKeyGenerationService {
         return publicKeysConverter.fromDBValue(entity.getMasterPublicKeys());
     }
 
-    private void generateAndStoreV4KeyPairs(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry) throws CryptoProviderException {
+    private void generateAndStoreV4KeyPairs(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry) throws CryptoProviderException, GenericCryptoException {
         KeyPair ec = SERVER_ACTIVATION_V4.generateEcServerKeyPair();
         privateKeyRegistry.storePrivateKey(KeyType.ECDSA_P384, ec.getPrivate());
         publicKeyRegistry.storePublicKey(KeyType.ECDSA_P384, ec.getPublic());
 
-        KeyPair pqcDsa = SERVER_ACTIVATION_V4.generatePqcServerKeyPair();
-        privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, pqcDsa.getPrivate());
-        publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, pqcDsa.getPublic());
+        KeyPair pqcDsa65 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L3);
+        privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, pqcDsa65.getPrivate());
+        publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, pqcDsa65.getPublic());
+
+        KeyPair pqcDsa87 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L5);
+        privateKeyRegistry.storePrivateKey(KeyType.MLDSA_87, pqcDsa87.getPrivate());
+        publicKeyRegistry.storePublicKey(KeyType.MLDSA_87, pqcDsa87.getPublic());
     }
 
     private void writeRegistriesToEntity(MasterKeyPairEntity entity, PrivateKeyRegistry privateKeyRegistry,

@@ -76,7 +76,9 @@ public class BiometryServiceBehavior {
     private final ObjectMapper objectMapper;
 
     private static final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-    private static final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -141,12 +143,16 @@ public class BiometryServiceBehavior {
                         throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                     }
                 }
-                case EC_P384_ML_L3 -> {
+                case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                     try {
                         final SharedSecretRequestHybrid sharedSecretRequestHybrid = new SharedSecretRequestHybrid();
                         sharedSecretRequestHybrid.setEcClientPublicKey(sharedSecretRequest.getEcdhe());
                         sharedSecretRequestHybrid.setPqcEncapsulationKey(sharedSecretRequest.getMlkem());
-                        final ResponseCryptogram responseCryptogram = SHARED_SECRET_HYBRID.generateResponseCryptogram(sharedSecretRequestHybrid);
+                        final ResponseCryptogram responseCryptogram = switch (algorithm) {
+                            case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
+                            case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
+                            default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
+                        };
 
                         storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
 

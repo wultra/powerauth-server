@@ -26,6 +26,7 @@ public enum KeyType {
 
     ECDSA_P256,
     ECDSA_P384,
-    MLDSA_65
+    MLDSA_65,
+    MLDSA_87
 
 }

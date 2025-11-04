@@ -99,7 +99,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID = new SharedSecretHybrid();
+
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
+    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
+
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
@@ -250,7 +253,8 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             return "Shared secret algorithm must be specified.";
         }
         if (!SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
-                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+                && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+                && !SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
             return "Invalid shared secret algorithm value.";
         }
         if (SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
@@ -258,12 +262,13 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 return "Shared secret ecdhe value must be specified for algorithm EC_P384.";
             }
         }
-        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
+        if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
+            || SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
             if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
-                return "Shared secret ecdhe value must be specified for algorithm EC_P384_ML_L3.";
+                return "Shared secret ecdhe value must be specified for hybrid algorithm.";
             }
             if (requestClaims.getSharedSecretRequest().getMlkem() == null) {
-                return "Shared secret mlkem value must be specified for algorithm EC_P384_ML_L3.";
+                return "Shared secret mlkem value must be specified for hybrid algorithm.";
             }
         }
         return null;
@@ -352,7 +357,12 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     final PrivateKey pqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
                             .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
                     result.setPqcPrivateKey(pqcPrivateKey);
+                } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+                    final PrivateKey pqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_87)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
+                    result.setPqcPrivateKey(pqcPrivateKey);
                 }
+
                 return result;
             } else {
 
@@ -392,6 +402,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     final PrivateKey serverPqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65)
                             .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
                     result.setPqcPrivateKey(serverPqcPrivateKey);
+                } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+                    final PrivateKey serverPqcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.MLDSA_87)
+                            .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+                    result.setPqcPrivateKey(serverPqcPrivateKey);
                 }
                 return result;
             }
@@ -407,11 +421,15 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 requestEcdhe.setEcClientPublicKey(request.getEcdhe());
                 return SHARED_SECRET_ECDHE.generateResponseCryptogram(requestEcdhe);
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final SharedSecretRequestHybrid requestHybrid = new SharedSecretRequestHybrid();
                 requestHybrid.setEcClientPublicKey(request.getEcdhe());
                 requestHybrid.setPqcEncapsulationKey(request.getMlkem());
-                return SHARED_SECRET_HYBRID.generateResponseCryptogram(requestHybrid);
+                return switch (algorithm) {
+                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(requestHybrid);
+                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(requestHybrid);
+                    default -> null;
+                };
             }
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         }
@@ -425,7 +443,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 sharedSecretResponse.setEcdhe(sharedSecretResponseEcdhe.getEcServerPublicKey());
                 return sharedSecretResponse;
             }
-            case EC_P384_ML_L3 -> {
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 final SharedSecretResponseHybrid sharedSecretResponseHybrid = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
                 sharedSecretResponse.setEcdhe(sharedSecretResponseHybrid.getEcServerPublicKey());
                 sharedSecretResponse.setMlkem(sharedSecretResponseHybrid.getPqcCiphertext());
@@ -442,9 +460,11 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         final ECDSASigner ecdsaSigner = new ECDSASigner(temporaryKeyResult.getEcPrivateKey(), Curve.P_384);
         jws.sign(new JWSHeader(JWSAlgorithm.ES384), ecdsaSigner);
 
+        final MLDSASigner mldsaSigner = new MLDSASigner(temporaryKeyResult.getPqcPrivateKey());
         if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
-            final MLDSASigner mldsaSigner = new MLDSASigner(temporaryKeyResult.getPqcPrivateKey());
             jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA65), mldsaSigner);
+        } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+            jws.sign(new JWSHeader(JWSAlgorithmMLDSA.MLDSA87), mldsaSigner);
         }
 
         return jws.serializeGeneral();
