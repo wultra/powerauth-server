@@ -65,7 +65,7 @@ public class ActivationStatusServiceBehavior {
     /**
      * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
      */
-    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
+    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x4;
 
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final LocalizationProvider localizationProvider;

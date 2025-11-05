@@ -231,13 +231,7 @@ public class ActivationStatusServiceBehavior {
                             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
                         }
                         // Assign the activation fingerprint
-                        if (activation.getVersion() == 4) {
-                            activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
-                        } else {
-                            logger.error("Unsupported activation version: {}", activation.getVersion());
-                            // Rollback is not required, database is not used for writing
-                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                        }
+                        activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
                     } else {
                         statusBlob = null;
                         activationFingerPrint = null;
