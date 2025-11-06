@@ -17,7 +17,7 @@
  *
  */
 
-package com.wultra.security.powerauth.app.server.service.crypto.listener;
+package com.wultra.security.powerauth.app.server.service.crypto.event;
 
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;

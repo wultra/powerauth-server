@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.listener.AlgorithmConfigChangedEvent;
+import com.wultra.security.powerauth.app.server.service.crypto.event.AlgorithmConfigChangedEvent;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
