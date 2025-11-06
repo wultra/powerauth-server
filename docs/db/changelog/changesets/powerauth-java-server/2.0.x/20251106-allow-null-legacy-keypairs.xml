@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.30.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20251106-allow-null-legacy-keypairs.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <columnExists tableName="pa_master_keypair" columnName="master_key_private_base64" />
+                <columnExists tableName="pa_master_keypair" columnName="master_key_public_base64" />
+            </and>
+        </preConditions>
+        <comment>Change the master keypair columns to nullable in pa_master_keypair table</comment>
+        <dropNotNullConstraint tableName="pa_master_keypair" columnName="master_key_private_base64" columnDataType="varchar(255)" />
+        <dropNotNullConstraint tableName="pa_master_keypair" columnName="master_key_public_base64" columnDataType="varchar(255)" />
+    </changeSet>
+
+</databaseChangeLog>
