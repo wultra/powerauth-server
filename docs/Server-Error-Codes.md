@@ -50,6 +50,6 @@ PowerAuth Server may return following errors:
 | ERR0043    | Application or application version is duplicate.                                                                   |
 | ERR0044    | Token timestamp is too much in the future.                                                                         |
 | ERR0045    | Missing temporary key.                                                                                             |
-| ERR0046    | Cryptography algorithm is not allowed.                                                                             |
+| ERR0046    | Cryptography algorithm is not supported.                                                                           |
 
 For each of these issues, more details about the specific nature and cause can be found in the server log.
