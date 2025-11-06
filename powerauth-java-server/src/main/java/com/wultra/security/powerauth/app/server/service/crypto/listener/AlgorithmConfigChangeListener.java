@@ -39,7 +39,7 @@ public class AlgorithmConfigChangeListener {
     private final MasterKeyGenerationService masterKeyGenerationService;
 
     @EventListener
-    public void onCryptoConfigChanged(AlgorithmConfigChangedEvent event) {
+    public void onAlgorithmConfigChanged(AlgorithmConfigChangedEvent event) {
         try {
             masterKeyGenerationService.generateMasterKeyPairs(event.getApplication());
         } catch (GenericServiceException e) {
