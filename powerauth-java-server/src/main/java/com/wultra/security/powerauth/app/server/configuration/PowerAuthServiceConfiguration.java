@@ -51,6 +51,13 @@ import java.time.Duration;
 public class PowerAuthServiceConfiguration {
 
     /**
+     * The maximum supported major version of the PowerAuth protocol.
+     * This constant is used in the activation status to indicate
+     * whether protocol upgrade is possible.
+     */
+    public static final byte POWERAUTH_PROTOCOL_VERSION = 0x4;
+
+    /**
      * Minimal value for {@link #proximityCheckOtpLength}.
      */
     private static final int MINIMAL_PROXIMITY_CHECK_OTP_LENGTH = 6;

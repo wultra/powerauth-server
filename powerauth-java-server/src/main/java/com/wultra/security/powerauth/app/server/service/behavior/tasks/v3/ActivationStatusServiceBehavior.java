@@ -62,11 +62,6 @@ import java.util.*;
 @AllArgsConstructor
 public class ActivationStatusServiceBehavior {
 
-    /**
-     * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
-     */
-    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
-
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -216,7 +211,7 @@ public class ActivationStatusServiceBehavior {
                         final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
                         statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
                         statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
-                        statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
+                        statusBlobInfo.setUpgradeVersion(PowerAuthServiceConfiguration.POWERAUTH_PROTOCOL_VERSION);
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
                         statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());

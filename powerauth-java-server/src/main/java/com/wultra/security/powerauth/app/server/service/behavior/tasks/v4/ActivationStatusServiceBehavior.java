@@ -70,11 +70,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ActivationStatusServiceBehavior {
 
-    /**
-     * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
-     */
-    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x4;
-
     private static final byte STATUS_FLAG_ACTIVATION_CONFIRMATION = 1;
     private static final byte STATUS_FLAG_UPGRADE_CONFIRMATION    = 2;
     private static final byte STATUS_FLAG_UNSUPPORTED_ALGORITHM   = 4;
@@ -197,7 +192,7 @@ public class ActivationStatusServiceBehavior {
                         final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
                         statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
                         statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
-                        statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
+                        statusBlobInfo.setUpgradeVersion(PowerAuthServiceConfiguration.POWERAUTH_PROTOCOL_VERSION);
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
                         statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
@@ -231,13 +226,7 @@ public class ActivationStatusServiceBehavior {
                             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
                         }
                         // Assign the activation fingerprint
-                        if (activation.getVersion() == 4) {
-                            activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
-                        } else {
-                            logger.error("Unsupported activation version: {}", activation.getVersion());
-                            // Rollback is not required, database is not used for writing
-                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                        }
+                        activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
                     } else {
                         statusBlob = null;
                         activationFingerPrint = null;
