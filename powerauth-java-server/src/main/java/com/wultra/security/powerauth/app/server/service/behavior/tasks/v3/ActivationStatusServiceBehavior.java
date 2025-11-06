@@ -148,7 +148,7 @@ public class ActivationStatusServiceBehavior {
                     response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
+                    response.setActivationSignature(activationSignature != null ? Base64.getEncoder().encodeToString(activationSignature) : null);
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));

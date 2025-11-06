@@ -20,14 +20,15 @@
 package com.wultra.security.powerauth.app.server.service.crypto.v3;
 
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.*;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
-import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -40,6 +41,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,19 +66,15 @@ import java.util.Base64;
 @AllArgsConstructor
 public class CryptographyServiceEc256 extends CryptographyService {
 
-    private final MasterKeyGenerationService masterKeyGenerationService;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
-    @Override
-    public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
-         masterKeyGenerationService.generateMasterKeyPairs(application);
-    }
 
     @Override
     public KeyPair getMasterKeyPair(KeyType keyType, ApplicationEntity application) throws GenericServiceException {
@@ -185,6 +183,9 @@ public class CryptographyServiceEc256 extends CryptographyService {
         if (keyType != KeyType.ECDSA_P256) {
             logger.error("Unsupported key type in application signature: {}", keyType);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        }
+        if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P256)) {
+            return null;
         }
         try {
             final KeyPair keyPair = getMasterKeyPair(keyType, application);

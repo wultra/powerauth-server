@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -77,6 +78,7 @@ public class SharedSecretServiceBehavior {
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final LocalizationProvider localizationProvider;
     private final CallbackUrlBehavior callbackUrlBehavior;
+    private final AlgorithmValidationService algorithmValidationService;
 
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
@@ -99,6 +101,8 @@ public class SharedSecretServiceBehavior {
         }
 
         final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+
+        algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
         final DevicePublicKeys devicePublicKeys = requestPayload.getDevicePublicKeys();
         if (devicePublicKeys == null) {

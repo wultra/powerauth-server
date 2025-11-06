@@ -194,10 +194,10 @@ public class ActivationInitServiceBehavior {
             );
 
             // Encode the signature
-            final String activationSignatureV3Base64 = Base64.getEncoder().encodeToString(activationSignatureV3);
-            final String activationSignatureV4EcdsaBase64 = Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa);
-            final String activationSignatureV4Mldsa65Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa65);
-            final String activationSignatureV4Mldsa87Base64 = Base64.getEncoder().encodeToString(activationSignatureV4Mldsa87);
+            final String activationSignatureV3Base64 = activationSignatureV3 != null ? Base64.getEncoder().encodeToString(activationSignatureV3) : null;
+            final String activationSignatureV4EcdsaBase64 = activationSignatureV4Ecdsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa) : null;
+            final String activationSignatureV4Mldsa65Base64 = activationSignatureV4Mldsa65 != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa65) : null;
+            final String activationSignatureV4Mldsa87Base64 = activationSignatureV4Mldsa87 != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa87) : null;
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation

@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
@@ -38,6 +39,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,6 +66,7 @@ public class ApplicationDetailServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final PublicKeysConverter publicKeysConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
@@ -105,21 +108,29 @@ public class ApplicationDetailServiceBehavior {
         String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-            publicKeyP384 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.ECDSA_P384,
-                    publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
-            );
-            publicKeyMlDsa65 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.MLDSA_65,
-                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
-            );
-            publicKeyMlDsa87 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.MLDSA_87,
-                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
-            );
+            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384)
+                    || algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)
+                    || algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
+                publicKeyP384 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.ECDSA_P384,
+                        publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
+                );
+            }
+            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)) {
+                publicKeyMlDsa65 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.MLDSA_65,
+                        KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+                );
+            }
+            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
+                publicKeyMlDsa87 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.MLDSA_87,
+                        KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+                );
+            }
         }
 
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();

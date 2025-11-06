@@ -242,10 +242,14 @@ public final class ServiceError {
     public static final String TOKEN_TIMESTAMP_TOO_IN_FUTURE = "ERR0044";
 
     /**
-     * No temporary key found
+     * No temporary key found.
      */
     public static final String MISSING_TEMPORARY_KEY = "ERR0045";
 
+    /**
+     * Cryptography algorithm is not supported.
+     */
+    public static final String CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED = "ERR0046";
 
     public static List<String> allCodes() {
         final List<String> list = new ArrayList<>(45);
@@ -290,6 +294,7 @@ public final class ServiceError {
         list.add(DUPLICATE_APPLICATION);
         list.add(TOKEN_TIMESTAMP_TOO_IN_FUTURE);
         list.add(MISSING_TEMPORARY_KEY);
+        list.add(CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         return list;
     }
 

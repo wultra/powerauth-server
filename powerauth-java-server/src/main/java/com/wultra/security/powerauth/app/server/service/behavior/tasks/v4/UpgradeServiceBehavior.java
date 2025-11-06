@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -68,6 +69,7 @@ public class UpgradeServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
+    private final AlgorithmValidationService algorithmValidationService;
     private final SharedSecretServiceBehavior sharedSecretServiceBehavior;
 
     // Helper classes
@@ -112,6 +114,9 @@ public class UpgradeServiceBehavior {
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.UPGRADE_START);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final SharedSecretRequestPayload requestPayload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
+
+            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
             // Verify request payload
             final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
@@ -140,7 +145,7 @@ public class UpgradeServiceBehavior {
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
-            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
+            activation.setCryptoAlgorithm(algorithm);
 
             final UpgradeStartResponsePayload responsePayload = new UpgradeStartResponsePayload();
             responsePayload.setSharedSecretResponse(sharedSecretResponsePayload.getSharedSecretResponse());

@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -86,6 +87,7 @@ public class ActivationStatusServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -170,9 +172,9 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignatureV3));
-                    response.setActivationSignatureEcdsa(Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa));
-                    response.setActivationSignatureMldsa(Base64.getEncoder().encodeToString(activationSignatureV4Mldsa));
+                    response.setActivationSignature(activationSignatureV3 != null ? Base64.getEncoder().encodeToString(activationSignatureV3) : null);
+                    response.setActivationSignatureEcdsa(activationSignatureV4Ecdsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa) : null);
+                    response.setActivationSignatureMldsa(activationSignatureV4Mldsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa) : null);
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
@@ -192,6 +194,14 @@ public class ActivationStatusServiceBehavior {
                     final SharedSecretAlgorithm sharedSecretAlgorithm;
                     final String activationFingerPrint;
                     if (sharedSecretEncrypted != null) {
+                        // Resolve shared secret algorithm
+                        sharedSecretAlgorithm = activation.getCryptoAlgorithm();
+                        if (sharedSecretAlgorithm == null) {
+                            logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
+                            // Rollback is not required, database is not used for writing
+                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                        }
+                        final boolean algorithmSupported = algorithmQueryService.isAlgorithmSupported(application, sharedSecretAlgorithm);
                         final String ctrDataBase64 = activation.getCtrDataV4Base64();
                         final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
                         final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
@@ -205,7 +215,7 @@ public class ActivationStatusServiceBehavior {
                         statusBlobInfo.setStatusFlags(computeStatusFlags(
                                 activation.isConfirmationPending(),
                                 activation.isUpgradeConfirmationPending(),
-                                false, // TODO - implement algorithm check
+                                !algorithmSupported,
                                 activation.isBiometricFactorEnabled())
                         );
                         final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
@@ -223,13 +233,6 @@ public class ActivationStatusServiceBehavior {
                                 .put(statusBlobData)
                                 .put(statusBlobMac)
                                 .array();
-                        // Resolve shared secret algorithm
-                        sharedSecretAlgorithm = activation.getCryptoAlgorithm();
-                        if (sharedSecretAlgorithm == null) {
-                            logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
-                            // Rollback is not required, database is not used for writing
-                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                        }
                         // Assign the activation fingerprint
                         if (activation.getVersion() == 4) {
                             activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
