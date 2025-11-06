@@ -253,7 +253,12 @@ public class OfflineAuthenticationServiceBehavior {
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384).generateSignatureForApplication(KeyType.ECDSA_P384, signatureBase, application);
-            final String ecdsaSignature = ecdsaSignatureBytes != null ? Base64.getEncoder().encodeToString(ecdsaSignatureBytes) : null;
+            if (ecdsaSignatureBytes == null) {
+                logger.error("Missing EC_P384 master key pair for application ID: {}", applicationId);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
+            final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
             final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
