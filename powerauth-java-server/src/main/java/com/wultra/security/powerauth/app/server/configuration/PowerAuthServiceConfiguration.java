@@ -170,6 +170,14 @@ public class PowerAuthServiceConfiguration {
     private Duration requestExpirationExtended;
 
     /**
+     * Minimum cryptography protocol version which is supported.
+     */
+    @Value("${powerauth.service.crypto.minSupportedProtocolVersion:3}")
+    @Min(3)
+    @Max(4)
+    private int minSupportedProtocolVersion;
+
+    /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
      */
     @Value("${powerauth.service.http.proxy.enabled}")

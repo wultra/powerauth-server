@@ -92,7 +92,13 @@ public class ActivationProcessServiceBehavior {
 
             // Check that cryptography algorithm is allowed
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(layer2Request.getSharedSecretRequest().getAlgorithm());
-            algorithmValidationService.validateAlgorithmForApplication(activation.getApplication(), algorithm);
+
+            try {
+                algorithmValidationService.validateAlgorithmForApplication(activation.getApplication(), algorithm);
+            } catch (GenericServiceException e) {
+                // Activation failed due to unsupported algorithm, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
+            }
 
             // Validate activation OTP for stage ON_KEY_EXCHANGE
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);

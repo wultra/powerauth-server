@@ -251,6 +251,11 @@ public final class ServiceError {
      */
     public static final String CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED = "ERR0046";
 
+    /**
+     * Cryptography protocol version is not supported.
+     */
+    public static final String CRYPTOGRAPHY_PROTOCOL_VERSION_NOT_SUPPORTED = "ERR0047";
+
     public static List<String> allCodes() {
         final List<String> list = new ArrayList<>(45);
         list.add(UNKNOWN_ERROR);
@@ -295,6 +300,7 @@ public final class ServiceError {
         list.add(TOKEN_TIMESTAMP_TOO_IN_FUTURE);
         list.add(MISSING_TEMPORARY_KEY);
         list.add(CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
+        list.add(CRYPTOGRAPHY_PROTOCOL_VERSION_NOT_SUPPORTED);
         return list;
     }
 

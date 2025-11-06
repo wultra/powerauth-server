@@ -22,7 +22,6 @@ package com.wultra.security.powerauth.app.server.service.crypto;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
@@ -43,20 +42,30 @@ public class AlgorithmValidationService {
     private final AlgorithmQueryService algorithmQueryService;
     private final LocalizationProvider localizationProvider;
 
-    public void validateAlgorithmForApplication(ApplicationEntity application, SharedSecretAlgorithm algorithm) throws RollbackingServiceException {
+    /**
+     * Validate support of shared secret algorithm for an application.
+     * @param application Application.
+     * @param algorithm Shared secret algorithm.
+     * @throws GenericServiceException In case algorithm is not supported.
+     */
+    public void validateAlgorithmForApplication(ApplicationEntity application, SharedSecretAlgorithm algorithm) throws GenericServiceException {
         if (!algorithmQueryService.isAlgorithmSupported(application, algorithm)) {
             logger.warn("Cryptography algorithm is not allowed, application ID: {}, algorithm: {}", application.getId(), algorithm);
-            // Activation failed due to invalid request, rollback transaction
-            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
+            throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         }
     }
 
+    /**
+     * Validate support of shared secret algorithm for an activation.
+     * @param activation Activation.
+     * @param algorithm Shared secret algorithm.
+     * @throws GenericServiceException In case algorithm is not supported.
+     */
     public void validateAlgorithmForActivation(ActivationRecordEntity activation, SharedSecretAlgorithm algorithm) throws GenericServiceException {
         validateAlgorithmForApplication(activation.getApplication(), algorithm);
 
         if (!algorithmMatchesActivation(activation, algorithm)) {
             logger.warn("Cryptography algorithm does not match activation, activation ID: {}, algorithm: {}", activation.getActivationId(), algorithm);
-            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         }
     }

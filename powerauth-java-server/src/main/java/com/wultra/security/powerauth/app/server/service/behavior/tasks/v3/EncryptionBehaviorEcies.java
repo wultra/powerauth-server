@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -62,8 +62,8 @@ public class EncryptionBehaviorEcies {
     private final LocalizationProvider localizationProvider;
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
     private final EncryptionServiceEcies encryptionService;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     /**
      * Obtain ECIES decryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
@@ -77,6 +77,7 @@ public class EncryptionBehaviorEcies {
      */
     @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             if (request.getActivationId() == null) {
                 // Application scope

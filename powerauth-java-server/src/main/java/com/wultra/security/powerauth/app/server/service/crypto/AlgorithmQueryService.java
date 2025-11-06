@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto;
 
+import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
@@ -46,6 +47,7 @@ import static com.wultra.security.powerauth.app.server.service.behavior.tasks.Ap
 public class AlgorithmQueryService {
 
     private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
+    private final PowerAuthServiceConfiguration configuration;
 
     /**
      * Get whether shared secret algorithm is allowed based on configuration of allowed algorithms.
@@ -62,6 +64,11 @@ public class AlgorithmQueryService {
 
         // PQC-only algorithms are currently not allowed until they mature
         if (sharedSecretAlgorithm == SharedSecretAlgorithm.ML_L3 || sharedSecretAlgorithm == SharedSecretAlgorithm.ML_L5) {
+            return false;
+        }
+
+        // Check whether protocol version 3 is supported at all
+        if (sharedSecretAlgorithm == SharedSecretAlgorithm.EC_P256 && configuration.getMinSupportedProtocolVersion() > 3) {
             return false;
         }
 

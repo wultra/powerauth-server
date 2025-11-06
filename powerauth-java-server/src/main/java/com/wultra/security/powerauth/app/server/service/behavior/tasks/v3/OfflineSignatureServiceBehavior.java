@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -85,6 +86,7 @@ public class OfflineSignatureServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationRepository applicationRepository;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -100,6 +102,7 @@ public class OfflineSignatureServiceBehavior {
     @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(final VerifyOfflineSignatureRequest request)
             throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final BigInteger componentLength = request.getComponentLength();
             final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
@@ -146,6 +149,7 @@ public class OfflineSignatureServiceBehavior {
      */
     @Transactional
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             // Fetch activation details from the repository
             final String activationId = request.getActivationId();
