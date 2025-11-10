@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidatio
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
+import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -204,7 +204,7 @@ public class ActivationStatusServiceBehavior {
                                 activation.isBiometricFactorEnabled())
                         );
                         final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
-                        final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
+                        final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionMode, sharedSecretEncrypted);
                         final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
                         final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
                         final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);

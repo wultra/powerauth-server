@@ -103,7 +103,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
                 masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
             }
             final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
-            final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeysEncryption, masterPrivateKeysBase64);
+            final PrivateKeysRecord privateKeys = new PrivateKeysRecord(masterPrivateKeysEncryption, masterPrivateKeysBase64);
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing master private key for application ID: {}", application.getId());
@@ -126,7 +126,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
 
     @Override
     public SecretKey deriveSharedSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
-        final SharedSecret sharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
+        final SharedSecretRecord sharedSecret = new SharedSecretRecord(activation.getSharedSecretEncryption(), activation.getSharedSecret());
         final String activationSecretBase64 = sharedSecretConverter.fromDBValue(sharedSecret, activation.getUserId(), activation.getActivationId());
         final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
         return KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(activationSecretBytes);
@@ -208,7 +208,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
-            final PrivateKeys privateKeys = new PrivateKeys(activation.getServerPrivateKeysEncryption(), activation.getServerPrivateKeys());
+            final PrivateKeysRecord privateKeys = new PrivateKeysRecord(activation.getServerPrivateKeysEncryption(), activation.getServerPrivateKeys());
             final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
             final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing server private key for activation ID: {}", activation.getActivationId());

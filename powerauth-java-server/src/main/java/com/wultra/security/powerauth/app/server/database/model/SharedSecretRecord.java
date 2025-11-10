@@ -21,16 +21,17 @@ package com.wultra.security.powerauth.app.server.database.model;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 /**
- * Compound value of private keys. Key can be stored encrypted or decrypted based on key encryption mode.
+ * Compound value of shared secret. Key can be stored encrypted or decrypted based on key encryption mode.
  *
- * @param encryptionMode    Key encryption mode.
- * @param privateKeysBase64 Private keys encoded in Base-64 encoding.
+ * @param encryptionMode     Key encryption mode.
+ * @param sharedSecretBase64 Base64-encoded shared secret.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record PrivateKeys(EncryptionMode encryptionMode, String privateKeysBase64) {
+public record SharedSecretRecord(EncryptionMode encryptionMode, String sharedSecretBase64) {
 
     @Override
     public String toString() {
-        return "PrivateKeys{encryptionMode=" + encryptionMode + "}";
+        return "SharedSecret{encryptionMode=" + encryptionMode + "}";
     }
+
 }

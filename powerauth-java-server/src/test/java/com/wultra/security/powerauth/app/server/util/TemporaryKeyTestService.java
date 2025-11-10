@@ -41,9 +41,8 @@ import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
+import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
 import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -124,17 +123,18 @@ public class TemporaryKeyTestService {
                 .claim("challenge", challenge)
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(now.plus(5, ChronoUnit.MINUTES)));
-        final Object request = requestCryptogram.getSharedSecretRequest();
+        final DefaultSharedSecretRequest request = (DefaultSharedSecretRequest) requestCryptogram.getSharedSecretRequest();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
-        if (request instanceof SharedSecretRequestEcdhe ecdhe) {
-            sharedSecretRequest.setAlgorithm("EC_P384");
-            sharedSecretRequest.setEcdhe(ecdhe.getEcClientPublicKey());
-        } else if (request instanceof SharedSecretRequestHybrid hybrid) {
-            sharedSecretRequest.setAlgorithm("EC_P384_ML_L5");
-            sharedSecretRequest.setEcdhe(hybrid.getEcClientPublicKey());
-            sharedSecretRequest.setMlkem(hybrid.getPqcEncapsulationKey());
-        } else {
-            throw new IllegalStateException("Invalid cryptogram");
+        sharedSecretRequest.setAlgorithm(request.getAlgorithm().name());
+        switch (request.getAlgorithm()) {
+            case EC_P384 -> {
+                sharedSecretRequest.setEcdhe(request.getEncapsulationKeys().get(0));
+            }
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
+                sharedSecretRequest.setEcdhe(request.getEncapsulationKeys().get(0));
+                sharedSecretRequest.setMlkem(request.getEncapsulationKeys().get(1));
+            }
+            default -> throw new IllegalStateException("Invalid cryptogram");
         }
         builder.claim("sharedSecretRequest", sharedSecretRequest);
         final JWTClaimsSet jwtClaims = builder.build();
@@ -202,7 +202,7 @@ public class TemporaryKeyTestService {
 
         return switch (signature.getHeader().getAlgorithm().getName()) {
             case "ES384" -> SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, signingInput.getBytes(StandardCharsets.UTF_8), convertRawSignatureToDER(signature.getSignature().decode()), publicKey);
-            case "ML-DSA-87" -> PQC_DSA.verify(publicKey, signingInput.getBytes(StandardCharsets.UTF_8), signature.getSignature().decode());
+            case "ML-DSA-65" -> PQC_DSA.verify(publicKey, signingInput.getBytes(StandardCharsets.UTF_8), signature.getSignature().decode());
             default -> throw new IllegalStateException("Unexpected value: " + signature.getHeader().getAlgorithm().getName());
         };
     }

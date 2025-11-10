@@ -20,7 +20,7 @@
 package com.wultra.security.powerauth.app.server.service.util;
 
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
+import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -51,7 +51,7 @@ public class SharedSecretExtractor {
      * @throws GenericServiceException Thrown in case key conversion fails.
      */
     public SecretKey extractActivationSecretKey(ActivationRecordEntity activation) throws GenericServiceException {
-        final SharedSecret activationSharedSecret = new SharedSecret(activation.getSharedSecretEncryption(), activation.getSharedSecret());
+        final SharedSecretRecord activationSharedSecret = new SharedSecretRecord(activation.getSharedSecretEncryption(), activation.getSharedSecret());
         final String activationSecretBase64 = activationSharedSecretConverter.fromDBValue(activationSharedSecret, activation.getUserId(), activation.getActivationId());
         final byte[] activationSecretBytes = Base64.getDecoder().decode(activationSecretBase64);
         return KEY_CONVERTOR.convertBytesToSharedSecretKey(activationSecretBytes);

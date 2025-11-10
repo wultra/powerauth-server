@@ -39,16 +39,15 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRespons
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecret;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.DefaultSharedSecretClientContext;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestEcdhe;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.SharedSecretRequestHybrid;
+import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
+import com.wultra.security.powerauth.crypto.lib.v4.model.response.DefaultSharedSecretResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.ResponseCryptogram;
-import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretResponseEcdhe;
-import com.wultra.security.powerauth.crypto.lib.v4.model.response.SharedSecretResponseHybrid;
-import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretEcdhe;
-import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretHybrid;
+import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Password service specific to V4.
@@ -74,10 +74,9 @@ public class PasswordServiceBehavior {
     private final EncryptionServiceAead encryptionService;
     private final ObjectMapper objectMapper;
 
-    private static final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
-
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
-    private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
+    private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
+    private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
+    private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_HYBRID_ML_L5 = SharedSecretFactory.getHybridMlL5();
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -124,18 +123,19 @@ public class PasswordServiceBehavior {
             final ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor = decryptionResult.getServerEncryptor();
             final SharedSecretRequest sharedSecretRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), SharedSecretRequest.class);
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+            final DefaultSharedSecretRequest sharedSecretRequestObject = new DefaultSharedSecretRequest();
+            sharedSecretRequestObject.setAlgorithm(algorithm);
             final SharedSecretResponse secretResponse = switch (algorithm) {
                 case EC_P384 -> {
                     try {
-                        final SharedSecretRequestEcdhe sharedSecretRequestEcdhe = new SharedSecretRequestEcdhe();
-                        sharedSecretRequestEcdhe.setEcClientPublicKey(sharedSecretRequest.getEcdhe());
-                        final ResponseCryptogram responseCryptogram = SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequestEcdhe);
+                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEcdhe()));
+                        final ResponseCryptogram responseCryptogram = SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequestObject);
 
                         storeKnowledgeFactorKey(activationId, responseCryptogram.getSecretKey());
 
-                        final SharedSecretResponseEcdhe derivedResponse = (SharedSecretResponseEcdhe) responseCryptogram.getSharedSecretResponse();
+                        final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setEcdhe(derivedResponse.getEcServerPublicKey());
+                        sharedSecretResponse.setEcdhe(derivedResponse.getEncapsulatedKeys().get(0));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {
                         logger.error("Cryptography error occurred", ex);
@@ -144,21 +144,19 @@ public class PasswordServiceBehavior {
                 }
                 case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                     try {
-                        final SharedSecretRequestHybrid sharedSecretRequestHybrid = new SharedSecretRequestHybrid();
-                        sharedSecretRequestHybrid.setEcClientPublicKey(sharedSecretRequest.getEcdhe());
-                        sharedSecretRequestHybrid.setPqcEncapsulationKey(sharedSecretRequest.getMlkem());
+                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEcdhe(), sharedSecretRequest.getMlkem()));
                         final ResponseCryptogram responseCryptogram = switch (algorithm) {
-                            case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestHybrid);
-                            case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestHybrid);
+                            case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestObject);
+                            case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestObject);
                             default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
                         };
 
                         storeKnowledgeFactorKey(activationId, responseCryptogram.getSecretKey());
 
-                        final SharedSecretResponseHybrid derivedResponse = (SharedSecretResponseHybrid) responseCryptogram.getSharedSecretResponse();
+                        final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setEcdhe(derivedResponse.getEcServerPublicKey());
-                        sharedSecretResponse.setMlkem(derivedResponse.getPqcCiphertext());
+                        sharedSecretResponse.setEcdhe(derivedResponse.getEncapsulatedKeys().get(0));
+                        sharedSecretResponse.setMlkem(derivedResponse.getEncapsulatedKeys().get(1));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {
                         logger.error("Cryptography error occurred", ex);

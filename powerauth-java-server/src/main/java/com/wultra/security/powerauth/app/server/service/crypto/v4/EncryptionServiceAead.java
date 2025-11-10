@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -149,7 +149,7 @@ public class EncryptionServiceAead extends EncryptionService {
 
         final String serverPrivateKeys = activation.getServerPrivateKeys();
         final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
-        final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
+        final PrivateKeysRecord privateKeys = new PrivateKeysRecord(encryptionMode, serverPrivateKeys);
         final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
         final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 

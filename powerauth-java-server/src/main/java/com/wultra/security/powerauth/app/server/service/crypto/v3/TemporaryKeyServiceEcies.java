@@ -27,7 +27,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.converter.TemporaryPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKeyRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -164,7 +164,7 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
             final TemporaryKeyEntity temporaryKey = fetchTemporaryKey(id, appKey, activationId);
             final String serverPrivateKeyFromEntity = temporaryKey.getPrivateKeyBase64();
             final EncryptionMode serverPrivateKeyEncryptionMode = temporaryKey.getPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             return KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
@@ -263,7 +263,7 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
 
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
                 final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
-                final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
+                final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(encryptionMode, serverPrivateKeyBase64);
                 final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
                 final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
                 final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
@@ -298,7 +298,7 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
         final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidity().toMillis()));
 
         // Prepare encrypted temporary private key, if encryption is enabled
-        final ServerPrivateKey temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(
+        final ServerPrivateKeyRecord temporaryPrivateKey = temporaryPrivateKeyConverter.toDBValue(
                 privateKeyBytes,
                 keyId,
                 applicationKey,
