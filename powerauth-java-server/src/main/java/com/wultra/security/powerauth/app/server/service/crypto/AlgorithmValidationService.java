@@ -50,7 +50,7 @@ public class AlgorithmValidationService {
      */
     public void validateAlgorithmForApplication(ApplicationEntity application, SharedSecretAlgorithm algorithm) throws GenericServiceException {
         if (!algorithmQueryService.isAlgorithmSupported(application, algorithm)) {
-            logger.warn("Cryptography algorithm is not allowed, application ID: {}, algorithm: {}", application.getId(), algorithm);
+            logger.warn("Cryptography algorithm is not supported, application ID: {}, algorithm: {}", application.getId(), algorithm);
             throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         }
     }

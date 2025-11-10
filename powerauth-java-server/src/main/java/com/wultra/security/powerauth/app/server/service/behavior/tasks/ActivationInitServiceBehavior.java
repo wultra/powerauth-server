@@ -31,6 +31,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
@@ -72,6 +73,7 @@ public class ActivationInitServiceBehavior {
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final KeyPairGenerationService keyPairGenerationService;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final ObjectMapper objectMapper;
@@ -168,30 +170,36 @@ public class ActivationInitServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
-            // Compute activation signatures
-            final byte[] activationSignatureV3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
-                    .generateSignatureForApplication(
-                            KeyType.ECDSA_P256,
+            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+
+            // Compute activation signatures for supported algorithms
+            final byte[] activationSignatureV3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ?
+                    cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
+                            .generateSignatureForApplication(
+                                    KeyType.ECDSA_P256,
+                                    activationCode.getBytes(StandardCharsets.UTF_8),
+                                    application
+                            ) : null;
+            final CryptographyService cryptographyServiceP384MlL3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
+            final byte[] activationSignatureV4Ecdsa = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384) ?
+                    cryptographyServiceP384MlL3.generateSignatureForApplication(
+                            KeyType.ECDSA_P384,
                             activationCode.getBytes(StandardCharsets.UTF_8),
                             application
-                    );
-            final CryptographyService cryptographyServiceP384MlL3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-            final byte[] activationSignatureV4Ecdsa = cryptographyServiceP384MlL3.generateSignatureForApplication(
-                    KeyType.ECDSA_P384,
-                    activationCode.getBytes(StandardCharsets.UTF_8),
-                    application
-            );
-            final byte[] activationSignatureV4Mldsa65 = cryptographyServiceP384MlL3.generateSignatureForApplication(
-                    KeyType.MLDSA_65,
-                    activationCode.getBytes(StandardCharsets.UTF_8),
-                    application
-            );
+                    ) : null;
+            final byte[] activationSignatureV4Mldsa65 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3) ?
+                    cryptographyServiceP384MlL3.generateSignatureForApplication(
+                            KeyType.MLDSA_65,
+                            activationCode.getBytes(StandardCharsets.UTF_8),
+                            application
+                    ) : null;
             final CryptographyService cryptographyServiceP384MlL5 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L5);
-            final byte[] activationSignatureV4Mldsa87 = cryptographyServiceP384MlL5.generateSignatureForApplication(
-                    KeyType.MLDSA_87,
-                    activationCode.getBytes(StandardCharsets.UTF_8),
-                    application
-            );
+            final byte[] activationSignatureV4Mldsa87 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5) ?
+                    cryptographyServiceP384MlL5.generateSignatureForApplication(
+                            KeyType.MLDSA_87,
+                            activationCode.getBytes(StandardCharsets.UTF_8),
+                            application
+                    ) : null;
 
             // Encode the signature
             final String activationSignatureV3Base64 = activationSignatureV3 != null ? Base64.getEncoder().encodeToString(activationSignatureV3) : null;

@@ -240,7 +240,8 @@ public class CryptographyServiceEc384MlL5 extends CryptographyService {
                 if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384)
                         && !algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)
                         && !algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
-                    yield null;
+                    logger.warn("Cryptography algorithm EC_P384 is not supported, application ID: {}", application.getId());
+                    throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
                 }
                 try {
                     final KeyPair keyPair = getMasterKeyPair(keyType, application);
@@ -252,7 +253,8 @@ public class CryptographyServiceEc384MlL5 extends CryptographyService {
             }
             case MLDSA_87 -> {
                 if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
-                    yield null;
+                    logger.warn("Cryptography algorithm ML_L5 is not supported, application ID: {}", application.getId());
+                    throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
                 }
                 try {
                     final KeyPair keyPair = getMasterKeyPair(keyType, application);

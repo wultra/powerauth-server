@@ -185,7 +185,8 @@ public class CryptographyServiceEc256 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P256)) {
-            return null;
+            logger.warn("Cryptography algorithm EC_P256 is not supported, application ID: {}", application.getId());
+            throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         }
         try {
             final KeyPair keyPair = getMasterKeyPair(keyType, application);
