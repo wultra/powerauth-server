@@ -85,7 +85,6 @@ public class MasterKeyGenerationService {
                 keyPair = createInitialV3Entity(application);
                 privateKeyRegistry = new PrivateKeyRegistry();
                 publicKeyRegistry = new PublicKeyRegistry();
-                writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
             } else if (keyPair.getMasterPrivateKeys() == null) {
                 // Create new V4 keypair registries
                 privateKeyRegistry = new PrivateKeyRegistry();
@@ -117,14 +116,6 @@ public class MasterKeyGenerationService {
         entity.setTimestampCreated(new Date());
         entity.setName(app.getId() + " Default Keypair");
         entity.setApplication(app);
-
-        // Initialize empty V4 registries into DB fields
-        PrivateKeyRegistry privateKeyRegistry = new PrivateKeyRegistry();
-        PublicKeyRegistry publicKeyRegistry = new PublicKeyRegistry();
-        PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, app.getId());
-        entity.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-        entity.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-        entity.setMasterPublicKeys(publicKeysConverter.toDBValue(publicKeyRegistry));
         return entity;
     }
 
