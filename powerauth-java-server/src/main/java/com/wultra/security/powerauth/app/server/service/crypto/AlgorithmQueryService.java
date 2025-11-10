@@ -30,7 +30,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +45,24 @@ import static com.wultra.security.powerauth.app.server.service.behavior.tasks.Ap
 @Slf4j
 @AllArgsConstructor
 public class AlgorithmQueryService {
+
+    /**
+     * Following algorithms are supported in case of no configuration by default.
+     */
+    private static final List<String> SUPPORTED_ALGORITHMS_DEFAULT = List.of(
+            SharedSecretAlgorithm.EC_P256.name(),
+            SharedSecretAlgorithm.EC_P384.name(),
+            SharedSecretAlgorithm.EC_P384_ML_L3.name(),
+            SharedSecretAlgorithm.EC_P384_ML_L5.name()
+    );
+
+    /**
+     * Following algorithms are not supported yet, only used for testing.
+     */
+    private static final List<String> UNSUPPORTED_ALGORITHMS = List.of(
+            SharedSecretAlgorithm.ML_L3.name(),
+            SharedSecretAlgorithm.ML_L5.name()
+    );
 
     private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
     private final PowerAuthServiceConfiguration configuration;
@@ -108,7 +125,7 @@ public class AlgorithmQueryService {
                         .filter(String.class::isInstance)
                         .map(String.class::cast)
                         .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
+                .orElse(SUPPORTED_ALGORITHMS_DEFAULT);
     }
 
     /**
@@ -116,12 +133,12 @@ public class AlgorithmQueryService {
      */
     private boolean isAlgorithmAllowed(SharedSecretAlgorithm algorithm, List<String> allowedValues) {
         // PQC-only algorithms are currently not allowed until they mature
-        if (algorithm == SharedSecretAlgorithm.ML_L3 || algorithm == SharedSecretAlgorithm.ML_L5) {
+        if (UNSUPPORTED_ALGORITHMS.contains(algorithm.name())) {
             return false;
         }
 
         // All other algorithms are allowed if the configuration list is empty
-        return allowedValues.isEmpty() || allowedValues.contains(algorithm.name());
+        return allowedValues.contains(algorithm.name());
     }
 
     /**
