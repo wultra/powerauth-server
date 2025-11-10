@@ -71,7 +71,7 @@ public class AlgorithmValidationService {
     }
 
     /**
-     * Get whether shared secret algorithm matches the algorithm stored during activation.
+     * Check whether shared secret algorithm matches the algorithm stored during activation.
      * @param activation Activation.
      * @param sharedSecretAlgorithm Shared secret algorithm.
      * @return Whether shared secret algorithm matches the algorithm stored during activation

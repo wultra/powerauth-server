@@ -50,7 +50,7 @@ public class AlgorithmQueryService {
     private final PowerAuthServiceConfiguration configuration;
 
     /**
-     * Get whether shared secret algorithm is allowed based on configuration of allowed algorithms.
+     * Check whether shared secret algorithm is allowed based on configuration of allowed algorithms.
      * @param application Application.
      * @param sharedSecretAlgorithm Shared secret algorithm.
      * @return Whether shared secret algorithm is allowed.
