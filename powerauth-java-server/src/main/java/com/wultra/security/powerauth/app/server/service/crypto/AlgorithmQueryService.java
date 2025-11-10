@@ -63,6 +63,22 @@ public class AlgorithmQueryService {
     }
 
     /**
+     * Check whether any of the provided shared secret algorithms is supported for a given application.
+     * @param application Application.
+     * @param algorithms List of shared secret algorithms to check.
+     * @return {@code true} if at least one algorithm is supported, {@code false} otherwise.
+     */
+    public boolean isAnyAlgorithmSupported(ApplicationEntity application, List<SharedSecretAlgorithm> algorithms) {
+        if (algorithms == null || algorithms.isEmpty()) {
+            return false;
+        }
+        final List<String> supportedAlgorithms = fetchSupportedAlgorithms(application);
+        return algorithms.stream()
+                .anyMatch(algorithm -> isAlgorithmAllowed(algorithm, supportedAlgorithms)
+                        && isAlgorithmSupportedByProtocol(algorithm));
+    }
+
+    /**
      * Get the list of supported shared secret algorithms for an application.
      * @param application Application.
      * @return List of supported shared secret algorithms.

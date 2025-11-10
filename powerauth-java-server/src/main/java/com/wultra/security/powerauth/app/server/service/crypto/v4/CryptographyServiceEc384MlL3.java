@@ -61,6 +61,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-KEM-768 + ML-DSA-65.
@@ -235,9 +236,7 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
     public byte[] generateSignatureForApplication(KeyType keyType, byte[] data, ApplicationEntity application) throws GenericServiceException {
         return switch (keyType) {
             case ECDSA_P384 -> {
-                if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384)
-                        && !algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)
-                        && !algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
+                if (!algorithmQueryService.isAnyAlgorithmSupported(application, List.of(SharedSecretAlgorithm.EC_P384, SharedSecretAlgorithm.EC_P384_ML_L3, SharedSecretAlgorithm.EC_P384_ML_L5))) {
                     logger.warn("Cryptography algorithm EC_P384 is not supported, application ID: {}", application.getId());
                     throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
                 }

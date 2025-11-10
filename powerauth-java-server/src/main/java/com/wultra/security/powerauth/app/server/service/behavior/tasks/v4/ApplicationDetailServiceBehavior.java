@@ -108,23 +108,27 @@ public class ApplicationDetailServiceBehavior {
         String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384)
-                    || algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)
-                    || algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
+            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+
+            final boolean supportsEcP384 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384);
+            final boolean supportsEcP384MlL3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3);
+            final boolean supportsEcP384MlL5 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5);
+
+            if (supportsEcP384 || supportsEcP384MlL3 || supportsEcP384MlL5) {
                 publicKeyP384 = convertPublicKeyToBase64(
                         publicKeyRegistry,
                         KeyType.ECDSA_P384,
                         publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
                 );
             }
-            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)) {
+            if (supportsEcP384MlL3) {
                 publicKeyMlDsa65 = convertPublicKeyToBase64(
                         publicKeyRegistry,
                         KeyType.MLDSA_65,
                         KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
                 );
             }
-            if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L5)) {
+            if (supportsEcP384MlL5) {
                 publicKeyMlDsa87 = convertPublicKeyToBase64(
                         publicKeyRegistry,
                         KeyType.MLDSA_87,
