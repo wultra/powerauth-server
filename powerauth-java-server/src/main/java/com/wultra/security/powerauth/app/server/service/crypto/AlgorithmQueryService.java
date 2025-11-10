@@ -56,12 +56,6 @@ public class AlgorithmQueryService {
      * @return Whether shared secret algorithm is allowed.
      */
     public boolean isAlgorithmSupported(ApplicationEntity application, SharedSecretAlgorithm sharedSecretAlgorithm) {
-        GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
-        configRequest.setApplicationId(application.getId());
-
-        GetApplicationConfigResponse configResponse = applicationConfigServiceBehavior.getApplicationConfig(configRequest);
-        List<ApplicationConfigurationItem> configs = configResponse.getApplicationConfigs();
-
         // PQC-only algorithms are currently not allowed until they mature
         if (sharedSecretAlgorithm == SharedSecretAlgorithm.ML_L3 || sharedSecretAlgorithm == SharedSecretAlgorithm.ML_L5) {
             return false;
@@ -71,6 +65,11 @@ public class AlgorithmQueryService {
         if (sharedSecretAlgorithm == SharedSecretAlgorithm.EC_P256 && configuration.getMinSupportedProtocolVersion() > 3) {
             return false;
         }
+
+        final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
+        configRequest.setApplicationId(application.getId());
+        final GetApplicationConfigResponse configResponse = applicationConfigServiceBehavior.getApplicationConfig(configRequest);
+        List<ApplicationConfigurationItem> configs = configResponse.getApplicationConfigs();
 
         final Optional<ApplicationConfigurationItem> allowedAlgorithmsConfig = configs.stream()
                 .filter(config -> CONFIG_KEY_CRYPTO_SUPPORTED_ALGORITHMS.equals(config.getKey()))
