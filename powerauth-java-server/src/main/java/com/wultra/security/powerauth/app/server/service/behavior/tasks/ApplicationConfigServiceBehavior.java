@@ -149,8 +149,13 @@ public class ApplicationConfigServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
             final List<ApplicationConfigEntity> configs = applicationConfigRepository.findByApplicationId(applicationId);
-            configs.stream().filter(config -> config.getKey().equals(key)).forEach(applicationConfigRepository::delete);
-            processApplicationConfigChange(appOptional.get(), key);
+            final List<ApplicationConfigEntity> toRemove = configs.stream()
+                    .filter(config -> config.getKey().equals(key))
+                    .toList();
+            if (!toRemove.isEmpty()) {
+                applicationConfigRepository.deleteAll(toRemove);
+                processApplicationConfigChange(appOptional.get(), key);
+            }
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
