@@ -181,8 +181,10 @@ public class ActivationInitServiceBehavior {
                                     application
                             ) : null;
             final CryptographyService cryptographyServiceP384MlL3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-            final byte[] activationSignatureV4Ecdsa = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384) ?
-                    cryptographyServiceP384MlL3.generateSignatureForApplication(
+            final byte[] activationSignatureV4Ecdsa = (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384)
+                    || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3))
+                    || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5)
+                    ? cryptographyServiceP384MlL3.generateSignatureForApplication(
                             KeyType.ECDSA_P384,
                             activationCode.getBytes(StandardCharsets.UTF_8),
                             application
