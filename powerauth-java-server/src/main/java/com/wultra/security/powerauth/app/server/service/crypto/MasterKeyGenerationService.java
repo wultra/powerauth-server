@@ -96,8 +96,8 @@ public class MasterKeyGenerationService {
             }
 
             final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
-            generateAndStoreV3KeyPair(keyPair, supportedAlgorithms);
-            generateAndStoreV4KeyPairs(privateKeyRegistry, publicKeyRegistry, supportedAlgorithms);
+            generateV3KeyPairIfAbsent(keyPair, supportedAlgorithms);
+            generateV4KeyPairsIfAbsent(privateKeyRegistry, publicKeyRegistry, supportedAlgorithms);
             writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
             masterKeyPairRepository.save(keyPair);
 
@@ -111,7 +111,7 @@ public class MasterKeyGenerationService {
         return masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
     }
 
-    private MasterKeyPairEntity createInitialV3Entity(ApplicationEntity app) throws CryptoProviderException, GenericServiceException {
+    private MasterKeyPairEntity createInitialV3Entity(ApplicationEntity app) throws CryptoProviderException {
         MasterKeyPairEntity entity = new MasterKeyPairEntity();
         entity.setTimestampCreated(new Date());
         entity.setName(app.getId() + " Default Keypair");
@@ -119,7 +119,7 @@ public class MasterKeyGenerationService {
         return entity;
     }
 
-    private void generateAndStoreV3KeyPair(MasterKeyPairEntity keyPairEntity, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException {
+    private void generateV3KeyPairIfAbsent(MasterKeyPairEntity keyPairEntity, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException {
         if (!supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256)) {
             return;
         }
@@ -145,7 +145,7 @@ public class MasterKeyGenerationService {
         return publicKeysConverter.fromDBValue(entity.getMasterPublicKeys());
     }
 
-    private void generateAndStoreV4KeyPairs(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException, GenericCryptoException {
+    private void generateV4KeyPairsIfAbsent(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException, GenericCryptoException {
         if (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384)
                 || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3)
                 || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5)) {
