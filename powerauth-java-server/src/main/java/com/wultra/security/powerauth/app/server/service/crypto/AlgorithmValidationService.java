@@ -77,9 +77,9 @@ public class AlgorithmValidationService {
      * @return Whether shared secret algorithm matches the algorithm stored during activation
      */
     private boolean algorithmMatchesActivation(ActivationRecordEntity activation, SharedSecretAlgorithm sharedSecretAlgorithm) {
-        if (activation.getCryptoAlgorithm() == null) {
+        if (activation.getCryptoAlgorithm() == null && activation.getVersion() == 3) {
             // Legacy algorithm support for compatibility reasons
-            return activation.getVersion() == 3 && sharedSecretAlgorithm == SharedSecretAlgorithm.EC_P256;
+            return true;
         }
         return sharedSecretAlgorithm == activation.getCryptoAlgorithm();
     }
