@@ -78,7 +78,6 @@ public class SharedSecretServiceBehavior {
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final LocalizationProvider localizationProvider;
     private final CallbackUrlBehavior callbackUrlBehavior;
-    private final AlgorithmValidationService algorithmValidationService;
 
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
@@ -91,7 +90,16 @@ public class SharedSecretServiceBehavior {
     private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L3 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L3);
     private final SharedSecretHybrid SHARED_SECRET_HYBRID_ML_L5 = new SharedSecretHybrid(SharedSecretAlgorithm.EC_P384_ML_L5);
 
-    public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload) throws GenericServiceException, GenericCryptoException, CryptoProviderException {
+    /**
+     * Derive shared secret response payload.
+     * @param activation Activation.
+     * @param requestPayload Shared secret request payload.
+     * @return Shared secret response payload.
+     * @throws GenericCryptoException In case of a cryptography error.
+     * @throws CryptoProviderException In case of any other cryptography error.
+     * @throws GenericServiceException In case shared secret derivation fails.
+     */
+    public SharedSecretResponsePayload deriveSharedSecret(ActivationRecordEntity activation, SharedSecretRequestPayload requestPayload) throws GenericCryptoException, CryptoProviderException, GenericServiceException {
         final String activationId = activation.getActivationId();
         final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
         if (sharedSecretRequest == null) {
@@ -101,8 +109,6 @@ public class SharedSecretServiceBehavior {
         }
 
         final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
-
-        algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
         final DevicePublicKeys devicePublicKeys = requestPayload.getDevicePublicKeys();
         if (devicePublicKeys == null) {
