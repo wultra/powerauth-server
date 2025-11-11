@@ -103,12 +103,12 @@ public class ApplicationDetailServiceBehavior {
             logger.error("Missing key pair for application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
         String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
 
             final boolean supportsEcP384 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384);
             final boolean supportsEcP384MlL3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3);
@@ -140,6 +140,7 @@ public class ApplicationDetailServiceBehavior {
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
+        response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {

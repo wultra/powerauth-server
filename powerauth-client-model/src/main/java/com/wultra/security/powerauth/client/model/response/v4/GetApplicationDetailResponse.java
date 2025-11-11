@@ -36,5 +36,6 @@ public class GetApplicationDetailResponse {
     private String applicationId;
     private List<String> applicationRoles = new ArrayList<>();
     private List<ApplicationVersion> versions = new ArrayList<>();
+    private List<String> supportedAlgorithms = new ArrayList<>();
 
 }
