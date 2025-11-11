@@ -69,7 +69,6 @@ public class UpgradeServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
-    private final AlgorithmValidationService algorithmValidationService;
     private final SharedSecretServiceBehavior sharedSecretServiceBehavior;
 
     // Helper classes
@@ -115,8 +114,6 @@ public class UpgradeServiceBehavior {
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final SharedSecretRequestPayload requestPayload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
-
-            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
             // Verify request payload
             final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
