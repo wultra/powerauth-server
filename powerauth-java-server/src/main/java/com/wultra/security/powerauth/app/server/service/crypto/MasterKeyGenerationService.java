@@ -45,6 +45,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Service for generating master server keys for applications.
@@ -60,6 +61,7 @@ public class MasterKeyGenerationService {
     private final LocalizationProvider localizationProvider;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final PublicKeysConverter publicKeysConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
 
@@ -83,18 +85,19 @@ public class MasterKeyGenerationService {
                 keyPair = createInitialV3Entity(application);
                 privateKeyRegistry = new PrivateKeyRegistry();
                 publicKeyRegistry = new PublicKeyRegistry();
-                writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
             } else if (keyPair.getMasterPrivateKeys() == null) {
-                // Migration to V4 registries
+                // Create new V4 keypair registries
                 privateKeyRegistry = new PrivateKeyRegistry();
                 publicKeyRegistry = new PublicKeyRegistry();
             } else {
-                // Update existing V4 keypairs
+                // Update existing V4 keypair registries
                 privateKeyRegistry = loadPrivateRegistryFromEntity(keyPair, application);
                 publicKeyRegistry = loadPublicRegistryFromEntity(keyPair);
             }
 
-            generateAndStoreV4KeyPairs(privateKeyRegistry, publicKeyRegistry);
+            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+            generateV3KeyPairIfAbsent(keyPair, supportedAlgorithms);
+            generateV4KeyPairsIfAbsent(privateKeyRegistry, publicKeyRegistry, supportedAlgorithms);
             writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
             masterKeyPairRepository.save(keyPair);
 
@@ -108,28 +111,29 @@ public class MasterKeyGenerationService {
         return masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
     }
 
-    private MasterKeyPairEntity createInitialV3Entity(ApplicationEntity app) throws CryptoProviderException, GenericServiceException {
-        final KeyPair kp = SERVER_ACTIVATION_V3.generateServerKeyPair();
-        final PrivateKey privateKey = kp.getPrivate();
-        final PublicKey publicKey = kp.getPublic();
-
+    private MasterKeyPairEntity createInitialV3Entity(ApplicationEntity app) throws CryptoProviderException {
         MasterKeyPairEntity entity = new MasterKeyPairEntity();
         entity.setTimestampCreated(new Date());
         entity.setName(app.getId() + " Default Keypair");
         entity.setApplication(app);
-
-        // Initialize empty V4 registries into DB fields
-        PrivateKeyRegistry privateKeyRegistry = new PrivateKeyRegistry();
-        PublicKeyRegistry publicKeyRegistry = new PublicKeyRegistry();
-        PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, app.getId());
-        entity.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-        entity.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
-        entity.setMasterPublicKeys(publicKeysConverter.toDBValue(publicKeyRegistry));
-
-        entity.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR_EC.convertPrivateKeyToBytes(privateKey)));
-        entity.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
-
         return entity;
+    }
+
+    private void generateV3KeyPairIfAbsent(MasterKeyPairEntity keyPairEntity, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException {
+        if (!supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256)) {
+            return;
+        }
+
+        if (keyPairEntity.getMasterKeyPrivateBase64() != null && keyPairEntity.getMasterKeyPublicBase64() != null) {
+            return;
+        }
+
+        final KeyPair kp = SERVER_ACTIVATION_V3.generateServerKeyPair();
+        final PrivateKey privateKey = kp.getPrivate();
+        final PublicKey publicKey = kp.getPublic();
+
+        keyPairEntity.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR_EC.convertPrivateKeyToBytes(privateKey)));
+        keyPairEntity.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P256, publicKey)));
     }
 
     private PrivateKeyRegistry loadPrivateRegistryFromEntity(MasterKeyPairEntity entity, ApplicationEntity app) throws GenericServiceException {
@@ -141,18 +145,34 @@ public class MasterKeyGenerationService {
         return publicKeysConverter.fromDBValue(entity.getMasterPublicKeys());
     }
 
-    private void generateAndStoreV4KeyPairs(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry) throws CryptoProviderException, GenericCryptoException {
-        KeyPair ec = SERVER_ACTIVATION_V4.generateEcServerKeyPair();
-        privateKeyRegistry.storePrivateKey(KeyType.ECDSA_P384, ec.getPrivate());
-        publicKeyRegistry.storePublicKey(KeyType.ECDSA_P384, ec.getPublic());
+    private void generateV4KeyPairsIfAbsent(PrivateKeyRegistry privateKeyRegistry, PublicKeyRegistry publicKeyRegistry, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException, GenericCryptoException {
+        if (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384)
+                || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3)
+                || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5)) {
+            if (privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).isEmpty() || publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).isEmpty()) {
+                KeyPair ec = SERVER_ACTIVATION_V4.generateEcServerKeyPair();
+                privateKeyRegistry.storePrivateKey(KeyType.ECDSA_P384, ec.getPrivate());
+                publicKeyRegistry.storePublicKey(KeyType.ECDSA_P384, ec.getPublic());
+            }
+        }
 
-        KeyPair pqcDsa65 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L3);
-        privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, pqcDsa65.getPrivate());
-        publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, pqcDsa65.getPublic());
+        // Algorithm ML_L3 is not supported yet
+        if (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3)) {
+            if (privateKeyRegistry.getPrivateKey(KeyType.MLDSA_65).isEmpty() || publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).isEmpty()) {
+                KeyPair pqcDsa65 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L3);
+                privateKeyRegistry.storePrivateKey(KeyType.MLDSA_65, pqcDsa65.getPrivate());
+                publicKeyRegistry.storePublicKey(KeyType.MLDSA_65, pqcDsa65.getPublic());
+            }
+        }
 
-        KeyPair pqcDsa87 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L5);
-        privateKeyRegistry.storePrivateKey(KeyType.MLDSA_87, pqcDsa87.getPrivate());
-        publicKeyRegistry.storePublicKey(KeyType.MLDSA_87, pqcDsa87.getPublic());
+        // Algorithm ML_L5 is not supported yet
+        if (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5)) {
+            if (privateKeyRegistry.getPrivateKey(KeyType.MLDSA_87).isEmpty() || publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).isEmpty()) {
+                KeyPair pqcDsa87 = SERVER_ACTIVATION_V4.generatePqcServerKeyPair(SharedSecretAlgorithm.EC_P384_ML_L5);
+                privateKeyRegistry.storePrivateKey(KeyType.MLDSA_87, pqcDsa87.getPrivate());
+                publicKeyRegistry.storePublicKey(KeyType.MLDSA_87, pqcDsa87.getPublic());
+            }
+        }
     }
 
     private void writeRegistriesToEntity(MasterKeyPairEntity entity, PrivateKeyRegistry privateKeyRegistry,

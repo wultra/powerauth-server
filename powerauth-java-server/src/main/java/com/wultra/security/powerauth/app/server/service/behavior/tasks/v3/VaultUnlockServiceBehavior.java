@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -74,6 +75,7 @@ public class VaultUnlockServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final EncryptionServiceEcies encryptionService;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     // Helper classes
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
@@ -91,6 +93,7 @@ public class VaultUnlockServiceBehavior {
      */
     @Transactional
     public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             // Get request data
             final String activationId = request.getActivationId();

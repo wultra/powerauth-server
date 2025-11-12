@@ -29,8 +29,8 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
-import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -46,6 +46,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.interfaces.MLDSAPublicKey;
@@ -60,6 +61,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * Cryptography Service V4 implementation based on hybrid scheme with EC curve P-384 and ML-KEM-768 + ML-DSA-65.
@@ -71,13 +73,13 @@ import java.util.Base64;
 @AllArgsConstructor
 public class CryptographyServiceEc384MlL3 extends CryptographyService {
 
-    private final MasterKeyGenerationService masterKeyGenerationService;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final ActivationSharedSecretConverter sharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
@@ -90,11 +92,6 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
         } catch (GenericCryptoException e) {
             // impossible case
         }
-    }
-
-    @Override
-    public void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException {
-        masterKeyGenerationService.generateMasterKeyPairs(application);
     }
 
     @Override
@@ -112,22 +109,21 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
         try {
             String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
             if (masterPrivateKeysBase64 == null) {
-                // In case of upgrade to V4, keys need to be generated dynamically
-                generateMasterKeyPair(application);
-                masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
-                masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
+                logger.error("Missing master key pair for application ID: {}", application.getId());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
             final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
             final PrivateKeys privateKeys = new PrivateKeys(masterPrivateKeysEncryption, masterPrivateKeysBase64);
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(keyType).orElseThrow(() -> {
-                logger.error("Missing master private key for application ID: {}", application.getId());
+                logger.error("Missing master private key: {} for application ID: {}", keyType, application.getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             });
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
             final PublicKey publicKey = publicKeyRegistry.getPublicKey(keyType).orElseThrow(() -> {
-                logger.error("Missing master public key for application ID: {}", application.getId());
+                logger.error("Missing master public key: {} for application ID: {}", keyType, application.getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             });
@@ -240,6 +236,10 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
     public byte[] generateSignatureForApplication(KeyType keyType, byte[] data, ApplicationEntity application) throws GenericServiceException {
         return switch (keyType) {
             case ECDSA_P384 -> {
+                if (!algorithmQueryService.isAnyAlgorithmSupported(application, List.of(SharedSecretAlgorithm.EC_P384, SharedSecretAlgorithm.EC_P384_ML_L3, SharedSecretAlgorithm.EC_P384_ML_L5))) {
+                    logger.warn("Cryptography algorithm EC_P384 is not supported, application ID: {}", application.getId());
+                    throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
+                }
                 try {
                     final KeyPair keyPair = getMasterKeyPair(keyType, application);
                     yield SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, data, keyPair.getPrivate());
@@ -249,6 +249,10 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
                 }
             }
             case MLDSA_65 -> {
+                if (!algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P384_ML_L3)) {
+                    logger.warn("Cryptography algorithm ML_L3 is not supported, application ID: {}", application.getId());
+                    throw localizationProvider.buildExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
+                }
                 try {
                     final KeyPair keyPair = getMasterKeyPair(keyType, application);
                     yield pqcDsaMlL3.sign(keyPair.getPrivate(), data);

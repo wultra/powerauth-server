@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.TokenEntit
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import com.wultra.security.powerauth.app.server.database.repository.TokenRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.EncryptionServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -82,6 +83,7 @@ public class TokenServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final TokenRepository tokenRepository;
     private final EncryptionServiceEcies encryptionService;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -110,6 +112,7 @@ public class TokenServiceBehavior {
      */
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
@@ -160,6 +163,7 @@ public class TokenServiceBehavior {
      */
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final String tokenId = request.getTokenId();
             final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
@@ -238,6 +242,7 @@ public class TokenServiceBehavior {
      */
     @Transactional
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final String tokenId = request.getTokenId();
             boolean removed = false;

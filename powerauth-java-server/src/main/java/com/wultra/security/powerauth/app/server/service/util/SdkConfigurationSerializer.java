@@ -71,9 +71,6 @@ public class SdkConfigurationSerializer {
         if (publicKeyMlDsa87 != null) {
             publicKeys.put(KEY_MASTER_MLDSA87_PUBLIC, publicKeyMlDsa87);
         }
-        if (publicKeys.isEmpty()) {
-            throw new IllegalArgumentException("Missing public keys");
-        }
         final SdkDataWriter writer = new SdkDataWriter();
         writer.writeByte(SDK_CONFIGURATION_VERSION);
         writer.writeData(Base64.getDecoder().decode(appKey));
@@ -81,8 +78,6 @@ public class SdkConfigurationSerializer {
         serializeKeys(writer, publicKeys);
         return Base64.getEncoder().encodeToString(writer.getSerializedData());
     }
-
-
 
     /**
      * Deserialize SDK configuration from a Base-64 encoded string.

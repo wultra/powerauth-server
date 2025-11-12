@@ -40,14 +40,6 @@ import java.security.KeyPair;
 public abstract class CryptographyService {
 
     /**
-     * Generate a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
-     *
-     * @param application Application.
-     * @throws GenericServiceException In case of a cryptography error.
-     */
-    public abstract void generateMasterKeyPair(ApplicationEntity application) throws GenericServiceException;
-
-    /**
      * Get a key pair for an application. The key pair can be composite in case of a hybrid algorithm.
      *
      * @param keyType Key type.

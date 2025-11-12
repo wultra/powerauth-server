@@ -73,9 +73,10 @@ public class TemporaryKeyController {
      *
      * @param request Delete temporary key with given ID.
      * @return Response with deletion result.
+     * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public ObjectResponse<RemoveTemporaryPublicKeyResponse> deleteTemporaryKey(@Valid @RequestBody ObjectRequest<RemoveTemporaryPublicKeyRequest> request) {
+    public ObjectResponse<RemoveTemporaryPublicKeyResponse> deleteTemporaryKey(@Valid @RequestBody ObjectRequest<RemoveTemporaryPublicKeyRequest> request) throws Exception  {
         final RemoveTemporaryPublicKeyRequest req = request.getRequestObject();
         logger.info("action: deleteTemporaryKey, state: initiated, temporaryKeyId: {}", req.getId());
         logger.debug("action: deleteTemporaryKey, state: initiated, request: {}", request);

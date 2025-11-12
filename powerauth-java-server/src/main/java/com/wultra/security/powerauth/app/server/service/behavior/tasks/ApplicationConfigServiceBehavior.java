@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.event.AlgorithmConfigChangedEvent;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -33,6 +34,7 @@ import com.wultra.security.powerauth.client.model.response.CreateApplicationConf
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,16 +58,18 @@ public class ApplicationConfigServiceBehavior {
     public static final String CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE = "disable_biometry_unlock_kek_device_private";
     public static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
     public static final String CONFIG_KEY_ACTIVATION_TRANSFER = "activation_transfer";
+    public static final String CONFIG_KEY_CRYPTO_SUPPORTED_ALGORITHMS = "cryptography_algorithms_supported";
 
     private static final Set<String> ALLOWED_CONFIGURATION_KEYS = Set.of(
             CONFIG_KEY_ALLOWED_ATTESTATION_FMT, CONFIG_KEY_ALLOWED_AAGUIDS, CONFIG_KEY_ROOT_CA_CERTS,
             CONFIG_KEY_OAUTH2_PROVIDERS, CONFIG_DISABLE_BIOMETRY_UNLOCK_KEK_DEVICE_PRIVATE,
-            CONFIG_KEY_ACTIVATION_TRANSFER);
+            CONFIG_KEY_ACTIVATION_TRANSFER, CONFIG_KEY_CRYPTO_SUPPORTED_ALGORITHMS);
 
     private final LocalizationProvider localizationProvider;
     private final ApplicationConfigService applicationConfigService;
     private final ApplicationRepository applicationRepository;
     private final ApplicationConfigRepository applicationConfigRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Get application configuration.
@@ -76,17 +80,9 @@ public class ApplicationConfigServiceBehavior {
     public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) {
         try {
             final String applicationId = request.getApplicationId();
-            final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
+            final List<ApplicationConfigurationItem> config = getApplicationConfig(applicationId);
             final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
-            response.setApplicationId(applicationId);
-            final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();
-            applicationConfigs.forEach(config -> {
-                final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
-                item.setKey(config.key());
-                item.setValues(config.values());
-                responseConfigs.add(item);
-            });
-            response.setApplicationConfigs(responseConfigs);
+            response.setApplicationConfigs(config);
             return response;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
@@ -122,6 +118,8 @@ public class ApplicationConfigServiceBehavior {
                 applicationConfigService.createOrUpdate(new ApplicationConfigService.ApplicationConfig(null, application, key, values));
             }
 
+            processApplicationConfigChange(application, key);
+
             final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
             response.setApplicationId(applicationId);
             response.setKey(key);
@@ -151,11 +149,29 @@ public class ApplicationConfigServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
             final List<ApplicationConfigEntity> configs = applicationConfigRepository.findByApplicationId(applicationId);
-            configs.stream().filter(config -> config.getKey().equals(key)).forEach(applicationConfigRepository::delete);
+            final List<ApplicationConfigEntity> toRemove = configs.stream()
+                    .filter(config -> config.getKey().equals(key))
+                    .toList();
+            if (!toRemove.isEmpty()) {
+                applicationConfigRepository.deleteAll(toRemove);
+                processApplicationConfigChange(appOptional.get(), key);
+            }
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         }
+    }
+
+    private List<ApplicationConfigurationItem> getApplicationConfig(String applicationId) {
+        final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
+        final List<ApplicationConfigurationItem> configs = new ArrayList<>();
+        applicationConfigs.forEach(config -> {
+            final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
+            item.setKey(config.key());
+            item.setValues(config.values());
+            configs.add(item);
+        });
+        return configs;
     }
 
     /**
@@ -168,6 +184,17 @@ public class ApplicationConfigServiceBehavior {
             logger.warn("Unknown configuration key in request: {}", key);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+    }
+
+    /**
+     * Process application configuration change hooks.
+     * @param application Application.
+     * @param key Configuration key.
+     */
+    private void processApplicationConfigChange(ApplicationEntity application, String key) {
+        if (key.equals(CONFIG_KEY_CRYPTO_SUPPORTED_ALGORITHMS)) {
+            eventPublisher.publishEvent(new AlgorithmConfigChangedEvent(this, application));
         }
     }
 

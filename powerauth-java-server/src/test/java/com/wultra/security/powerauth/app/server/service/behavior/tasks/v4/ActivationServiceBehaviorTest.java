@@ -286,6 +286,9 @@ class ActivationServiceBehaviorTest {
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
+        sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.name());
+        requestL2.setSharedSecretRequest(sharedSecretRequest);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
         final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
 
@@ -448,6 +451,9 @@ class ActivationServiceBehaviorTest {
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
+        sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.name());
+        requestL2.setSharedSecretRequest(sharedSecretRequest);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
         final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
 

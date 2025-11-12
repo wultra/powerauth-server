@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
@@ -72,6 +73,7 @@ public class PasswordServiceBehavior {
     private final ActivationRepository activationRepository;
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
+    private final AlgorithmValidationService algorithmValidationService;
     private final ObjectMapper objectMapper;
 
     private static final SharedSecretEcdhe SHARED_SECRET_ECDHE = new SharedSecretEcdhe();
@@ -124,6 +126,9 @@ public class PasswordServiceBehavior {
             final ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor = decryptionResult.getServerEncryptor();
             final SharedSecretRequest sharedSecretRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), SharedSecretRequest.class);
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+
+            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
+
             final SharedSecretResponse secretResponse = switch (algorithm) {
                 case EC_P384 -> {
                     try {
