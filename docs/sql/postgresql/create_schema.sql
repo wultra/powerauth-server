@@ -2,9 +2,9 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 10.03.25 7:07
--- Against: null@offline:postgresql
--- Liquibase version: 4.31.1
+-- Ran at: 11/14/25, 11:19 AM
+-- Against: null@offline:postgresql?outputLiquibaseSql=none
+-- Liquibase version: 4.33.0
 -- *********************************************************************
 
 -- Changeset powerauth-java-server/1.4.x/20230322-audit.xml::1::Lubos Racansky
@@ -121,7 +121,7 @@ CREATE TABLE pa_activation_history (id BIGINT NOT NULL, activation_id VARCHAR(37
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::19::Lubos Racansky
 -- Create a new table pa_recovery_code
-CREATE TABLE pa_recovery_code (id BIGINT NOT NULL, recovery_code VARCHAR(23) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_id VARCHAR(37), status INTEGER NOT NULL, failed_attempts INTEGER DEFAULT 0 NOT NULL, max_failed_attempts INTEGER DEFAULT 10 NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, CONSTRAINT pa_recovery_code_pkey PRIMARY KEY (id), CONSTRAINT recovery_code_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT recovery_code_activation_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+CREATE TABLE pa_recovery_code (id BIGINT NOT NULL, recovery_code VARCHAR(23) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR(255) NOT NULL, activation_id VARCHAR(37), status INTEGER NOT NULL, failed_attempts INTEGER DEFAULT 0 NOT NULL, max_failed_attempts INTEGER DEFAULT 10 NOT NULL, timestamp_created TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL, timestamp_last_used TIMESTAMP(6) WITHOUT TIME ZONE, timestamp_last_change TIMESTAMP(6) WITHOUT TIME ZONE, CONSTRAINT pa_recovery_code_pkey PRIMARY KEY (id), CONSTRAINT recovery_code_activation_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id), CONSTRAINT recovery_code_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::20::Lubos Racansky
 -- Create a new table pa_recovery_puk
@@ -435,17 +435,19 @@ ALTER TABLE pa_activation ADD device_public_keys TEXT;
 
 ALTER TABLE pa_activation ADD server_private_keys TEXT;
 
-ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_activation ADD server_private_keys_encryption INTEGER DEFAULT 0 NOT NULL;
 
 ALTER TABLE pa_activation ADD server_public_keys TEXT;
 
-ALTER TABLE pa_activation ADD shared_secret TEXT;
+ALTER TABLE pa_activation ADD shared_secret VARCHAR(255);
 
-ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT 0;
+ALTER TABLE pa_activation ADD shared_secret_encryption INTEGER DEFAULT 0 NOT NULL;
 
 -- Changeset powerauth-java-server/2.0.x/20250317-crypto4-master-keys.xml::1::Roman Strobl
 -- Add columns for crypto4 keys to pa_master_keypair table
 ALTER TABLE pa_master_keypair ADD master_private_keys TEXT;
+
+ALTER TABLE pa_master_keypair ADD master_private_keys_encryption INTEGER DEFAULT 0 NOT NULL;
 
 ALTER TABLE pa_master_keypair ADD master_public_keys TEXT;
 
@@ -473,6 +475,18 @@ ALTER TABLE pa_temporary_key ALTER COLUMN  private_key_base64 DROP NOT NULL;
 
 ALTER TABLE pa_temporary_key ALTER COLUMN  public_key_base64 DROP NOT NULL;
 
+-- Changeset powerauth-java-server/2.0.x/20250709-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Add column confirmation_pending to pa_activation table
+ALTER TABLE pa_activation ADD confirmation_pending BOOLEAN DEFAULT FALSE;
+
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Add column upgrade_confirmation_pending to pa_activation table
+ALTER TABLE pa_activation ADD upgrade_confirmation_pending BOOLEAN DEFAULT FALSE;
+
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::2::Roman Strobl
+-- Add column ctr_data_v4 to pa_activation table
+ALTER TABLE pa_activation ADD ctr_data_v4 VARCHAR(255);
+
 -- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::1::Lubos Racansky
 -- Add column parent_activation_id to pa_activation table
 ALTER TABLE pa_activation ADD parent_activation_id VARCHAR(37);
@@ -482,3 +496,9 @@ ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_parent_activation_id_fk F
 -- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::2::Lubos Racansky
 -- Add column transfer_type to pa_activation table
 ALTER TABLE pa_activation ADD transfer_type VARCHAR(32);
+
+-- Changeset powerauth-java-server/2.0.x/20251106-allow-null-legacy-keypairs.xml::1::Roman Strobl
+-- Change the master keypair columns to nullable in pa_master_keypair table
+ALTER TABLE pa_master_keypair ALTER COLUMN  master_key_private_base64 DROP NOT NULL;
+
+ALTER TABLE pa_master_keypair ALTER COLUMN  master_key_public_base64 DROP NOT NULL;
