@@ -112,6 +112,7 @@ public class UpgradeServiceBehavior {
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.UPGRADE_START);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final SharedSecretRequestPayload requestPayload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
 
             // Verify request payload
             final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
@@ -140,7 +141,7 @@ public class UpgradeServiceBehavior {
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
-            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
+            activation.setCryptoAlgorithm(algorithm);
 
             final UpgradeStartResponsePayload responsePayload = new UpgradeStartResponsePayload();
             responsePayload.setSharedSecretResponse(sharedSecretResponsePayload.getSharedSecretResponse());

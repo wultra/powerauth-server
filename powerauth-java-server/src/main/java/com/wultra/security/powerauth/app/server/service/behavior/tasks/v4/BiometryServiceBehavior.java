@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
@@ -73,6 +74,7 @@ public class BiometryServiceBehavior {
     private final ActivationRepository activationRepository;
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
+    private final AlgorithmValidationService algorithmValidationService;
     private final ObjectMapper objectMapper;
 
     private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
@@ -124,6 +126,9 @@ public class BiometryServiceBehavior {
             final ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor = decryptionResult.getServerEncryptor();
             final SharedSecretRequest sharedSecretRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), SharedSecretRequest.class);
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+
+            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
+
             final DefaultSharedSecretRequest sharedSecretRequestObject = new DefaultSharedSecretRequest();
             sharedSecretRequestObject.setAlgorithm(algorithm);
             final SharedSecretResponse secretResponse = switch (algorithm) {

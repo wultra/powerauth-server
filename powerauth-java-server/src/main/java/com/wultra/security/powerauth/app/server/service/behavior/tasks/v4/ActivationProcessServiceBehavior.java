@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -66,6 +67,7 @@ public class ActivationProcessServiceBehavior {
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ObjectMapper objectMapper;
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
+    private final AlgorithmValidationService algorithmValidationService;
 
     public AeadEncryptedResponse processNewActivation(ActivationRecordEntity activation, DecryptionResult decryptionResult, String protocolVersion) throws GenericServiceException {
         try {
@@ -79,7 +81,23 @@ public class ActivationProcessServiceBehavior {
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activation.getActivationId());
                 // Activation failed due to invalid request, rollback transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            if (layer2Request.getSharedSecretRequest() == null || layer2Request.getSharedSecretRequest().getAlgorithm() == null || layer2Request.getDevicePublicKeys() == null) {
+                logger.warn("Invalid encrypted activation request payload, activation ID: {}", activation.getActivationId());
+                // Activation failed due to invalid request, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Check that cryptography algorithm is allowed
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(layer2Request.getSharedSecretRequest().getAlgorithm());
+
+            try {
+                algorithmValidationService.validateAlgorithmForApplication(activation.getApplication(), algorithm);
+            } catch (GenericServiceException e) {
+                // Activation failed due to unsupported algorithm, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
             }
 
             // Validate activation OTP for stage ON_KEY_EXCHANGE
@@ -98,6 +116,7 @@ public class ActivationProcessServiceBehavior {
             // Set counter data for V4
             activation.setCtrDataV4Base64(ctrDataBase64);
 
+            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
             final SharedSecretResponsePayload responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
 
             // Update and persist the activation record
@@ -110,7 +129,6 @@ public class ActivationProcessServiceBehavior {
             } else {
                 activation.setPlatform("unknown");
             }
-            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
             activation.setDeviceInfo(layer2Request.getDeviceInfo());
             // PowerAuth protocol version 4.0 uses 0x4 as version in activation status
             activation.setVersion(4);

@@ -31,6 +31,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -68,6 +69,7 @@ public class ActivationProcessServiceBehavior {
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final ObjectMapper objectMapper;
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     /**
      * Process a new activation which is initialized in the database.
@@ -79,6 +81,7 @@ public class ActivationProcessServiceBehavior {
      * @throws GenericServiceException In case activation processing fails.
      */
     public EciesEncryptedResponse processNewActivation(ActivationRecordEntity activation, DecryptionResult decryptionResult, String protocolVersion) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             // Decrypt activation data
             final byte[] activationData = decryptionResult.getDecryptedData();

@@ -17,25 +17,26 @@
  *
  */
 
-package com.wultra.security.powerauth.client.model.response.v4;
+package com.wultra.security.powerauth.app.server.service.crypto.event;
 
-import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import lombok.Getter;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Model class representing response with application detail.
+ * Event for algorithm configuration change.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-public class GetApplicationDetailResponse {
+@Getter
+public class AlgorithmConfigChangedEvent extends ApplicationEvent {
 
-    private String applicationId;
-    private List<String> applicationRoles = new ArrayList<>();
-    private List<ApplicationVersion> versions = new ArrayList<>();
-    private List<String> supportedAlgorithms = new ArrayList<>();
+    private final ApplicationEntity application;
+
+    public AlgorithmConfigChangedEvent(Object source, ApplicationEntity application) {
+        super(source);
+        this.application = application;
+    }
 
 }

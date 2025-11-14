@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
@@ -38,6 +39,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,6 +66,7 @@ public class ApplicationDetailServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final PublicKeysConverter publicKeysConverter;
+    private final AlgorithmQueryService algorithmQueryService;
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
@@ -100,31 +103,44 @@ public class ApplicationDetailServiceBehavior {
             logger.error("Missing key pair for application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
         String publicKeyMlDsa87 = null;
         if (masterKeyPairEntity.getMasterPublicKeys() != null) {
             final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPairEntity.getMasterPublicKeys());
-            publicKeyP384 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.ECDSA_P384,
-                    publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
-            );
-            publicKeyMlDsa65 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.MLDSA_65,
-                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
-            );
-            publicKeyMlDsa87 = convertPublicKeyToBase64(
-                    publicKeyRegistry,
-                    KeyType.MLDSA_87,
-                    KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
-            );
+
+            final boolean supportsEcP384 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384);
+            final boolean supportsEcP384MlL3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3);
+            final boolean supportsEcP384MlL5 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5);
+
+            if (supportsEcP384 || supportsEcP384MlL3 || supportsEcP384MlL5) {
+                publicKeyP384 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.ECDSA_P384,
+                        publicKey -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, publicKey)
+                );
+            }
+            if (supportsEcP384MlL3) {
+                publicKeyMlDsa65 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.MLDSA_65,
+                        KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+                );
+            }
+            if (supportsEcP384MlL5) {
+                publicKeyMlDsa87 = convertPublicKeyToBase64(
+                        publicKeyRegistry,
+                        KeyType.MLDSA_87,
+                        KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes
+                );
+            }
         }
 
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
+        response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {

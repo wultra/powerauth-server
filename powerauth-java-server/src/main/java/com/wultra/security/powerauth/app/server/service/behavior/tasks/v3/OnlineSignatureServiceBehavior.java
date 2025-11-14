@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -67,6 +68,7 @@ public class OnlineSignatureServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -81,6 +83,7 @@ public class OnlineSignatureServiceBehavior {
     @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request, List<KeyValue> additionalInfo)
             throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             // Get request data
             final String activationId = request.getActivationId();

@@ -28,10 +28,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.*;
 import com.wultra.security.powerauth.app.server.database.model.*;
-import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.*;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
@@ -39,6 +36,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ActivationRe
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.database.repository.TemporaryKeyRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.TemporaryKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -94,6 +92,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
+    private final AlgorithmValidationService algorithmValidationService;
     private final ObjectMapper objectMapper;
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
@@ -105,7 +104,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter) throws GenericCryptoException {
+    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService) throws GenericCryptoException {
         super(localizationProvider, temporaryKeyRepository);
         this.activationRepository = activationRepository;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
@@ -119,6 +118,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         this.masterPrivateKeysConverter = masterPrivateKeysConverter;
         this.objectMapper = objectMapper;
         this.serverPrivateKeysConverter = serverPrivateKeysConverter;
+        this.algorithmValidationService = algorithmValidationService;
     }
 
     /**
@@ -330,10 +330,14 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         if (applicationKey != null) {
             final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
+                logger.warn("Invalid application in request, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
+
             final String applicationSecret = applicationVersionEntity.getApplicationSecret();
             if (requestClaims.getActivationId() == null) {
+
+                algorithmValidationService.validateAlgorithmForApplication(applicationVersionEntity.getApplication(), algorithm);
 
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
                 final String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
@@ -372,6 +376,9 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
                 final ActivationRecordEntity activation = activationWithoutLock.get();
+
+                algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
+
                 if ((activation.getActivationStatus() == ActivationStatus.CREATED) // All states except CREATED are allowed
                         || activation.getProtocol() == ActivationProtocol.FIDO2 // FIDO2 does not support temporary keys anywhere
                         || !Objects.equals(appId, activation.getApplication().getRid())) {

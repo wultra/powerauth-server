@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
@@ -31,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSer
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,6 +55,7 @@ public class ApplicationDetailServiceBehavior {
     private final ApplicationRepository applicationRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final AlgorithmQueryService algorithmQueryService;
 
     /**
      * Get application details by ID.
@@ -89,17 +92,24 @@ public class ApplicationDetailServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
 
+        final String masterPublicKeyBase64;
+        if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P256)) {
+            masterPublicKeyBase64 = masterKeyPairEntity.getMasterKeyPublicBase64();
+        } else {
+            masterPublicKeyBase64 = null;
+        }
+
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
-        response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
+        response.setMasterPublicKey(masterPublicKeyBase64);
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
                     .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(masterKeyPairEntity.getMasterKeyPublicBase64())
+                    .masterPublicKeyP256(masterPublicKeyBase64)
                     .build();
             final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 

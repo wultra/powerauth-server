@@ -92,3 +92,12 @@ GO
 -- Add column transfer_type to pa_activation table
 ALTER TABLE pa_activation ADD transfer_type varchar(32);
 GO
+
+-- Changeset powerauth-java-server/2.0.x/20251106-allow-null-legacy-keypairs.xml::1::Roman Strobl
+-- Change the master keypair columns to nullable in pa_master_keypair table
+ALTER TABLE pa_master_keypair ALTER COLUMN master_key_private_base64 varchar(255) NULL;
+GO
+
+ALTER TABLE pa_master_keypair ALTER COLUMN master_key_public_base64 varchar(255) NULL;
+GO
+

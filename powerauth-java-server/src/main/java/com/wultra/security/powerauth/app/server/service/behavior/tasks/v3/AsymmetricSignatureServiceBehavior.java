@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -58,6 +59,7 @@ public class AsymmetricSignatureServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     /**
      * Sign data with ECDSA signature for given data using public key associated with given activation ID.
@@ -68,6 +70,7 @@ public class AsymmetricSignatureServiceBehavior {
      */
     @Transactional
     public SignECDSAResponse signDataWithECDSA(SignECDSARequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final String activationId = request.getActivationId();
             final String data = request.getData();
@@ -112,6 +115,7 @@ public class AsymmetricSignatureServiceBehavior {
      */
     @Transactional
     public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         try {
             final String activationId = request.getActivationId();
             final String data = request.getData();

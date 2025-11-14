@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v3.TemporaryKeyServiceEcies;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.persistence.TemporaryKeyPersistenceService;
@@ -43,18 +44,21 @@ public class TemporaryKeyBehaviorEcies {
 
     private final TemporaryKeyPersistenceService temporaryKeyPersistenceService;
     private final TemporaryKeyServiceEcies temporaryKeyServiceEcies;
+    private final ProtocolVersionValidationService protocolVersionValidationService;
 
     @Transactional
     public TemporaryPublicKeyResponse requestTemporaryKey(TemporaryPublicKeyRequest request) throws GenericServiceException {
-            final String jwt = request.getJwt();
-            final String signedJwt = temporaryKeyServiceEcies.requestTemporaryKey(jwt);
-            final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
-            response.setJwt(signedJwt);
-            return response;
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
+        final String jwt = request.getJwt();
+        final String signedJwt = temporaryKeyServiceEcies.requestTemporaryKey(jwt);
+        final TemporaryPublicKeyResponse response = new TemporaryPublicKeyResponse();
+        response.setJwt(signedJwt);
+        return response;
     }
 
     @Transactional
-    public RemoveTemporaryPublicKeyResponse removeTemporaryKey(RemoveTemporaryPublicKeyRequest requestObject) {
+    public RemoveTemporaryPublicKeyResponse removeTemporaryKey(RemoveTemporaryPublicKeyRequest requestObject) throws GenericServiceException {
+        protocolVersionValidationService.checkProtocolVersionSupported(3);
         temporaryKeyPersistenceService.removeTemporaryKey(requestObject.getId());
         final RemoveTemporaryPublicKeyResponse response = new RemoveTemporaryPublicKeyResponse();
         response.setRemoved(true);
