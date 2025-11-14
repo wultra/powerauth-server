@@ -61,6 +61,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Utilities for handling temporary keys.
@@ -128,11 +129,10 @@ public class TemporaryKeyTestService {
         sharedSecretRequest.setAlgorithm(request.getAlgorithm().name());
         switch (request.getAlgorithm()) {
             case EC_P384 -> {
-                sharedSecretRequest.setEcdhe(request.getEncapsulationKeys().get(0));
+                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0)));
             }
             case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                sharedSecretRequest.setEcdhe(request.getEncapsulationKeys().get(0));
-                sharedSecretRequest.setMlkem(request.getEncapsulationKeys().get(1));
+                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0), request.getEncapsulationKeys().get(1)));
             }
             default -> throw new IllegalStateException("Invalid cryptogram");
         }

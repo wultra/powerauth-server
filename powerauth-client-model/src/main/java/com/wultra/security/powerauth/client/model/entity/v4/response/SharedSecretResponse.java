@@ -21,6 +21,8 @@ package com.wultra.security.powerauth.client.model.entity.v4.response;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Model class for shared secret response.
  *
@@ -29,7 +31,6 @@ import lombok.Data;
 @Data
 public class SharedSecretResponse {
 
-    private String ecdhe;
-    private String mlkem;
-    
+    private List<String> encapsulatedKeys;
+
 }

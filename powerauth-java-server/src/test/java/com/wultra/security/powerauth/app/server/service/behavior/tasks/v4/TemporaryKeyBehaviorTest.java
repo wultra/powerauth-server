@@ -197,8 +197,8 @@ class TemporaryKeyBehaviorTest {
         assertNotNull(claims.getClaim("sharedSecretResponse"));
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
-        assertNotNull(serverResponse.getEcdhe());
-        assertNotNull(serverResponse.getMlkem());
+        assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
+        assertNotNull(serverResponse.getEncapsulatedKeys().get(1));
     }
 
     @Test
@@ -246,7 +246,7 @@ class TemporaryKeyBehaviorTest {
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
-        assertNotNull(serverResponse.getEcdhe());
+        assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
         // extract temporary key and use it during an activation
         final ActivationContext activationContext = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
         final String activationId = activationContext.activationLayer2Response.getActivationId();
@@ -271,7 +271,7 @@ class TemporaryKeyBehaviorTest {
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
-        assertNotNull(serverResponseActivation.getEcdhe());
+        assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
     }
 
     @Test
@@ -284,8 +284,8 @@ class TemporaryKeyBehaviorTest {
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
-        assertNotNull(serverResponse.getEcdhe());
-        assertNotNull(serverResponse.getMlkem());
+        assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
+        assertNotNull(serverResponse.getEncapsulatedKeys().get(1));
 
         // extract temporary key and use it during an activation
         final ActivationContext activationContext = createActivation(defaultVersion, temporaryKeyId, requestCryptogram.getSharedSecretClientContext(), serverResponse);
@@ -312,8 +312,8 @@ class TemporaryKeyBehaviorTest {
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
-        assertNotNull(serverResponseActivation.getEcdhe());
-        assertNotNull(serverResponseActivation.getMlkem());
+        assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
+        assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(1));
     }
 
     @Test
@@ -345,10 +345,10 @@ class TemporaryKeyBehaviorTest {
         final String applicationSecret = applicationVersion.getApplicationSecret();
         final SecretKey temporarySharedSecret;
         final RequestCryptogram activationSharedSecretRequest;
-        if (serverResponse.getMlkem() == null) {
+        if (serverResponse.getEncapsulatedKeys().size() == 1) {
             final KeyPair ecDeviceKeyPair = generateEcDeviceKeypair();
             final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
             temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
 
             final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
@@ -358,14 +358,14 @@ class TemporaryKeyBehaviorTest {
             activationSharedSecretRequest = SHARED_SECRET_ECDHE.generateRequestCryptogram();
             final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
             sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384.toString());
-            sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(0));
+            sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(0)));
             activationLayer2Request.setSharedSecretRequest(sharedSecretRequest);
 
         } else {
             final KeyPair ecDeviceKeyPair = generateEcDeviceKeypair();
             final KeyPair pqcDeviceKeyPair = generatePqcDeviceKeypair();
             final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe(), serverResponse.getMlkem()));
+            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
             temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
 
             final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
@@ -377,8 +377,7 @@ class TemporaryKeyBehaviorTest {
             activationSharedSecretRequest = SHARED_SECRET_HYBRID_ML_L3.generateRequestCryptogram();
             final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
             sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.name());
-            sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(0));
-            sharedSecretRequest.setMlkem(((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(1));
+            sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(0), ((DefaultSharedSecretRequest)activationSharedSecretRequest.getSharedSecretRequest()).getEncapsulationKeys().get(1)));
             activationLayer2Request.setSharedSecretRequest(sharedSecretRequest);
         }
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = new EncryptorFactory().getClientEncryptor(
@@ -448,11 +447,11 @@ class TemporaryKeyBehaviorTest {
 
     private SecretKey deriveSharedSecret(SharedSecretClientContext clientContext, SharedSecretResponse serverResponse) throws Exception {
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        if (serverResponse.getMlkem() == null) {
-            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        if (serverResponse.getEncapsulatedKeys().size() == 1) {
+            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
             return SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
         } else {
-            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe(), serverResponse.getMlkem()));
+            sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
             return SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
         }
     }

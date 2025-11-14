@@ -141,7 +141,7 @@ class ActivationServiceBehaviorTest {
         final String ecPublicKey = generateEcPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384.toString());
-        sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0));
+        sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0)));
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
         devicePublicKeys.setEcdsa(ecPublicKey);
 
@@ -153,7 +153,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload
@@ -181,8 +181,8 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
-        assertNotNull(responseL2.getSharedSecretResponse().getEcdhe());
-        assertNull(responseL2.getSharedSecretResponse().getMlkem());
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
+        assertEquals(1, responseL2.getSharedSecretResponse().getEncapsulatedKeys().size());
         assertNotNull(responseL2.getServerPublicKeys());
         assertNotNull(responseL2.getServerPublicKeys().getEcdsa());
         assertNull(responseL2.getServerPublicKeys().getMldsa());
@@ -208,8 +208,7 @@ class ActivationServiceBehaviorTest {
         final String mlDsaPublicKey = generateMldDsaPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5.toString());
-        sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0));
-        sharedSecretRequest.setMlkem(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(1));
+        sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0), ((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(1)));
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
         devicePublicKeys.setEcdsa(ecPublicKey);
         devicePublicKeys.setMldsa(mlDsaPublicKey);
@@ -222,7 +221,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe(), serverResponse.getMlkem()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload
@@ -250,8 +249,8 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
-        assertNotNull(responseL2.getSharedSecretResponse().getEcdhe());
-        assertNotNull(responseL2.getSharedSecretResponse().getMlkem());
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(1));
         assertNotNull(responseL2.getServerPublicKeys());
         assertNotNull(responseL2.getServerPublicKeys().getEcdsa());
         assertNotNull(responseL2.getServerPublicKeys().getMldsa());
@@ -279,7 +278,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload, omit device public key
@@ -319,7 +318,7 @@ class ActivationServiceBehaviorTest {
         final String ecPublicKey = generateEcPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384.toString());
-        sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0));
+        sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0)));
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
         devicePublicKeys.setEcdsa(ecPublicKey);
 
@@ -331,7 +330,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload
@@ -358,8 +357,8 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
-        assertNotNull(responseL2.getSharedSecretResponse().getEcdhe());
-        assertNull(responseL2.getSharedSecretResponse().getMlkem());
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
+        assertEquals(1, responseL2.getSharedSecretResponse().getEncapsulatedKeys().size());
         assertNotNull(responseL2.getServerPublicKeys());
         assertNotNull(responseL2.getServerPublicKeys().getEcdsa());
         assertNull(responseL2.getServerPublicKeys().getMldsa());
@@ -379,8 +378,7 @@ class ActivationServiceBehaviorTest {
         final String mlDsaPublicKey = generateMldDsaPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.toString());
-        sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0));
-        sharedSecretRequest.setMlkem(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(1));
+        sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0), ((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(1)));
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
         devicePublicKeys.setEcdsa(ecPublicKey);
         devicePublicKeys.setMldsa(mlDsaPublicKey);
@@ -393,7 +391,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe(), serverResponse.getMlkem()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload
@@ -420,8 +418,8 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
-        assertNotNull(responseL2.getSharedSecretResponse().getEcdhe());
-        assertNotNull(responseL2.getSharedSecretResponse().getMlkem());
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
+        assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(1));
         assertNotNull(responseL2.getServerPublicKeys());
         assertNotNull(responseL2.getServerPublicKeys().getEcdsa());
         assertNotNull(responseL2.getServerPublicKeys().getMldsa());
@@ -443,7 +441,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload, omit device public key
@@ -732,7 +730,7 @@ class ActivationServiceBehaviorTest {
         final String ecPublicKey = generateEcPublicKey();
         final SharedSecretRequest sharedSecretRequest = new SharedSecretRequest();
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384.toString());
-        sharedSecretRequest.setEcdhe(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0));
+        sharedSecretRequest.setEncapsulationKeys(List.of(((DefaultSharedSecretRequest)requestCryptogramActivation.getSharedSecretRequest()).getEncapsulationKeys().get(0)));
         final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
         devicePublicKeys.setEcdsa(ecPublicKey);
 
@@ -744,7 +742,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
-        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEcdhe()));
+        sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
         // Create request payload

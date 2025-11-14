@@ -251,22 +251,25 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         if (requestClaims.getSharedSecretRequest().getAlgorithm() == null) {
             return "Shared secret algorithm must be specified.";
         }
+        if (requestClaims.getSharedSecretRequest().getEncapsulationKeys() == null) {
+            return "Shared secret encapsulation keys must be specified.";
+        }
         if (!SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
                 && !SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
                 && !SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
             return "Invalid shared secret algorithm value.";
         }
         if (SharedSecretAlgorithm.EC_P384.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
-            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+            if (requestClaims.getSharedSecretRequest().getEncapsulationKeys().get(0) == null) {
                 return "Shared secret ecdhe value must be specified for algorithm EC_P384.";
             }
         }
         if (SharedSecretAlgorithm.EC_P384_ML_L3.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())
             || SharedSecretAlgorithm.EC_P384_ML_L5.toString().equals(requestClaims.getSharedSecretRequest().getAlgorithm())) {
-            if (requestClaims.getSharedSecretRequest().getEcdhe() == null) {
+            if (requestClaims.getSharedSecretRequest().getEncapsulationKeys().get(0) == null) {
                 return "Shared secret ecdhe value must be specified for hybrid algorithm.";
             }
-            if (requestClaims.getSharedSecretRequest().getMlkem() == null) {
+            if (requestClaims.getSharedSecretRequest().getEncapsulationKeys().get(1) == null) {
                 return "Shared secret mlkem value must be specified for hybrid algorithm.";
             }
         }
@@ -425,11 +428,11 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         sharedSecretRequest.setAlgorithm(algorithm);
         switch (algorithm) {
             case EC_P384 -> {
-                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEcdhe()));
+                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0)));
                 return SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequest);
             }
             case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEcdhe(), request.getMlkem()));
+                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0), request.getEncapsulationKeys().get(1)));
                 return switch (algorithm) {
                     case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequest);
                     case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequest);
@@ -445,12 +448,11 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         final DefaultSharedSecretResponse sharedSecretResponseObject = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
         switch (algorithm) {
             case EC_P384 -> {
-                sharedSecretResponse.setEcdhe(sharedSecretResponseObject.getEncapsulatedKeys().get(0));
+                sharedSecretResponse.setEncapsulatedKeys(List.of(sharedSecretResponseObject.getEncapsulatedKeys().get(0)));
                 return sharedSecretResponse;
             }
             case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                sharedSecretResponse.setEcdhe(sharedSecretResponseObject.getEncapsulatedKeys().get(0));
-                sharedSecretResponse.setMlkem(sharedSecretResponseObject.getEncapsulatedKeys().get(1));
+                sharedSecretResponse.setEncapsulatedKeys(List.of(sharedSecretResponseObject.getEncapsulatedKeys().get(0), sharedSecretResponseObject.getEncapsulatedKeys().get(1)));
                 return sharedSecretResponse;
             }
             default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);

@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.service.crypto.v3;
 
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKeyRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;

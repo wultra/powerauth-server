@@ -134,14 +134,14 @@ public class BiometryServiceBehavior {
             final SharedSecretResponse secretResponse = switch (algorithm) {
                 case EC_P384 -> {
                     try {
-                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEcdhe()));
+                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0)));
                         final ResponseCryptogram responseCryptogram = SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequestObject);
 
                         storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
 
                         final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setEcdhe(derivedResponse.getEncapsulatedKeys().get(0));
+                        sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0)));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {
                         logger.error("Cryptography error occurred", ex);
@@ -150,7 +150,7 @@ public class BiometryServiceBehavior {
                 }
                 case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                     try {
-                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEcdhe(), sharedSecretRequest.getMlkem()));
+                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0), sharedSecretRequest.getEncapsulationKeys().get(1)));
                         final ResponseCryptogram responseCryptogram = switch (algorithm) {
                             case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestObject);
                             case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestObject);
@@ -161,8 +161,7 @@ public class BiometryServiceBehavior {
 
                         final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setEcdhe(derivedResponse.getEncapsulatedKeys().get(0));
-                        sharedSecretResponse.setMlkem(derivedResponse.getEncapsulatedKeys().get(1));
+                        sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0), derivedResponse.getEncapsulatedKeys().get(1)));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {
                         logger.error("Cryptography error occurred", ex);
