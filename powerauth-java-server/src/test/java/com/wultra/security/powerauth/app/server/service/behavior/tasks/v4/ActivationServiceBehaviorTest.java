@@ -153,6 +153,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -221,6 +222,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -278,6 +280,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -330,6 +333,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -391,6 +395,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -441,6 +446,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 
@@ -742,6 +748,7 @@ class ActivationServiceBehaviorTest {
         final Object claim = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
+        sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
         final SecretKey temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) requestCryptogramTemporary.getSharedSecretClientContext(), sharedSecretResponse);
 

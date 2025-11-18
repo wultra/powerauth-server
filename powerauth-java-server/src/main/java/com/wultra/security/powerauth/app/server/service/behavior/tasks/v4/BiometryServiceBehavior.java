@@ -141,6 +141,7 @@ public class BiometryServiceBehavior {
 
                         final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
+                        sharedSecretResponse.setSalt(derivedResponse.getSalt());
                         sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0)));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {
@@ -161,6 +162,7 @@ public class BiometryServiceBehavior {
 
                         final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
+                        sharedSecretResponse.setSalt(derivedResponse.getSalt());
                         sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0), derivedResponse.getEncapsulatedKeys().get(1)));
                         yield sharedSecretResponse;
                     } catch (GenericCryptoException ex) {

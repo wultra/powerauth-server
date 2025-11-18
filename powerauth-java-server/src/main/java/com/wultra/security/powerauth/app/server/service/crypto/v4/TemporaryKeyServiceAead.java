@@ -104,7 +104,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService) throws GenericCryptoException {
+    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService) {
         super(localizationProvider, temporaryKeyRepository);
         this.activationRepository = activationRepository;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
@@ -446,6 +446,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private SharedSecretResponse prepareSharedSecretResponse(SharedSecretAlgorithm algorithm, ResponseCryptogram responseCryptogram) {
         final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
         final DefaultSharedSecretResponse sharedSecretResponseObject = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
+        sharedSecretResponse.setSalt(sharedSecretResponseObject.getSalt());
         switch (algorithm) {
             case EC_P384 -> {
                 sharedSecretResponse.setEncapsulatedKeys(List.of(sharedSecretResponseObject.getEncapsulatedKeys().get(0)));

@@ -147,6 +147,7 @@ public class SharedSecretServiceBehavior {
 
                 final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                 final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
+                sharedSecretResponse.setSalt(derivedResponse.getSalt());
                 sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0)));
                 responsePayload.setSharedSecretResponse(sharedSecretResponse);
 
@@ -195,6 +196,7 @@ public class SharedSecretServiceBehavior {
 
                 final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
                 final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
+                sharedSecretResponse.setSalt(derivedResponse.getSalt());
                 sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0), derivedResponse.getEncapsulatedKeys().get(1)));
                 responsePayload.setSharedSecretResponse(sharedSecretResponse);
 
