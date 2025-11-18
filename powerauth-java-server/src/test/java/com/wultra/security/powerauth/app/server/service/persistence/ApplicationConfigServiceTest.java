@@ -73,7 +73,7 @@ class ApplicationConfigServiceTest {
 
             final Optional<ApplicationConfigEntity> entity = repository.findByApplicationIdAndKey("PA_Tests", "oauth2_providers");
             assertTrue(entity.isPresent());
-            assertEquals(EncryptionMode.AES_HMAC, entity.get().getEncryptionMode());
+            assertEquals(EncryptionMode.AEAD_KMAC, entity.get().getEncryptionMode());
             assertFalse(entity.get().getValues().contains("client_secret"));
         }
     }

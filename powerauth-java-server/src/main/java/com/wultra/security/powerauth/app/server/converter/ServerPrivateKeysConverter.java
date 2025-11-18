@@ -21,9 +21,8 @@ package com.wultra.security.powerauth.app.server.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for server private keys which handles key conversion and encryption/decryption in case it is configured.
@@ -62,10 +60,11 @@ public class ServerPrivateKeysConverter {
      * @return Decrypted private keys.
      * @throws GenericServiceException In case private keys decryption fails.
      */
-    public PrivateKeyRegistry fromDBValue(final PrivateKeys privateKeys, final String userId, final String activationId) throws GenericServiceException {
+    public PrivateKeyRegistry fromDBValue(final PrivateKeysRecord privateKeys, final String userId, final String activationId) throws GenericServiceException {
         try {
-            final byte[] data = convertFromBase64(privateKeys.privateKeysBase64());
-            final byte[] decrypted = encryptionService.decrypt(data, privateKeys.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
+            final byte[] encryptedData = convertFromBase64(privateKeys.privateKeysBase64());
+            final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, privateKeys.encryptionMode());
             return deserialize(decrypted);
         } catch (IOException e) {
             logger.warn("Decryption failed", e);
@@ -84,7 +83,7 @@ public class ServerPrivateKeysConverter {
      * @return Private keys as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    public PrivateKeys toDBValue(final PrivateKeyRegistry serverPrivateKeys, final String userId, final String activationId) throws GenericServiceException {
+    public PrivateKeysRecord toDBValue(final PrivateKeyRegistry serverPrivateKeys, final String userId, final String activationId) throws GenericServiceException {
         try {
             return toDBValue(serialize(serverPrivateKeys), userId, activationId);
         } catch (IOException e) {
@@ -104,9 +103,10 @@ public class ServerPrivateKeysConverter {
      * @return Private keys as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    PrivateKeys toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(privateKeysBytes, createEncryptionKeyProvider(userId, activationId));
-        return new PrivateKeys(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
+    public PrivateKeysRecord toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+        final EncryptableData encrypted = encryptionService.encrypt(privateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
+        return new PrivateKeysRecord(encrypted.encryptionMode(), convertToBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -125,8 +125,11 @@ public class ServerPrivateKeysConverter {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String userId, final String activationId) {
-        return () -> List.of(userId, activationId);
+    private static EncryptionKeySupplier encryptionKeySupplier(final String userId, final String activationId) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(userId, activationId),
+                List.of("pa_activation", "server_private_keys")
+        );
     }
 
 }

@@ -20,7 +20,7 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
@@ -52,7 +52,8 @@ class ServerPrivateKeysConverterTest {
     private static final String MLDSA_PRIVATE_KEY = "MDICAQAwCwYJYIZIAWUDBAMSBCDOgf2hERMl/CNLbwJCUlgQpB709Z0dxnmdAcs5k/PjvA==";
 
     private static final String SERVER_PRIVATE_KEYS_JSON = "{\"privateKeys\":{\"ECDSA_P384\":\"" + ECDSA_PRIVATE_KEY + "\",\"MLDSA_65\":\"" + MLDSA_PRIVATE_KEY + "\"}}";
-    private static final String SERVER_PRIVATE_KEYS_ENCRYPTED = "RzylCQURjkitPt93yycj0CzAjlgdZ7JmlvWwWNmtzKbuYEPNsZ3v/XQv+UyfabT4vaHKLy+UYkq1xoXbWOP1rhStZodSG84XE91tv6Tw4X94yCcXW69mI+2gchuSEGfvIfPxg3AO/vL9YOVwmaHgQOiMoURldRSR/gMjyvHLoA2yY0qecSKXYKA9Xh2TGHYtMxDQOdIVyBF1Azi7vJZIdDa0HNs5Wxep6+rmUH/VfyvTEcf/KIb+LSN+I9U/OjW1zOZA+kTfI6PKHACLMcnMew==";
+    private static final String SERVER_PRIVATE_KEYS_AES_HMAC_ENCRYPTED = "RzylCQURjkitPt93yycj0CzAjlgdZ7JmlvWwWNmtzKbuYEPNsZ3v/XQv+UyfabT4vaHKLy+UYkq1xoXbWOP1rhStZodSG84XE91tv6Tw4X94yCcXW69mI+2gchuSEGfvIfPxg3AO/vL9YOVwmaHgQOiMoURldRSR/gMjyvHLoA2yY0qecSKXYKA9Xh2TGHYtMxDQOdIVyBF1Azi7vJZIdDa0HNs5Wxep6+rmUH/VfyvTEcf/KIb+LSN+I9U/OjW1zOZA+kTfI6PKHACLMcnMew==";
+    private static final String SERVER_PRIVATE_KEYS_AEAD_KMAC_ENCRYPTED = "dW+PNut0xDHQiORw9Zs/T8tzKekclHinC1dM8Z4IR/aoZmkiC1zEcTDyjT9qvqqruNfEYerMdBGfkXkRqS9SehBtGNcFsF6ZzbP/ZnZpcSn2wDSgulLBoJOqQWMwt+j7sgr5BegMfOIVNouEQkwYZB0tfwmXYygfxds21kv3R0sA/9eI0c4FfA6XgDjsQzLnYXtI+2ks+AO0D6tc62ulZGPXUT1QNQjiHUBqSFUAZo9DDRbo9ka4mkza6vUnMIAbCn7Iayinp2myo5NqkD6UZmq/7DL/EvXD8rCG4vlEiDKOS78VdiNJ";
 
     private static final String USER_ID = "test";
 
@@ -73,7 +74,7 @@ class ServerPrivateKeysConverterTest {
         keyRegistry.storePrivateKey(KeyType.MLDSA_65, mlDsaPrivateKey);
         final byte[] keyRegistryBytes = privateKeysConverter.serialize(keyRegistry);
         final String keyRegistryBase64 = Base64.getEncoder().encodeToString(keyRegistryBytes);
-        final PrivateKeys privateKeysEncrypted = new PrivateKeys(EncryptionMode.NO_ENCRYPTION, keyRegistryBase64);
+        final PrivateKeysRecord privateKeysEncrypted = new PrivateKeysRecord(EncryptionMode.NO_ENCRYPTION, keyRegistryBase64);
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, ACTIVATION_ID);
         final Optional<PrivateKey> ecdsaPrivateKeyActual = serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384);
         assertFalse(ecdsaPrivateKeyActual.isEmpty());
@@ -88,8 +89,8 @@ class ServerPrivateKeysConverterTest {
     @Test
     void testEncryptionAndDecryptionSuccess() throws Exception {
         final byte[] serverPrivateKeysBytes = SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8);
-        final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
-        assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
+        final PrivateKeysRecord privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
+        assertEquals(EncryptionMode.AEAD_KMAC, privateKeysEncrypted.encryptionMode());
         assertNotEquals(SERVER_PRIVATE_KEYS_JSON, privateKeysEncrypted.privateKeysBase64());
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, ACTIVATION_ID);
         final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
@@ -99,8 +100,19 @@ class ServerPrivateKeysConverterTest {
     }
 
     @Test
-    void testFromDbValueEncryption() throws Exception {
-        final PrivateKeys privateKeysEncrypted = new PrivateKeys(EncryptionMode.AES_HMAC, SERVER_PRIVATE_KEYS_ENCRYPTED);
+    void testFromDbValueEncryptionAesHmac() throws Exception {
+        final PrivateKeysRecord privateKeysEncrypted = new PrivateKeysRecord(EncryptionMode.AES_HMAC, SERVER_PRIVATE_KEYS_AES_HMAC_ENCRYPTED);
+        final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, ACTIVATION_ID);
+        assertArrayEquals(SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8), privateKeysConverter.serialize(serverPrivateKeysActual));
+        final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
+        assertEquals(privateKeyEcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.ECDSA_P384).orElseThrow());
+        final PrivateKey privateKeyPqcExpected = KEY_CONVERTOR_PQC_DSA.convertBytesToPrivateKey(Base64.getDecoder().decode(MLDSA_PRIVATE_KEY));
+        assertEquals(privateKeyPqcExpected, serverPrivateKeysActual.getPrivateKey(KeyType.MLDSA_65).orElseThrow());
+    }
+
+    @Test
+    void testFromDbValueEncryptionAeadKmac() throws Exception {
+        final PrivateKeysRecord privateKeysEncrypted = new PrivateKeysRecord(EncryptionMode.AEAD_KMAC, SERVER_PRIVATE_KEYS_AEAD_KMAC_ENCRYPTED);
         final PrivateKeyRegistry serverPrivateKeysActual = privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, ACTIVATION_ID);
         assertArrayEquals(SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8), privateKeysConverter.serialize(serverPrivateKeysActual));
         final PrivateKey privateKeyEcExpected = KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_PRIVATE_KEY));
@@ -112,9 +124,9 @@ class ServerPrivateKeysConverterTest {
     @Test
     void testEncryptionAndDecryptionDifferentUserFail() throws Exception {
         final byte[] serverPrivateKeysBytes = SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8);
-        final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
+        final PrivateKeysRecord privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
 
-        assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
+        assertEquals(EncryptionMode.AEAD_KMAC, privateKeysEncrypted.encryptionMode());
         assertThrows(GenericServiceException.class, () ->
             privateKeysConverter.fromDBValue(privateKeysEncrypted, "test2", ACTIVATION_ID));
     }
@@ -122,9 +134,9 @@ class ServerPrivateKeysConverterTest {
     @Test
     void testEncryptionAndDecryptionDifferentActivationFailServerPrivateKeysConverter() throws Exception {
         final byte[] serverPrivateKeysBytes = SERVER_PRIVATE_KEYS_JSON.getBytes(StandardCharsets.UTF_8);
-        final PrivateKeys privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
+        final PrivateKeysRecord privateKeysEncrypted = privateKeysConverter.toDBValue(serverPrivateKeysBytes, USER_ID, ACTIVATION_ID);
 
-        assertEquals(EncryptionMode.AES_HMAC, privateKeysEncrypted.encryptionMode());
+        assertEquals(EncryptionMode.AEAD_KMAC, privateKeysEncrypted.encryptionMode());
 
         assertThrows(GenericServiceException.class, () -> privateKeysConverter.fromDBValue(privateKeysEncrypted, USER_ID, "115286e0-e1c5-4ee1-8d1b-c6947cab0a56"));
     }

@@ -92,7 +92,7 @@ public class KeyPairGenerationService {
 
         activation.setServerPublicKeyBase64(Base64.getEncoder().encodeToString(serverKeyPublicBytes));
 
-        final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activation.getActivationId());
+        final ServerPrivateKeyRecord serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activation.getActivationId());
         activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
         activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
     }
@@ -102,7 +102,7 @@ public class KeyPairGenerationService {
     }
 
     private void storePrivateKeyRegistry(ActivationRecordEntity activation, PrivateKeyRegistry serverPrivateKeys) throws GenericServiceException {
-        final PrivateKeys privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
+        final PrivateKeysRecord privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
         activation.setServerPrivateKeysEncryption(privateKeys.encryptionMode());
         activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
     }

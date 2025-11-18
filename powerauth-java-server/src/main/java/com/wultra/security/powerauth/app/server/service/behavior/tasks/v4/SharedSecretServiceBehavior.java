@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecret
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
+import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
@@ -250,7 +250,7 @@ public class SharedSecretServiceBehavior {
      */
     private void storeActivationSecretKey(ActivationRecordEntity activation, ResponseCryptogram responseCryptogram) throws GenericServiceException {
         final byte[] sharedSecretBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(responseCryptogram.getSecretKey());
-        final SharedSecret sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activation.getActivationId());
+        final SharedSecretRecord sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activation.getActivationId());
         activation.setSharedSecret(sharedSecretDb.sharedSecretBase64());
         activation.setSharedSecretEncryption(sharedSecretDb.encryptionMode());
     }

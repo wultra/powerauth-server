@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.enumeration;
 
+import lombok.Getter;
+
 /**
  * Enum representing encryption modes. Following values are supported:
  * <p>
@@ -26,6 +28,7 @@ package com.wultra.security.powerauth.app.server.database.model.enumeration;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Getter
 public enum EncryptionMode {
 
     /**
@@ -34,9 +37,14 @@ public enum EncryptionMode {
     NO_ENCRYPTION((byte) 0),
 
     /**
-     * AES encryption with HMAC-based index.
+     * AES encryption with HMAC-based index for key derivation (16 byte key).
      */
-    AES_HMAC((byte) 1);
+    AES_HMAC((byte) 1),
+
+    /**
+     * AEAD with AES-256 with KMAC-256-based index for key derivation (32 byte key).
+     */
+    AEAD_KMAC((byte) 2);
 
     /**
      * Byte value of encryption mode.
@@ -51,11 +59,4 @@ public enum EncryptionMode {
         this.value = value;
     }
 
-    /**
-     * Get byte value of encryption mode.
-     * @return Byte value of encryption mode.
-     */
-    public byte getValue() {
-        return value;
-    }
 }

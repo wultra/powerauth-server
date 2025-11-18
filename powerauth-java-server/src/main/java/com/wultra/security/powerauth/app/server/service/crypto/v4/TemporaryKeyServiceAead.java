@@ -183,7 +183,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             final TemporaryKeyEntity temporaryKey = fetchTemporaryKey(id, appKey, activationId);
             final String serverPrivateKeyFromEntity = temporaryKey.getPrivateKeyBase64();
             final EncryptionMode serverPrivateKeyEncryptionMode = temporaryKey.getPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             return KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P384, serverPrivateKeyBytes);
@@ -204,7 +204,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             final TemporaryKeyEntity temporaryKey = fetchTemporaryKey(id, appKey, activationId);
             final String secretKeyBase64 = temporaryKey.getSecretKeyBase64();
             final EncryptionMode secretKeyEncryption = temporaryKey.getSecretKeyEncryption();
-            final SharedSecret sharedSecretEncrypted = new SharedSecret(secretKeyEncryption, secretKeyBase64);
+            final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(secretKeyEncryption, secretKeyBase64);
             final String sharedSecretBase64 = temporarySharedSecretConverter.fromDBValue(sharedSecretEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
             final byte[] sharedSecretBytes = Base64.getDecoder().decode(sharedSecretBase64);
             return KEY_CONVERTOR.convertBytesToSharedSecretKey(sharedSecretBytes);
@@ -297,7 +297,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         final Date expirationDate = Date.from(currentTimestamp.toInstant().plusMillis(powerAuthServiceConfiguration.getTemporaryKeyValidity().toMillis()));
 
         // Prepare encrypted shared secret, if encryption is enabled
-        final SharedSecret sharedSecretConverted = temporarySharedSecretConverter.toDBValue(
+        final SharedSecretRecord sharedSecretConverted = temporarySharedSecretConverter.toDBValue(
                 responseCryptogram.getSecretKey().getEncoded(), keyId, applicationKey, activationId);
 
         // Prepare and store the entity
@@ -343,7 +343,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
                 final String masterPrivateKeysBase64 = masterKeyPairEntity.getMasterPrivateKeys();
                 final EncryptionMode encryptionMode = masterKeyPairEntity.getMasterPrivateKeysEncryption();
-                final PrivateKeys masterPrivateKeys = new PrivateKeys(encryptionMode, masterPrivateKeysBase64);
+                final PrivateKeysRecord masterPrivateKeys = new PrivateKeysRecord(encryptionMode, masterPrivateKeysBase64);
                 final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(masterPrivateKeys, applicationVersionEntity.getApplication().getId());
                 final PrivateKey ecPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
                         .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR));
@@ -388,14 +388,14 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
 
                 final String serverPrivateKeys = activation.getServerPrivateKeys();
                 final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
-                final PrivateKeys privateKeys = new PrivateKeys(encryptionMode, serverPrivateKeys);
+                final PrivateKeysRecord privateKeys = new PrivateKeysRecord(encryptionMode, serverPrivateKeys);
                 final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
                 final PrivateKey serverEcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
                         .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 
                 final String sharedSecretEncrypted = activation.getSharedSecret();
                 final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
-                final SharedSecret sharedSecretDb = new SharedSecret(sharedSecretEncryptionMode, sharedSecretEncrypted);
+                final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionMode, sharedSecretEncrypted);
                 final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
                 final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
                 final SecretKey secretKey = SERVER_KEY_FACTORY.generateKeyMacGetActTempKey(sharedSecretKey);

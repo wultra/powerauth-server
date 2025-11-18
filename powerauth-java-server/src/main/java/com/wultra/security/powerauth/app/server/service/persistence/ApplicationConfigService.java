@@ -21,8 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.converter.ListToJ
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Service for application configuration.
@@ -84,36 +82,40 @@ public class ApplicationConfigService {
         entity.setApplication(source.application());
         entity.setKey(source.key());
 
-        final String value = listToJsonConverter.convertToDatabaseColumn(source.values());
-        final EncryptableString encryptable = encryptionService.encrypt(value, createEncryptionKeyProvider(entity));
-        entity.setValues(encryptable.encryptedData());
-        entity.setEncryptionMode(encryptable.encryptionMode());
-
+        final String plaintext = listToJsonConverter.convertToDatabaseColumn(source.values());
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(entity);
+        final EncryptableString encrypted = encryptionService.encrypt(plaintext, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
+        entity.setValues(encrypted.encryptedData());
+        entity.setEncryptionMode(encrypted.encryptionMode());
         return entity;
     }
 
-    private ApplicationConfig convert(ApplicationConfigEntity source) {
+    private ApplicationConfig convert(final ApplicationConfigEntity source) {
         try {
-            final String decrypted = encryptionService.decrypt(source.getValues(), source.getEncryptionMode(), createEncryptionKeyProvider(source));
+            final EncryptionKeySupplier keySupplier = encryptionKeySupplier(source);
+            final String decrypted = encryptionService.decrypt(source.getValues(), keySupplier, source.getEncryptionMode());
             final List<Object> values = listToJsonConverter.convertToEntityAttribute(decrypted);
             return new ApplicationConfig(source.getRid(), source.getApplication(), source.getKey(), values);
         } catch (GenericServiceException e) {
-            logger.warn("Problem to decrypt config ID: {}", source.getRid());
+            logger.warn("Problem decrypting config ID: {}", source.getRid());
             return null;
         }
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final ApplicationConfigEntity source) {
-        return () -> List.of(source.getApplication().getId());
+    private static EncryptionKeySupplier encryptionKeySupplier(final ApplicationConfigEntity source) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(source.getApplication().getId()),
+                List.of("pa_application_config", "config_values")
+        );
     }
 
     /**
      * Decrypted wrapper of {@link ApplicationConfigEntity}.
      *
-     * @param id
-     * @param key
-     * @param application
-     * @param values
+     * @param id Application config identifier.
+     * @param application Application entity.
+     * @param key Configuration key.
+     * @param values Configuration values.
      */
     public record ApplicationConfig(
             Long id,

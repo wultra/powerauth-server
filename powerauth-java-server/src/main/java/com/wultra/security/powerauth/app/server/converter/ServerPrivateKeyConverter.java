@@ -17,9 +17,11 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
+import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKeyRecord;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DefaultEncryptionKeySupplier;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptionKeySupplier;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +29,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
@@ -51,10 +52,11 @@ public class ServerPrivateKeyConverter {
      * @return Decrypted Base64-encoded server private key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public String fromDBValue(final ServerPrivateKey serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
-        return convert(decrypted);
+    public String fromDBValue(final ServerPrivateKeyRecord serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
+        final byte[] encrypted = fromBase64(serverPrivateKey.serverPrivateKeyBase64());
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, serverPrivateKey.encryptionMode());
+        return toBase64(decrypted);
     }
 
     /**
@@ -68,21 +70,25 @@ public class ServerPrivateKeyConverter {
      * @return Server private key as composite database value.
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
-    public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createEncryptionKeyProvider(userId, activationId));
-        return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
+    public ServerPrivateKeyRecord toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+        final EncryptableData encrypted = encryptionService.encrypt(serverPrivateKey, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
+        return new ServerPrivateKeyRecord(encrypted.encryptionMode(), toBase64(encrypted.encryptedData()));
     }
 
-    private static String convert(final byte[] source) {
+    private static String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private static byte[] convert(final String source) {
+    private static byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String userId, final String activationId) {
-        return () -> List.of(userId, activationId);
+    private static EncryptionKeySupplier encryptionKeySupplier(final String userId, final String activationId) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(userId, activationId),
+                List.of("pa_activation", "server_private_key_base64")
+        );
     }
 
 }

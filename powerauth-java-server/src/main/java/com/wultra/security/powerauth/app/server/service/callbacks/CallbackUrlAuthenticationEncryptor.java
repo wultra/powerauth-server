@@ -1,19 +1,18 @@
 package com.wultra.security.powerauth.app.server.service.callbacks;
 
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
 import com.wultra.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
 import com.wultra.security.powerauth.app.server.converter.CallbackAuthenticationPublicConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableString;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Helper class handling encryption and decryption of the CallbackUrlAuthentication.
@@ -21,11 +20,12 @@ import java.util.function.Supplier;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Component
+@Slf4j
 @AllArgsConstructor
 public final class CallbackUrlAuthenticationEncryptor {
 
-    private CallbackAuthenticationConverter callbackAuthenticationConverter;
-    private DatabaseEncryptionService encryptionService;
+    private final CallbackAuthenticationConverter callbackAuthenticationConverter;
+    private final DatabaseEncryptionService encryptionService;
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
@@ -39,7 +39,8 @@ public final class CallbackUrlAuthenticationEncryptor {
     public EncryptableString encrypt(final HttpAuthenticationPrivate source, final String applicationId) throws GenericServiceException {
         final CallbackUrlAuthentication callbackAuthentication = authenticationPublicConverter.fromNetworkObject(source);
         final String callbackAuthenticationString = callbackAuthenticationConverter.convertToDatabaseColumn(callbackAuthentication);
-        return encryptionService.encrypt(callbackAuthenticationString, createEncryptionKeyProvider(applicationId));
+        final EncryptionKeySupplier keySupplier = encryptionKeySupplier(applicationId);
+        return encryptionService.encrypt(callbackAuthenticationString, keySupplier, encryptionService.getDefaultEncryptionMode());
     }
 
     /**
@@ -49,12 +50,13 @@ public final class CallbackUrlAuthenticationEncryptor {
      * @throws GenericServiceException In case of a decryption error.
      */
     public CallbackUrlAuthentication decrypt(final CallbackUrlEntity entity) throws GenericServiceException {
-        final String authentication = entity.getAuthentication();
-        if (authentication == null) {
+        final String encryptedAuthentication = entity.getAuthentication();
+        if (encryptedAuthentication == null) {
             return new CallbackUrlAuthentication();
         }
-        final String existingCallbackAuthenticationString = encryptionService.decrypt(authentication, entity.getEncryptionMode(), createEncryptionKeyProvider(entity.getApplication().getId()));
-        return callbackAuthenticationConverter.convertToEntityAttribute(existingCallbackAuthenticationString);
+        final EncryptionKeySupplier keySupplier = encryptionKeySupplier(entity.getApplication().getId());
+        final String decrypted = encryptionService.decrypt(encryptedAuthentication, keySupplier, entity.getEncryptionMode());
+        return callbackAuthenticationConverter.convertToEntityAttribute(decrypted);
     }
 
     /**
@@ -68,8 +70,11 @@ public final class CallbackUrlAuthenticationEncryptor {
         return authenticationPublicConverter.toPublic(authentication);
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String applicationId) {
-        return () -> List.of(applicationId);
+    private static EncryptionKeySupplier encryptionKeySupplier(final String applicationId) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(applicationId),
+                List.of("pa_application_callback", "authentication")
+        );
     }
 
 }

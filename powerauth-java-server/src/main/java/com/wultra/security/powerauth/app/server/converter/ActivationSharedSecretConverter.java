@@ -18,9 +18,8 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
+import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for activation shared secret which handles key encryption and decryption in case it is configured.
@@ -50,9 +48,10 @@ public class ActivationSharedSecretConverter {
      * @return Decrypted Base64-encoded shared secret.
      * @throws GenericServiceException In case shared secret decryption fails.
      */
-    public String fromDBValue(final SharedSecret sharedSecret, final String userId, final String activationId) throws GenericServiceException {
-        final byte[] data = convert(sharedSecret.sharedSecretBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, sharedSecret.encryptionMode(), createSecretKeyDerivationInput(userId, activationId));
+    public String fromDBValue(final SharedSecretRecord sharedSecret, final String userId, final String activationId) throws GenericServiceException {
+        final byte[] data = Base64.getDecoder().decode(sharedSecret.sharedSecretBase64());
+        final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
+        final byte[] decrypted = encryptionService.decrypt(data, encryptionKeySupplier, sharedSecret.encryptionMode());
         return convert(decrypted);
     }
 
@@ -67,21 +66,18 @@ public class ActivationSharedSecretConverter {
      * @return Shared secret as composite database value.
      * @throws GenericServiceException Thrown when shared secret encryption fails.
      */
-    public SharedSecret toDBValue(final byte[] sharedSecret, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, createSecretKeyDerivationInput(userId, activationId));
-        return new SharedSecret(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
+    public SharedSecretRecord toDBValue(final byte[] sharedSecret, final String userId, final String activationId) throws GenericServiceException {
+        final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
+        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
+        return new SharedSecretRecord(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
     private static String convert(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private static byte[] convert(final String source) {
-        return Base64.getDecoder().decode(source);
-    }
-
-    private static Supplier<List<String>> createSecretKeyDerivationInput(final String userId, final String activationId) {
-        return () -> List.of(userId, activationId);
+    private static EncryptionKeySupplier createSecretKeyDerivationInput(final String userId, final String activationId) {
+        return new DefaultEncryptionKeySupplier(List.of(userId, activationId), List.of("pa_activation", "shared_secret"));
     }
 
 }

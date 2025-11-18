@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
  * @param privateKeysBase64 Private keys encoded in Base-64 encoding.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record PrivateKeys(EncryptionMode encryptionMode, String privateKeysBase64) {
+public record PrivateKeysRecord(EncryptionMode encryptionMode, String privateKeysBase64) {
 
     @Override
     public String toString() {
