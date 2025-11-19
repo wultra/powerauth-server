@@ -99,6 +99,7 @@ public class SharedSecretServiceBehavior {
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
+        sharedSecretService.validateSharedSecretRequest(sharedSecretRequest, activation.getActivationId());
         final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
 
         final DevicePublicKeys devicePublicKeys = requestPayload.getDevicePublicKeys();

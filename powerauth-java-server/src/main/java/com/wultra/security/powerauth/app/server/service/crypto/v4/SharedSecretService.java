@@ -132,4 +132,49 @@ public class SharedSecretService {
         return Pair.of(secretResponse, responseCryptogram);
     }
 
+    /**
+     * Validate shared secret request.
+     * @param sharedSecretRequest Shared secret request.
+     * @param activationId Activation identifier.
+     * @throws GenericServiceException Thrown in case shared secret request is invalid.
+     */
+    public void validateSharedSecretRequest(SharedSecretRequest sharedSecretRequest, String activationId) throws GenericServiceException {
+        if (sharedSecretRequest.getAlgorithm() == null || sharedSecretRequest.getEncapsulationKeys() == null) {
+            logger.warn("Invalid shared secret request, activation ID: {}", activationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
+        final SharedSecretAlgorithm algorithm;
+        try {
+            algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+        } catch (IllegalArgumentException ex) {
+            logger.warn("Unsupported shared secret algorithm '{}' for activation ID: {}", sharedSecretRequest.getAlgorithm(), activationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
+        final int keyCount = sharedSecretRequest.getEncapsulationKeys().size();
+        switch (algorithm) {
+            case EC_P384 -> {
+                if (keyCount != 1) {
+                    logger.warn("Invalid key count {} for algorithm {}, activation ID: {}", keyCount, algorithm, activationId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                }
+            }
+            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
+                if (keyCount != 2) {
+                    logger.info("Invalid key count {} for algorithm {}, activation ID: {}", keyCount, algorithm, activationId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                }
+            }
+            case ML_L3, ML_L5 -> {
+                logger.info("Experimental algorithm {} is not allowed in production, activation ID: {}", algorithm, activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            default -> {
+                logger.info("Unsupported algorithm {}, activation ID: {}", algorithm, activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+        }
+    }
+
 }

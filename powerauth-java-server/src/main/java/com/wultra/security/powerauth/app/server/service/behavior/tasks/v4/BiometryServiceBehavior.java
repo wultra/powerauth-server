@@ -117,16 +117,11 @@ public class BiometryServiceBehavior {
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor = decryptionResult.getServerEncryptor();
             final SharedSecretRequest sharedSecretRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), SharedSecretRequest.class);
-            if (sharedSecretRequest.getAlgorithm() == null || sharedSecretRequest.getEncapsulationKeys() == null) {
-                logger.info("Invalid shared secret request, activation ID: {}", activation.getActivationId());
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
-
-            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
             final Pair<SharedSecretResponse, ResponseCryptogram> responsePair = sharedSecretService.deriveSharedSecret(sharedSecretRequest);
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
+            algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
+
             final SharedSecretResponse secretResponse = responsePair.getFirst();
             final ResponseCryptogram responseCryptogram = responsePair.getSecond();
             storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
