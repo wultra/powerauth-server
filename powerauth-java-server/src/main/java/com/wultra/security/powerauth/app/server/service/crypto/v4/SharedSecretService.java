@@ -162,16 +162,16 @@ public class SharedSecretService {
             }
             case EC_P384_ML_L3, EC_P384_ML_L5 -> {
                 if (keyCount != 2) {
-                    logger.info("Invalid key count {} for algorithm {}, activation ID: {}", keyCount, algorithm, activationId);
+                    logger.warn("Invalid key count {} for algorithm {}, activation ID: {}", keyCount, algorithm, activationId);
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
                 }
             }
             case ML_L3, ML_L5 -> {
-                logger.info("Experimental algorithm {} is not allowed in production, activation ID: {}", algorithm, activationId);
+                logger.warn("Experimental algorithm {} is not allowed in production, activation ID: {}", algorithm, activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             default -> {
-                logger.info("Unsupported algorithm {}, activation ID: {}", algorithm, activationId);
+                logger.warn("Unsupported algorithm {}, activation ID: {}", algorithm, activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
