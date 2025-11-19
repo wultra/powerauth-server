@@ -66,7 +66,6 @@ import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadE
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.DefaultSharedSecretClientContext;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.model.request.RequestCryptogram;
@@ -111,8 +110,8 @@ class TemporaryKeyBehaviorTest {
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
-    private static final SharedSecret<DefaultSharedSecretRequest, DefaultSharedSecretResponse, DefaultSharedSecretClientContext> SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
+    private static final SharedSecret SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
+    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
 
     private final TemporaryKeyBehaviorAead temporaryKeyBehavior;
     private final ApplicationServiceBehavior applicationServiceBehavior;
@@ -353,7 +352,7 @@ class TemporaryKeyBehaviorTest {
             final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
             sharedSecretResponse.setSalt(serverResponse.getSalt());
             sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
-            temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
+            temporarySharedSecret = SHARED_SECRET_ECDHE.computeSharedSecret(clientContext, sharedSecretResponse);
 
             final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
             final byte[] ecPublicKeyBytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecDeviceKeyPair.getPublic());
@@ -371,7 +370,7 @@ class TemporaryKeyBehaviorTest {
             final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
             sharedSecretResponse.setSalt(serverResponse.getSalt());
             sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
-            temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
+            temporarySharedSecret = SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret(clientContext, sharedSecretResponse);
 
             final DevicePublicKeys devicePublicKeys = new DevicePublicKeys();
             final byte[] ecPublicKeyBytes = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecDeviceKeyPair.getPublic());
@@ -455,10 +454,10 @@ class TemporaryKeyBehaviorTest {
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         if (serverResponse.getEncapsulatedKeys().size() == 1) {
             sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
-            return SHARED_SECRET_ECDHE.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
+            return SHARED_SECRET_ECDHE.computeSharedSecret(clientContext, sharedSecretResponse);
         } else {
             sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
-            return SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret((DefaultSharedSecretClientContext) clientContext, sharedSecretResponse);
+            return SHARED_SECRET_HYBRID_ML_L3.computeSharedSecret(clientContext, sharedSecretResponse);
         }
     }
 
