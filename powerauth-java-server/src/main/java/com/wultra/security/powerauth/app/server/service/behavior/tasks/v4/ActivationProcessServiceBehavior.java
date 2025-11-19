@@ -116,8 +116,15 @@ public class ActivationProcessServiceBehavior {
             // Set counter data for V4
             activation.setCtrDataV4Base64(ctrDataBase64);
 
+            final SharedSecretResponsePayload responsePayload;
+            try {
+                responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
+            } catch (GenericServiceException e) {
+                // Activation failed due to failed shared secret request, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            }
+
             activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
-            final SharedSecretResponsePayload responsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
 
             // Update and persist the activation record
             changeActivationStatusAndDeleteParent(activation, layer2Request);

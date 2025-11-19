@@ -112,7 +112,6 @@ public class UpgradeServiceBehavior {
             final EncryptionContext context = new EncryptionContext(protocolVersion, applicationKey, null, EncryptorId.UPGRADE_START);
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final SharedSecretRequestPayload requestPayload = parseRequestPayload(decryptionResult.getDecryptedData(), activation.getActivationId());
-            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
 
             // Verify request payload
             final SharedSecretRequest sharedSecretRequest = requestPayload.getSharedSecretRequest();
@@ -138,6 +137,7 @@ public class UpgradeServiceBehavior {
 
             // Derive shared secret, store device public keys and initial factor keys, enable biometry if requested
             final SharedSecretResponsePayload sharedSecretResponsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
