@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.SharedSecretService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -39,24 +40,19 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecret;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
-import com.wultra.security.powerauth.crypto.lib.v4.model.response.DefaultSharedSecretResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.ResponseCryptogram;
-import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
-import java.util.List;
 
 /**
  * Biometry service specific to V4.
@@ -74,11 +70,8 @@ public class BiometryServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
     private final AlgorithmValidationService algorithmValidationService;
+    private final SharedSecretService sharedSecretService;
     private final ObjectMapper objectMapper;
-
-    private static final SharedSecret SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L5 = SharedSecretFactory.getHybridMlL5();
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -124,56 +117,20 @@ public class BiometryServiceBehavior {
             final DecryptionResult decryptionResult = encryptionService.decryptRequest(encryptedRequest, context);
             final ServerEncryptor<EncryptedRequest, EncryptedResponse> serverEncryptor = decryptionResult.getServerEncryptor();
             final SharedSecretRequest sharedSecretRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), SharedSecretRequest.class);
+            if (sharedSecretRequest.getAlgorithm() == null || sharedSecretRequest.getEncapsulationKeys() == null) {
+                logger.info("Invalid shared secret request, activation ID: {}", activation.getActivationId());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(sharedSecretRequest.getAlgorithm());
 
             algorithmValidationService.validateAlgorithmForActivation(activation, algorithm);
 
-            final DefaultSharedSecretRequest sharedSecretRequestObject = new DefaultSharedSecretRequest();
-            sharedSecretRequestObject.setAlgorithm(algorithm);
-            final SharedSecretResponse secretResponse = switch (algorithm) {
-                case EC_P384 -> {
-                    try {
-                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0)));
-                        final ResponseCryptogram responseCryptogram = SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequestObject);
+            final Pair<SharedSecretResponse, ResponseCryptogram> responsePair = sharedSecretService.deriveSharedSecret(sharedSecretRequest);
+            final SharedSecretResponse secretResponse = responsePair.getFirst();
+            final ResponseCryptogram responseCryptogram = responsePair.getSecond();
+            storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
 
-                        storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
-
-                        final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
-                        final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setSalt(derivedResponse.getSalt());
-                        sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0)));
-                        yield sharedSecretResponse;
-                    } catch (GenericCryptoException ex) {
-                        logger.error("Cryptography error occurred", ex);
-                        throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                    }
-                }
-                case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                    try {
-                        sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0), sharedSecretRequest.getEncapsulationKeys().get(1)));
-                        final ResponseCryptogram responseCryptogram = switch (algorithm) {
-                            case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestObject);
-                            case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestObject);
-                            default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
-                        };
-
-                        storeBiometryFactorKey(activation, responseCryptogram.getSecretKey());
-
-                        final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
-                        final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                        sharedSecretResponse.setSalt(derivedResponse.getSalt());
-                        sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0), derivedResponse.getEncapsulatedKeys().get(1)));
-                        yield sharedSecretResponse;
-                    } catch (GenericCryptoException ex) {
-                        logger.error("Cryptography error occurred", ex);
-                        throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                    }
-                }
-                default -> {
-                    logger.warn("Unsupported algorithm: {}", sharedSecretRequest.getAlgorithm());
-                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-                }
-            };
             final byte[] responseBytes = objectMapper.writeValueAsBytes(secretResponse);
             final AeadEncryptedResponse encryptedResponse = (AeadEncryptedResponse) serverEncryptor.encryptResponse(responseBytes);
             final AddBiometryResponse response = new AddBiometryResponse();

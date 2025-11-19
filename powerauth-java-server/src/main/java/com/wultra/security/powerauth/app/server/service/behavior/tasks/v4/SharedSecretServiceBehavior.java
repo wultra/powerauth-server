@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.SharedSecretService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -44,28 +45,22 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecret;
 import com.wultra.security.powerauth.crypto.lib.v4.authentication.AuthenticationKeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
-import com.wultra.security.powerauth.crypto.lib.v4.model.response.DefaultSharedSecretResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.ResponseCryptogram;
-import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.security.PublicKey;
 import java.util.Base64;
-import java.util.List;
 
 /**
  * Service behavior for handling the shared secret derivation.
- *
- * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
 @Slf4j
@@ -79,14 +74,12 @@ public class SharedSecretServiceBehavior {
 
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
+    private final SharedSecretService sharedSecretService;
+
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
-
-    private static final SharedSecret SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L5 = SharedSecretFactory.getHybridMlL5();
 
     /**
      * Derive shared secret response payload.
@@ -115,7 +108,7 @@ public class SharedSecretServiceBehavior {
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        // Ensure presence of the devicePublicKey
+        // Ensure the presence of the devicePublicKey
         final String ecDevicePublicKey = devicePublicKeys.getEcdsa();
         if (!StringUtils.hasText(ecDevicePublicKey)) {
             logger.warn("Invalid shared secret request, activation ID: {}", activationId);
@@ -135,107 +128,62 @@ public class SharedSecretServiceBehavior {
         }
         cryptographyServiceFactory.getService(algorithm).storeDevicePublicKey(activation, ecDevicePublicKeyDsa);
 
-        final ResponseCryptogram responseCryptogram;
         final SharedSecretResponsePayload responsePayload = new SharedSecretResponsePayload();
-        final DefaultSharedSecretRequest sharedSecretRequestObject = new DefaultSharedSecretRequest();
-        sharedSecretRequestObject.setAlgorithm(algorithm);
-        switch (algorithm) {
-            case EC_P384 -> {
-                sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0)));
-                responseCryptogram = SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequestObject);
 
-                final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
-                final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                sharedSecretResponse.setSalt(derivedResponse.getSalt());
-                sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0)));
-                responsePayload.setSharedSecretResponse(sharedSecretResponse);
+        final String serverPublicKeys = activation.getServerPublicKeys();
+        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
+        final PublicKey ecServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+            logger.warn("Missing ECDSA public key in shared secret request, activation ID: {}", activationId);
+            // Activation failed due to invalid request, rollback transaction
+            return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        });
+        final byte[] ecServerPublicKeyRaw = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecServerPublicKey);
+        final ServerPublicKeys publicKeysResponse = new ServerPublicKeys();
+        publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
 
-                final String serverPublicKeys = activation.getServerPublicKeys();
-                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-                final PublicKey ecServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                    logger.warn("Missing ECDSA public key in shared secret request, activation ID: {}", activationId);
-                    // Activation failed due to invalid request, rollback transaction
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                });
-                final byte[] ecServerPublicKeyRaw = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecServerPublicKey);
-                final ServerPublicKeys publicKeysResponse = new ServerPublicKeys();
-                publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
-                responsePayload.setServerPublicKeys(publicKeysResponse);
-            }
-            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                final String pqcDevicePublicKey = devicePublicKeys.getMldsa();
-                if (!StringUtils.hasText(pqcDevicePublicKey)) {
-                    logger.warn("Invalid shared secret request, activation ID: {}", activationId);
-                    // Activation failed due to invalid request, rollback transaction
-                    throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
-                }
-
-                // Extract the device public key from request
-                final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKey);
-                BasePublicKey pqcDevicePublicKeyDsa = null;
-                try {
-                    pqcDevicePublicKeyDsa = switch (algorithm) {
-                        case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_65, pqcDevicePublicKeyBytes);
-                        case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(KeyType.MLDSA_87, pqcDevicePublicKeyBytes);
-                        default -> throw new IllegalStateException("Unexpected algorithm during key conversion: " + algorithm);
-                    };
-                } catch (GenericServiceException e) {
-                    logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
-                    logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
-                    handleInvalidPublicKey(activation);
-                }
-                cryptographyServiceFactory.getService(algorithm).storeDevicePublicKey(activation, pqcDevicePublicKeyDsa);
-
-                sharedSecretRequestObject.setEncapsulationKeys(List.of(sharedSecretRequest.getEncapsulationKeys().get(0), sharedSecretRequest.getEncapsulationKeys().get(1)));
-                responseCryptogram = switch (algorithm) {
-                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequestObject);
-                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequestObject);
-                    default -> throw new IllegalStateException("Unexpected algorithm during shared secret response processing: " + algorithm);
-                };
-
-                final DefaultSharedSecretResponse derivedResponse = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
-                final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-                sharedSecretResponse.setSalt(derivedResponse.getSalt());
-                sharedSecretResponse.setEncapsulatedKeys(List.of(derivedResponse.getEncapsulatedKeys().get(0), derivedResponse.getEncapsulatedKeys().get(1)));
-                responsePayload.setSharedSecretResponse(sharedSecretResponse);
-
-                final String serverPublicKeys = activation.getServerPublicKeys();
-                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-                final PublicKey ecServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
-                    logger.warn("Missing ECDSA public key in shared secret request, activation ID: {}", activationId);
-                    // Activation failed due to invalid request, rollback transaction
-                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                });
-                final byte[] ecServerPublicKeyRaw = KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, ecServerPublicKey);
-                final PublicKey pqcServerPublicKey = switch (algorithm) {
-                    case EC_P384_ML_L3 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
-                        logger.warn("Missing ML-DSA-65 public key in shared secret request, activation ID: {}", activationId);
-                        // Activation failed due to invalid request, rollback transaction
-                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                    });
-                    case EC_P384_ML_L5 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).orElseThrow(() -> {
-                        logger.warn("Missing ML-DSA-87 public key in shared secret request, activation ID: {}", activationId);
-                        // Activation failed due to invalid request, rollback transaction
-                        return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-                    });
-                    default -> {
-                        logger.warn("Invalid algorithm in shared secret request, activation ID: {}, algorithm: {}", activationId, algorithm);
-                        // Activation failed due to invalid request, rollback transaction
-                        throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
-                    }
-                };
-                final byte[] pqcServerPublicKeyRaw = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(pqcServerPublicKey);
-                final ServerPublicKeys publicKeysResponse = new ServerPublicKeys();
-                publicKeysResponse.setEcdsa(Base64.getEncoder().encodeToString(ecServerPublicKeyRaw));
-                publicKeysResponse.setMldsa(Base64.getEncoder().encodeToString(pqcServerPublicKeyRaw));
-                responsePayload.setServerPublicKeys(publicKeysResponse);
-            }
-            default -> {
-                logger.warn("Invalid algorithm in shared secret request, activation ID: {}", activationId);
-                // Activation failed due to invalid request, rollback transaction
+        if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3 || algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
+            final String pqcDevicePublicKey = devicePublicKeys.getMldsa();
+            if (!StringUtils.hasText(pqcDevicePublicKey)) {
+                logger.warn("Invalid shared secret request, activation ID: {}", activationId);
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
             }
+            try {
+                final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKey);
+                final KeyType pqcType = switch (algorithm) {
+                    case EC_P384_ML_L3 -> KeyType.MLDSA_65;
+                    case EC_P384_ML_L5 -> KeyType.MLDSA_87;
+                    default -> throw new IllegalStateException("Unexpected algorithm: " + algorithm);
+                };
+                final BasePublicKey pqcDevicePublicKeyDsa = cryptographyServiceFactory.getService(algorithm).convertDevicePublicKey(pqcType, pqcDevicePublicKeyBytes);
+                cryptographyServiceFactory.getService(algorithm).storeDevicePublicKey(activation, pqcDevicePublicKeyDsa);
+            } catch (GenericServiceException e) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
+                handleInvalidPublicKey(activation);
+            }
+            final PublicKey pqcServerPublicKey = switch (algorithm) {
+                case EC_P384_ML_L3 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> {
+                    logger.warn("Missing ML-DSA-65 public key in shared secret request, activation ID: {}", activationId);
+                    // Activation failed due to invalid request, rollback transaction
+                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                });
+                case EC_P384_ML_L5 -> publicKeyRegistry.getPublicKey(KeyType.MLDSA_87).orElseThrow(() -> {
+                    logger.warn("Missing ML-DSA-87 public key in shared secret request, activation ID: {}", activationId);
+                    // Activation failed due to invalid request, rollback transaction
+                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                });
+                default -> throw new IllegalStateException("Unexpected algorithm: " + algorithm);
+            };
+            final byte[] pqcServerPublicKeyRaw = KEY_CONVERTOR_PQC_DSA.convertPublicKeyToBytes(pqcServerPublicKey);
+            publicKeysResponse.setMldsa(Base64.getEncoder().encodeToString(pqcServerPublicKeyRaw));
         }
+
+        final Pair<SharedSecretResponse, ResponseCryptogram> responsePair = sharedSecretService.deriveSharedSecret(sharedSecretRequest);
+        final SharedSecretResponse sharedSecretResponse = responsePair.getFirst();
+        final ResponseCryptogram responseCryptogram = responsePair.getSecond();
+        responsePayload.setServerPublicKeys(publicKeysResponse);
+        responsePayload.setSharedSecretResponse(sharedSecretResponse);
+
         storeActivationSecretKey(activation, responseCryptogram);
         storeInitialFactorKeys(activation, requestPayload.isEnableBiometry(), responseCryptogram);
         return responsePayload;

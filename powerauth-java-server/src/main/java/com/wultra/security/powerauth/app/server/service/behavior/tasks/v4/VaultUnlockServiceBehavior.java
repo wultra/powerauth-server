@@ -35,7 +35,7 @@ import com.wultra.security.powerauth.app.server.service.model.request.v4.VaultUn
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResultVaultUnlock;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.VaultUnlockResponsePayload;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.util.SharedSecretExtractor;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.SharedSecretService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
@@ -90,7 +90,7 @@ public class VaultUnlockServiceBehavior {
     private final ObjectMapper objectMapper;
     private final OnlineAuthenticationServiceBehavior onlineAuthenticationServiceBehavior;
     private final ApplicationConfigServiceBehavior applicationConfigServiceBehavior;
-    private final SharedSecretExtractor sharedSecretExtractor;
+    private final SharedSecretService sharedSecretService;
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
@@ -251,7 +251,7 @@ public class VaultUnlockServiceBehavior {
      * @throws GenericCryptoException  Thrown in case key derivation fails.
      */
     private String deriveVaultEncryptionKey(String keyIdentifier, ActivationRecordEntity activation) throws GenericServiceException, GenericCryptoException {
-        final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
+        final SecretKey activationSecretKey = sharedSecretService.extractActivationSecretKey(activation);
         final SecretKey vaultEncryptionKey = deriveVaultEncryptionKey(keyIdentifier, activationSecretKey);
         final byte[] keyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(vaultEncryptionKey);
         return Base64.getEncoder().encodeToString(keyBytes);

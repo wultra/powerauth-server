@@ -33,7 +33,7 @@ import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvide
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.*;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
-import com.wultra.security.powerauth.app.server.service.util.SharedSecretExtractor;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.SharedSecretService;
 import com.wultra.security.powerauth.app.server.service.validator.ActivationContextValidator;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
@@ -87,7 +87,7 @@ public class OfflineAuthenticationServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationRepository applicationRepository;
-    private final SharedSecretExtractor sharedSecretExtractor;
+    private final SharedSecretService sharedSecretService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -169,7 +169,7 @@ public class OfflineAuthenticationServiceBehavior {
             final String signedData = fetchDataAndTotp(offlineAuthenticationParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce + "\n" + KEY_MAC_PERSONALIZED_DATA;
             final byte[] kmacData = (signedData).getBytes(StandardCharsets.UTF_8);
 
-            final SecretKey activationSecretKey = sharedSecretExtractor.extractActivationSecretKey(activation);
+            final SecretKey activationSecretKey = sharedSecretService.extractActivationSecretKey(activation);
             final SecretKey keyMacPersonalisedData = KeyFactory.deriveKeyMacPersonalizedData(activationSecretKey);
 
             // Construct KMAC-256 tag

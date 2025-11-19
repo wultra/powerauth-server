@@ -53,15 +53,12 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
-import com.wultra.security.powerauth.crypto.lib.v4.api.SharedSecret;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import com.wultra.security.powerauth.crypto.lib.v4.model.request.DefaultSharedSecretRequest;
-import com.wultra.security.powerauth.crypto.lib.v4.model.response.DefaultSharedSecretResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.response.ResponseCryptogram;
-import com.wultra.security.powerauth.crypto.lib.v4.sharedsecret.SharedSecretFactory;
 import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -92,18 +89,15 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
     private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final AlgorithmValidationService algorithmValidationService;
+    private final SharedSecretService sharedSecretService;
     private final ObjectMapper objectMapper;
 
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
-    private static final SharedSecret SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
-    private static final SharedSecret SHARED_SECRET_HYBRID_ML_L5 = SharedSecretFactory.getHybridMlL5();
-
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService) {
+    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService, SharedSecretService sharedSecretService) {
         super(localizationProvider, temporaryKeyRepository);
         this.activationRepository = activationRepository;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
@@ -118,6 +112,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         this.objectMapper = objectMapper;
         this.serverPrivateKeysConverter = serverPrivateKeysConverter;
         this.algorithmValidationService = algorithmValidationService;
+        this.sharedSecretService = sharedSecretService;
     }
 
     /**
@@ -153,10 +148,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             final Date currentTimestamp = new Date();
 
             // Derive shared secret using SharedSecret algorithm
-            final ResponseCryptogram sharedSecretResponse = deriveSharedSecret(temporaryKeyResult.getSharedSecretRequest(), algorithm);
+            final Pair<SharedSecretResponse, ResponseCryptogram> responsePair = sharedSecretService.deriveSharedSecret(temporaryKeyResult.getSharedSecretRequest());
 
             // Generate new key and store it
-            final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, sharedSecretResponse, algorithm);
+            final TemporaryPublicKeyResponseClaims responseClaims = storeTemporaryKey(requestClaims, currentTimestamp, responsePair.getFirst(), responsePair.getSecond());
 
             // Built and return the response claims
             return buildJwsResponse(temporaryKeyResult, responseClaims, currentTimestamp, algorithm);
@@ -289,7 +284,7 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                 .build();
     }
 
-    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, ResponseCryptogram responseCryptogram, SharedSecretAlgorithm algorithm) throws CryptoProviderException, GenericServiceException {
+    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, SharedSecretResponse sharedSecretResponse, ResponseCryptogram responseCryptogram) throws CryptoProviderException, GenericServiceException {
         // Prepare the parameters key pair
         final String keyId = UUID.randomUUID().toString();
         final String applicationKey = requestClaims.getApplicationKey();
@@ -316,7 +311,6 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         final TemporaryKeyEntity savedEntity = temporaryKeyRepository.save(temporaryKeyEntity);
 
         // Prepare and return the result
-        final SharedSecretResponse sharedSecretResponse = prepareSharedSecretResponse(algorithm, responseCryptogram);
         final TemporaryPublicKeyResponseClaims result = new TemporaryPublicKeyResponseClaims();
         result.setApplicationKey(savedEntity.getAppKey());
         result.setActivationId(savedEntity.getActivationId());
@@ -419,43 +413,6 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
             }
         } else {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-    }
-
-    private ResponseCryptogram deriveSharedSecret(SharedSecretRequest request, SharedSecretAlgorithm algorithm) throws GenericCryptoException {
-        final DefaultSharedSecretRequest sharedSecretRequest = new DefaultSharedSecretRequest();
-        sharedSecretRequest.setAlgorithm(algorithm);
-        switch (algorithm) {
-            case EC_P384 -> {
-                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0)));
-                return SHARED_SECRET_ECDHE.generateResponseCryptogram(sharedSecretRequest);
-            }
-            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                sharedSecretRequest.setEncapsulationKeys(List.of(request.getEncapsulationKeys().get(0), request.getEncapsulationKeys().get(1)));
-                return switch (algorithm) {
-                    case EC_P384_ML_L3 -> SHARED_SECRET_HYBRID_ML_L3.generateResponseCryptogram(sharedSecretRequest);
-                    case EC_P384_ML_L5 -> SHARED_SECRET_HYBRID_ML_L5.generateResponseCryptogram(sharedSecretRequest);
-                    default -> null;
-                };
-            }
-            default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
-        }
-    }
-
-    private SharedSecretResponse prepareSharedSecretResponse(SharedSecretAlgorithm algorithm, ResponseCryptogram responseCryptogram) {
-        final SharedSecretResponse sharedSecretResponse = new SharedSecretResponse();
-        final DefaultSharedSecretResponse sharedSecretResponseObject = (DefaultSharedSecretResponse) responseCryptogram.getSharedSecretResponse();
-        sharedSecretResponse.setSalt(sharedSecretResponseObject.getSalt());
-        switch (algorithm) {
-            case EC_P384 -> {
-                sharedSecretResponse.setEncapsulatedKeys(List.of(sharedSecretResponseObject.getEncapsulatedKeys().get(0)));
-                return sharedSecretResponse;
-            }
-            case EC_P384_ML_L3, EC_P384_ML_L5 -> {
-                sharedSecretResponse.setEncapsulatedKeys(List.of(sharedSecretResponseObject.getEncapsulatedKeys().get(0), sharedSecretResponseObject.getEncapsulatedKeys().get(1)));
-                return sharedSecretResponse;
-            }
-            default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
         }
     }
 
