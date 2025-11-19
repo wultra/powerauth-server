@@ -272,6 +272,7 @@ class TemporaryKeyBehaviorTest {
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
+        assertNotNull(serverResponseActivation.getSalt());
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
     }
 
@@ -314,6 +315,7 @@ class TemporaryKeyBehaviorTest {
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
         final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
+        assertNotNull(serverResponseActivation.getSalt());
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(1));
     }

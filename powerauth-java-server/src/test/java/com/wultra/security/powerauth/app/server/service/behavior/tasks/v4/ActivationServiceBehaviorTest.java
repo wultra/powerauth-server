@@ -181,6 +181,7 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
+        assertNotNull(responseL2.getSharedSecretResponse().getSalt());
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
         assertEquals(1, responseL2.getSharedSecretResponse().getEncapsulatedKeys().size());
         assertNotNull(responseL2.getServerPublicKeys());
@@ -250,6 +251,7 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
+        assertNotNull(responseL2.getSharedSecretResponse().getSalt());
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(1));
         assertNotNull(responseL2.getServerPublicKeys());
@@ -360,6 +362,7 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
+        assertNotNull(responseL2.getSharedSecretResponse().getSalt());
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
         assertEquals(1, responseL2.getSharedSecretResponse().getEncapsulatedKeys().size());
         assertNotNull(responseL2.getServerPublicKeys());
@@ -422,6 +425,7 @@ class ActivationServiceBehaviorTest {
         final ActivationLayer2Response responseL2 = decryptResponse(response, clientEncryptor);
         assertNotNull(responseL2.getCtrData());
         assertNotNull(responseL2.getSharedSecretResponse());
+        assertNotNull(responseL2.getSharedSecretResponse().getSalt());
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(0));
         assertNotNull(responseL2.getSharedSecretResponse().getEncapsulatedKeys().get(1));
         assertNotNull(responseL2.getServerPublicKeys());
