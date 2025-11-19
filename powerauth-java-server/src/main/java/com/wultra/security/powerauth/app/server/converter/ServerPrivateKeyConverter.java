@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKey;
+import com.wultra.security.powerauth.app.server.database.model.ServerPrivateKeyRecord;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -51,7 +51,7 @@ public class ServerPrivateKeyConverter {
      * @return Decrypted Base64-encoded server private key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public String fromDBValue(final ServerPrivateKey serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
+    public String fromDBValue(final ServerPrivateKeyRecord serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final byte[] data = convert(serverPrivateKey.serverPrivateKeyBase64());
         final byte[] decrypted = encryptionService.decrypt(data, serverPrivateKey.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
         return convert(decrypted);
@@ -68,9 +68,9 @@ public class ServerPrivateKeyConverter {
      * @return Server private key as composite database value.
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
-    public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
+    public ServerPrivateKeyRecord toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createEncryptionKeyProvider(userId, activationId));
-        return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
+        return new ServerPrivateKeyRecord(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
     private static String convert(final byte[] source) {

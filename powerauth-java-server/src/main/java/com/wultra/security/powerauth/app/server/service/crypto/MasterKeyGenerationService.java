@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.MasterPrivateKeysConve
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -137,7 +137,7 @@ public class MasterKeyGenerationService {
     }
 
     private PrivateKeyRegistry loadPrivateRegistryFromEntity(MasterKeyPairEntity entity, ApplicationEntity app) throws GenericServiceException {
-        PrivateKeys privateKeys = new PrivateKeys(entity.getMasterPrivateKeysEncryption(), entity.getMasterPrivateKeys());
+        PrivateKeysRecord privateKeys = new PrivateKeysRecord(entity.getMasterPrivateKeysEncryption(), entity.getMasterPrivateKeys());
         return masterPrivateKeysConverter.fromDBValue(privateKeys, app.getId());
     }
 
@@ -177,7 +177,7 @@ public class MasterKeyGenerationService {
 
     private void writeRegistriesToEntity(MasterKeyPairEntity entity, PrivateKeyRegistry privateKeyRegistry,
                                          PublicKeyRegistry publicKeyRegistry, ApplicationEntity app) throws GenericServiceException {
-        PrivateKeys masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, app.getId());
+        PrivateKeysRecord masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, app.getId());
         entity.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
         entity.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
         entity.setMasterPublicKeys(publicKeysConverter.toDBValue(publicKeyRegistry));

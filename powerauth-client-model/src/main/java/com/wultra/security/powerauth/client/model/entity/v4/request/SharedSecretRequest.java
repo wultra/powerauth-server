@@ -20,7 +20,10 @@
 package com.wultra.security.powerauth.client.model.entity.v4.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * Model class for shared secret request.
@@ -32,8 +35,7 @@ public class SharedSecretRequest {
 
     @NotBlank
     private String algorithm;
-    @NotBlank
-    private String ecdhe;
-    private String mlkem;
+    @NotEmpty
+    private List<String> encapsulationKeys;
 
 }

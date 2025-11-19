@@ -18,7 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.wultra.security.powerauth.app.server.database.model.SharedSecret;
+import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class TemporarySharedSecretConverterTest {
 
     @Test
     void testFromDbValueNoEncryption() throws Exception {
-        final SharedSecret sharedSecret = new SharedSecret(EncryptionMode.NO_ENCRYPTION, SHARED_SECRET_BASE64);
+        final SharedSecretRecord sharedSecret = new SharedSecretRecord(EncryptionMode.NO_ENCRYPTION, SHARED_SECRET_BASE64);
         final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecret, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(SHARED_SECRET_BASE64, sharedSecretActual);
@@ -64,7 +64,7 @@ class TemporarySharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+        final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertNotEquals(SHARED_SECRET_BASE64, sharedSecretEncrypted.sharedSecretBase64());
 
@@ -74,7 +74,7 @@ class TemporarySharedSecretConverterTest {
 
     @Test
     void testFromDbValueEncryption() throws Exception {
-        final SharedSecret sharedSecretEncrypted = new SharedSecret(EncryptionMode.AES_HMAC, SHARED_SECRET_ENCRYPTED);
+        final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(EncryptionMode.AES_HMAC, SHARED_SECRET_ENCRYPTED);
         final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, result);
     }
@@ -82,7 +82,7 @@ class TemporarySharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionDifferentKeyIdFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+        final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertThrowsOrNotEqual(GenericServiceException.class,
                 () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "1839c333-f61a-4be0-8d34-75b7cb79ab76", APP_KEY, ACTIVATION_ID),
@@ -92,7 +92,7 @@ class TemporarySharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionDifferentAppKeyFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+        final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertThrowsOrNotEqual(GenericServiceException.class,
@@ -103,7 +103,7 @@ class TemporarySharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionDifferentActivationIdFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+        final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertThrowsOrNotEqual(GenericServiceException.class,
@@ -114,7 +114,7 @@ class TemporarySharedSecretConverterTest {
     @Test
     void testEncryptionAndDecryptionNoActivationIdFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
-        final SharedSecret sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
+        final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(EncryptionMode.AES_HMAC, sharedSecretEncrypted.encryptionMode());
         assertThrowsOrNotEqual(GenericServiceException.class,

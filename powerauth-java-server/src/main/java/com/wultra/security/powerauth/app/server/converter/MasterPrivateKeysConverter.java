@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.server.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
-import com.wultra.security.powerauth.app.server.database.model.PrivateKeys;
+import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -61,7 +61,7 @@ public class MasterPrivateKeysConverter {
      * @return Decrypted master private keys.
      * @throws GenericServiceException In case master private keys decryption fails.
      */
-    public PrivateKeyRegistry fromDBValue(final PrivateKeys masterPrivateKeys, final String applicationId) throws GenericServiceException {
+    public PrivateKeyRegistry fromDBValue(final PrivateKeysRecord masterPrivateKeys, final String applicationId) throws GenericServiceException {
         try {
             final byte[] data = convertFromBase64(masterPrivateKeys.privateKeysBase64());
             final byte[] decrypted = encryptionService.decrypt(data, masterPrivateKeys.encryptionMode(), createEncryptionKeyProvider(applicationId));
@@ -82,7 +82,7 @@ public class MasterPrivateKeysConverter {
      * @return Private key as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    public PrivateKeys toDBValue(final PrivateKeyRegistry masterPrivateKeys, final String applicationId) throws GenericServiceException {
+    public PrivateKeysRecord toDBValue(final PrivateKeyRegistry masterPrivateKeys, final String applicationId) throws GenericServiceException {
         try {
             return toDBValue(serialize(masterPrivateKeys), applicationId);
         } catch (IOException e) {
@@ -101,9 +101,9 @@ public class MasterPrivateKeysConverter {
      * @return Private key as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    PrivateKeys toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
+    PrivateKeysRecord toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
         final EncryptableData encryptable = encryptionService.encrypt(masterPrivateKeysBytes, createEncryptionKeyProvider(applicationId));
-        return new PrivateKeys(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
+        return new PrivateKeysRecord(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
