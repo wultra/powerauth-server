@@ -49,10 +49,10 @@ public class ActivationSharedSecretConverter {
      * @throws GenericServiceException In case shared secret decryption fails.
      */
     public String fromDBValue(final SharedSecretRecord sharedSecret, final String userId, final String activationId) throws GenericServiceException {
-        final byte[] data = Base64.getDecoder().decode(sharedSecret.sharedSecretBase64());
+        final byte[] data = fromBase64(sharedSecret.sharedSecretBase64());
         final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
         final byte[] decrypted = encryptionService.decrypt(data, encryptionKeySupplier, sharedSecret.encryptionMode());
-        return convert(decrypted);
+        return toBase64(decrypted);
     }
 
     /**
@@ -69,11 +69,15 @@ public class ActivationSharedSecretConverter {
     public SharedSecretRecord toDBValue(final byte[] sharedSecret, final String userId, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
         final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new SharedSecretRecord(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
+        return new SharedSecretRecord(encryptable.encryptionMode(), toBase64(encryptable.encryptedData()));
     }
 
-    private static String convert(final byte[] source) {
+    private static String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
+    }
+
+    private static byte[] fromBase64(final String source) {
+        return Base64.getDecoder().decode(source);
     }
 
     private static EncryptionKeySupplier createSecretKeyDerivationInput(final String userId, final String activationId) {
