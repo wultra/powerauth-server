@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.app.server.converter.CallbackAttributeConve
 import com.wultra.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.converter.DurationConverter;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -89,7 +89,7 @@ public class CallbackUrlEntity implements Serializable {
     private List<String> attributes;
 
     /**
-     * Callback request authentication. May be encrypted, configured by {@link #encryptionMode}.
+     * Callback request authentication. May be encrypted, configured by {@link #encryptionAlgorithm}.
      */
     @Column(name = "authentication", columnDefinition = "CLOB")
     private String authentication = "{}";
@@ -99,7 +99,7 @@ public class CallbackUrlEntity implements Serializable {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
-    private EncryptionMode encryptionMode;
+    private EncryptionAlgorithm encryptionAlgorithm;
 
     /**
      * Maximum number of attempts to send the callback.

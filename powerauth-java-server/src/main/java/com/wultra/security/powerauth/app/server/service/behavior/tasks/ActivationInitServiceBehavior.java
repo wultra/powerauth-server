@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
@@ -253,7 +253,7 @@ public class ActivationInitServiceBehavior {
 
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);
-            activation.setSharedSecretEncryption(EncryptionMode.NO_ENCRYPTION);
+            activation.setSharedSecretEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);

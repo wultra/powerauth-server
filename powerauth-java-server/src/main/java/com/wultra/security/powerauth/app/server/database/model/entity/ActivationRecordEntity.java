@@ -231,7 +231,7 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "server_private_key_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode serverPrivateKeyEncryption;
+    private EncryptionAlgorithm serverPrivateKeyEncryption;
 
     /**
      * Cryptography algorithm used for shared secret computation.
@@ -257,7 +257,7 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "server_private_keys_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode serverPrivateKeysEncryption;
+    private EncryptionAlgorithm serverPrivateKeysEncryption;
 
     /**
      * Server public keys for newer cryptography algorithms serialized into JSON.
@@ -276,7 +276,7 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "shared_secret_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode sharedSecretEncryption;
+    private EncryptionAlgorithm sharedSecretEncryption;
 
     /**
      * Whether biometric factor is enabled.

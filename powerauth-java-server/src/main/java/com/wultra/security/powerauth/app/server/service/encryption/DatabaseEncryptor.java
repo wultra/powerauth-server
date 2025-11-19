@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.encryption;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 
@@ -56,8 +56,8 @@ public interface DatabaseEncryptor {
         }
         final byte[] bytes = plaintextData.getBytes(StandardCharsets.UTF_8);
         final EncryptableData encrypted = encrypt(bytes, encryptionKeySupplier);
-        return new EncryptableString(encrypted.encryptionMode(),
-                encrypted.encryptionMode() == EncryptionMode.NO_ENCRYPTION
+        return new EncryptableString(encrypted.encryptionAlgorithm(),
+                encrypted.encryptionAlgorithm() == EncryptionAlgorithm.NO_ENCRYPTION
                         ? new String(encrypted.encryptedData(), StandardCharsets.UTF_8)
                         : Base64.getEncoder().encodeToString(encrypted.encryptedData()));
     }
@@ -75,12 +75,12 @@ public interface DatabaseEncryptor {
      * Decrypt encrypted database string data.
      * @param dataString String to decrypt.
      * @param encryptionKeySupplier Key supplier for derivation of per-record encryption keys.
-     * @param encryptionMode Encryption mode.
+     * @param encryptionAlgorithm Encryption mode.
      * @return Decrypted value as a String.
      * @throws GenericServiceException In case decryption fails.
      */
-    default String decrypt(final String dataString, final EncryptionKeySupplier encryptionKeySupplier,  final EncryptionMode encryptionMode) throws GenericServiceException {
-        final byte[] dataBytes = encryptionMode == EncryptionMode.NO_ENCRYPTION
+    default String decrypt(final String dataString, final EncryptionKeySupplier encryptionKeySupplier,  final EncryptionAlgorithm encryptionAlgorithm) throws GenericServiceException {
+        final byte[] dataBytes = encryptionAlgorithm == EncryptionAlgorithm.NO_ENCRYPTION
                 ? dataString.getBytes(StandardCharsets.UTF_8)
                 : Base64.getDecoder().decode(dataString);
         final byte[] decrypted = decrypt(dataBytes, encryptionKeySupplier);

@@ -52,7 +52,7 @@ public class TemporarySharedSecretConverter {
     public String fromDBValue(final SharedSecretRecord sharedSecret, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
         final byte[] encrypted = fromBase64(sharedSecret.sharedSecretBase64());
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
-        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, sharedSecret.encryptionMode());
+        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, sharedSecret.encryptionAlgorithm());
         return toBase64(decrypted);
     }
 
@@ -70,8 +70,8 @@ public class TemporarySharedSecretConverter {
      */
     public SharedSecretRecord toDBValue(final byte[] sharedSecret, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
-        final EncryptableData encrypted = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new SharedSecretRecord(encrypted.encryptionMode(), toBase64(encrypted.encryptedData()));
+        final EncryptableData encrypted = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new SharedSecretRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     private static String toBase64(final byte[] source) {
@@ -83,16 +83,15 @@ public class TemporarySharedSecretConverter {
     }
 
     private static EncryptionKeySupplier encryptionKeySupplier(final String keyId, final String appKey, final String activationId) {
-        final List<String> adList = List.of("pa_temporary_key", "secret_key_base64");
         if (activationId != null) {
             return new DefaultEncryptionKeySupplier(
                     List.of(keyId, appKey, activationId),
-                    adList
+                    List.of("pa_temporary_key", "secret_key_base64", keyId, activationId)
             );
         } else {
             return new DefaultEncryptionKeySupplier(
                     List.of(keyId, appKey),
-                    adList
+                    List.of("pa_temporary_key", "secret_key_base64", keyId)
             );
         }
     }

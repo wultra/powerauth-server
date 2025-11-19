@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -233,10 +234,22 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Master DB encryption key.
+     * Master DB encryption key for algorithm AES_HMAC.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
+
+    /**
+     * Master DB encryption key for algorithm AEAD_KMAC.
+     */
+    @Value("${powerauth.server.db.master.encryption.aead-kmac.key}")
+    private String masterDbEncryptionKeyAeadKmac;
+
+    /**
+     * Master DB encryption key for algorithm AEAD_KMAC.
+     */
+    @Value("${powerauth.server.db.master.encryption.algorithm:AEAD_KMAC}")
+    private EncryptionAlgorithm masterDbEncryptionAlgorithm;
 
     /**
      * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.

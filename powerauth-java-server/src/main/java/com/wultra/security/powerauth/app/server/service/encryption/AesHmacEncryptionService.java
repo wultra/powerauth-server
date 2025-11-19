@@ -20,7 +20,7 @@
 package com.wultra.security.powerauth.app.server.service.encryption;
 
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -71,7 +71,7 @@ public class AesHmacEncryptionService implements DatabaseEncryptor {
 
         // In case master DB encryption key does not exist, do not encrypt the value
         if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new EncryptableData(EncryptionMode.NO_ENCRYPTION, plaintextData);
+            return new EncryptableData(EncryptionAlgorithm.NO_ENCRYPTION, plaintextData);
         }
 
         try {
@@ -93,7 +93,7 @@ public class AesHmacEncryptionService implements DatabaseEncryptor {
             baos.write(encrypted);
             final byte[] encryptedData = baos.toByteArray();
 
-            return new EncryptableData(EncryptionMode.AES_HMAC, encryptedData);
+            return new EncryptableData(EncryptionAlgorithm.AES_HMAC, encryptedData);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);

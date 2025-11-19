@@ -84,16 +84,16 @@ public class ApplicationConfigService {
 
         final String plaintext = listToJsonConverter.convertToDatabaseColumn(source.values());
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(entity);
-        final EncryptableString encrypted = encryptionService.encrypt(plaintext, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
+        final EncryptableString encrypted = encryptionService.encrypt(plaintext, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
         entity.setValues(encrypted.encryptedData());
-        entity.setEncryptionMode(encrypted.encryptionMode());
+        entity.setEncryptionAlgorithm(encrypted.encryptionAlgorithm());
         return entity;
     }
 
     private ApplicationConfig convert(final ApplicationConfigEntity source) {
         try {
             final EncryptionKeySupplier keySupplier = encryptionKeySupplier(source);
-            final String decrypted = encryptionService.decrypt(source.getValues(), keySupplier, source.getEncryptionMode());
+            final String decrypted = encryptionService.decrypt(source.getValues(), keySupplier, source.getEncryptionAlgorithm());
             final List<Object> values = listToJsonConverter.convertToEntityAttribute(decrypted);
             return new ApplicationConfig(source.getRid(), source.getApplication(), source.getKey(), values);
         } catch (GenericServiceException e) {
@@ -105,7 +105,7 @@ public class ApplicationConfigService {
     private static EncryptionKeySupplier encryptionKeySupplier(final ApplicationConfigEntity source) {
         return new DefaultEncryptionKeySupplier(
                 List.of(source.getApplication().getId()),
-                List.of("pa_application_config", "config_values")
+                List.of("pa_application_config", "config_values", source.getApplication().getId())
         );
     }
 

@@ -18,7 +18,7 @@
 
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -66,7 +66,7 @@ public class TemporaryKeyEntity implements Serializable {
      */
     @Column(name = "private_key_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode privateKeyEncryption;
+    private EncryptionAlgorithm privateKeyEncryption;
 
     /**
      * Temporary private key.
@@ -91,7 +91,7 @@ public class TemporaryKeyEntity implements Serializable {
      */
     @Column(name = "secret_key_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode secretKeyEncryption;
+    private EncryptionAlgorithm secretKeyEncryption;
 
     /**
      * Timestamp when operation expired.

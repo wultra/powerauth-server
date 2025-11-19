@@ -40,7 +40,7 @@ public final class CallbackUrlAuthenticationEncryptor {
         final CallbackUrlAuthentication callbackAuthentication = authenticationPublicConverter.fromNetworkObject(source);
         final String callbackAuthenticationString = callbackAuthenticationConverter.convertToDatabaseColumn(callbackAuthentication);
         final EncryptionKeySupplier keySupplier = encryptionKeySupplier(applicationId);
-        return encryptionService.encrypt(callbackAuthenticationString, keySupplier, encryptionService.getDefaultEncryptionMode());
+        return encryptionService.encrypt(callbackAuthenticationString, keySupplier, encryptionService.getDefaultEncryptionAlgorithm());
     }
 
     /**
@@ -55,7 +55,7 @@ public final class CallbackUrlAuthenticationEncryptor {
             return new CallbackUrlAuthentication();
         }
         final EncryptionKeySupplier keySupplier = encryptionKeySupplier(entity.getApplication().getId());
-        final String decrypted = encryptionService.decrypt(encryptedAuthentication, keySupplier, entity.getEncryptionMode());
+        final String decrypted = encryptionService.decrypt(encryptedAuthentication, keySupplier, entity.getEncryptionAlgorithm());
         return callbackAuthenticationConverter.convertToEntityAttribute(decrypted);
     }
 
@@ -73,7 +73,7 @@ public final class CallbackUrlAuthenticationEncryptor {
     private static EncryptionKeySupplier encryptionKeySupplier(final String applicationId) {
         return new DefaultEncryptionKeySupplier(
                 List.of(applicationId),
-                List.of("pa_application_callback", "authentication")
+                List.of("pa_application_callback", "authentication", applicationId)
         );
     }
 

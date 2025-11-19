@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
@@ -115,7 +115,7 @@ public class CryptographyServiceEc384MlL5 extends CryptographyService {
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
-            final EncryptionMode masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
+            final EncryptionAlgorithm masterPrivateKeysEncryption = masterKeyPairEntity.getMasterPrivateKeysEncryption();
             final PrivateKeysRecord privateKeys = new PrivateKeysRecord(masterPrivateKeysEncryption, masterPrivateKeysBase64);
             final PrivateKeyRegistry privateKeyRegistry = masterPrivateKeysConverter.fromDBValue(privateKeys, application.getId());
             final PrivateKey privateKey = privateKeyRegistry.getPrivateKey(keyType).orElseThrow(() -> {

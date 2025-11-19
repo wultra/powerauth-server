@@ -51,7 +51,7 @@ public class ActivationSharedSecretConverter {
     public String fromDBValue(final SharedSecretRecord sharedSecret, final String userId, final String activationId) throws GenericServiceException {
         final byte[] data = fromBase64(sharedSecret.sharedSecretBase64());
         final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
-        final byte[] decrypted = encryptionService.decrypt(data, encryptionKeySupplier, sharedSecret.encryptionMode());
+        final byte[] decrypted = encryptionService.decrypt(data, encryptionKeySupplier, sharedSecret.encryptionAlgorithm());
         return toBase64(decrypted);
     }
 
@@ -68,8 +68,8 @@ public class ActivationSharedSecretConverter {
      */
     public SharedSecretRecord toDBValue(final byte[] sharedSecret, final String userId, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = createSecretKeyDerivationInput(userId, activationId);
-        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new SharedSecretRecord(encryptable.encryptionMode(), toBase64(encryptable.encryptedData()));
+        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new SharedSecretRecord(encryptable.encryptionAlgorithm(), toBase64(encryptable.encryptedData()));
     }
 
     private static String toBase64(final byte[] source) {
@@ -81,7 +81,7 @@ public class ActivationSharedSecretConverter {
     }
 
     private static EncryptionKeySupplier createSecretKeyDerivationInput(final String userId, final String activationId) {
-        return new DefaultEncryptionKeySupplier(List.of(userId, activationId), List.of("pa_activation", "shared_secret"));
+        return new DefaultEncryptionKeySupplier(List.of(userId, activationId), List.of("pa_activation", "shared_secret", activationId));
     }
 
 }

@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecor
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
@@ -213,8 +213,8 @@ public class ActivationStatusServiceBehavior {
                                 !algorithmSupported,
                                 activation.isBiometricFactorEnabled())
                         );
-                        final EncryptionMode sharedSecretEncryptionMode = activation.getSharedSecretEncryption();
-                        final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionMode, sharedSecretEncrypted);
+                        final EncryptionAlgorithm sharedSecretEncryptionAlgorithm = activation.getSharedSecretEncryption();
+                        final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionAlgorithm, sharedSecretEncrypted);
                         final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
                         final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
                         final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);

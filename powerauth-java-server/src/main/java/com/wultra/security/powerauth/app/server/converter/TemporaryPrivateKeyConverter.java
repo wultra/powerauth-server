@@ -54,7 +54,7 @@ public class TemporaryPrivateKeyConverter {
     public String fromDBValue(final ServerPrivateKeyRecord serverPrivateKey, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
         final byte[] encrypted = fromBase64(serverPrivateKey.serverPrivateKeyBase64());
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
-        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, serverPrivateKey.encryptionMode());
+        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, serverPrivateKey.encryptionAlgorithm());
         return toBase64(decrypted);
     }
 
@@ -72,8 +72,8 @@ public class TemporaryPrivateKeyConverter {
      */
     public ServerPrivateKeyRecord toDBValue(final byte[] serverPrivateKey, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
-        final EncryptableData encrypted = encryptionService.encrypt(serverPrivateKey, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new ServerPrivateKeyRecord(encrypted.encryptionMode(), toBase64(encrypted.encryptedData()));
+        final EncryptableData encrypted = encryptionService.encrypt(serverPrivateKey, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new ServerPrivateKeyRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     private static String toBase64(final byte[] source) {
@@ -85,16 +85,15 @@ public class TemporaryPrivateKeyConverter {
     }
 
     private static EncryptionKeySupplier encryptionKeySupplier(final String keyId, final String appKey, final String activationId) {
-        final List<String> adList = List.of("pa_temporary_key", "private_key_base64");
         if (activationId != null) {
             return new DefaultEncryptionKeySupplier(
                     List.of(keyId, appKey, activationId),
-                    adList
+                    List.of("pa_temporary_key", "private_key_base64", keyId, activationId)
             );
         } else {
             return new DefaultEncryptionKeySupplier(
                     List.of(keyId, appKey),
-                    adList
+                    List.of("pa_temporary_key", "private_key_base64", keyId)
             );
         }
     }

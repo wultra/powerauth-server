@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.encryption;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,7 +32,7 @@ public class NoEncryptionService implements DatabaseEncryptor {
 
     @Override
     public EncryptableData encrypt(byte[] plaintextData, EncryptionKeySupplier encryptionKeySupplier) {
-        return new EncryptableData(EncryptionMode.NO_ENCRYPTION, plaintextData);
+        return new EncryptableData(EncryptionAlgorithm.NO_ENCRYPTION, plaintextData);
     }
 
     @Override

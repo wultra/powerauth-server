@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -78,7 +78,7 @@ public class MasterKeyPairEntity implements Serializable {
      */
     @Column(name = "master_private_keys_encryption", nullable = false)
     @Enumerated
-    private EncryptionMode masterPrivateKeysEncryption;
+    private EncryptionAlgorithm masterPrivateKeysEncryption;
 
     /**
      * Master public keys for newer cryptography algorithms serialized to JSON.

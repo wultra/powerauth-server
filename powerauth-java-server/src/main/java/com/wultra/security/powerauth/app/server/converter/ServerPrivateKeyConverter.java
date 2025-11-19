@@ -55,7 +55,7 @@ public class ServerPrivateKeyConverter {
     public String fromDBValue(final ServerPrivateKeyRecord serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final byte[] encrypted = fromBase64(serverPrivateKey.serverPrivateKeyBase64());
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
-        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, serverPrivateKey.encryptionMode());
+        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, serverPrivateKey.encryptionAlgorithm());
         return toBase64(decrypted);
     }
 
@@ -72,8 +72,8 @@ public class ServerPrivateKeyConverter {
      */
     public ServerPrivateKeyRecord toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
-        final EncryptableData encrypted = encryptionService.encrypt(serverPrivateKey, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new ServerPrivateKeyRecord(encrypted.encryptionMode(), toBase64(encrypted.encryptedData()));
+        final EncryptableData encrypted = encryptionService.encrypt(serverPrivateKey, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new ServerPrivateKeyRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     private static String toBase64(final byte[] source) {
@@ -87,7 +87,7 @@ public class ServerPrivateKeyConverter {
     private static EncryptionKeySupplier encryptionKeySupplier(final String userId, final String activationId) {
         return new DefaultEncryptionKeySupplier(
                 List.of(userId, activationId),
-                List.of("pa_activation", "server_private_key_base64")
+                List.of("pa_activation", "server_private_key_base64", activationId)
         );
     }
 

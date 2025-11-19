@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ class TemporarySharedSecretConverterTest {
     private static final String SHARED_SECRET_BASE64 = "G9Pa9bVMtZMTH04QQ+69yvaLGqeKFFan3bsfluA10qiYbc/kEsJK0oFINkyc19MMo1mr53BnrSpZ3IZre0MZVpxhq15cjDHJJ6lk/Q3dO8w=";
 
     private static final String SHARED_SECRET_AES_HMAC_ENCRYPTED = "NRyCX0zwu5Idd5i2mwsvs/RL9uVnZE7sVyvurjeNcIf6ZwhYsl/TbuLrHFL03FicXjhv17n729jHIh341zi9iOJcr3RDKBo3jWGC6TxiPBvU7OlH+Sd3KfcsZ4QSO68OJQvhD4eSN9uhXjdajn+x6w==";
-    private static final String SHARED_SECRET_AEAD_KMAC_ENCRYPTED = "b4sNLdOSkufBM/iUnaJblb71gfKrWZLMLIwZcFn89/HLn9hJpt3ULIDC34CkT/46xr9MOs8CMYw7V0R2pWsf6pLZShbSt5othfJmmyUYWN69G5ysUHq/JcPyJs36q/7osGZOdmihUYwp1Xn1ADxyjav5BWZfGRqSMPV9sg==";
+    private static final String SHARED_SECRET_AEAD_KMAC_ENCRYPTED = "gkj385asuhtjHFKSWYBifbYDUYTA9XWqkpeTD32GjXsISPCgp9nkneX04bvCdqrw2V68GlEtNbuc9t6oeSMjfV4VtFNzEayRpmhyB3ahK/KePneNbvXrQPnogeDfHewJmO2haNy5q0zruQyj0DlIoX4xGcnhozQtamahEA==";
 
     private static final String KEY_ID = "c2079c74-9650-43f9-93d3-5f5af7181ecd";
 
@@ -56,7 +56,7 @@ class TemporarySharedSecretConverterTest {
 
     @Test
     void testFromDbValueNoEncryption() throws Exception {
-        final SharedSecretRecord sharedSecret = new SharedSecretRecord(EncryptionMode.NO_ENCRYPTION, SHARED_SECRET_BASE64);
+        final SharedSecretRecord sharedSecret = new SharedSecretRecord(EncryptionAlgorithm.NO_ENCRYPTION, SHARED_SECRET_BASE64);
         final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecret, KEY_ID, APP_KEY, ACTIVATION_ID);
 
         assertEquals(SHARED_SECRET_BASE64, sharedSecretActual);
@@ -66,23 +66,22 @@ class TemporarySharedSecretConverterTest {
     void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-        assertEquals(EncryptionMode.AEAD_KMAC, sharedSecretEncrypted.encryptionMode());
+        assertEquals(EncryptionAlgorithm.AEAD_KMAC, sharedSecretEncrypted.encryptionAlgorithm());
         assertNotEquals(SHARED_SECRET_BASE64, sharedSecretEncrypted.sharedSecretBase64());
-        System.out.println(sharedSecretEncrypted.sharedSecretBase64());
         final String sharedSecretActual = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, sharedSecretActual);
     }
 
     @Test
     void testFromDbValueEncryptionAesHmac() throws Exception {
-        final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(EncryptionMode.AES_HMAC, SHARED_SECRET_AES_HMAC_ENCRYPTED);
+        final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(EncryptionAlgorithm.AES_HMAC, SHARED_SECRET_AES_HMAC_ENCRYPTED);
         final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, result);
     }
 
     @Test
     void testFromDbValueEncryptionAeadKmac() throws Exception {
-        final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(EncryptionMode.AEAD_KMAC, SHARED_SECRET_AEAD_KMAC_ENCRYPTED);
+        final SharedSecretRecord sharedSecretEncrypted = new SharedSecretRecord(EncryptionAlgorithm.AEAD_KMAC, SHARED_SECRET_AEAD_KMAC_ENCRYPTED);
         final String result = sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, ACTIVATION_ID);
         assertEquals(SHARED_SECRET_BASE64, result);
     }
@@ -91,7 +90,7 @@ class TemporarySharedSecretConverterTest {
     void testEncryptionAndDecryptionDifferentKeyIdFail() throws Exception {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
-        assertEquals(EncryptionMode.AEAD_KMAC, sharedSecretEncrypted.encryptionMode());
+        assertEquals(EncryptionAlgorithm.AEAD_KMAC, sharedSecretEncrypted.encryptionAlgorithm());
         assertThrowsOrNotEqual(GenericServiceException.class,
                 () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, "1839c333-f61a-4be0-8d34-75b7cb79ab76", APP_KEY, ACTIVATION_ID),
                 sharedSecretBytes);
@@ -102,7 +101,7 @@ class TemporarySharedSecretConverterTest {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
-        assertEquals(EncryptionMode.AEAD_KMAC, sharedSecretEncrypted.encryptionMode());
+        assertEquals(EncryptionAlgorithm.AEAD_KMAC, sharedSecretEncrypted.encryptionAlgorithm());
         assertThrowsOrNotEqual(GenericServiceException.class,
                 () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, "UNfS0VZX3JhbmRvbQ==", ACTIVATION_ID),
                 sharedSecretBytes);
@@ -113,7 +112,7 @@ class TemporarySharedSecretConverterTest {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
-        assertEquals(EncryptionMode.AEAD_KMAC, sharedSecretEncrypted.encryptionMode());
+        assertEquals(EncryptionAlgorithm.AEAD_KMAC, sharedSecretEncrypted.encryptionAlgorithm());
         assertThrowsOrNotEqual(GenericServiceException.class,
                 () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, "01e9deb4-a0e0-4204-b8a6-925e76b7b3d3"),
                 sharedSecretBytes);
@@ -124,7 +123,7 @@ class TemporarySharedSecretConverterTest {
         final byte[] sharedSecretBytes = Base64.getDecoder().decode(SHARED_SECRET_BASE64);
         final SharedSecretRecord sharedSecretEncrypted = sharedSecretConverter.toDBValue(sharedSecretBytes, KEY_ID, APP_KEY, ACTIVATION_ID);
 
-        assertEquals(EncryptionMode.AEAD_KMAC, sharedSecretEncrypted.encryptionMode());
+        assertEquals(EncryptionAlgorithm.AEAD_KMAC, sharedSecretEncrypted.encryptionAlgorithm());
         assertThrowsOrNotEqual(GenericServiceException.class,
                 () -> sharedSecretConverter.fromDBValue(sharedSecretEncrypted, KEY_ID, APP_KEY, null),
                 sharedSecretBytes);

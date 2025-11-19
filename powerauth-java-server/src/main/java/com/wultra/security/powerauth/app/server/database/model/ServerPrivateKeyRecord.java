@@ -17,20 +17,20 @@
  */
 package com.wultra.security.powerauth.app.server.database.model;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 
 /**
  * Compound value of server private key. Key can be stored encrypted or decrypted based on key encryption mode.
  *
- * @param encryptionMode         Key encryption mode.
+ * @param encryptionAlgorithm         Key encryption mode.
  * @param serverPrivateKeyBase64 Base64-encoded server private key.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record ServerPrivateKeyRecord(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
+public record ServerPrivateKeyRecord(EncryptionAlgorithm encryptionAlgorithm, String serverPrivateKeyBase64) {
 
     @Override
     public String toString() {
-        return "ServerPrivateKey{encryptionMode=" + encryptionMode + "}";
+        return "ServerPrivateKey{encryptionAlgorithm=" + encryptionAlgorithm + "}";
     }
 
 }

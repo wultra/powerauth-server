@@ -20,7 +20,7 @@
 package com.wultra.security.powerauth.app.server.service.encryption;
 
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -63,7 +63,7 @@ public class AeadKmacEncryptionService implements DatabaseEncryptor {
             final SecretKey encKey = deriveKmacKey(masterKey, encryptionKeySupplier.keyDerivationData());
             final byte[] ad = deriveAssociatedData(encryptionKeySupplier.associatedData());
             final byte[] ciphertext = Aead.seal(encKey, null, null, ad, plaintextData);
-            return new EncryptableData(EncryptionMode.AEAD_KMAC, ciphertext);
+            return new EncryptableData(EncryptionAlgorithm.AEAD_KMAC, ciphertext);
         } catch (Exception ex) {
             logger.error("Encryption failed", ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
@@ -84,7 +84,7 @@ public class AeadKmacEncryptionService implements DatabaseEncryptor {
     }
 
     private SecretKey loadMasterDbEncryptionKey() throws GenericServiceException {
-        String base64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
+        String base64 = powerAuthServiceConfiguration.getMasterDbEncryptionKeyAeadKmac();
         if (base64 == null || base64.isEmpty()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
         }

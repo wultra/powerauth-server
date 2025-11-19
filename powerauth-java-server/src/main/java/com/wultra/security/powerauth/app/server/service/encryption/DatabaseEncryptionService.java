@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.server.service.encryption;
 
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class DatabaseEncryptionService {
      * @return Encrypted data as a byte array.
      * @throws GenericServiceException Thrown in case encryption fails.
      */
-    public EncryptableData encrypt(byte[] plaintextData, EncryptionKeySupplier encryptionKeySupplier, EncryptionMode mode) throws GenericServiceException {
+    public EncryptableData encrypt(byte[] plaintextData, EncryptionKeySupplier encryptionKeySupplier, EncryptionAlgorithm mode) throws GenericServiceException {
         return factory.get(mode).encrypt(plaintextData, encryptionKeySupplier);
     }
 
@@ -50,7 +50,7 @@ public class DatabaseEncryptionService {
      * @return Encrypted data as a String.
      * @throws GenericServiceException Thrown in case encryption fails.
      */
-    public EncryptableString encrypt(String plaintextData, EncryptionKeySupplier encryptionKeySupplier, EncryptionMode mode) throws GenericServiceException {
+    public EncryptableString encrypt(String plaintextData, EncryptionKeySupplier encryptionKeySupplier, EncryptionAlgorithm mode) throws GenericServiceException {
         return factory.get(mode).encrypt(plaintextData, encryptionKeySupplier);
     }
 
@@ -62,7 +62,7 @@ public class DatabaseEncryptionService {
      * @return Plaintext data.
      * @throws GenericServiceException Thrown in case decryption fails.
      */
-    public byte[] decrypt(byte[] encryptedData, EncryptionKeySupplier encryptionKeySupplier, EncryptionMode mode) throws GenericServiceException {
+    public byte[] decrypt(byte[] encryptedData, EncryptionKeySupplier encryptionKeySupplier, EncryptionAlgorithm mode) throws GenericServiceException {
         return factory.get(mode).decrypt(encryptedData, encryptionKeySupplier);
     }
 
@@ -74,24 +74,16 @@ public class DatabaseEncryptionService {
      * @return Plaintext data as a String.
      * @throws GenericServiceException Thrown in case decryption fails.
      */
-    public String decrypt(String encryptedData, EncryptionKeySupplier encryptionKeySupplier, EncryptionMode mode) throws GenericServiceException {
+    public String decrypt(String encryptedData, EncryptionKeySupplier encryptionKeySupplier, EncryptionAlgorithm mode) throws GenericServiceException {
         return factory.get(mode).decrypt(encryptedData, encryptionKeySupplier, mode);
     }
 
     /**
-     * Get default encryption mode for encrypting new database records.
-     * @return Default encryption mode.
+     * Get default encryption algorithm for encrypting new database records.
+     * @return Default encryption algorithm.
      */
-    public EncryptionMode getDefaultEncryptionMode() {
-        final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
-
-        // In case master DB encryption key does not exist, encryption is disabled
-        if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return EncryptionMode.NO_ENCRYPTION;
-        }
-
-        // Use AEAD with KMAC-256 by default.
-        return EncryptionMode.AEAD_KMAC;
+    public EncryptionAlgorithm getDefaultEncryptionAlgorithm() {
+        return powerAuthServiceConfiguration.getMasterDbEncryptionAlgorithm();
     }
 
 }

@@ -19,7 +19,7 @@
 
 package com.wultra.security.powerauth.app.server.service.encryption;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,11 +38,11 @@ public class DatabaseEncryptionFactory {
     private final AesHmacEncryptionService aesHmacService;
     private final AeadKmacEncryptionService aeadKmacService;
 
-    private Map<EncryptionMode, DatabaseEncryptor> encryptorMap() {
+    private Map<EncryptionAlgorithm, DatabaseEncryptor> encryptorMap() {
         return Map.of(
-                EncryptionMode.NO_ENCRYPTION, noEncryptionService,
-                EncryptionMode.AES_HMAC, aesHmacService,
-                EncryptionMode.AEAD_KMAC, aeadKmacService
+                EncryptionAlgorithm.NO_ENCRYPTION, noEncryptionService,
+                EncryptionAlgorithm.AES_HMAC, aesHmacService,
+                EncryptionAlgorithm.AEAD_KMAC, aeadKmacService
         );
     }
 
@@ -51,7 +51,7 @@ public class DatabaseEncryptionFactory {
      * @param mode Encryption mode.
      * @return Database encryptor.
      */
-    public DatabaseEncryptor get(EncryptionMode mode) {
+    public DatabaseEncryptor get(EncryptionAlgorithm mode) {
         return encryptorMap().get(mode);
     }
 

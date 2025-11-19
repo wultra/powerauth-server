@@ -66,7 +66,7 @@ public class MasterPrivateKeysConverter {
         try {
             final byte[] encryptedData = fromBase64(masterPrivateKeys.privateKeysBase64());
             final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
-            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, masterPrivateKeys.encryptionMode());
+            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, masterPrivateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
         } catch (IOException e) {
             logger.warn("Decryption failed", e);
@@ -105,8 +105,8 @@ public class MasterPrivateKeysConverter {
      */
     PrivateKeysRecord toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
-        final EncryptableData encrypted = encryptionService.encrypt(masterPrivateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new PrivateKeysRecord(encrypted.encryptionMode(), toBase64(encrypted.encryptedData()));
+        final EncryptableData encrypted = encryptionService.encrypt(masterPrivateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -128,7 +128,7 @@ public class MasterPrivateKeysConverter {
     private static EncryptionKeySupplier encryptionKeySupplier(final String applicationId) {
         return new DefaultEncryptionKeySupplier(
                 List.of(applicationId),
-                List.of("pa_master_keypair", "master_private_keys")
+                List.of("pa_master_keypair", "master_private_keys", applicationId)
         );
     }
 

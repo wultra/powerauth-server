@@ -64,7 +64,7 @@ public class ServerPrivateKeysConverter {
         try {
             final byte[] encryptedData = convertFromBase64(privateKeys.privateKeysBase64());
             final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
-            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, privateKeys.encryptionMode());
+            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, privateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
         } catch (IOException e) {
             logger.warn("Decryption failed", e);
@@ -105,8 +105,8 @@ public class ServerPrivateKeysConverter {
      */
     public PrivateKeysRecord toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
-        final EncryptableData encrypted = encryptionService.encrypt(privateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionMode());
-        return new PrivateKeysRecord(encrypted.encryptionMode(), convertToBase64(encrypted.encryptedData()));
+        final EncryptableData encrypted = encryptionService.encrypt(privateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), convertToBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -128,7 +128,7 @@ public class ServerPrivateKeysConverter {
     private static EncryptionKeySupplier encryptionKeySupplier(final String userId, final String activationId) {
         return new DefaultEncryptionKeySupplier(
                 List.of(userId, activationId),
-                List.of("pa_activation", "server_private_keys")
+                List.of("pa_activation", "server_private_keys", activationId)
         );
     }
 

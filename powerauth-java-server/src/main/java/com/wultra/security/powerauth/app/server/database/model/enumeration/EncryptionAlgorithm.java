@@ -29,7 +29,7 @@ import lombok.Getter;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
-public enum EncryptionMode {
+public enum EncryptionAlgorithm {
 
     /**
      * No encryption.
@@ -55,7 +55,7 @@ public enum EncryptionMode {
      * No-arg constructor with byte value of encryption mode.
      * @param value Byte value of encryption mode.
      */
-    EncryptionMode(final byte value) {
+    EncryptionAlgorithm(final byte value) {
         this.value = value;
     }
 
