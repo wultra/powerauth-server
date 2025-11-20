@@ -34,9 +34,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
+import java.util.Base64;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -246,10 +248,10 @@ public class PowerAuthServiceConfiguration {
     private String masterDbEncryptionKeyAeadKmac;
 
     /**
-     * Master DB encryption key for algorithm AEAD_KMAC.
+     * Default DB encryption algorithm.
      */
     @Value("${powerauth.server.db.master.encryption.algorithm:AEAD_KMAC}")
-    private EncryptionAlgorithm masterDbEncryptionAlgorithm;
+    private EncryptionAlgorithm dbEncryptionAlgorithm;
 
     /**
      * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.
@@ -698,6 +700,36 @@ public class PowerAuthServiceConfiguration {
                 "Temporary key validity %d ms exceeds request expiration %d ms"
                         .formatted(temporaryKeyValidity.toMillis(), requestExpiration.toMillis())
         );
+    }
+
+    @PostConstruct
+    void validateDbEncryptionConfiguration() {
+        if (dbEncryptionAlgorithm != EncryptionAlgorithm.AEAD_KMAC) {
+            return;
+        }
+        if (!StringUtils.hasText(masterDbEncryptionKeyAeadKmac)) {
+            throw new IllegalStateException("""
+                Master DB encryption key is not configured for default encryption algorithm AEAD_KMAC.
+                Configure property 'powerauth.server.db.master.encryption.aead-kmac.key' with a 256-bit Base64 encoded key.
+
+                For more details, see the PowerAuth server 2.0.0 migration guide.
+                """);
+        }
+        final byte[] decodedKey;
+        try {
+            decodedKey = Base64.getDecoder().decode(masterDbEncryptionKeyAeadKmac);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("""
+                Master DB encryption key is not a valid Base-64 encoded key for AEAD_KMAC.
+                Check configuration of property 'powerauth.server.db.master.encryption.aead-kmac.key'.
+                """, e);
+        }
+        if (decodedKey.length != 32) {
+            throw new IllegalStateException("""
+                Master DB encryption key has incorrect length for AEAD_KMAC.
+                Expected a 256-bit Base64 encoded key configured in property 'powerauth.server.db.master.encryption.aead-kmac.key'.
+                """);
+        }
     }
 
 }

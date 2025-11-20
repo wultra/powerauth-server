@@ -83,7 +83,7 @@ public class DatabaseEncryptionService {
      * @return Default encryption algorithm.
      */
     public EncryptionAlgorithm getDefaultEncryptionAlgorithm() {
-        return powerAuthServiceConfiguration.getMasterDbEncryptionAlgorithm();
+        return powerAuthServiceConfiguration.getDbEncryptionAlgorithm();
     }
 
 }

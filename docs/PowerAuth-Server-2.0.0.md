@@ -1,5 +1,66 @@
 # Migration from 1.10.x to 2.0.0
 
+## Update Database Encryption Configuration
+
+PowerAuth Server 2.0.0 introduces a new default database encryption algorithm used for encrypting sensitive values stored in the database, such as master private keys, activation private keys, temporary keys, callback authentication, and other sensitive data. This encryption is done by the PowerAuth server application and it should be used on top of database encryption at rest to avoid leakage of sensitive data.
+
+## New Default Encryption Algorithm: `AEAD_KMAC`
+
+The algorithm `AEAD_KMAC` is now the default database encryption algorithm. It uses:
+
+* a 256-bit master DB encryption key  
+* KMAC-256 for per-record key derivation  
+* AES in AEAD mode for authenticated encryption
+
+This offers improved security with post-quantum grade encryption.
+
+### Required Action: Configure a 256-bit Base64-Encoded Encryption Key
+
+To use the default algorithm, configure the following property:
+
+```
+powerauth.server.db.master.encryption.aead-kmac.key=<base64-encoded-256-bit-key>
+```
+
+The server will not start if `AEAD_KMAC` is the default algorithm but the key is missing or invalid.
+
+### How to Generate a Valid 256-bit Encryption Key
+
+Use any cryptographically secure random generator to produce a 32-byte key and encode it in Base64.
+
+#### Linux / macOS
+
+```
+head -c 32 /dev/urandom | base64
+```
+
+#### OpenSSL
+
+```
+openssl rand -base64 32
+```
+
+Paste the generated value into the configuration property.
+
+### Switching to AES_HMAC or NO_ENCRYPTION
+
+If you are upgrading a non-production environment, you may override the default encryption algorithm:
+
+```
+powerauth.server.db.master.encryption.algorithm=NO_ENCRYPTION
+```
+
+When using `NO_ENCRYPTION`, no database encryption keys are required, and sensitive values will be stored in plaintext.
+
+### Securing the Encryption Key
+
+The master database encryption key is a highly sensitive secret and must be protected. Do not store this key directly in configuration files, source control, or container images. Use a secure secret management solution (such as a vault or encrypted configuration provider) to supply the key to the application at runtime and restrict access only to the PowerAuth Server process.
+
+### Legacy Encryption Algorithm Configuration
+
+The `AES_HMAC` encryption algorithm is legacy and should not be used in PowerAuth server 2.0.0 or higher.
+In case you used this encryption algorithm previously, keep the configured key in property `powerauth.server.db.master.encryption.key` to allow decryption of existing data.
+
 ## Database Changes
 
 For convenience, you can use liquibase for your database migration.
