@@ -42,7 +42,7 @@ openssl rand -base64 32
 
 Paste the generated value into the configuration property.
 
-### Switching to AES_HMAC or NO_ENCRYPTION
+### Switching to NO_ENCRYPTION
 
 If you are upgrading a non-production environment, you may override the default encryption algorithm:
 
