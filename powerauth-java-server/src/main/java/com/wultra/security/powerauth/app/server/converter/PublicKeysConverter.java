@@ -54,7 +54,7 @@ public class PublicKeysConverter {
      */
     public PublicKeyRegistry fromDBValue(final String serverPublicKeysBase64) throws GenericServiceException {
         try {
-            final byte[] data = convertFromBase64(serverPublicKeysBase64);
+            final byte[] data = fromBase64(serverPublicKeysBase64);
             return deserialize(data);
         } catch (IOException e) {
             logger.warn("Deserialization failed", e);
@@ -70,7 +70,7 @@ public class PublicKeysConverter {
      */
     public String toDBValue(final PublicKeyRegistry publicKeys) throws GenericServiceException {
         try {
-            return convertToBase64(serialize(publicKeys));
+            return toBase64(serialize(publicKeys));
         } catch (IOException e) {
             logger.warn("Serialization failed", e);
             throw new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, e.getMessage());
@@ -97,11 +97,11 @@ public class PublicKeysConverter {
         return objectMapper.readValue(source, PublicKeyRegistry.class);
     }
 
-    private String convertToBase64(final byte[] source) {
+    private String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private byte[] convertFromBase64(final String source) {
+    private byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 

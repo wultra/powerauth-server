@@ -62,7 +62,7 @@ public class ServerPrivateKeysConverter {
      */
     public PrivateKeyRegistry fromDBValue(final PrivateKeysRecord privateKeys, final String userId, final String activationId) throws GenericServiceException {
         try {
-            final byte[] encryptedData = convertFromBase64(privateKeys.privateKeysBase64());
+            final byte[] encryptedData = fromBase64(privateKeys.privateKeysBase64());
             final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
             final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, privateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
@@ -106,7 +106,7 @@ public class ServerPrivateKeysConverter {
     public PrivateKeysRecord toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
         final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
         final EncryptableData encrypted = encryptionService.encrypt(privateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
-        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), convertToBase64(encrypted.encryptedData()));
+        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -117,11 +117,11 @@ public class ServerPrivateKeysConverter {
         return objectMapper.readValue(source, PrivateKeyRegistry.class);
     }
 
-    private String convertToBase64(final byte[] source) {
+    private String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private byte[] convertFromBase64(final String source) {
+    private byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 
