@@ -47,9 +47,9 @@ import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.totp.Totp;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
 import com.wultra.security.powerauth.crypto.lib.v4.kdf.Kmac;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -92,6 +92,8 @@ public class OfflineAuthenticationServiceBehavior {
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final CryptographyServiceFactory cryptographyServiceFactory;
+
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     /**
      * Verify authentication for given activation and provided data in offline mode. Log every validation attempt in the audit log.
@@ -170,7 +172,7 @@ public class OfflineAuthenticationServiceBehavior {
             final byte[] kmacData = (signedData).getBytes(StandardCharsets.UTF_8);
 
             final SecretKey activationSecretKey = sharedSecretService.extractActivationSecretKey(activation);
-            final SecretKey keyMacPersonalisedData = KeyFactory.deriveKeyMacPersonalizedData(activationSecretKey);
+            final SecretKey keyMacPersonalisedData = SERVER_KEY_FACTORY.generateKeyMacPersonalizedData(activationSecretKey);
 
             // Construct KMAC-256 tag
             final byte[] tagKmac = Kmac.kmac256(keyMacPersonalisedData, kmacData, KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES, 32);
