@@ -25,9 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Model class representing response with activation status (V4).
@@ -67,9 +65,7 @@ public class GetActivationStatusResponse {
     @Deprecated
     private String activationSignature;
     @ToString.Exclude
-    private String activationSignatureEcdsa;
-    @ToString.Exclude
-    private String activationSignatureMldsa;
+    private Map<String, String> activationSignatures = new LinkedHashMap<>();
     @ToString.Exclude
     private String devicePublicKeyFingerprint;
     private long version;

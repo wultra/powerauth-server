@@ -18,10 +18,10 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -31,20 +31,17 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
-import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.AsymmetricSignatureService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
-import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,7 +49,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Behavior class implementing activation init.
@@ -68,12 +68,11 @@ public class ActivationInitServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationRepository activationRepository;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final KeyPairGenerationService keyPairGenerationService;
-    private final AlgorithmQueryService algorithmQueryService;
+    private final AsymmetricSignatureService asymmetricSignatureService;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final ObjectMapper objectMapper;
@@ -170,45 +169,6 @@ public class ActivationInitServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
-            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
-
-            // Compute activation signatures for supported algorithms
-            final byte[] activationSignatureV3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ?
-                    cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
-                            .generateSignatureForApplication(
-                                    KeyType.ECDSA_P256,
-                                    activationCode.getBytes(StandardCharsets.UTF_8),
-                                    application
-                            ) : null;
-            final CryptographyService cryptographyServiceP384 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384);
-            final byte[] activationSignatureV4Ecdsa = (supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384)
-                    || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3))
-                    || supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5)
-                    ? cryptographyServiceP384.generateSignatureForApplication(
-                            KeyType.ECDSA_P384,
-                            activationCode.getBytes(StandardCharsets.UTF_8),
-                            application
-                    ) : null;
-            final CryptographyService cryptographyServiceP384MlL3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-            final byte[] activationSignatureV4Mldsa65 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3) ?
-                    cryptographyServiceP384MlL3.generateSignatureForApplication(
-                            KeyType.MLDSA_65,
-                            activationCode.getBytes(StandardCharsets.UTF_8),
-                            application
-                    ) : null;
-            final CryptographyService cryptographyServiceP384MlL5 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L5);
-            final byte[] activationSignatureV4Mldsa87 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5) ?
-                    cryptographyServiceP384MlL5.generateSignatureForApplication(
-                            KeyType.MLDSA_87,
-                            activationCode.getBytes(StandardCharsets.UTF_8),
-                            application
-                    ) : null;
-
-            // Encode the signature
-            final String activationSignatureV3Base64 = activationSignatureV3 != null ? Base64.getEncoder().encodeToString(activationSignatureV3) : null;
-            final String activationSignatureV4EcdsaBase64 = activationSignatureV4Ecdsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa) : null;
-            final String activationSignatureV4Mldsa65Base64 = activationSignatureV4Mldsa65 != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa65) : null;
-            final String activationSignatureV4Mldsa87Base64 = activationSignatureV4Mldsa87 != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa87) : null;
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
 
             // Store the new activation
@@ -258,15 +218,14 @@ public class ActivationInitServiceBehavior {
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
+            final Map<String, String> signatures = asymmetricSignatureService.computeSignaturesForActivation(activation);
             // Return the server response
             final InitActivationResponse response = new InitActivationResponse();
             response.setActivationId(activationId);
             response.setActivationCode(activationCode);
             response.setUserId(userId);
-            response.setActivationSignature(activationSignatureV3Base64);
-            response.setActivationSignatureEcdsa(activationSignatureV4EcdsaBase64);
-            response.setActivationSignatureMldsa65(activationSignatureV4Mldsa65Base64);
-            response.setActivationSignatureMldsa87(activationSignatureV4Mldsa87Base64);
+            response.setActivationSignature(signatures.get(JWSAlgorithm.ES256.getName()));
+            response.getActivationSignatures().putAll(signatures);
             response.setApplicationId(activation.getApplication().getId());
 
             return response;

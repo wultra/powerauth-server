@@ -17,12 +17,12 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -30,7 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.crypto.AsymmetricSignatureService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -56,9 +56,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -83,6 +83,7 @@ public class ActivationStatusServiceBehavior {
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final AlgorithmQueryService algorithmQueryService;
+    private final AsymmetricSignatureService asymmetricSignatureService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -130,23 +131,7 @@ public class ActivationStatusServiceBehavior {
                     // since both keys were not exchanged yet and transport cannot be secured.
                     final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
 
-                    final byte[] activationSignatureV3 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256)
-                            .generateSignatureForApplication(
-                                    KeyType.ECDSA_P256,
-                                    activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                                    application
-                            );
-                    final CryptographyService cryptographyServiceV4 = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P384_ML_L3);
-                    final byte[] activationSignatureV4Ecdsa = cryptographyServiceV4.generateSignatureForApplication(
-                            KeyType.ECDSA_P384,
-                            activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                            application
-                    );
-                    final byte[] activationSignatureV4Mldsa = cryptographyServiceV4.generateSignatureForApplication(
-                            KeyType.MLDSA_65,
-                            activation.getActivationCode().getBytes(StandardCharsets.UTF_8),
-                            application
-                    );
+                    final Map<String, String> signatures = asymmetricSignatureService.computeSignaturesForActivation(activation);
 
                     // return the data
                     final GetActivationStatusResponse response = new GetActivationStatusResponse();
@@ -167,9 +152,8 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(activationSignatureV3 != null ? Base64.getEncoder().encodeToString(activationSignatureV3) : null);
-                    response.setActivationSignatureEcdsa(activationSignatureV4Ecdsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Ecdsa) : null);
-                    response.setActivationSignatureMldsa(activationSignatureV4Mldsa != null ? Base64.getEncoder().encodeToString(activationSignatureV4Mldsa) : null);
+                    response.setActivationSignature(signatures.get(JWSAlgorithm.ES256.getName()));
+                    response.getActivationSignatures().putAll(signatures);
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
@@ -256,8 +240,6 @@ public class ActivationStatusServiceBehavior {
                         response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
                     }
                     response.setActivationCode(null);
-                    response.setActivationSignatureEcdsa(null);
-                    response.setActivationSignatureMldsa(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
@@ -301,8 +283,6 @@ public class ActivationStatusServiceBehavior {
                 response.setMaxFailedAttempts(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts());
                 response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                 response.setActivationCode(null);
-                response.setActivationSignatureEcdsa(null);
-                response.setActivationSignatureMldsa(null);
                 response.setDevicePublicKeyFingerprint(null);
                 // Use 0 as version when version is undefined
                 response.setVersion(0L);
