@@ -14,15 +14,14 @@ ENV JAVA_HOME=/opt/java/openjdk \
 # Upgrade OS and dependencies
 RUN apt-get -y update  \
     && apt-get -y upgrade \
-    && apt-get -y install bash \
+    && apt-get -y install bash wget \
+    && mkdir -p ${EXTLIB_PATH} && wget --no-verbose https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/${OJDBC_VERSION}/ojdbc11-${OJDBC_VERSION}.jar -O ${EXTLIB_PATH}/ojdbc11.jar \
 # Uninstall packages which are no longer needed and clean apt caches
     && apt-get -y remove wget gettext-base \
     && apt-get -y purge --auto-remove \
     && rm -rf /tmp/* /var/cache/apt/* \
 # Add PowerAuth user
-    && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
-
-RUN mkdir -p ${EXTLIB_PATH} && wget --no-verbose https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/${OJDBC_VERSION}/ojdbc11-${OJDBC_VERSION}.jar -O ${EXTLIB_PATH}/ojdbc11.jar
+    && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth \
 
 # Deploy and run applications
 COPY ./powerauth-java-server/src/main/resources/application.properties /app/application.properties
