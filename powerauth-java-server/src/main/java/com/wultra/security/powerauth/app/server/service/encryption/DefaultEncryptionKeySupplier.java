@@ -29,8 +29,8 @@ import java.util.function.Supplier;
  */
 public class DefaultEncryptionKeySupplier implements EncryptionKeySupplier{
 
-    private final Supplier<List<String>> keyDerivationData;
-    private final Supplier<List<String>> associatedData;
+    private final List<String> keyDerivationData;
+    private final List<String> associatedData;
 
     /**
      * Encryption key supplier constructor.
@@ -38,18 +38,18 @@ public class DefaultEncryptionKeySupplier implements EncryptionKeySupplier{
      * @param associatedData Associated data.
      */
     public DefaultEncryptionKeySupplier(List<String> keyDerivationData, List<String> associatedData) {
-        this.keyDerivationData = () -> List.copyOf(keyDerivationData);
-        this.associatedData = () -> List.copyOf(associatedData);
+        this.keyDerivationData = List.copyOf(keyDerivationData);
+        this.associatedData = List.copyOf(associatedData);
     }
 
     @Override
     public Supplier<List<String>> keyDerivationData() {
-        return keyDerivationData;
+        return () -> keyDerivationData;
     }
 
     @Override
     public Supplier<List<String>> associatedData() {
-        return associatedData;
+        return () -> associatedData;
     }
 
 }
