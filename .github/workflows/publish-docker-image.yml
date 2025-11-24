@@ -103,7 +103,7 @@ jobs:
       - name: Prepare SBOM files
         run: |
           mkdir -p ./powerauth-java-server/docker/sbom
-          unzip -p ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war WEB-INF/classes/META-INF/sbom/application.cdx.json > ./powerauth-java-server/docker/sbom/powerauth-java-server.war
+          unzip -p ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war WEB-INF/classes/META-INF/sbom/application.cdx.json > ./powerauth-java-server/docker/sbom/powerauth-java-server.cdx.json
       - name: Copy liquibase files
         run: |
           mkdir -p ./powerauth-java-server/docker-init/liquibase/data/
