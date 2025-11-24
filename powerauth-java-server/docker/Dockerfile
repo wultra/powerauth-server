@@ -10,7 +10,7 @@ ENV JAVA_HOME=/opt/java/openjdk \
     APP_PATH="/app/powerauth-java-server.war" \
     EXTLIB_PATH="/app/extlib"
 
-ENV PATH=$PATH
+ENV PATH=$PATH:$LB_HOME
 
 # Upgrade OS and dependencies
 RUN apt-get -y update  \
@@ -24,7 +24,7 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
-COPY ../target/powerauth-java-server.war "${APP_PATH}"
+COPY ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war "${APP_PATH}"
 
 # Docker configuration
 EXPOSE 8080
@@ -33,8 +33,8 @@ STOPSIGNAL SIGQUIT
 # Add PowerAuth User
 USER powerauth
 
-COPY ./conf/logback/* $LOGBACK_CONF/
+COPY powerauth-java-server/docker/conf/logback/* $LOGBACK_CONF/
 
 # Define entry point with mandatory commands
-COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+COPY powerauth-java-server/docker/docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
