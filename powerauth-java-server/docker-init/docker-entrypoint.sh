@@ -5,9 +5,9 @@ KEEP_RUNNING_PORT=${KEEP_RUNNING_PORT:-666}
 
 liquibase --headless=true --log-level=INFO \
     --changeLogFile="changelog/db.changelog-master.xml" \
-    --username="${POWERAUTH_CLOUD_DATASOURCE_USERNAME:-}" \
-    --password="${POWERAUTH_CLOUD_DATASOURCE_PASSWORD:-}" \
-    --url="${POWERAUTH_CLOUD_DATASOURCE_URL}" \
+    --username="${POWERAUTH_SERVER_DATASOURCE_USERNAME:-}" \
+    --password="${POWERAUTH_SERVER_DATASOURCE_PASSWORD:-}" \
+    --url="${POWERAUTH_SERVER_DATASOURCE_URL}" \
     update
 
 if [[ -n "${KEEP_RUNNING}" && "${KEEP_RUNNING}" == "true" ]]; then
