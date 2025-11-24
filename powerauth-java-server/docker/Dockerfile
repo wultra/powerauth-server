@@ -21,7 +21,7 @@ RUN apt-get -y update  \
     && apt-get -y purge --auto-remove \
     && rm -rf /tmp/* /var/cache/apt/* \
 # Add PowerAuth user
-    && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth \
+    && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
 COPY ./powerauth-java-server/src/main/resources/application.properties /app/application.properties
