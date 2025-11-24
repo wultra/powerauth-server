@@ -10,7 +10,7 @@ The algorithm `AEAD_KMAC` is now the default database encryption algorithm. It u
 
 * a 256-bit master DB encryption key  
 * KMAC-256 for per-record key derivation  
-* AES in AEAD mode for authenticated encryption
+* Authenticated encryption using an AEAD scheme based on AES-256
 
 This offers improved security with post-quantum grade encryption.
 
