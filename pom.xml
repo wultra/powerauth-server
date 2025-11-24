@@ -100,7 +100,7 @@
 
         <!-- Other Dependencies -->
         <commons-text.version>1.14.0</commons-text.version>
-        <logstash.version>8.1</logstash.version>
+        <logstash.version>9.0</logstash.version>
         <equalsverifier.version>4.2.3</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
