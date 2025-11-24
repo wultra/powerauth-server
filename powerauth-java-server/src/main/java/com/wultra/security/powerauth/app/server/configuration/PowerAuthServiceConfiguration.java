@@ -28,6 +28,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -51,6 +52,7 @@ import java.util.Base64;
 @Validated
 @Getter
 @Setter
+@Slf4j
 public class PowerAuthServiceConfiguration {
 
     /**
@@ -704,7 +706,12 @@ public class PowerAuthServiceConfiguration {
 
     @PostConstruct
     void validateDbEncryptionConfiguration() {
-        if (dbEncryptionAlgorithm != EncryptionAlgorithm.AEAD_KMAC) {
+        if (dbEncryptionAlgorithm == EncryptionAlgorithm.NO_ENCRYPTION) {
+            logger.warn("Database record encryption is disabled.");
+            return;
+        }
+        if (dbEncryptionAlgorithm == EncryptionAlgorithm.AES_HMAC) {
+            logger.warn("Legacy encryption algorithm AES_HMAC is used for database record encryption.");
             return;
         }
         if (!StringUtils.hasText(masterDbEncryptionKeyAeadKmac)) {
