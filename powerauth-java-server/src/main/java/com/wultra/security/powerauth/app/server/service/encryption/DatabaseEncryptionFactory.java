@@ -20,7 +20,7 @@
 package com.wultra.security.powerauth.app.server.service.encryption;
 
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -31,19 +31,21 @@ import java.util.Map;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
-@AllArgsConstructor
 public class DatabaseEncryptionFactory {
 
-    private final NoEncryptionService noEncryptionService;
-    private final AesHmacEncryptionService aesHmacService;
-    private final AeadKmacEncryptionService aeadKmacService;
+    private final Map<EncryptionAlgorithm, DatabaseEncryptor> encryptorMap;
 
-    private Map<EncryptionAlgorithm, DatabaseEncryptor> encryptorMap() {
-        return Map.of(
+    @Autowired
+    public DatabaseEncryptionFactory(NoEncryptionService noEncryptionService, AesHmacEncryptionService aesHmacService, AeadKmacEncryptionService aeadKmacService) {
+        this.encryptorMap = Map.of(
                 EncryptionAlgorithm.NO_ENCRYPTION, noEncryptionService,
                 EncryptionAlgorithm.AES_HMAC, aesHmacService,
                 EncryptionAlgorithm.AEAD_KMAC, aeadKmacService
         );
+    }
+
+    private Map<EncryptionAlgorithm, DatabaseEncryptor> encryptorMap() {
+        return encryptorMap;
     }
 
     /**
