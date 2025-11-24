@@ -10,7 +10,7 @@ ENV JAVA_HOME=/opt/java/openjdk \
     APP_PATH="/app/powerauth-java-server.war" \
     EXTLIB_PATH="/app/extlib"
 
-ENV PATH=$PATH:$LB_HOME
+ENV PATH=$PATH
 
 # Upgrade OS and dependencies
 RUN apt-get -y update  \
@@ -35,6 +35,6 @@ USER powerauth
 
 COPY ./conf/logback/* $LOGBACK_CONF/
 
-# Define entry point with mandatory commands (nginx)
+# Define entry point with mandatory commands
 COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
