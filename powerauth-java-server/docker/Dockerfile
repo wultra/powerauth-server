@@ -24,7 +24,7 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
-COPY powerauth-java-server/target/powerauth-java-server.war "${APP_PATH}"
+COPY ../target/powerauth-java-server.war "${APP_PATH}"
 
 # Docker configuration
 EXPOSE 8080
@@ -33,8 +33,8 @@ STOPSIGNAL SIGQUIT
 # Add PowerAuth User
 USER powerauth
 
-COPY powerauth-java-server/docker/conf/logback/* $LOGBACK_CONF/
+COPY ./conf/logback/* $LOGBACK_CONF/
 
 # Define entry point with mandatory commands (nginx)
-COPY powerauth-java-server/docker/docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
