@@ -10,8 +10,6 @@ ENV JAVA_HOME=/opt/java/openjdk \
     APP_PATH="/app/powerauth-java-server.war" \
     EXTLIB_PATH="/app/extlib"
 
-ENV PATH=$PATH:$LB_HOME
-
 # Upgrade OS and dependencies
 RUN apt-get -y update  \
     && apt-get -y upgrade \

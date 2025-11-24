@@ -3,7 +3,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <includeMdc>true</includeMdc>
-            <customFields>{"appname":"signer-cloud-server"}</customFields>
+            <customFields>{"appname":"powerauth-server"}</customFields>
         </encoder>
     </appender>
 

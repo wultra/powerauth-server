@@ -19,8 +19,6 @@ on:
       - 'releases/*'
     paths:
       - '**'
-      - '!powerauth-java-server/docker'
-      - '!powerauth-java-server/docker-init'
       - '!docs/**'
       - 'docs/db/**'
 
