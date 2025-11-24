@@ -42,6 +42,10 @@ openssl rand -base64 32
 
 Paste the generated value into the configuration property.
 
+### Securing the Encryption Key
+
+The master database encryption key is a highly sensitive secret and must be protected. Do not store this key directly in configuration files, source control, or container images. Use a secure secret management solution (such as a vault or encrypted configuration provider) to supply the key to the application at runtime and restrict access only to the PowerAuth Server process.
+
 ### Switching to NO_ENCRYPTION
 
 If you are upgrading a non-production environment, you may override the default encryption algorithm:
@@ -51,10 +55,6 @@ powerauth.server.db.master.encryption.algorithm=NO_ENCRYPTION
 ```
 
 When using `NO_ENCRYPTION`, no database encryption keys are required, and sensitive values will be stored in plaintext.
-
-### Securing the Encryption Key
-
-The master database encryption key is a highly sensitive secret and must be protected. Do not store this key directly in configuration files, source control, or container images. Use a secure secret management solution (such as a vault or encrypted configuration provider) to supply the key to the application at runtime and restrict access only to the PowerAuth Server process.
 
 ### Legacy Encryption Algorithm Configuration
 
