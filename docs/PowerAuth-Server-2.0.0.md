@@ -4,7 +4,7 @@
 
 PowerAuth Server 2.0.0 introduces a new default database encryption algorithm used for encrypting sensitive values stored in the database, such as master private keys, activation private keys, temporary keys, callback authentication, and other sensitive data. This encryption is done by the PowerAuth server application and it should be used on top of database encryption at rest to avoid leakage of sensitive data.
 
-## New Default Encryption Algorithm: `AEAD_KMAC`
+### New Default Encryption Algorithm: `AEAD_KMAC`
 
 The algorithm `AEAD_KMAC` is now the default database encryption algorithm. It uses:
 
