@@ -17,15 +17,15 @@
  */
 package com.wultra.security.powerauth.app.server.service.encryption;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 
 /**
  * A wrapper for String encryption, keeping both the mode and the data.
  *
- * @param encryptionMode Encryption mode. Determine format of {@link #encryptedData()}.
- * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionMode()}.
+ * @param encryptionAlgorithm Encryption mode. Determine format of {@link #encryptedData()}.
+ * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionAlgorithm()}.
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public record EncryptableString(EncryptionMode encryptionMode, String encryptedData) {
+public record EncryptableString(EncryptionAlgorithm encryptionAlgorithm, String encryptedData) {
 
 }

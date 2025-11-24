@@ -179,7 +179,7 @@ public class MasterKeyGenerationService {
                                          PublicKeyRegistry publicKeyRegistry, ApplicationEntity app) throws GenericServiceException {
         PrivateKeysRecord masterPrivateKeys = masterPrivateKeysConverter.toDBValue(privateKeyRegistry, app.getId());
         entity.setMasterPrivateKeys(masterPrivateKeys.privateKeysBase64());
-        entity.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionMode());
+        entity.setMasterPrivateKeysEncryption(masterPrivateKeys.encryptionAlgorithm());
         entity.setMasterPublicKeys(publicKeysConverter.toDBValue(publicKeyRegistry));
     }
 

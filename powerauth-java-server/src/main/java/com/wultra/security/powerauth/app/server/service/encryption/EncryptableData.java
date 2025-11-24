@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.encryption;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
@@ -26,15 +26,15 @@ import java.util.Objects;
 /**
  * A wrapper for data encryption, keeping both the mode and the data.
  *
- * @param encryptionMode Encryption mode. Determine format of {@link #encryptedData()}.
- * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionMode()}.
+ * @param encryptionAlgorithm Encryption mode. Determine format of {@link #encryptedData()}.
+ * @param encryptedData Data. May be plain or encrypted. Depends on {@link #encryptionAlgorithm()}.
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public record EncryptableData(EncryptionMode encryptionMode, byte[] encryptedData) {
+public record EncryptableData(EncryptionAlgorithm encryptionAlgorithm, byte[] encryptedData) {
     @Override
     public String toString() {
         return "EncryptableRecord{" +
-                "encryptionMode=" + encryptionMode +
+                "encryptionAlgorithm=" + encryptionAlgorithm +
                 ", encryptedDataLength=" + ArrayUtils.getLength(encryptedData) +
                 '}';
     }
@@ -47,11 +47,11 @@ public record EncryptableData(EncryptionMode encryptionMode, byte[] encryptedDat
         if (!(o instanceof final EncryptableData that)) {
             return false;
         }
-        return Objects.deepEquals(encryptedData, that.encryptedData) && encryptionMode == that.encryptionMode;
+        return Objects.deepEquals(encryptedData, that.encryptedData) && encryptionAlgorithm == that.encryptionAlgorithm;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(encryptionMode, Arrays.hashCode(encryptedData));
+        return Objects.hash(encryptionAlgorithm, Arrays.hashCode(encryptedData));
     }
 }

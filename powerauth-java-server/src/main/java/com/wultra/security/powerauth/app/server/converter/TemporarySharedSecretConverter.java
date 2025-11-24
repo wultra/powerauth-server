@@ -19,8 +19,7 @@
 package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for temporary shared secret which handles key encryption and decryption in case it is configured.
@@ -52,9 +50,10 @@ public class TemporarySharedSecretConverter {
      * @throws GenericServiceException In case shared secret decryption fails.
      */
     public String fromDBValue(final SharedSecretRecord sharedSecret, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
-        final byte[] data = convert(sharedSecret.sharedSecretBase64());
-        final byte[] decrypted = encryptionService.decrypt(data, sharedSecret.encryptionMode(), createSecretKeyDerivationInput(keyId, appKey, activationId));
-        return convert(decrypted);
+        final byte[] encrypted = fromBase64(sharedSecret.sharedSecretBase64());
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
+        final byte[] decrypted = encryptionService.decrypt(encrypted, encryptionKeySupplier, sharedSecret.encryptionAlgorithm());
+        return toBase64(decrypted);
     }
 
     /**
@@ -69,24 +68,31 @@ public class TemporarySharedSecretConverter {
      * @return Shared secret as composite database value.
      * @throws GenericServiceException Thrown when shared secret encryption fails.
      */
-    public SharedSecretRecord toDBValue(final byte[] sharedSecret, String keyId, String appKey, String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(sharedSecret, createSecretKeyDerivationInput(keyId, appKey, activationId));
-        return new SharedSecretRecord(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
+    public SharedSecretRecord toDBValue(final byte[] sharedSecret, final String keyId, final String appKey, final String activationId) throws GenericServiceException {
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(keyId, appKey, activationId);
+        final EncryptableData encrypted = encryptionService.encrypt(sharedSecret, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new SharedSecretRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
-    private static String convert(final byte[] source) {
+    private static String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private static byte[] convert(final String source) {
+    private static byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createSecretKeyDerivationInput(final String keyId, final String appKey, final String activationId) {
+    private static EncryptionKeySupplier encryptionKeySupplier(final String keyId, final String appKey, final String activationId) {
         if (activationId != null) {
-            return () -> List.of(keyId, appKey, activationId);
+            return new DefaultEncryptionKeySupplier(
+                    List.of(keyId, appKey, activationId),
+                    List.of("pa_temporary_key", "secret_key_base64", keyId, activationId)
+            );
         } else {
-            return () -> List.of(keyId, appKey);
+            return new DefaultEncryptionKeySupplier(
+                    List.of(keyId, appKey),
+                    List.of("pa_temporary_key", "secret_key_base64", keyId)
+            );
         }
     }
 

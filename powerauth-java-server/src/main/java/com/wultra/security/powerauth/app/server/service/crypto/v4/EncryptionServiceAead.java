@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.EncryptionService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -147,8 +147,8 @@ public class EncryptionServiceAead extends EncryptionService {
         final SecretKey sharedSecret = temporaryKeyService.extractTemporarySharedSecret(aeadRequest.getTemporaryKeyId(), applicationVersion.getApplicationKey(), activation.getActivationId());
 
         final String serverPrivateKeys = activation.getServerPrivateKeys();
-        final EncryptionMode encryptionMode = activation.getServerPrivateKeysEncryption();
-        final PrivateKeysRecord privateKeys = new PrivateKeysRecord(encryptionMode, serverPrivateKeys);
+        final EncryptionAlgorithm encryptionAlgorithm = activation.getServerPrivateKeysEncryption();
+        final PrivateKeysRecord privateKeys = new PrivateKeysRecord(encryptionAlgorithm, serverPrivateKeys);
         final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
         final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 

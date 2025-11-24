@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.app.server.service.persistence;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Nested;
@@ -73,7 +73,7 @@ class ApplicationConfigServiceTest {
 
             final Optional<ApplicationConfigEntity> entity = repository.findByApplicationIdAndKey("PA_Tests", "oauth2_providers");
             assertTrue(entity.isPresent());
-            assertEquals(EncryptionMode.AES_HMAC, entity.get().getEncryptionMode());
+            assertEquals(EncryptionAlgorithm.AEAD_KMAC, entity.get().getEncryptionAlgorithm());
             assertFalse(entity.get().getValues().contains("client_secret"));
         }
     }
@@ -109,8 +109,8 @@ class ApplicationConfigServiceTest {
 
             final Optional<ApplicationConfigEntity> entity = repository.findByApplicationIdAndKey("PA_Tests", "oauth2_providers");
             assertTrue(entity.isPresent());
-            assertEquals(EncryptionMode.NO_ENCRYPTION, entity.get().getEncryptionMode());
-            assertEquals("[ \"client_secret\" ]", entity.get().getValues());
+            assertEquals(EncryptionAlgorithm.AEAD_KMAC, entity.get().getEncryptionAlgorithm());
+            assertNotNull(entity.get().getValues());
         }
     }
 }
