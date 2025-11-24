@@ -8,7 +8,8 @@ ENV JAVA_HOME=/opt/java/openjdk \
     LOGBACK_CONF=/opt/logback/conf \
     TZ=UTC \
     APP_PATH="/app/powerauth-java-server.war" \
-    EXTLIB_PATH="/app/extlib"
+    EXTLIB_PATH="/app/extlib" \
+    OJDBC_VERSION="23.8.0.25.04"
 
 # Upgrade OS and dependencies
 RUN apt-get -y update  \
@@ -21,7 +22,10 @@ RUN apt-get -y update  \
 # Add PowerAuth user
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
+RUN mkdir -p ${EXTLIB_PATH} && wget --no-verbose https://repo1.maven.org/maven2/com/oracle/database/jdbc/ojdbc11/${OJDBC_VERSION}/ojdbc11-${OJDBC_VERSION}.jar -O ${EXTLIB_PATH}/ojdbc11.jar
+
 # Deploy and run applications
+COPY ./powerauth-java-server/src/main/resources/application.properties /app/application.properties
 COPY ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war "${APP_PATH}"
 
 # Docker configuration
