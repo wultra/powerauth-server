@@ -186,4 +186,4 @@ jobs:
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
           IMAGES: ${{ steps.digests.outputs.TAGS_DIGESTS }}
           INPUT_FILES: '/sbom/powerauth-java-server.cdx.json'
-          INPUT_FILES_PATHS: './powerauth-java-server/docker/sbom'
+          INPUT_FILES_PATH: './powerauth-java-server/docker/sbom'
