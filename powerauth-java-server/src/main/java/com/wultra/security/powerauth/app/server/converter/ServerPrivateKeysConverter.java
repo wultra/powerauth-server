@@ -22,8 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
-import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.*;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for server private keys which handles key conversion and encryption/decryption in case it is configured.
@@ -64,8 +62,9 @@ public class ServerPrivateKeysConverter {
      */
     public PrivateKeyRegistry fromDBValue(final PrivateKeysRecord privateKeys, final String userId, final String activationId) throws GenericServiceException {
         try {
-            final byte[] data = convertFromBase64(privateKeys.privateKeysBase64());
-            final byte[] decrypted = encryptionService.decrypt(data, privateKeys.encryptionMode(), createEncryptionKeyProvider(userId, activationId));
+            final byte[] encryptedData = fromBase64(privateKeys.privateKeysBase64());
+            final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, privateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
         } catch (IOException e) {
             logger.warn("Decryption failed", e);
@@ -104,9 +103,10 @@ public class ServerPrivateKeysConverter {
      * @return Private keys as composite database value.
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
-    PrivateKeysRecord toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(privateKeysBytes, createEncryptionKeyProvider(userId, activationId));
-        return new PrivateKeysRecord(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
+    public PrivateKeysRecord toDBValue(final byte[] privateKeysBytes, final String userId, final String activationId) throws GenericServiceException {
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(userId, activationId);
+        final EncryptableData encrypted = encryptionService.encrypt(privateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -117,16 +117,19 @@ public class ServerPrivateKeysConverter {
         return objectMapper.readValue(source, PrivateKeyRegistry.class);
     }
 
-    private String convertToBase64(final byte[] source) {
+    private String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private byte[] convertFromBase64(final String source) {
+    private byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String userId, final String activationId) {
-        return () -> List.of(userId, activationId);
+    private static EncryptionKeySupplier encryptionKeySupplier(final String userId, final String activationId) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(userId, activationId),
+                List.of("pa_activation", "server_private_keys", activationId)
+        );
     }
 
 }

@@ -19,6 +19,8 @@
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
@@ -1095,9 +1097,10 @@ class PowerAuthControllerTest {
         assertNotNull(initActivationResponse);
         assertNotNull(initActivationResponse.getActivationId());
         assertNotNull(initActivationResponse.getActivationSignature());
-        assertNotNull(initActivationResponse.getActivationSignatureEcdsa());
-        assertNotNull(initActivationResponse.getActivationSignatureMldsa65());
-        assertNotNull(initActivationResponse.getActivationSignatureMldsa87());
+        assertNotNull(initActivationResponse.getActivationSignatures().get(JWSAlgorithm.ES256.getName()));
+        assertNotNull(initActivationResponse.getActivationSignatures().get(JWSAlgorithm.ES384.getName()));
+        assertNotNull(initActivationResponse.getActivationSignatures().get(JWSAlgorithmMLDSA.MLDSA65.getName()));
+        assertNotNull(initActivationResponse.getActivationSignatures().get(JWSAlgorithmMLDSA.MLDSA87.getName()));
         assertNotNull(initActivationResponse.getApplicationId());
         assertEquals(PowerAuthControllerTestConfig.USER_ID, initActivationResponse.getUserId());
         assertEquals(config.getApplicationId(), initActivationResponse.getApplicationId());

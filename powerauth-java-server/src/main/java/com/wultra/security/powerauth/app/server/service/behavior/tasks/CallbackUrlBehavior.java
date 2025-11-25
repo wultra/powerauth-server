@@ -120,7 +120,7 @@ public class CallbackUrlBehavior {
             entity.setAttributes(request.getAttributes());
             final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
-            entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setEncryptionAlgorithm(encrypted.encryptionAlgorithm());
             entity.setRetentionPeriod(request.getRetentionPeriod());
             entity.setInitialBackoff(request.getInitialBackoff());
             entity.setMaxAttempts(request.getMaxAttempts());
@@ -216,7 +216,7 @@ public class CallbackUrlBehavior {
             }
             final EncryptableString encrypted = callbackUrlAuthenticationEncryptor.encrypt(authRequest, entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
-            entity.setEncryptionMode(encrypted.encryptionMode());
+            entity.setEncryptionAlgorithm(encrypted.encryptionAlgorithm());
             entity.setRetentionPeriod(request.getRetentionPeriod());
             entity.setInitialBackoff(request.getInitialBackoff());
             entity.setMaxAttempts(request.getMaxAttempts());

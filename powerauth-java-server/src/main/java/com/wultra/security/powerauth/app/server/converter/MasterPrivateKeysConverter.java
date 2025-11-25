@@ -22,8 +22,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
-import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
+import com.wultra.security.powerauth.app.server.service.encryption.DefaultEncryptionKeySupplier;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptableData;
+import com.wultra.security.powerauth.app.server.service.encryption.EncryptionKeySupplier;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Converter for master private keys which handles key conversion and encryption/decryption in case it is configured.
@@ -63,8 +64,9 @@ public class MasterPrivateKeysConverter {
      */
     public PrivateKeyRegistry fromDBValue(final PrivateKeysRecord masterPrivateKeys, final String applicationId) throws GenericServiceException {
         try {
-            final byte[] data = convertFromBase64(masterPrivateKeys.privateKeysBase64());
-            final byte[] decrypted = encryptionService.decrypt(data, masterPrivateKeys.encryptionMode(), createEncryptionKeyProvider(applicationId));
+            final byte[] encryptedData = fromBase64(masterPrivateKeys.privateKeysBase64());
+            final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
+            final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, masterPrivateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
         } catch (IOException e) {
             logger.warn("Decryption failed", e);
@@ -102,8 +104,9 @@ public class MasterPrivateKeysConverter {
      * @throws GenericServiceException Thrown when private keys encryption fails.
      */
     PrivateKeysRecord toDBValue(final byte[] masterPrivateKeysBytes, final String applicationId) throws GenericServiceException {
-        final EncryptableData encryptable = encryptionService.encrypt(masterPrivateKeysBytes, createEncryptionKeyProvider(applicationId));
-        return new PrivateKeysRecord(encryptable.encryptionMode(), convertToBase64(encryptable.encryptedData()));
+        final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
+        final EncryptableData encrypted = encryptionService.encrypt(masterPrivateKeysBytes, encryptionKeySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
     byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
@@ -114,16 +117,19 @@ public class MasterPrivateKeysConverter {
         return objectMapper.readValue(source, PrivateKeyRegistry.class);
     }
 
-    private String convertToBase64(final byte[] source) {
+    private static String toBase64(final byte[] source) {
         return Base64.getEncoder().encodeToString(source);
     }
 
-    private byte[] convertFromBase64(final String source) {
+    private static byte[] fromBase64(final String source) {
         return Base64.getDecoder().decode(source);
     }
 
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String applicationId) {
-        return () -> List.of(applicationId);
+    private static EncryptionKeySupplier encryptionKeySupplier(final String applicationId) {
+        return new DefaultEncryptionKeySupplier(
+                List.of(applicationId),
+                List.of("pa_master_keypair", "master_private_keys", applicationId)
+        );
     }
 
 }

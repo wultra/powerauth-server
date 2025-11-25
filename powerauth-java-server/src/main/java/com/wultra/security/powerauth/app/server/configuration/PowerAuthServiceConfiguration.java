@@ -22,20 +22,24 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
+import java.util.Base64;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -48,6 +52,7 @@ import java.time.Duration;
 @Validated
 @Getter
 @Setter
+@Slf4j
 public class PowerAuthServiceConfiguration {
 
     /**
@@ -233,10 +238,22 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Master DB encryption key.
+     * Master DB encryption key for algorithm AES_HMAC.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
+
+    /**
+     * Master DB encryption key for algorithm AEAD_KMAC.
+     */
+    @Value("${powerauth.server.db.master.encryption.aead-kmac.key}")
+    private String masterDbEncryptionKeyAeadKmac;
+
+    /**
+     * Default DB encryption algorithm.
+     */
+    @Value("${powerauth.server.db.master.encryption.algorithm:AEAD_KMAC}")
+    private EncryptionAlgorithm dbEncryptionAlgorithm;
 
     /**
      * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.
@@ -685,6 +702,41 @@ public class PowerAuthServiceConfiguration {
                 "Temporary key validity %d ms exceeds request expiration %d ms"
                         .formatted(temporaryKeyValidity.toMillis(), requestExpiration.toMillis())
         );
+    }
+
+    @PostConstruct
+    void validateDbEncryptionConfiguration() {
+        if (dbEncryptionAlgorithm == EncryptionAlgorithm.NO_ENCRYPTION) {
+            logger.warn("Database record encryption is disabled.");
+            return;
+        }
+        if (dbEncryptionAlgorithm == EncryptionAlgorithm.AES_HMAC) {
+            logger.warn("Legacy encryption algorithm AES_HMAC is used for database record encryption.");
+            return;
+        }
+        if (!StringUtils.hasText(masterDbEncryptionKeyAeadKmac)) {
+            throw new IllegalStateException("""
+                Master DB encryption key is not configured for default encryption algorithm AEAD_KMAC.
+                Configure property 'powerauth.server.db.master.encryption.aead-kmac.key' with a 256-bit Base64 encoded key.
+
+                For more details, see the PowerAuth server 2.0.0 migration guide.
+                """);
+        }
+        final byte[] decodedKey;
+        try {
+            decodedKey = Base64.getDecoder().decode(masterDbEncryptionKeyAeadKmac);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("""
+                Master DB encryption key is not a valid Base-64 encoded key for AEAD_KMAC.
+                Check configuration of property 'powerauth.server.db.master.encryption.aead-kmac.key'.
+                """, e);
+        }
+        if (decodedKey.length != 32) {
+            throw new IllegalStateException("""
+                Master DB encryption key has incorrect length for AEAD_KMAC.
+                Expected a 256-bit Base64 encoded key configured in property 'powerauth.server.db.master.encryption.aead-kmac.key'.
+                """);
+        }
     }
 
 }

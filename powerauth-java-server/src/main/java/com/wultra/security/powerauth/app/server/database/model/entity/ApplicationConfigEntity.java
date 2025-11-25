@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,7 +59,7 @@ public class ApplicationConfigEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
-    private EncryptionMode encryptionMode;
+    private EncryptionAlgorithm encryptionAlgorithm;
 
     @Override
     public boolean equals(Object o) {
@@ -84,7 +84,7 @@ public class ApplicationConfigEntity implements Serializable {
                 ", appId='" + application.getId() + '\'' +
                 ", key=" + key +
                 ", values=" + values +
-                ", encryptionMode=" + encryptionMode +
+                ", encryptionMode=" + encryptionAlgorithm +
                 '}';
     }
 }

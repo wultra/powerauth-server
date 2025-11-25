@@ -34,7 +34,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
@@ -163,8 +163,8 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
         try {
             final TemporaryKeyEntity temporaryKey = fetchTemporaryKey(id, appKey, activationId);
             final String serverPrivateKeyFromEntity = temporaryKey.getPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = temporaryKey.getPrivateKeyEncryption();
-            final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final EncryptionAlgorithm serverPrivateKeyEncryptionAlgorithm = temporaryKey.getPrivateKeyEncryption();
+            final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(serverPrivateKeyEncryptionAlgorithm, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = temporaryPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, temporaryKey.getId(), temporaryKey.getAppKey(), temporaryKey.getActivationId());
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             return KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
@@ -261,9 +261,9 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
 
-                final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
+                final EncryptionAlgorithm encryptionAlgorithm = activation.getServerPrivateKeyEncryption();
                 final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
-                final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(encryptionMode, serverPrivateKeyBase64);
+                final ServerPrivateKeyRecord serverPrivateKeyEncrypted = new ServerPrivateKeyRecord(encryptionAlgorithm, serverPrivateKeyBase64);
                 final String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
                 final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
                 final PrivateKey serverPrivateKey = KEY_CONVERTOR.convertBytesToPrivateKey(EcCurve.P256, serverPrivateKeyBytes);
@@ -310,11 +310,11 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
         temporaryKeyEntity.setId(keyId);
         temporaryKeyEntity.setAppKey(applicationKey);
         temporaryKeyEntity.setActivationId(activationId);
-        temporaryKeyEntity.setPrivateKeyEncryption(temporaryPrivateKey.encryptionMode());
+        temporaryKeyEntity.setPrivateKeyEncryption(temporaryPrivateKey.encryptionAlgorithm());
         temporaryKeyEntity.setPrivateKeyBase64(temporaryPrivateKey.serverPrivateKeyBase64());
         temporaryKeyEntity.setPublicKeyBase64(temporaryPublicKeyBase64);
         temporaryKeyEntity.setTimestampExpires(expirationDate);
-        temporaryKeyEntity.setSecretKeyEncryption(EncryptionMode.NO_ENCRYPTION);
+        temporaryKeyEntity.setSecretKeyEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
         final TemporaryKeyEntity savedEntity = temporaryKeyRepository.save(temporaryKeyEntity);
 
         // Prepare and return the result

@@ -55,7 +55,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.request.AeadEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
-import com.wultra.security.powerauth.crypto.lib.v4.kdf.KeyFactory;
+import com.wultra.security.powerauth.crypto.server.v4.keyfactory.PowerAuthServerKeyFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -95,6 +95,8 @@ public class VaultUnlockServiceBehavior {
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     private static final Pattern VAULT_UNLOCK_REASON_PATTERN = Pattern.compile("[A-Za-z0-9_\\-.]{3,255}");
+
+    private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     /**
      * Method to retrieve the vault unlock key.
@@ -287,9 +289,9 @@ public class VaultUnlockServiceBehavior {
      */
     private SecretKey deriveVaultEncryptionKey(String keyIdentifier, SecretKey keyActivationSecret) throws GenericCryptoException {
         return switch (keyIdentifier) {
-            case KEY_ID_KEK_DEVICE_PRIVATE -> KeyFactory.deriveKeyKekDevicePrivate(keyActivationSecret);
-            case KEY_ID_KDK_APP_VAULT_KNOWLEDGE -> KeyFactory.deriveKeyKdkAppVaultKnowledge(keyActivationSecret);
-            case KEY_ID_KDK_APP_VAULT_2FA -> KeyFactory.deriveKeyKdkAppVault2fa(keyActivationSecret);
+            case KEY_ID_KEK_DEVICE_PRIVATE -> SERVER_KEY_FACTORY.generateKeyKekDevicePrivate(keyActivationSecret);
+            case KEY_ID_KDK_APP_VAULT_KNOWLEDGE -> SERVER_KEY_FACTORY.generateKeyKdkAppVaultKnowledge(keyActivationSecret);
+            case KEY_ID_KDK_APP_VAULT_2FA -> SERVER_KEY_FACTORY.generateKeyKdkAppVault2fa(keyActivationSecret);
             // Impossible state due to validation
             default -> throw new IllegalArgumentException("Unsupported key identifier: " + keyIdentifier);
         };

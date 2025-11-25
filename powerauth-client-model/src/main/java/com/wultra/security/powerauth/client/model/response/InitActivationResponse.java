@@ -21,6 +21,9 @@ package com.wultra.security.powerauth.client.model.response;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Model class representing response with initialized activation information.
  *
@@ -39,13 +42,7 @@ public class InitActivationResponse {
     private String activationSignature;
 
     @ToString.Exclude
-    private String activationSignatureEcdsa;
-
-    @ToString.Exclude
-    private String activationSignatureMldsa65;
-
-    @ToString.Exclude
-    private String activationSignatureMldsa87;
+    private Map<String, String> activationSignatures = new LinkedHashMap<>();
 
     private String userId;
 

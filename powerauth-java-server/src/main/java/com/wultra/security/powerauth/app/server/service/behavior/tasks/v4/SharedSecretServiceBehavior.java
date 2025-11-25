@@ -200,7 +200,7 @@ public class SharedSecretServiceBehavior {
         final byte[] sharedSecretBytes = KEY_CONVERTOR_EC.convertSharedSecretKeyToBytes(responseCryptogram.getSecretKey());
         final SharedSecretRecord sharedSecretDb = activationSharedSecretConverter.toDBValue(sharedSecretBytes, activation.getUserId(), activation.getActivationId());
         activation.setSharedSecret(sharedSecretDb.sharedSecretBase64());
-        activation.setSharedSecretEncryption(sharedSecretDb.encryptionMode());
+        activation.setSharedSecretEncryption(sharedSecretDb.encryptionAlgorithm());
     }
 
     /**

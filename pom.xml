@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>3.5.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -101,9 +101,10 @@
         <!-- Other Dependencies -->
         <commons-text.version>1.14.0</commons-text.version>
         <logstash.version>8.1</logstash.version>
-        <equalsverifier.version>4.2.2</equalsverifier.version>
-        <zxing.version>3.5.3</zxing.version>
+        <equalsverifier.version>4.2.3</equalsverifier.version>
+        <zxing.version>3.5.4</zxing.version>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
+        <central.publishing.plugin.version>0.9.0</central.publishing.plugin.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.30.0.RELEASE</webauthn4j.version>
@@ -226,6 +227,11 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${central.publishing.plugin.version}</version>
+                </plugin>
                 <plugin>
                     <groupId>io.github.git-commit-id</groupId>
                     <artifactId>git-commit-id-maven-plugin</artifactId>
@@ -433,8 +439,6 @@
                     <name>!useInternalRepo</name>
                 </property>
             </activation>
-            <properties>
-            </properties>
             <distributionManagement>
                 <snapshotRepository>
                     <id>central-portal-snapshots-distribution</id>
@@ -445,6 +449,23 @@
                     <url>https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
+            <properties>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>${env.server_id}</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                            <waitMaxTime>${env.wait_max_time}</waitMaxTime>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
