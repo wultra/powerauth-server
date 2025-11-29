@@ -89,14 +89,15 @@ public class SdkConfigurationSerializer {
         final SdkDataReader reader = new SdkDataReader(serializedBytes);
         final Byte version = reader.readByte();
         if (version == null || version != SDK_CONFIGURATION_VERSION) {
-            logger.warn("Unexpected SDK configuration version: {}", version);
-            return null;
+            throw new IllegalArgumentException("Invalid SDK configuration version: " + version);
         }
         final byte[] appKey = reader.readData(16);
         final byte[] appSecret = reader.readData(16);
-        if (appKey == null || appSecret == null) {
-            // Unexpected data
-            return null;
+        if (appKey == null) {
+            throw new IllegalArgumentException("Missing appKey value in SDK configuration");
+        }
+        if (appSecret == null) {
+            throw new IllegalArgumentException("Missing appSecret value in SDK configuration");
         }
         final Map<Byte, String> publicKeys = deserializeKeys(reader);
         final String publicKeyP256 = publicKeys.get(KEY_MASTER_ECDSA_P256_PUBLIC);
@@ -137,9 +138,18 @@ public class SdkConfigurationSerializer {
     private static Map<Byte, String> deserializeKeys(SdkDataReader reader) {
         final Map<Byte, String> publicKeys = new LinkedHashMap<>();
         final Integer keyCount = reader.readCount();
+        if (keyCount == null) {
+            throw new IllegalArgumentException("Missing key count in SDK configuration");
+        }
         for (int i = 0; i < keyCount; i++) {
             final Byte keyId = reader.readByte();
+            if (keyId == null) {
+                throw new IllegalArgumentException("Missing key identifier in SDK configuration");
+            }
             final byte[] publicKey = reader.readData(0);
+            if (publicKey == null) {
+                throw new IllegalArgumentException("Missing public key in SDK configuration");
+            }
             publicKeys.put(keyId, Base64.getEncoder().encodeToString(publicKey));
         }
         return publicKeys;
