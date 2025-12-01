@@ -145,6 +145,22 @@ Audit records for operation callbacks have also been updated to reflect the prop
 New attributes `parentActivationId` and `transferType` have been introduced to track activation spawn or move.
 It may be passed to the init activation request and later on be available in the activation detail.
 
+### New Error Codes
+
+The following error codes were added. These errors occur when cryptography algorithm support is disabled or requested cryptography version is not supported.
+
+| Error Code | Error Message                                   | Note                                                                                        |
+|------------|-------------------------------------------------|---------------------------------------------------------------------------------------------|
+| ERR0046    | Cryptography algorithm is not supported.        | In case the crytography algorithm is not supported because of application configuration.    |
+| ERR0047    | Cryptography protocol version is not supported. | In case the cryptography protocol version is not supported because of global configuration. |
+|            |                                                 |                                                                                             |
+
+These errors may be returned during REST API calls which use cryptography based on PowerAuth server configuration.
+
+### Updated MAC Token Request Timestamp Validations
+
+We have unified validations in PowerAuth server REST API. The error code returned for failed MAC token request timestamp validation is always `ERR0024`. As a side effect, error codes `ERR0030` and `ERR0044` used for the case when MAC token request timestamp validation fails are no longer returned.
+
 ## Configuration Updates
 
 Following property names were changed:
@@ -157,15 +173,6 @@ Usually there is no reason to change these configuration properties, default val
 New configuration property was added:
 - `powerauth.service.crypto.minSupportedProtocolVersion` - configures the minimum version of protocol which is supported by the server. The version `3` is supported by default, and it can be disabled by switching this value to `4`.
 
-### Updated MAC Token Request Timestamp Validations
-
-We have unified validations in PowerAuth server REST API. The error code returned for failed MAC token request timestamp validation is always `ERR0024`. As a side effect, error codes `ERR0030` and `ERR0044` used for the case when MAC token request timestamp validation fails are no longer returned.
-
-### New Error Codes
-
-The following error codes were added. These errors occur when cryptography algorithm support is disabled or requested cryptography version is not supported.
-
-| Error Code | Error Message                                   | Note                                                                                        |
-|------------|-------------------------------------------------|---------------------------------------------------------------------------------------------|
-| ERR0046    | Cryptography algorithm is not supported.        | In case the crytography algorithm is not supported because of application configuration.    |
-| ERR0047    | Cryptography protocol version is not supported. | In case the cryptography protocol version is not supported because of global configuration. |
+Following configuration properties were removed:
+- `powerauth.service.recovery.maxFailedAttempts` - removed due to removed recovery functionality
+- `powerauth.service.token.timestamp.validity` - token validity unified with request expiration validation

@@ -87,7 +87,7 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `/rest/v3/status` method of the RESTful interface.
+These properties are returned when calling the `/rest/v4/status` method of the RESTful interface.
 
 ## Enabling PowerAuth Server Security
 

@@ -31,6 +31,7 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.crypto.requestExpirationInMilliseconds`         | `60000`     | Expiration for ECIES and MAC token requests.                                                       |
 | `powerauth.service.crypto.requestExpirationInMillisecondsExtended` | `7200000`   | Expiration for ECIES and MAC token requests for protocol versions 3.1 and older.                   |
 | `powerauth.service.crypto.replayVerificationService`               | `default`   | Request replay verification service, options: `default`, `none`                                    |
+| `powerauth.service.crypto.minSupportedProtocolVersion`             | `3`         | Minimum version of supported cryptography protocol versions (`3` or `4`)                           |
 | `powerauth.service.secureVault.enableBiometricAuthentication`      | `false`     | Whether biometric authentication is enabled when accessing Secure Vault                            |
 | `powerauth.server.db.master.encryption.algorithm`                  | `AEAD_KMAC` | Default database encryption algorithm. Supported values: `NO_ENCRYPTION`, `AES_HMAC`, `AEAD_KMAC`. |
 | `powerauth.server.db.master.encryption.key`                        | `_empty_`   | 16-byte Base64-encoded master encryption key for the legacy `AES_HMAC` algorithm.                  |
