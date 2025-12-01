@@ -31,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.wultra.security.powerauth.app.server.service.model.ServiceError.INVALID_APPLICATION;
-import static com.wultra.security.powerauth.app.server.service.model.ServiceError.INVALID_REQUEST;
 
 /**
  * Writer for serialized PowerAuth mobile SDK configuration.
@@ -105,17 +104,17 @@ public class SdkConfigurationSerializer {
         final Byte version = reader.readByte();
         if (version == null || version != SDK_CONFIGURATION_VERSION) {
             logger.warn("Invalid SDK configuration version: {}", version);
-            throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+            throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
         }
         final byte[] appKey = reader.readData(16);
         final byte[] appSecret = reader.readData(16);
         if (appKey == null) {
             logger.warn("Missing parameter appKey in SDK configuration");
-            throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+            throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
         }
         if (appSecret == null) {
             logger.warn("Missing parameter appSecret in SDK configuration");
-            throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+            throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
         }
         final Map<Byte, String> publicKeys = deserializeKeys(reader);
         final String publicKeyP256 = publicKeys.get(KEY_MASTER_ECDSA_P256_PUBLIC);
@@ -158,18 +157,18 @@ public class SdkConfigurationSerializer {
         final Integer keyCount = reader.readCount();
         if (keyCount == null) {
             logger.warn("Missing key count in SDK configuration");
-            throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+            throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
         }
         for (int i = 0; i < keyCount; i++) {
             final Byte keyId = reader.readByte();
             if (keyId == null) {
                 logger.warn("Missing key identifier in SDK configuration");
-                throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+                throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
             }
             final byte[] publicKey = reader.readData(0);
             if (publicKey == null) {
                 logger.warn("Missing public key in SDK configuration");
-                throw localizationProvider.buildExceptionForCode(INVALID_REQUEST);
+                throw localizationProvider.buildExceptionForCode(INVALID_APPLICATION);
             }
             publicKeys.put(keyId, Base64.getEncoder().encodeToString(publicKey));
         }
