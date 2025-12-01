@@ -56,7 +56,7 @@ public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyR
 
         final JsonNode privateKeysNode = root.get("privateKeys");
         if (privateKeysNode == null) {
-            throw new IllegalArgumentException("Invalid JSON for private key registry");
+            throw new IOException("Invalid JSON for private key registry");
         }
         final Iterator<String> keyTypeNames = privateKeysNode.fieldNames();
         while (keyTypeNames.hasNext()) {
@@ -64,7 +64,7 @@ public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyR
             final KeyType keyType = KeyType.valueOf(keyTypeName);
             final byte[] encodedKey = privateKeysNode.get(keyTypeName).binaryValue();
             if (encodedKey == null) {
-                throw new IllegalArgumentException("Missing key " + keyTypeName + " in private key registry");
+                throw new IOException("Missing key " + keyTypeName + " in private key registry");
             }
             final PrivateKey key = deserializePrivateKey(keyType, encodedKey);
             keyRegistry.storePrivateKey(keyType, key);
