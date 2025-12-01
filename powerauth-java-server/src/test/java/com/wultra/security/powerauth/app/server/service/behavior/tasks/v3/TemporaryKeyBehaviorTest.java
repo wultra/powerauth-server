@@ -103,9 +103,10 @@ class TemporaryKeyBehaviorTest {
     private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter, SdkConfigurationSerializer sdkConfigurationSerializer) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
@@ -113,6 +114,7 @@ class TemporaryKeyBehaviorTest {
         this.activationCreateServiceBehavior = activationCreateServiceBehavior;
         this.activationRepository = activationRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.sdkConfigurationSerializer = sdkConfigurationSerializer;
     }
 
     @Test
@@ -143,7 +145,7 @@ class TemporaryKeyBehaviorTest {
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
         final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
-        final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyP256();
+        final String masterPublicKeyBase64 = sdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyP256();
         final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterPublicKeyBase64));
         assertTrue(validateJwtSignature(decodedJWT, masterPublicKey));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));

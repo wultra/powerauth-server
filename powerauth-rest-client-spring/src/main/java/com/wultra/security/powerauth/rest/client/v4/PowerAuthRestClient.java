@@ -95,10 +95,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
             if (config.getProxyUsername() != null) {
                 proxyBuilder.username(config.getProxyUsername()).password(config.getProxyPassword());
             }
-            proxyBuilder.build();
         }
         if (config.getPowerAuthClientToken() != null) {
-            builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret()).build();
+            builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret());
         }
         if (config.getDefaultHttpHeaders() != null) {
             builder.defaultHttpHeaders(config.getDefaultHttpHeaders());

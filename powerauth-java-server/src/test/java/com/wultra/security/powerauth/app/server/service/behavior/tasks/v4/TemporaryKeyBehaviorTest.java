@@ -120,11 +120,12 @@ class TemporaryKeyBehaviorTest {
     private final ActivationCreateServiceBehavior activationServiceBehaviorV4;
     private final ActivationRepository activationRepository;
     private final PublicKeysConverter publicKeysConverter;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, PublicKeysConverter publicKeysConverter, TemporaryKeyTestService temporaryKeyTestService) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, PublicKeysConverter publicKeysConverter, SdkConfigurationSerializer sdkConfigurationSerializer, TemporaryKeyTestService temporaryKeyTestService) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
@@ -132,6 +133,7 @@ class TemporaryKeyBehaviorTest {
         this.activationServiceBehaviorV4 = activationServiceBehaviorV4;
         this.activationRepository = activationRepository;
         this.publicKeysConverter = publicKeysConverter;
+        this.sdkConfigurationSerializer = sdkConfigurationSerializer;
         this.temporaryKeyTestService = temporaryKeyTestService;
     }
 
@@ -435,17 +437,17 @@ class TemporaryKeyBehaviorTest {
         return publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
-    private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
+    private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, GenericServiceException {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
-        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final SdkConfiguration sdkConfiguration = sdkConfigurationSerializer.deserialize(mobileSdkConfig);
         final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyP384();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, masterPublicKeyBytes);
     }
 
-    private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws GenericCryptoException {
+    private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, GenericServiceException {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
-        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final SdkConfiguration sdkConfiguration = sdkConfigurationSerializer.deserialize(mobileSdkConfig);
         final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyMlDsa65();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterPublicKeyBytes);

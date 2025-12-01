@@ -56,6 +56,7 @@ public class ApplicationDetailServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final AlgorithmQueryService algorithmQueryService;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
 
     /**
      * Get application details by ID.
@@ -111,7 +112,7 @@ public class ApplicationDetailServiceBehavior {
                     .appSecret(version.getApplicationSecret())
                     .masterPublicKeyP256(masterPublicKeyBase64)
                     .build();
-            final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
+            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
             ver.setApplicationVersionId(version.getId());

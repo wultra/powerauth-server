@@ -67,6 +67,7 @@ public class ApplicationDetailServiceBehavior {
     private final ApplicationVersionRepository applicationVersionRepository;
     private final PublicKeysConverter publicKeysConverter;
     private final AlgorithmQueryService algorithmQueryService;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
@@ -152,7 +153,7 @@ public class ApplicationDetailServiceBehavior {
                     .masterPublicKeyMlDsa65(publicKeyMlDsa65)
                     .masterPublicKeyMlDsa87(publicKeyMlDsa87)
                     .build();
-            final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
+            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
             ver.setApplicationVersionId(version.getId());

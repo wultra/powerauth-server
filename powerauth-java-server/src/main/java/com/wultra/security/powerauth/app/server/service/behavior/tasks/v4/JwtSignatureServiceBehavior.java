@@ -200,7 +200,7 @@ public class JwtSignatureServiceBehavior {
             final String jwsJson = jwsObject.serializeGeneral();
             signJwtResponse.setSignedData(jwsJson);
             return signJwtResponse;
-        } catch (Exception e) {
+        } catch (JOSEException e) {
             logger.warn("Error occurred while signing JWS: {}", e.getMessage(), e);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
