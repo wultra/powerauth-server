@@ -1,69 +1,102 @@
 # Encrypting Records in Database
 
-In order to improve the security of sensitive records stored in the database (e.g. private keys and PUKs), we recommend taking following additional steps when configuring your database and database access.
+To improve protection of sensitive data stored in the database, such as master private keys, activation private keys, temporary keys, callback authentication, and other sensitive data, PowerAuth Server supports two layers of protection:
+
+- Database-level encryption (transparent data encryption)
+- Application-level per-record encryption
+
+Both should be enabled in production deployments.
 
 ## Transparent Data Encryption
 
 As a basic security measure, we suggest using data encryption support of your database engine to protect the records stored in the database. Most of the database engines support the mechanism of "transparent data encryption", see for example:
 
-- [Oracle](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/asoag/asopart1.html)
-- [PostgreSQL](https://www.postgresql.org/docs/11/encryption-options.html)
+- [Oracle](https://docs.oracle.com/en/database/oracle/oracle-database/26/shard/using-transparent-data-encryption.html)
+- [PostgreSQL](https://www.postgresql.org/docs/current/encryption-options.html)
 - [MS SQL](https://learn.microsoft.com/en-us/sql/relational-databases/security/encryption/transparent-data-encryption)
 
-## Additional Record Encryption
+## Additional Application Level Per-Record Encryption
 
-To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys in the database using an application level record encryption.
+To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys in the database using application level record encryption.
 
-### Enabling Record Encryption
+The algorithm `AEAD_KMAC` is the default database encryption algorithm. It uses:
 
-In order to enable the additional database record encryption, you need to set the following property to the application:
+* a 256-bit master DB encryption key
+* KMAC-256 for per-record key derivation
+* Authenticated encryption using an AEAD scheme based on AES-256
+
+This provides high security with AES-256 encryption and KMAC-256 key derivation, which are resistant to known quantum attacks.
+
+### Configuration Application Level Per-Record Encryption
+
+To configure the additional database record encryption, you need to set the following property to the application:
 
 ```
-powerauth.server.db.master.encryption.key=[16 random bytes Base64 encoded, for example 'MTIzNDU2Nzg5MDEyMzQ1Ng==']
+powerauth.server.db.master.encryption.aead-kmac.key=[32 random bytes Base64 encoded, for example 'mC92FrUKjMCqIKW5qVOduxRlBeEQ+fLsQjPxf1k9ow8=']
 ```
 
 <!-- begin box warning -->
 In case you lose the original master DB encryption key, there is no way to recover original data and your users will need to re-activate their mobile applications.
 <!-- end -->
 
-The value of the key must be 16 random bytes, Base64 encoded.
+The value of the key must be 32 random bytes, Base64 encoded.
+
+The algorithm for application-level encryption is controlled by:
+
+```
+powerauth.server.db.master.encryption.algorithm=AEAD_KMAC
+```
+
+Allowed values:
+- `NO_ENCRYPTION` - use for non-production environments only,
+- `AES_HMAC` - legacy AES-16 with HMAC-based key derivation, do not use
+- `AEAD_KMAC` (default) - current encryption algorithm with AEAD using AES-256 for encryption and KMAC-256 for key derivation
+
+### How to Generate a Valid 256-bit Encryption Key
+
+Use any cryptographically secure random generator to produce a 32-byte key and encode it in Base64.
+
+#### Linux / macOS
+
+```
+head -c 32 /dev/urandom | base64
+```
+
+#### OpenSSL
+
+```
+openssl rand -base64 32
+```
+
+Paste the generated value into the configuration property.
+
+### Securing the Encryption Key
+
+The master database encryption key is a highly sensitive secret and must be protected. Do not store this key directly in configuration files, source control, or container images. Use a secure secret management solution (such as a vault or encrypted configuration provider) to supply the key to the application at runtime and restrict access only to the PowerAuth Server process.
 
 ### Using HashiCorp Vault
 
-Instead of providing a hard-coded value of `powerauth.server.db.master.encryption.key` in your application properties, you can also [use a HashiCorp Vault to store the database encryption key securely](./Using-HashiCorp-Vault.md). For high security environment, this is the preferred way of storing the database encryption key. 
+Instead of providing a hard-coded value of `powerauth.server.db.master.encryption.aead-kmac.key` in your application properties, you can also [use a HashiCorp Vault to store the database encryption key securely](./Using-HashiCorp-Vault.md). For high security environment, this is the preferred way of storing the database encryption key.
+
+### Legacy Encryption Algorithm Configuration
+
+The `AES_HMAC` encryption algorithm is legacy and should not be used in PowerAuth server 2.0.0 or higher.
+In case you used this encryption algorithm previously, keep the configured key in property `powerauth.server.db.master.encryption.key` to allow decryption of existing data.
+
+### Switching to NO_ENCRYPTION
+
+If you are upgrading a non-production environment, you may override the default encryption algorithm:
+
+```
+powerauth.server.db.master.encryption.algorithm=NO_ENCRYPTION
+```
+
+When using `NO_ENCRYPTION`, no database encryption keys are required, and sensitive values will be stored in plaintext.
+
 
 ### Note on Private Key Encryption Cryptography
 
-In case additional private key encryption is enabled, PowerAuth Server uses application level encryption/decryption routines whenever storing/loading a `KEY_SERVER_PRIVATE` value takes place. For this purpose, a new key `MASTER_DB_ENCRYPTION_KEY` is introduced. Also, since there is the good old rule "Same data should result in different encrypted values", a random `IV` value for the encryption is generated and stored with the value for the purpose of a later decryption.
-
-Pseudo-code for the encryption and decryption routines is following:
-
-```java
-public byte[] encrypt(byte[] orig, SecretKey derivedDbEncryptionKey) {
-    byte[] iv = Bytes.random(16);
-    byte[] encrypted = aes.encrypt(orig, iv, derivedDbEncryptionKey);
-    byte[] record = iv.append(encrypted);
-    return record;
-}
-
-public byte[] decrypt(byte[] record, SecretKey derivedDbEncryptionKey) {
-    byte[] iv = record.byteRange(0, 16); // offset, length
-    byte[] encrypted = record.byteRange(16, -1); // offset, remaining
-    byte[] orig = aes.decrypt(encrypted, iv, derivedDbEncryptionKey);
-    return orig;
-}
-```
-
-In order to achieve a consistency between activation record and encrypted server private key (to prevent a partial record swap attack, where admin replaces part of the record with own known values), we pay special attention to how we derive the encryption key from `MASTER_DB_ENCRYPTION_KEY` in the above mentioned routines. The encryption key `DERIVED_DB_ENCRYPTION_KEY` is derived from the master DB encryption key `MASTER_DB_ENCRYPTION_KEY` using a [KDF_INTERNAL](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Basic-definitions.md) function, with a user ID and activation ID in concatenated String as a base for deriving the `index`, like so:
-
-```java
-public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
-    // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
-    byte[] index = (userId + "&" + activationId).getBytes();
-    // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
-    return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
-}
-```
+`AEAD-KMAC` encryption in PowerAuth Server uses a 32-byte master database key from which a unique per-record encryption key is derived using `KMAC-256`, with the derivation based on identity attributes such as user ID and activation ID (depending on the encrypted database column). Additional attributes are also used as associated data (AD) for the AEAD operation, binding each ciphertext to the specific record so that swapping or tampering causes decryption to fail. Encryption and decryption use the PowerAuth AEAD primitive (seal / open), producing authenticated ciphertext. This design guarantees confidentiality, integrity, and strong protection against record-level manipulation.
 
 ### Note on the Backward Compatibility
 
