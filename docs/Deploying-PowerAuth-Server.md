@@ -154,6 +154,10 @@ spring.datasource.username=powerauth
 spring.datasource.password=
 ```
 
+## Application Level Per-Record Database Encryption 
+
+Follow the instructions in chapter [Encrypting Records in Database](./Encrypting-Records-in-Database.md) to configure per-record database encryption. You can also disable application encryption for non-production environments. The application will fail to start without configuring a 32-byte encryption key or disabling encryption. 
+
 ## Generating Your First Application
 
 In order to initialize the database with an application, call PowerAuth Server RESTful service endpoint:
