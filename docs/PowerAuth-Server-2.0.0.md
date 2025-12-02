@@ -75,16 +75,16 @@ For manual changes use SQL scripts:
 
 Following columns were added for keys used in cryptography protocol version 4:
 
+* A new column `crypto_algorithm` has been added to the `pa_activation` table to specify the cryptographic algorithm used during activation.
 * A new column `device_public_keys` has been added to the `pa_activation` table to store device public keys for new cryptography algorithms.
 * A new column `server_private_keys` has been added to the `pa_activation` table to store server private keys for new cryptography algorithms.
-* A new column `server_private_keys_encryption` has been added to the `pa_activation` table to configure encryption of private keys.
+* A new column `server_private_keys_encryption` has been added to the `pa_activation` table to configure encryption of server private keys.
 * A new column `server_public_keys` has been added to the `pa_activation` table to store server public keys for new cryptography algorithms.
 * A new column `shared_secret` has been added to the `pa_activation` table to store share secret for new cryptography algorithms.
 * A new column `shared_secret_encryption` has been added to the `pa_activation` table to configure encryption of shared secret values.
 * A new column `confirmation_pending` has been added to the `pa_activation` table to store whether activation confirmation is pending.
 * A new column `upgrade_confirmation_pending` has been added to the `pa_activation` table to store whether activation upgrade confirmation is pending.
-* A new column `master_private_keys` has been added to the `pa_master_keypair` table to store master private keys for new cryptography algorithms.
-* A new column `master_public_keys` has been added to the `pa_master_keypair` table to store master public keys for new cryptography algorithms.
+* A new column `ctr_data_v4` has been added to the `pa_activation` table to store counter data used by cryptography protocol version 4.
 
 Following columns were added for dynamic keys used in cryptography protocol version 4:
 
@@ -93,6 +93,24 @@ Following columns were added for dynamic keys used in cryptography protocol vers
 * A new column `biometric_factor_key_next` has been added to the `pa_activation` table to store next biometric factor key.
 * A new column `knowledge_factor_key` has been added to the `pa_activation` table to store current knowledge factor key.
 * A new column `knowledge_factor_key_next` has been added to the `pa_activation` table to store next knowledge factor key.
+
+Following columns were added to support new key pairs in cryptography protocol version 4:
+
+* A new column `master_private_keys` has been added to the `pa_master_keypair` table to store master private keys.
+* A new column `master_private_keys_encryption` has been added to the `pa_master_keypair` table to configure encryption of master private keys.
+* A new column `master_public_keys` has been added to the `pa_master_keypair` table to store master public keys for new cryptography algorithms.
+
+Following columns were added to support storage of temporary shared secret for cryptography protocol version 4:
+
+* A new column `secret_key_base64` has been added to the `pa_temporary_key` table to store temporary secret keys.
+* A new column `secret_key_encryption` has been added to the `pa_temporary_key` table to configure encryption of temporary secret keys.
+
+Additionally, existing columns were updated to allow nullable values:
+
+* The column `master_key_private_base64` in the `pa_master_keypair` table was modified to allow `NULL` values.
+* The column `master_key_public_base64` in the `pa_master_keypair` table was modified to allow `NULL` values.
+* The column `private_key_base64` in the `pa_temporary_key` table was modified to allow `NULL` values.
+* The column `public_key_base64` in the `pa_temporary_key` table was modified to allow `NULL` values.
 
 ### Added new columns for activation spawn or move
 
