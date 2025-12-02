@@ -61,6 +61,37 @@ When using `NO_ENCRYPTION`, no database encryption keys are required, and sensit
 The `AES_HMAC` encryption algorithm is legacy and should not be used in PowerAuth server 2.0.0 or higher.
 In case you used this encryption algorithm previously, keep the configured key in property `powerauth.server.db.master.encryption.key` to allow decryption of existing data.
 
+## Configuration of Applications to Support New Cryptographic Algorithms
+
+Existing applications only have traditional elliptic curve P-256 key pairs.
+
+To generate new application key pairs for elliptic curve P-384 and ML-DSA-65 / ML-DSA-87, call the application configuration endpoint to configure supported algorithms [Method 'createApplicationConfig'](./WebServices-Methods.md#method-createapplicationconfig):
+
+REST endpoint: `POST /rest/v4/application/config/create`
+
+| Type           | Name                                                     | Description                                         |
+|----------------|----------------------------------------------------------|-----------------------------------------------------|
+| `String`       | `applicationId`                                          | Identifier of the application you want to configure |
+| `String`       | `cryptography_algorithms_supported`                      | Key to configure supported cryptography algorithms  |
+| `List<Object>` | [`EC_P256`, `EC_P384`, `EC_P384_ML_L3`, `EC_P384_ML_L5`] | Allowed cryptography algorithms                     |
+
+You can exclude some algorithms if you don't want to use them from the list above. Application key pairs for supported algorithms will be generated.
+
+Sample cURL call:
+
+```shell
+curl --request POST \
+--url http://localhost:8080/powerauth-java-server/rest/v4/application/config/create \
+--header 'Content-Type: application/json' \
+--data '{
+  "requestObject": {
+  "applicationId": "demo-app",
+  "key": "cryptography_algorithms_supported",
+  "values": [ "EC_P256", "EC_P384", "EC_P384_ML_L3", "EC_P384_ML_L5"]
+  }
+}'
+```
+
 ## Database Changes
 
 For convenience, you can use liquibase for your database migration.
@@ -121,6 +152,14 @@ The columns `parent_activation_id` and `transfer_type` were added to the `pa_act
 Package names in Java code have been updated from historical `io.getlime` to `com.wultra`. Please update package imports in your source code which uses any `io.getlime` packages from PowerAuth server.
 
 ## REST API Changes
+
+### Application Configuration Changes
+
+Application configuration endpoints have been extended to support new configuration keys:
+
+- `activation_transfer` - configuration of activation transfer, see [Activation Transfer](./Activation-Transfer.md) for details
+- `cryptography_algorithms_supported` - list of supported cryptography algorithms, an array of string values, allowed values: `EC_P256`, `EC_P384`, `EC_P384_ML_L3`, `EC_P384_ML_L5`, when not configured all algorithms are supported
+- `disable_biometry_unlock_kek_device_private` - use a single value `true` to disable usage of the biometric factor for unlocking the key `KEK_DEVICE_PRIVATE`
 
 ### Updated Validations in REST API
 

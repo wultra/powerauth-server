@@ -374,7 +374,10 @@ Following configuration keys are expected:
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
 - `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
 - `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
-- `oauth2_providers` - Configuration of OAuth 2.0 providers, see [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) for details.
+- `oauth2_providers` - configuration of OAuth 2.0 providers, see [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) for details
+- `activation_transfer` - configuration of activation transfer, see [Activation Transfer](./Activation-Transfer.md) for details
+- `cryptography_algorithms_supported` - list of supported cryptography algorithms, an array of string values, allowed values: `EC_P256`, `EC_P384`, `EC_P384_ML_L3`, `EC_P384_ML_L5`, when not configured all algorithms are supported
+- `disable_biometry_unlock_kek_device_private` - use a single value `true` to disable usage of the biometric factor for unlocking the key `KEK_DEVICE_PRIVATE`
 
 ### Method 'createApplicationConfig'
 
@@ -397,8 +400,10 @@ The following configuration keys are accepted:
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
 - `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
 - `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
-- `oauth2_providers` - Configuration of OAuth 2.0 providers, see [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) for details.
-- `activation_transfer` - Configuration of activation transfer, see [Activation transfer](./Activation-Transfer.md) for details.
+- `oauth2_providers` - configuration of OAuth 2.0 providers, see [OpenID Connect (OIDC) Activation](./OIDC-Activation.md) for details
+- `activation_transfer` - configuration of activation transfer, see [Activation Transfer](./Activation-Transfer.md) for details
+- `cryptography_algorithms_supported` - list of supported cryptography algorithms, an array of string values, allowed values: `EC_P256`, `EC_P384`, `EC_P384_ML_L3`, `EC_P384_ML_L5`, when not configured all algorithms are supported
+- `disable_biometry_unlock_kek_device_private` - use a single value `true` to disable usage of the biometric factor for unlocking the key `KEK_DEVICE_PRIVATE`
 
 #### Response
 
