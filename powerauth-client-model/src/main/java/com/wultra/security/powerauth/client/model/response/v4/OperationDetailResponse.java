@@ -54,7 +54,7 @@ public class OperationDetailResponse {
     @Size(max = 32)
     private String statusReason;
 
-    private List<AuthenticationCodeType> authenticationCodeType;
+    private List<AuthenticationCodeType> authenticationCodeTypes;
     private long failureCount;
     private Long maxFailureCount;
     private Date timestampCreated;

@@ -938,7 +938,7 @@ public class OperationServiceBehavior {
                 .distinct()
                 .map(p -> AuthenticationCodeType.enumFromString(p.toString()))
                 .toList();
-        destination.setAuthenticationCodeType(authenticationCodeTypes);
+        destination.setAuthenticationCodeTypes(authenticationCodeTypes);
         destination.setFailureCount(source.getFailureCount());
         destination.setMaxFailureCount(source.getMaxFailureCount());
         destination.setTimestampCreated(source.getTimestampCreated());

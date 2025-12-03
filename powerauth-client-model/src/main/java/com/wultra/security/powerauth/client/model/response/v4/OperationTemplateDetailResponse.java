@@ -36,7 +36,7 @@ public class OperationTemplateDetailResponse {
     private String templateName;
     private String operationType;
     private String dataTemplate;
-    private List<AuthenticationCodeType> authenticationCodeType;
+    private List<AuthenticationCodeType> authenticationCodeTypes;
     private Long maxFailureCount;
     private Long expiration;
     private String riskFlags;
