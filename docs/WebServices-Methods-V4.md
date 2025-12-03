@@ -128,15 +128,15 @@ REST endpoint: `POST /rest/v4/status`
 
 `GetSystemStatusResponse`
 
-| Type       |   | Name                     | Description                                                                                                                                                               |
-|------------|:--|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`   |   | `status`                 | A constant value "OK".                                                                                                                                                    |
-| `String`   |   | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
-| `String`   |   | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
-| `String`   |   | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
-| `String`   |   | `version`                | Version of PowerAuth server.                                                                                                                                              |
-| `String`   |   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
-| `DateTime` |   | `timestamp`              | A current system timestamp.                                                                                                                                               |
+| Type       | Name                     | Description                                                                                                                                                               |
+|------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`   | `status`                 | A constant value "OK".                                                                                                                                                    |
+| `String`   | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
+| `String`   | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
+| `String`   | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
+| `String`   | `version`                | Version of PowerAuth server.                                                                                                                                              |
+| `String`   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
+| `DateTime` | `timestamp`              | A current system timestamp.                                                                                                                                               |
 
 ### Method 'getErrorCodeList'
 
@@ -780,7 +780,6 @@ REST endpoint: `POST /rest/v4/activation/status`
 | `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure              |
 | `String`                  | `parentActivationId`         | The parent activation ID. Mandatory when `transferType` is present.                                |
 | `String`                  | `transferType`               | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present. |
-
 
 ### Method 'removeActivation'
 
