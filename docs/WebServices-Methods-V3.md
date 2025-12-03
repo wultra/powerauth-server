@@ -97,7 +97,8 @@ The following `v3` methods are published using the service:
 - Temporary Keys
     - [createTemporaryKey](#method-createtemporarykey)
     - [removeTemporaryKey](#method-removetemporarykey)
-
+- Telemetry
+  - [report](#method-report)
 
 ## System status
 
@@ -2582,6 +2583,33 @@ REST endpoint: `POST /rest/v3/keystore/remove`
 |-----------|-----------|---------------------------------------------|
 | `String`  | `id`      | Key pair ID to be removed                   |
 | `boolean` | `removed` | Boolean indicating if the value was removed |
+
+
+## Telemetry
+
+### Method `report`
+
+Generate a telemetry report.
+
+#### Request
+
+REST endpoint: `POST /rest/v4/telemetry/report`
+
+`TelemetryReportRequest`
+
+| Type                  | Name         | Description                   |
+|-----------------------|--------------|-------------------------------|
+| `String`              | `name`       | Telemetry report name         |
+| `Map<String, Object>` | `parameters` | Telemetry report parameters   |
+
+#### Response
+
+`TelemetryReportResponse`
+
+| Type                  | Name         | Description                    |
+|-----------------------|--------------|--------------------------------|
+| `String`              | `name`       | Telemetry report name          |
+| `Map<String, Object>` | `reportData` | Telemetry report response data |
 
 ## Used enums
 
