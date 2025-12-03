@@ -8,7 +8,7 @@ The REST service methods can be browsed using Swagger on deployed PowerAuth inst
 
 The following `v4` methods are published using the service:
 
-- System Status Controller
+- System Status
   - [getSystemStatus](#method-getsystemstatus)
   - [getErrorCodeList](#method-geterrorcodelist)
 - Application Management
@@ -222,7 +222,6 @@ REST endpoint: `POST /rest/v4/application/detail`
 | `String[]`  | `applicationRoles`    | Roles assigned to the application                    |
 | `Version[]` | `versions`            | Collection of application versions                   |
 | `String[]`  | `supportedAlgorithms` | Cryptography algorithms supproted by the application |
-
 
 `GetApplicationDetailResponse.Version`
 
@@ -939,23 +938,23 @@ REST endpoint: `POST /rest/v4/activation/lookup`
 
 `LookupActivationsResponse.Activation`
 
-| Type               | Name                  | Description                                                                            |
-|--------------------|-----------------------|----------------------------------------------------------------------------------------|
-| `String`           | `activationId`        | An identifier of an activation                                                         |
-| `ActivationStatus` | `activationStatus`    | An activation status                                                                   |
-| `String`           | `blockedReason`       | Reason why activation was blocked (default: NOT_SPECIFIED)                             |
-| `String`           | `activationName`      | An activation name                                                                     |
-| `String`           | `extras`              | Any custom attributes set through SDK                                                  |
-| `String`           | `platform`            | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                        |
-| `String`           | `deviceInfo`          | Information about user device, e.g. `iPhone12,3`                                       |
-| `String[]`         | `activationFlags`     | Activation flags                                                                       |
-| `DateTime`         | `timestampCreated`    | A timestamp when the activation was created                                            |
-| `DateTime`         | `timestampLastUsed`   | A timestamp when the activation was last used                                          |
-| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change                                           |
-| `String`           | `userId`              | An identifier of a user                                                                |
-| `String`           | `applicationId`       | An identifier of an application                                                        |
-| `Long`             | `version`             | Activation version                                                                     |
-| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure  |
+| Type               | Name                  | Description                                                                           |
+|--------------------|-----------------------|---------------------------------------------------------------------------------------|
+| `String`           | `activationId`        | An identifier of an activation                                                        |
+| `ActivationStatus` | `activationStatus`    | An activation status                                                                  |
+| `String`           | `blockedReason`       | Reason why activation was blocked (default: NOT_SPECIFIED)                            |
+| `String`           | `activationName`      | An activation name                                                                    |
+| `String`           | `extras`              | Any custom attributes set through SDK                                                 |
+| `String`           | `platform`            | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                       |
+| `String`           | `deviceInfo`          | Information about user device, e.g. `iPhone12,3`                                      |
+| `String[]`         | `activationFlags`     | Activation flags                                                                      |
+| `DateTime`         | `timestampCreated`    | A timestamp when the activation was created                                           |
+| `DateTime`         | `timestampLastUsed`   | A timestamp when the activation was last used                                         |
+| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change                                          |
+| `String`           | `userId`              | An identifier of a user                                                               |
+| `String`           | `applicationId`       | An identifier of an application                                                       |
+| `Long`             | `version`             | Activation version                                                                    |
+| `Object`           | `additionalData`      | The activation's custom attributes set through a private API in a free JSON structure |
 
 ### Method 'updateStatusForActivations'
 
@@ -1400,7 +1399,6 @@ REST endpoint: `POST /rest/v4/audit/list`
 | `boolean`          | `valid`             | Flag indicating if the provided signature was valid            |
 | `long`             | `version`           | Activation version                                             |
 | `DateTime`         | `timestampCreated`  | Timestamp when the record was created                          |
-
 
 ## Activation history
 
@@ -2119,6 +2117,7 @@ REST endpoint: `POST /rest/v4/operation/create`
 | `Date`                         | `timestampExpires`        | Timestamp of when the operation will expires / expired                           |
 | `Date`                         | `timestampFinalized`      | Timestamp of when the operation was switched to a terminating status             |
 | `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`                       | `proximityOtp`            | TOTP for proximity check (if enabled) valid for the current time step.           |
 | `String`                       | `activationId`            | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'operationDetail'
@@ -2150,8 +2149,8 @@ REST endpoint: `POST /rest/v4/operation/detail`
 | `String`                       | `templateName`            | Template name used when creating this operation                                  |
 | `String`                       | `data`                    | Operation data                                                                   |
 | `Map<String, String>`          | `parameters`              | Parameters of the operation, will be filled to the operation data                |
-| `OperationStatus`              | `status`                  | Status of the operation                                                          |
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                          |
+| `OperationStatus`              | `status`                  | Status of the operation                                                          |
 | `String`                       | `statusReason`            | Optional details why the status has changed in machine-readable format           |
 | `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                               |
