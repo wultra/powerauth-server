@@ -336,10 +336,10 @@ REST endpoint: `POST /rest/v3/application/version/support`
 
 `SupportApplicationVersionResponse`
 
-| Type       | Name | Description |
-|------------|------|-------------|
-| `String`   | `applicationVersionId` | An identifier of an application version |
-| `Bboolean` | `supported` | Flag indicating if this application is supported |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationVersionId` | An identifier of an application version |
+| `boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'getApplicationConfig'
 
