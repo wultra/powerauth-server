@@ -65,7 +65,7 @@ In case you used this encryption algorithm previously, keep the configured key i
 
 Existing applications only have traditional elliptic curve P-256 key pairs.
 
-To generate new application key pairs for elliptic curve P-384 and ML-DSA-65 / ML-DSA-87, call the application configuration endpoint to configure supported algorithms [Method 'createApplicationConfig'](./WebServices-Methods.md#method-createapplicationconfig):
+To generate new application key pairs for elliptic curve P-384 and ML-DSA-65 / ML-DSA-87, call the application configuration endpoint to configure supported algorithms [Method 'createApplicationConfig'](WebServices-Methods-V4.md#method-createapplicationconfig):
 
 REST endpoint: `POST /rest/v4/application/config/create`
 

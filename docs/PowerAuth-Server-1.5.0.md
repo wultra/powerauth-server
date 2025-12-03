@@ -27,7 +27,7 @@ This release adds support for PowerAuth protocol version 3.2, which adds several
 
 ### Simplified Configuration of PowerAuth Mobile SDK. 
 
-You can use the `mobileSdkConfig` value from `POST /rest/v3/application/detail`, see [REST API documentation](WebServices-Methods.md#method-getapplicationdetail). This value contains encoded master public key, application key and application secret.
+You can use the `mobileSdkConfig` value from `POST /rest/v3/application/detail`, see [REST API documentation](WebServices-Methods-V3.md#method-getapplicationdetail). This value contains encoded master public key, application key and application secret.
 
 Starting with version 1.5.x you can use this single configuration Base-64 encoded string for configuring the PowerAuth mobile SDK instead of using three separated configuration parameters.
 
@@ -149,7 +149,7 @@ Oracle JDBC driver remains optional and must be added to your deployment if desi
 
 ## REST API Changes
 
-The endpoint for PowerAuth token verification ([see documentation](./WebServices-Methods.md#method-validatetoken)), has been updated. A new parameter `protocolVersion` has been added. In case you invoke this endpoint from your backends, use need to use the version from PowerAuth HTTP header `X-PowerAuth-Token` received from mobile application, which contains the version which needs to be set as the new `protocolVersion` parameter. 
+The endpoint for PowerAuth token verification ([see documentation](WebServices-Methods-V3.md#method-validatetoken)), has been updated. A new parameter `protocolVersion` has been added. In case you invoke this endpoint from your backends, use need to use the version from PowerAuth HTTP header `X-PowerAuth-Token` received from mobile application, which contains the version which needs to be set as the new `protocolVersion` parameter. 
 
 
 ## RESTful Integration Changes

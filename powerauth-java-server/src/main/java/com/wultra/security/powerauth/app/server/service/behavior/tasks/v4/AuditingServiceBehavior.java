@@ -101,7 +101,7 @@ public class AuditingServiceBehavior {
      * @return Response with log items.
      */
     @Transactional(readOnly = true)
-    public SignatureAuditResponse getAuthenticationLog(SignatureAuditRequest request) throws GenericServiceException {
+    public SignatureAuditResponse getAuditLog(SignatureAuditRequest request) throws GenericServiceException {
         // TODO - update model classes and DB table for auditing for v4
 
         try {

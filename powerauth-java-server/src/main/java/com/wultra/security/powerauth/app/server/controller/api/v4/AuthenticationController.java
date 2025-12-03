@@ -143,13 +143,13 @@ public class AuthenticationController {
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/list")
-    public ObjectResponse<SignatureAuditResponse> getAuthenticationAuditLog(@Valid @RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
+    public ObjectResponse<SignatureAuditResponse> getAuditLog(@Valid @RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
         final SignatureAuditRequest req = request.getRequestObject();
-        logger.info("action: getSignatureAuditLog, state: initiated, userId: {}, applicationId: {}", req.getUserId(), req.getApplicationId());
-        logger.debug("action: getSignatureAuditLog, state: initiated, request: {}", request);
-        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getAuthenticationLog(req));
-        logger.info("action: getSignatureAuditLog, state: succeeded");
-        logger.debug("action: getSignatureAuditLog, state: succeeded, response: {}", response);
+        logger.info("action: getAuditLog, state: initiated, userId: {}, applicationId: {}", req.getUserId(), req.getApplicationId());
+        logger.debug("action: getAuditLog, state: initiated, request: {}", request);
+        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getAuditLog(req));
+        logger.info("action: getAuditLog, state: succeeded");
+        logger.debug("action: getAuditLog, state: succeeded, response: {}", response);
         return response;
     }
 

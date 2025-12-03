@@ -17,7 +17,8 @@
 
 **Reference Manual**
 
-- [Web Services - Methods](WebServices-Methods.md)
+- [Web Services - Methods (V4)](WebServices-Methods-V4.md)
+- [Web Services - Methods (V3)](WebServices-Methods-V3.md)
 - [FIDO2 API](FIDO2-API.md)
 - [Telemetry API](Telemetry-API.md)
 - [Database Structure](./Database-Structure.md)

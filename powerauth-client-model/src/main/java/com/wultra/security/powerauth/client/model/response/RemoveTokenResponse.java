@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import lombok.Data;
 
 /**
- * Model class representing response with HMAC token removal information.
+ * Model class representing response with MAC token removal information.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
