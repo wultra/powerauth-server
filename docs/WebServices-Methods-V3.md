@@ -2377,16 +2377,16 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 
 `OperationTemplateCreateRequest`
 
-| Type                  | Name                      | Description                                                                      |
-|-----------------------|---------------------------|----------------------------------------------------------------------------------|
-| `String`              | `templateName`            | The name of the operation template                                               |
-| `String`              | `operationType`           | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`            | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`              | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                  | Name                    | Description                                                                      |
+|-----------------------|-------------------------|----------------------------------------------------------------------------------|
+| `String`              | `templateName`          | The name of the operation template                                               |
+| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`          | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
+| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 #### Response
 
@@ -2487,16 +2487,17 @@ REST endpoint: `POST /rest/v3/operation/template/update`
 
 `OperationTemplateDetailResponse`
 
-| Type                  | Name              | Description                                                                      |
-|-----------------------|-------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`              | Operation template ID                                                            |
-| `String`              | `templateName`    | The name of the operation template                                               |
-| `String`              | `operationType`   | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`    | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`   | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount` | How many failed attempts should be allowed for th operation                      |
-| `Long`                | `expiration`      | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`       | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                    | Description                                                                      |
+|-----------------------|-------------------------|----------------------------------------------------------------------------------|
+| `Long`                | `id`                    | Operation template ID                                                            |
+| `String`              | `templateName`          | The name of the operation template                                               |
+| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`          | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'removeOperationTemplate'
 
