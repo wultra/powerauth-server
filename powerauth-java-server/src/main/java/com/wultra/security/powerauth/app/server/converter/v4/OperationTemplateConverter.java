@@ -107,7 +107,7 @@ public class OperationTemplateConverter {
                 authencationCodeTypesResponse.add(signatureType);
             }
         }
-        destination.setAuthenticationCodeType(authencationCodeTypesResponse);
+        destination.setAuthenticationCodeTypes(authencationCodeTypesResponse);
         return destination;
     }
 
