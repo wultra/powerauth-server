@@ -1307,7 +1307,7 @@ REST endpoint: `POST /rest/v4/vault/unlock`
 | `String`                 | `applicationKey`         | A key (identifier) of an application, associated with given application version |
 | `String`                 | `requestData`            | Base64 encoded data for the authentication                                      |
 | `String`                 | `authenticationCode`     | PowerAuth authentication code                                                   |
-| `AuthenticationCodeType` | `authenticationCodeType` | PowerAuth authenication code type                                               |
+| `AuthenticationCodeType` | `authenticationCodeType` | PowerAuth authentication code type                                              |
 | `String`                 | `authenticationVersion`  | PowerAuth cryptography protocol version                                         |
 | `String`                 | `temporaryKeyId`         | Temporary key identifier for AEAD                                               |
 | `String`                 | `encryptedData`          | Base64 encoded encrypted data for AEAD                                          |
@@ -2113,7 +2113,7 @@ REST endpoint: `POST /rest/v4/operation/create`
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                          |
 | `String`                       | `statusReason`            | Optional details why the status has changed in machine-readable format           |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                      |
@@ -2154,7 +2154,7 @@ REST endpoint: `POST /rest/v4/operation/detail`
 | `OperationStatus`              | `status`                  | Status of the operation                                                          |
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                          |
 | `String`                       | `statusReason`            | Optional details why the status has changed in machine-readable format           |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                      |
@@ -2197,7 +2197,7 @@ REST endpoint: `POST /rest/v4/operation/claim`
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2246,7 +2246,7 @@ A collection of records with the following structure:
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2295,7 +2295,7 @@ A collection of records with the following structure:
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2368,7 +2368,7 @@ A collection of records with the following structure:
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2411,7 +2411,7 @@ REST endpoint: `POST /rest/v4/operation/cancel`
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2431,14 +2431,14 @@ REST endpoint: `POST /rest/v4/operation/approve`
 
 `OperationApproveRequest`
 
-| Type                  | Name             | Description                                                      |
-|-----------------------|------------------|------------------------------------------------------------------|
-| `String`              | `operationId`    | The identifier of the operation                                  |
-| `String`              | `userId`         | The identifier of the user who attempts to approve the operation |
-| `String`              | `applicationId`  | The identifier of the application                                |
-| `String`              | `data`           | Operation data that the user attempts to approve                 |
-| `SignatureType`       | `signatureType`  | Signature type used when approving the operation                 |
-| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller          |
+| Type                     | Name                     | Description                                                      |
+|--------------------------|--------------------------|------------------------------------------------------------------|
+| `String`                 | `operationId`            | The identifier of the operation                                  |
+| `String`                 | `userId`                 | The identifier of the user who attempts to approve the operation |
+| `String`                 | `applicationId`          | The identifier of the application                                |
+| `String`                 | `data`                   | Operation data that the user attempts to approve                 |
+| `AuthenticationCodeType` | `authenticationCodeType` | Authentication code type used when approving the operation       |
+| `Map<String, String>`    | `additionalData`         | Operation context, such as the IP address of the caller          |
 
 #### Response
 
@@ -2466,7 +2466,7 @@ REST endpoint: `POST /rest/v4/operation/approve`
 | `Map<String, Object>`          | `additionalData`          | Operation context, such as the IP address of the caller                                                                          |
 | `OperationStatus`              | `status`                  | Status of the operation                                                                                                          |
 | `String`                       | `statusReason`            | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
-| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code types                                                                                       |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                                                                             |
 | `Long`                         | `failureCount`            | The current number of the failed approval attempts                                                                               |
 | `Long`                         | `maxFailureCount`         | The maximum allowed number of the failed approval attempts                                                                       |
 | `Date`                         | `timestampCreated`        | Timestamp of when the operation was created                                                                                      |
@@ -2539,32 +2539,32 @@ REST endpoint: `POST /rest/v4/operation/template/create`
 
 `OperationTemplateCreateRequest`
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `String`              | `templateName`          | The name of the operation template                                               |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                           | Name                      | Description                                                                      |
+|--------------------------------|---------------------------|----------------------------------------------------------------------------------|
+| `String`                       | `templateName`            | The name of the operation template                                               |
+| `String`                       | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`                       | `dataTemplate`            | Template for the operation data                                                  |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed types of authentication code                                             |
+| `Long`                         | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                         | `expiration`              | Operation expiration period in seconds                                           |
+| `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`                      | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 #### Response
 
 `OperationTemplateDetailResponse`
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`                    | Operation template ID                                                            |
-| `String`              | `templateName`          | The name of the operation template                                               |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+|   | Type                           | Name                      | Description                                                                      |
+|:--|--------------------------------|---------------------------|----------------------------------------------------------------------------------|
+|   | `Long`                         | `id`                      | Operation template ID                                                            |
+|   | `String`                       | `templateName`            | The name of the operation template                                               |
+|   | `String`                       | `operationType`           | The type of the operation that is created based on the template                  |
+|   | `String`                       | `dataTemplate`            | Template for the operation data                                                  |
+|   | `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed authentication code types                                                |
+|   | `Long`                         | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+|   | `Long`                         | `expiration`              | Operation expiration period in seconds                                           |
+|   | `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+|   | `boolean`                      | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
   
 ### Method 'getAllTemplates'
 
@@ -2582,17 +2582,17 @@ _Empty request body_
 
 Collection of items with the following structure:
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`                    | Operation template ID                                                            |
-| `String`              | `templateName`          | The name of the operation template                                               |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                           | Name                      | Description                                                                      |
+|--------------------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                         | `id`                      | Operation template ID                                                            |
+| `String`                       | `templateName`            | The name of the operation template                                               |
+| `String`                       | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`                       | `dataTemplate`            | Template for the operation data                                                  |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed authentication code types                                                |
+| `Long`                         | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                         | `expiration`              | Operation expiration period in seconds                                           |
+| `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`                      | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'getTemplateDetail'
 
@@ -2612,17 +2612,17 @@ REST endpoint: `POST /rest/v4/operation/template/detail`
 
 `OperationTemplateDetailResponse`
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`                    | Operation template ID                                                            |
-| `String`              | `templateName`          | The name of the operation template                                               |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                           | Name                      | Description                                                                      |
+|--------------------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                         | `id`                      | Operation template ID                                                            |
+| `String`                       | `templateName`            | The name of the operation template                                               |
+| `String`                       | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`                       | `dataTemplate`            | Template for the operation data                                                  |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed authentication code types                                                |
+| `Long`                         | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                         | `expiration`              | Operation expiration period in seconds                                           |
+| `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`                      | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'updateOperationTemplate'
 
@@ -2634,32 +2634,32 @@ REST endpoint: `POST /rest/v4/operation/template/update`
 
 `OperationTemplateUpdateRequest`
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`                    | Operation template ID                                                            |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                           | Name                      | Description                                                                      |
+|--------------------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                         | `id`                      | Operation template ID                                                            |
+| `String`                       | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`                       | `dataTemplate`            | Template for the operation data                                                  |
+| `List<AuthenticationCodeType>` | `authenticationCodeTypes` | Allowed authentication code types                                                |
+| `Long`                         | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                         | `expiration`              | Operation expiration period in seconds                                           |
+| `String`                       | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`                      | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 #### Response
 
 `OperationTemplateDetailResponse`
 
-| Type                  | Name                    | Description                                                                      |
-|-----------------------|-------------------------|----------------------------------------------------------------------------------|
-| `Long`                | `id`                    | Operation template ID                                                            |
-| `String`              | `templateName`          | The name of the operation template                                               |
-| `String`              | `operationType`         | The type of the operation that is created based on the template                  |
-| `String`              | `dataTemplate`          | Template for the operation data                                                  |
-| `List<SignatureType>` | `signatureType`         | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`       | How many failed attempts should be allowed for the operation                     |
-| `Long`                | `expiration`            | Operation expiration period in seconds                                           |
-| `String`              | `riskFlags`             | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
+| Type                            | Name                      | Description                                                                      |
+|---------------------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                          | `id`                      | Operation template ID                                                            |
+| `String`                        | `templateName`            | The name of the operation template                                               |
+| `String`                        | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`                        | `dataTemplate`            | Template for the operation data                                                  |
+| `List<AuthenticationCodeTypes>` | `authenticationCodeTypes` | Allowed authentication code types                                                |
+| `Long`                          | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                          | `expiration`              | Operation expiration period in seconds                                           |
+| `String`                        | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`                       | `proximityCheckEnabled`   | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'removeOperationTemplate'
 
