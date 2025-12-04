@@ -52,6 +52,10 @@ public class PublicKeyRegistryDeserializer extends JsonDeserializer<PublicKeyReg
     @Override
     public PublicKeyRegistry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         final JsonNode root = jsonParser.getCodec().readTree(jsonParser);
+        if (root == null) {
+            throw new IOException("Invalid JSON for public key registry");
+        }
+
         final PublicKeyRegistry keyRegistry = new PublicKeyRegistry();
 
         final JsonNode publicKeysNode = root.get("publicKeys");
