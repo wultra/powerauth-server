@@ -65,7 +65,7 @@ Stores configuration records for applications defined in the `pa_application` ta
 | application_id  | BIGINT(20)   | foreign key: pa\_application.id  | Related application ID.                                                                                                                                                                                                                   |
 | config_key      | VARCHAR(255) | index, NOT NULL                  | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, `fido2_root_ca_certs`, `oauth2_providers`, `cryptography_algorithms_supported`, `disable_biometry_unlock_kek_device_private`, or `activation_transfer` |
 | config_values   | TEXT         | -                                | Configuration values serialized in JSON format.                                                                                                                                                                                           |
-| encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption mode for stored values: `NO_ENCRYPTION` (plaintext), `AES_HMAC` (legacy), or `AEAD_KMAC` (authenticated encryption with KMAC-derived key).                                                                                     |
+| encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption mode for stored values: `NO_ENCRYPTION` (plaintext), `AES_HMAC` (legacy), or `AEAD_KMAC` (current).                                                                                                                            |
 <!-- end -->
 
 <!-- begin database table pa_activation -->
