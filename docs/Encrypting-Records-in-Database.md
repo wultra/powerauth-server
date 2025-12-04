@@ -49,8 +49,8 @@ powerauth.server.db.master.encryption.algorithm=AEAD_KMAC
 
 Allowed values:
 - `NO_ENCRYPTION` - use for non-production environments only,
-- `AES_HMAC` - legacy AES-16 with HMAC-based key derivation, do not use
-- `AEAD_KMAC` (default) - current encryption algorithm with AEAD using AES-256 for encryption and KMAC-256 for key derivation
+- `AES_HMAC` (legacy) - AES-16 with HMAC-based key derivation, do not use
+- `AEAD_KMAC` (current) - current encryption algorithm with AEAD using AES-256 for encryption and KMAC-256 for key derivation
 
 ### How to Generate a Valid 256-bit Encryption Key
 
