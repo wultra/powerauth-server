@@ -2312,7 +2312,7 @@ REST endpoint: `POST /rest/v3/operation/approve`
 | Type               | Name     | Description                   |
 |--------------------|----------|-------------------------------|
 | `UserActionResult` | `result` | The result of the user action |
-| `String`           | `userId` | The identifier of the user    |
+| `OperationDetailResponse` | `operation` | Operation detail              |
 
 ### Method 'failApproveOperation'
 
@@ -2332,11 +2332,10 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 
 `OperationUserActionResponse`
 
-| Type               | Name     | Description                   |
-|--------------------|----------|-------------------------------|
-| `UserActionResult` | `result` | The result of the user action |
-| `String`           | `userId` | The identifier of the user    |
-
+| Type                      | Name        | Description                   |
+|---------------------------|-------------|-------------------------------|
+| `UserActionResult`        | `result`    | The result of the user action |
+| `OperationDetailResponse` | `operation` | Operation detail              |
 
 ### Method 'rejectOperation'
 
@@ -2359,10 +2358,10 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 `OperationUserActionResponse`
 
-| Type               | Name     | Description                   |
-|--------------------|----------|-------------------------------|
-| `UserActionResult` | `result` | The result of the user action |
-| `String`           | `userId` | The identifier of the user    |
+| Type                      | Name        | Description                   |
+|---------------------------|-------------|-------------------------------|
+| `UserActionResult`        | `result`    | The result of the user action |
+| `OperationDetailResponse` | `operation` | Operation detail              |
 
 
 ## Operation Templates
