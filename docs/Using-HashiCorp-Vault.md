@@ -1,10 +1,10 @@
 # Integrating with HashiCorp Vault
 
-To protect database records, PowerAuth provides an embedded mechanism for application-level encryption of sensitive data. The encryption key can be configured using the `powerauth.server.db.master.encryption.aead-kmac.key` property in the `application.properties` file. To improve the security of this master key, you can store it in a HashiCorp Vault instance.
+To protect database records, PowerAuth provides an embedded mechanism for application-level encryption of sensitive data [via a symmetric key](./Encrypting-Records-in-Database.md). The encryption key can be configured using the `powerauth.server.db.master.encryption.aead-kmac.key` property in the `application.properties` file. To improve the security of this master key, you can store it in a HashiCorp Vault instance.
 
 ## About HashiCorp Vault
 
-HashiCorp Vault (or simply "Vault") is a software-based secure storage and cryptographic service. It can store secret keys, credentials, and certificates, and it can perform cryptographic operations in an isolated, policy-controlled environment. It exposes a REST API and integrates easily with Spring Boot applications through Spring Cloud Vault. The enterprise edition of Vault also supports HSM integration for hardware-backed master key protection.
+[HashiCorp Vault](https://www.vaultproject.io) (or simply "Vault") is a software-based secure storage and cryptographic service. It can store secret keys, credentials, and certificates, and it can perform cryptographic operations in an isolated, policy-controlled environment. It exposes a REST API and integrates easily with Spring Boot applications through Spring Cloud Vault. The enterprise edition of Vault also supports HSM integration for hardware-backed master key protection.
 
 ## Installation and Setup
 
@@ -29,7 +29,7 @@ The server will start quickly and show a log entry similar to:
 [INFO]  secrets.kv: upgrading keys finished
 ```
 
-Warning: Never use development mode or the example token above in production. See the Spring Cloud Vault documentation for recommended authentication and deployment practices.
+Warning: Never use development mode or the example token above in production. See the [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for recommended authentication and deployment practices.
 
 Before using the Vault CLI, configure environment variables:
 
@@ -75,7 +75,7 @@ spring.cloud.vault.kv.backend=secret
 spring.cloud.vault.kv.default-context=powerauth-java-server
 ```
 
-Note: Do not use development-mode authentication or example tokens in production.
+Note: Do not use development-mode authentication or example tokens in production. Please refer to [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
 
 ### Deployment on Apache Tomcat
 
