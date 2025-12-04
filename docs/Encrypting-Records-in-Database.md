@@ -17,7 +17,7 @@ As a basic security measure, we suggest using data encryption support of your da
 
 ## Additional Application Level Per-Record Encryption
 
-To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys in the database using application level record encryption.
+To prevent database administrators from accessing raw private records, you can additionally encrypt sensitive database records such as server private keys in the database using application level record encryption.
 
 The algorithm `AEAD_KMAC` is the default database encryption algorithm. It uses:
 
