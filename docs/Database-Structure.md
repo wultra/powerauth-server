@@ -156,9 +156,9 @@ Stores the records with values used for attempts for the signature validation.
 | Name                | Type         | Info                                       | Note                                                                      |
 |---------------------|--------------|--------------------------------------------|---------------------------------------------------------------------------|
 | id                  | BIGINT(20)   | primary key, autoincrement                 | Unique record ID.                                                         |
-| activation_id       | BIGINT(20)   | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
+| activation_id       | VARCHAR(37)  | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
 | activation_counter  | BIGINT(20)   | -                                          | Activation counter at the moment of signature validation.                 |
-| activation_ctr_data | BIGINT(2)    | -                                          | Activation hash based counter data at the moment of signature validation. |
+| activation_ctr_data | VARCHAR(255) | -                                          | Activation hash based counter data at the moment of signature validation. |
 | activation_status   | INT(11)      | -                                          | Activation status at the moment of signature validation.                  |
 | additional_info     | VARCHAR(255) | -                                          | Additional information related to the signature request in JSON format.   |
 | data_base64         | TEXT         | -                                          | Data passed as the base for the signature, encoded as Base64.             |
