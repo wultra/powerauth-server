@@ -297,7 +297,7 @@ Stores configuration of activation recovery and recovery postcards.
 
 | Name                          | Type         | Info                            | Note                                                                |
 |-------------------------------|--------------|---------------------------------|---------------------------------------------------------------------|
-| id                            | INT(37)      | primary key                     | Unique record ID.                                                   |
+| id                            | BIGINT(20)   | primary key                     | Unique record ID.                                                   |
 | application_id                | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                             |
 | activation_recovery_enabled   | INT(1)       | -                               | Whether activation recovery is enabled.                             |
 | recovery_postcard_enabled     | INT(1)       | -                               | Whether recovery postcard is enabled.                               |
