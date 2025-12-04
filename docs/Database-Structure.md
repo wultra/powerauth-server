@@ -257,7 +257,7 @@ Stores information about recovery codes.
 
 | Name                  | Type         | Info                                      | Note                                                                                                                                                                    |
 |-----------------------|--------------|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id                    | INT(37)      | primary key                               | Unique record ID.                                                                                                                                                       |
+| id                    | BIGINT(20)   | primary key                               | Unique record ID.                                                                                                                                                       |
 | recovery_code         | VARCHAR(23)  | index                                     | Recovery code used for recovering an activation. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA".            |
 | application_id        | BIGINT(20)   | foreign key: pa\_application.id           | Related application ID.                                                                                                                                                 |
 | user_id               | VARCHAR(255) | index                                     | Associated user ID.                                                                                                                                                     |
@@ -277,15 +277,15 @@ Stores information about recovery PUKs.
 
 #### Columns
 
-| Name                  | Type         | Info                                    | Note                                                                                              |
-|-----------------------|--------------|-----------------------------------------|---------------------------------------------------------------------------------------------------|
-| id                    | INT(37)      | primary key                             | Unique record ID.                                                                                 |
-| recovery_code_id      | INT(37)      | foreign key: pa_recovery_code.id, index | Related recovery code.                                                                            |
-| puk                   | VARCHAR(255) | -                                       | Recovery PUK value (optionally encrypted).                                                        |
-| puk_encryption        | INT(11)      | -                                       | Encryption type for PUK (0 = NO_ENCRYPTION, 1 = AES_HMAC)                                         |
-| puk_index             | INT(11)      | index                                   | Index of the PUK (value starts by 1).                                                             |
-| status                | INT(11)      | -                                       | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
-| timestamp_last_change | DATETIME     | -                                       | Timestamp of record last change.                                                                  |
+| Name                  | Type         | Info                                      | Note                                                                                              |
+|-----------------------|--------------|-------------------------------------------|---------------------------------------------------------------------------------------------------|
+| id                    | BIGINT(20)   | primary key                               | Unique record ID.                                                                                 |
+| recovery_code_id      | BIGINT(20)   | foreign key: pa\_recovery\_code.id, index | Related recovery code.                                                                            |
+| puk                   | VARCHAR(255) | -                                         | Recovery PUK value (optionally encrypted).                                                        |
+| puk_encryption        | INT(11)      | -                                         | Encryption type for PUK (0 = NO_ENCRYPTION, 1 = AES_HMAC)                                         |
+| puk_index             | INT(11)      | index                                     | Index of the PUK (value starts by 1).                                                             |
+| status                | INT(11)      | -                                         | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
+| timestamp_last_change | DATETIME     | -                                         | Timestamp of record last change.                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_recovery_config -->
