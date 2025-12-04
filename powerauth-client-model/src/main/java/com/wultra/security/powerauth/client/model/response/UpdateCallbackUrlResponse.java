@@ -22,9 +22,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
 import lombok.Data;
-import org.hibernate.validator.constraints.time.DurationMin;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -47,14 +45,14 @@ public class UpdateCallbackUrlResponse {
     private HttpAuthenticationPublic authentication = new HttpAuthenticationPublic();
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "P30D")
+    @Schema(format = "ISO 8601 Duration", example = "P30D")
     private Duration retentionPeriod;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    @Schema(format = "ISO 8601 Duration", example = "PT2.5S")
     private Duration initialBackoff;
 
-    @Schema(type = "integer", example = "1")
+    @Schema(example = "1")
     private Integer maxAttempts;
 
 }

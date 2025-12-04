@@ -66,15 +66,15 @@ public class UpdateCallbackUrlRequest {
     private HttpAuthenticationPrivate authentication = new HttpAuthenticationPrivate();
 
     @DurationMin(message = "Duration must be positive or zero")
-    @Schema(description = "Callback retention period", type = "string", format = "ISO 8601 Duration", example = "P30D")
+    @Schema(description = "Callback retention period", format = "ISO 8601 Duration", example = "P30D")
     private Duration retentionPeriod;
 
     @DurationMin(message = "Duration must be positive or zero")
-    @Schema(description = "Initial backoff time for the callback", type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    @Schema(description = "Initial backoff time for the callback", format = "ISO 8601 Duration", example = "PT2.5S")
     private Duration initialBackoff;
 
     @Min(1)
-    @Schema(description = "Maximum attempts for executing the callback", type = "integer", example = "1")
+    @Schema(description = "Maximum attempts for executing the callback", example = "1")
     private Integer maxAttempts;
 
 }

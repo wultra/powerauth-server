@@ -43,14 +43,14 @@ public class CallbackUrl {
     private HttpAuthenticationPublic authentication = new HttpAuthenticationPublic();
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "P30D")
+    @Schema(format = "ISO 8601 Duration", example = "P30D")
     private Duration retentionPeriod;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @Schema(type = "string", format = "ISO 8601 Duration", example = "PT2.5S")
+    @Schema(format = "ISO 8601 Duration", example = "PT2.5S")
     private Duration initialBackoff;
 
-    @Schema(type = "integer", example = "1")
+    @Schema(example = "1")
     private Integer maxAttempts;
 
 }

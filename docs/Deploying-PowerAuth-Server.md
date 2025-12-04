@@ -87,7 +87,7 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `/rest/v3/status` method of the RESTful interface.
+These properties are returned when calling the `/rest/v4/status` method of the RESTful interface.
 
 ## Enabling PowerAuth Server Security
 
@@ -153,6 +153,10 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
 ```
+
+## Application Level Per-Record Database Encryption 
+
+Follow the instructions in chapter [Encrypting Records in Database](./Encrypting-Records-in-Database.md) to configure per-record database encryption. You can also disable application encryption for non-production environments. The application will fail to start without configuring a 32-byte encryption key or disabling encryption. 
 
 ## Generating Your First Application
 

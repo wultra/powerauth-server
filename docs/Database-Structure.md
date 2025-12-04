@@ -42,30 +42,30 @@ Stores application versions for the applications stored in `pa_application` tabl
 
 #### Columns
 
-| Name               | Type         | Info                            | Note                                                                                                                                    |
-|--------------------|--------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| id                 | BIGINT(20)   | primary key, autoincrement      | Unique application version identifier.                                                                                                  |
-| application_id     | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                                                                                                 |
-| name               | VARCHAR(255) | -                               | Version identifier.                                                                                                                     |
-| application_key    | VARCHAR(255) | index                           | Application key related to this version. Should be indexed to allow a fast lookup, since this is an identifier client applications use. |
-| application_secret | VARCHAR(255) | -                               | Application secret related to this version.                                                                                             |
-| supported          | INT(11)      | -                               | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported)                                               |
+| Name               | Type         | Info                            | Note                                                                                                                              |
+|--------------------|--------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| id                 | BIGINT(20)   | primary key, autoincrement      | Unique application version identifier.                                                                                            |
+| application_id     | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                                                                                           |
+| name               | VARCHAR(255) | -                               | Version identifier.                                                                                                               |
+| application_key    | VARCHAR(255) | index                           | Application key related to this version. Should be indexed for fast lookup, since this is the identifier client applications use. |
+| application_secret | VARCHAR(255) | -                               | Application secret related to this version.                                                                                       |
+| supported          | INT(11)      | -                               | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported).                                        |
 <!-- end -->
 
 <!-- begin database table pa_application_config -->
 ### Application Configuration Table
 
-Stores configurations for the applications stored in `pa_application` table.
+Stores configuration records for applications defined in the `pa_application` table.
 
 #### Columns
 
-| Name            | Type         | Info                             | Note                                                                                                                                                   |
-|-----------------|--------------|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id              | BIGINT(20)   | primary key, autoincrement       | Unique application configuration identifier.                                                                                                           |
-| application_id  | BIGINT(20)   | foreign key: pa\_application.id  | Related application ID.                                                                                                                                |
-| config_key      | VARCHAR(255) | index                            | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, `fido2_root_ca_certs`, `oauth2_providers`, or `activation_transfer` |
-| config_values   | TEXT         | -                                | Configuration values serialized in JSON format.                                                                                                        |
-| encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption of config values: `NO_ENCRYPTION` means plaintext, `AES_HMAC` for AES encryption with HMAC-based index.                                     |
+| Name            | Type         | Info                             | Note                                                                                                                                                                                                                                      |
+|-----------------|--------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id              | BIGINT(20)   | primary key, autoincrement       | Unique application configuration identifier.                                                                                                                                                                                              |
+| application_id  | BIGINT(20)   | foreign key: pa\_application.id  | Related application ID.                                                                                                                                                                                                                   |
+| config_key      | VARCHAR(255) | index, NOT NULL                  | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, `fido2_root_ca_certs`, `oauth2_providers`, `cryptography_algorithms_supported`, `disable_biometry_unlock_kek_device_private`, or `activation_transfer` |
+| config_values   | TEXT         | -                                | Configuration values serialized in JSON format.                                                                                                                                                                                           |
+| encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption mode for stored values: `NO_ENCRYPTION` (plaintext), `AES_HMAC` (legacy), or `AEAD_KMAC` (current).                                                                                                                            |
 <!-- end -->
 
 <!-- begin database table pa_activation -->
@@ -75,52 +75,55 @@ Stores activations. Activation is a unit associating signature / transport and e
 
 #### Columns
 
-| Name                           | Type          | Info                                | Note                                                                                                                                                                               |
-|--------------------------------|---------------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| activation_id                  | VARCHAR(37)   | primary key, UUID (level 4)         | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca".                                                                                |
-| activation_code                | VARCHAR(255)  | index                               | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA".                    |
-| activation_otp                 | VARCHAR(255)  | -                                   | Activation OTP value                                                                                                                                                               |
-| activation_otp_validation      | INT(11)       | -                                   | Activation OTP validation, can be one of following values:<br><br>0 - NONE<br>1 - ON_KEY_EXCHANGE<br>2 - ON_COMMIT                                                                 |
-| activation_status              | INT(11)       | -                                   | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED                                            |
-| blocked_reason                 | VARCHAR(255)  | -                                   | Reason why activation is blocked (used when activation_status = 4, BLOCKED).                                                                                                       |
-| activation_name                | VARCHAR(255   | -                                   | Name of the activation, typically a name of the client device, for example "John's iPhone 6"                                                                                       |
-| application_id                 | BIGINT(20)    | foreign key: pa\_application.id     | Associated application ID.                                                                                                                                                         |
-| user_id                        | VARCHAR(255)  | index                               | Associated user ID.                                                                                                                                                                |
-| counter                        | BIGINT(20)    | -                                   | Activation counter.                                                                                                                                                                |
-| ctr_data                       | VARCHAR(255)  | -                                   | Activation hash based counter data.                                                                                                                                                |
-| device_public_key_base64       | TEXT          | -                                   | Device public key, encoded in Base64 encoding.                                                                                                                                     |
-| extras                         | VARCHAR(4000) | -                                   | Any application specific information.                                                                                                                                              |
-| platform                       | VARCHAR(255)  | -                                   | User device platform.                                                                                                                                                              |
-| device_info                    | VARCHAR(255)  | -                                   | User device information.                                                                                                                                                           |
-| flags                          | VARCHAR(255)  | -                                   | Activation flags as a JSON array.                                                                                                                                                  |
-| external_id                    | VARCHAR(255)  | -                                   | External identifier related to the activation.                                                                                                                                     |
-| protocol                       | VARCHAR(32)   | -                                   | Security protocol: `powerauth` (default) or `fido2`.                                                                                                                               |
-| failed_attempts                | BIGINT(20)    | -                                   | Number of failed signature verification attempts.                                                                                                                                  |
-| max_failed_attempts            | BIGINT(20)    | -                                   | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
-| server_private_key_base64      | VARCHAR(255)  | -                                   | Server private key, encoded as Base64                                                                                                                                              |
-| server_private_key_encryption  | INT(11)       | -                                   | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC)                                                                                               |
-| server_public_key_base64       | VARCHAR(255)  | -                                   | Server public key, encoded as Base64                                                                                                                                               |
-| device_public_keys             | TEXT          | -                                   | Device public keys used for newer cryptography algorithms serialized as JSON                                                                                                       |
-| server_private_keys            | TEXT          | -                                   | Server private keys used for newer cryptography algorithms serialized as JSON                                                                                                      |
-| server_private_keys_encryption | INT(11)       | -                                   | Indication whether server private keys are encrypted (0 = no encryption, 1 = AES_HMAC)                                                                                             |
-| server_public_keys             | TEXT          | -                                   | Server public keys used for newer cryptography algorithms serialized as JSON                                                                                                       |
-| shared_secret                  | VARCHAR(255)  | -                                   | Shared secret derived for key derivation purposes                                                                                                                                  |
-| shared_secret_encryption       | INT(11)       | -                                   | Indication whether shared secret is encrypted (0 = no encryption, 1 = AES_HMAC)                                                                                                    |
-| biometric_factor_enabled       | INT(11)       | -                                   | Indication whether biometric factor is enabled                                                                                                                                     |
-| biometric_factor_key           | VARCHAR(255)  | -                                   | Current biometry factor key                                                                                                                                                        |
-| biometric_factor_key_next      | VARCHAR(255)  | -                                   | Next biometry factor key                                                                                                                                                           |
-| knowledge_factor_key           | VARCHAR(255)  | -                                   | Current knowledge factor key                                                                                                                                                       |
-| knowledge_factor_key_next      | VARCHAR(255)  | -                                   | Next knowledge factor key                                                                                                                                                          |
-| master_keypair_id              | BIGINT(20)    | foreign key: pa\_master\_keypair.id | Master Key Pair identifier, used during the activation process                                                                                                                     |
-| timestamp_created              | DATETIME      | -                                   | Timestamp of the record creation.                                                                                                                                                  |
-| timestamp_activation_expire    | DATETIME      | -                                   | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED.                                             |
-| timestamp_last_used            | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
-| timestamp_last_change          | DATETIME      | -                                   | Timestamp of the last signature verification attempt.                                                                                                                              |
-| version                        | BIGINT(2)     | -                                   | Cryptography protocol version.                                                                                                                                                     |
-| commit_phase                   | INTEGER       | -                                   | When the activation is committed. Following values are supported: default ON_COMMIT(0), and ON_KEY_EXCHANGE(1).                                                                    |
-| additional_data                | TEXT          | -                                   | Optional additional data, structure is customer-specific JSON. Could be set during creation or initialization.                                                                     |
-| parent_activation_id           | VARCHAR(37)   | -                                   | The parent activation ID. Mandatory when `transfer_type` is present.                                                                                                               |
-| transfer_type                  | VARCHAR(32)   | -                                   | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parent_activation_id` is present.                                                                               |
+| Name                           | Type          | Info                                      | Note                                                                                                                                                                                     |
+|--------------------------------|---------------|-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| activation_id                  | VARCHAR(37)   | primary key, UUID (level 4)               | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca".                                                                                      |
+| application_id                 | BIGINT(20)    | NOT NULL, foreign key: pa\_application.id | Associated application ID.                                                                                                                                                               |
+| user_id                        | VARCHAR(255)  | NOT NULL, index                           | Associated user ID.                                                                                                                                                                      |
+| activation_name                | VARCHAR(255)  | -                                         | Name of the activation, typically a name of the client device, for example "John's iPhone 6"                                                                                             |
+| activation_code                | VARCHAR(255)  | index                                     | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA".                          |
+| activation_status              | INT(11)       | NOT NULL                                  | Activation status: 1=CREATED, 2=PENDING_COMMIT, 3=ACTIVE, 4=BLOCKED, 5=REMOVED.                                                                                                          |
+| activation_otp                 | VARCHAR(255)  | -                                         | Activation OTP value.                                                                                                                                                                    |
+| activation_otp_validation      | INT(11)       | NOT NULL, DEFAULT 0                       | OTP validation mode: 0=NONE, 1=ON_KEY_EXCHANGE, 2=ON_COMMIT.                                                                                                                             |
+| blocked_reason                 | VARCHAR(255)  | -                                         | Reason why activation is blocked (used when activation_status = 4, BLOCKED).                                                                                                             |
+| counter                        | BIGINT(20)    | NOT NULL                                  | Activation counter (legacy).                                                                                                                                                             |
+| ctr_data                       | VARCHAR(255)  | -                                         | Hash-based counter data (legacy), Base64-encoded.                                                                                                                                        |
+| device_public_key_base64       | VARCHAR(255)  | -                                         | Device public key (legacy), Base64-encoded.                                                                                                                                              |
+| device_public_keys             | TEXT          | -                                         | Device public keys for newer algorithms (JSON).                                                                                                                                          |
+| server_private_key_base64      | VARCHAR(255)  | NOT NULL                                  | Server private key (legacy), Base64-encoded.                                                                                                                                             |
+| server_private_key_encryption  | INT(11)       | NOT NULL, DEFAULT 0                       | Encryption of legacy server private key: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current).                                                                                    |
+| server_public_key_base64       | VARCHAR(255)  | NOT NULL                                  | Server public key (legacy), Base64-encoded.                                                                                                                                              |
+| server_private_keys            | TEXT          | -                                         | Server private keys for newer algorithms (JSON).                                                                                                                                         |
+| server_private_keys_encryption | INT(11)       | NOT NULL, DEFAULT 0                       | Encryption for `server_private_keys`: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current).                                                                                       |
+| server_public_keys             | TEXT          | -                                         | Server public keys for newer algorithms (JSON).                                                                                                                                          |
+| shared_secret                  | VARCHAR(255)  | -                                         | Derived shared secret value.                                                                                                                                                             |
+| shared_secret_encryption       | INT(11)       | NOT NULL, DEFAULT 0                       | Encryption for `shared_secret`: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current).                                                                                             |
+| biometric_factor_enabled       | INT(11)       | -                                         | Indication whether biometric factor is enabled                                                                                                                                           |
+| biometric_factor_key_next      | VARCHAR(255)  | -                                         | Next biometry factor key                                                                                                                                                                 |
+| knowledge_factor_key           | VARCHAR(255)  | -                                         | Current knowledge factor key                                                                                                                                                             |
+| knowledge_factor_key_next      | VARCHAR(255)  | -                                         | Next knowledge factor key                                                                                                                                                                |
+| extras                         | VARCHAR(4000) | -                                         | Any application specific information.                                                                                                                                                    |
+| platform                       | VARCHAR(255)  | -                                         | User device platform.                                                                                                                                                                    |
+| device_info                    | VARCHAR(255)  | -                                         | User device information.                                                                                                                                                                 |
+| flags                          | VARCHAR(255)  | -                                         | Activation flags as a JSON array.                                                                                                                                                        |
+| external_id                    | VARCHAR(255)  | -                                         | External identifier related to the activation.                                                                                                                                           |
+| protocol                       | VARCHAR(32)   | NOT NULL, DEFAULT 'powerauth'             | Security protocol: `powerauth` (default) or `fido2`.                                                                                                                                     |
+| failed_attempts                | BIGINT(20)    | NOT NULL                                  | Number of failed authentication verification attempts.                                                                                                                                   |
+| max_failed_attempts            | BIGINT(20)    | NOT NULL, DEFAULT 5                       | Number of maximum allowed failed authentication verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED). |
+| timestamp_activation_expire    | DATETIME      | NOT NULL                                  | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED.                                                   |
+| timestamp_created              | DATETIME      | NOT NULL                                  | Timestamp of the record creation.                                                                                                                                                        |
+| timestamp_last_used            | DATETIME      | NOT NULL                                  | Timestamp of the last authentication verification attempt.                                                                                                                               |
+| timestamp_last_change          | DATETIME      | -                                         | Timestamp of the last activation modification.                                                                                                                                           |
+| version                        | INT(11)       | NOT NULL, DEFAULT 2                       | Cryptography protocol version.                                                                                                                                                           |
+| commit_phase                   | INT(11)       | -                                         | Commit phase behavior: 0 = ON_COMMIT (default), 1 = ON_KEY_EXCHANGE.                                                                                                                     |
+| additional_data                | TEXT          | -                                         | Optional additional data, structure is customer-specific JSON. Could be set during creation or initialization.                                                                           |
+| crypto_algorithm               | VARCHAR(32)   | -                                         | Cryptography algorithm used during activation.                                                                                                                                           |
+| confirmation_pending           | BOOLEAN       | DEFAULT FALSE                             | Whether an activation confirmation is pending.                                                                                                                                           |
+| upgrade_confirmation_pending   | BOOLEAN       | DEFAULT FALSE                             | Whether an upgrade confirmation is pending.                                                                                                                                              |
+| ctr_data_v4                    | VARCHAR(255)  | -                                         | Counter data used by cryptography protocol v4.                                                                                                                                           |
+| parent_activation_id           | VARCHAR(37)   | -                                         | The parent activation ID. Mandatory when `transfer_type` is present.                                                                                                                     |
+| transfer_type                  | VARCHAR(32)   | -                                         | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parent_activation_id` is present.                                                                                     |
+| master_keypair_id              | BIGINT(20)    | foreign key: pa\_master\_keypair.id       | Master key pair used during activation.                                                                                                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
@@ -130,17 +133,17 @@ Stores master key pairs associated with applications and used during the activat
 
 #### Columns
 
-| Name                           | Type         | Info                            | Note                                                                   |
-|--------------------------------|--------------|---------------------------------|------------------------------------------------------------------------|
-| id                             | BIGINT(20)   | primary key, autoincrement      | Unique master key pair ID.                                             |
-| application_id                 | BIGINT(20)   | foreign key: pa\_application.id | Associated application ID.                                             |
-| name                           | VARCHAR(255) | -                               | Name of the key pair.                                                  |
-| master_key_private_base64      | VARCHAR(255) | -                               | Private key encoded as Base64                                          |
-| master_key_public_base64       | VARCHAR(255) | -                               | Public key encoded as Base64                                           |
-| master_private_keys            | TEXT         | -                               | Private keys used for newer cryptography algorithms serialized as JSON |
-| master_private_keys_encryption | INT(11)      | -                               | Encryption indicator (0 = no encryption, 1 = AES_HMAC).                |
-| master_public_keys             | TEXT         | -                               | Public keys used for newer cryptography algorithms serialized as JSON  |
-| timestamp_created              | DATETIME     | -                               | Timestamp of creation.                                                 |
+| Name                           | Type         | Info                            | Note                                                                     |
+|--------------------------------|--------------|---------------------------------|--------------------------------------------------------------------------|
+| id                             | BIGINT(20)   | primary key, autoincrement      | Unique master key pair ID.                                               |
+| application_id                 | BIGINT(20)   | foreign key: pa\_application.id | Associated application ID.                                               |
+| name                           | VARCHAR(255) | -                               | Name of the key pair.                                                    |
+| master_key_private_base64      | VARCHAR(255) | -                               | Legacy private key encoded as Base64.                                    |
+| master_key_public_base64       | VARCHAR(255) | -                               | Legacy public key encoded as Base64.                                     |
+| master_private_keys            | TEXT         | -                               | Private keys used for newer cryptography algorithms serialized as JSON.  |
+| master_private_keys_encryption | INT(11)      | NOT NULL, DEFAULT 0             | Encryption: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current). |
+| master_public_keys             | TEXT         | -                               | Public keys used for newer cryptography algorithms serialized as JSON.   |
+| timestamp_created              | DATETIME     | NOT NULL                        | Timestamp of creation.                                                   |
 <!-- end -->
 
 <!-- begin database table pa_signature_audit -->
@@ -153,9 +156,9 @@ Stores the records with values used for attempts for the signature validation.
 | Name                | Type         | Info                                       | Note                                                                      |
 |---------------------|--------------|--------------------------------------------|---------------------------------------------------------------------------|
 | id                  | BIGINT(20)   | primary key, autoincrement                 | Unique record ID.                                                         |
-| activation_id       | BIGINT(20)   | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
+| activation_id       | VARCHAR(37)  | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
 | activation_counter  | BIGINT(20)   | -                                          | Activation counter at the moment of signature validation.                 |
-| activation_ctr_data | BIGINT(2)    | -                                          | Activation hash based counter data at the moment of signature validation. |
+| activation_ctr_data | VARCHAR(255) | -                                          | Activation hash based counter data at the moment of signature validation. |
 | activation_status   | INT(11)      | -                                          | Activation status at the moment of signature validation.                  |
 | additional_info     | VARCHAR(255) | -                                          | Additional information related to the signature request in JSON format.   |
 | data_base64         | TEXT         | -                                          | Data passed as the base for the signature, encoded as Base64.             |
@@ -166,7 +169,7 @@ Stores the records with values used for attempts for the signature validation.
 | valid               | INT(11)      | -                                          | Flag indicating if the provided signature was valid.                      |
 | note                | TEXT         | -                                          | Additional information about the validation result.                       |
 | timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
-| version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
+| version             | INT(11)      | -                                          | PowerAuth protocol version.                                               |
 | signature_version   | VARCHAR(255) | -                                          | PowerAuth signature version.                                              |
 <!-- end -->
 
@@ -235,7 +238,7 @@ Stores a log of activation changes.
 
 | Name               | Type         | Info                                      | Note                                                                                                                                                                            |
 |--------------------|--------------|-------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id                 | INT(37)      | primary key                               | Unique record ID.                                                                                                                                                               |
+| id                 | BIGINT(20)   | primary key                               | Unique record ID.                                                                                                                                                               |
 | activation_id      | VARCHAR(37)  | foreign key: pa\_activation.activation_id | Reference to associated activation.                                                                                                                                             |
 | activation_status  | INT(11)      | index                                     | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED                                         |
 | event_reason       | VARCHAR(255) | -                                         | Reason why activation was changed.                                                                                                                                              |
@@ -254,7 +257,7 @@ Stores information about recovery codes.
 
 | Name                  | Type         | Info                                      | Note                                                                                                                                                                    |
 |-----------------------|--------------|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id                    | INT(37)      | primary key                               | Unique record ID.                                                                                                                                                       |
+| id                    | BIGINT(20)   | primary key                               | Unique record ID.                                                                                                                                                       |
 | recovery_code         | VARCHAR(23)  | index                                     | Recovery code used for recovering an activation. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA".            |
 | application_id        | BIGINT(20)   | foreign key: pa\_application.id           | Related application ID.                                                                                                                                                 |
 | user_id               | VARCHAR(255) | index                                     | Associated user ID.                                                                                                                                                     |
@@ -274,15 +277,15 @@ Stores information about recovery PUKs.
 
 #### Columns
 
-| Name                  | Type         | Info                                    | Note                                                                                              |
-|-----------------------|--------------|-----------------------------------------|---------------------------------------------------------------------------------------------------|
-| id                    | INT(37)      | primary key                             | Unique record ID.                                                                                 |
-| recovery_code_id      | INT(37)      | foreign key: pa_recovery_code.id, index | Related recovery code.                                                                            |
-| puk                   | VARCHAR(255) | -                                       | Recovery PUK value (optionally encrypted).                                                        |
-| puk_encryption        | INT(11)      | -                                       | Encryption type for PUK (0 = NO_ENCRYPTION, 1 = AES_HMAC)                                         |
-| puk_index             | INT(11)      | index                                   | Index of the PUK (value starts by 1).                                                             |
-| status                | INT(11)      | -                                       | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
-| timestamp_last_change | DATETIME     | -                                       | Timestamp of record last change.                                                                  |
+| Name                  | Type         | Info                                      | Note                                                                                              |
+|-----------------------|--------------|-------------------------------------------|---------------------------------------------------------------------------------------------------|
+| id                    | BIGINT(20)   | primary key                               | Unique record ID.                                                                                 |
+| recovery_code_id      | BIGINT(20)   | foreign key: pa\_recovery\_code.id, index | Related recovery code.                                                                            |
+| puk                   | VARCHAR(255) | -                                         | Recovery PUK value (optionally encrypted).                                                        |
+| puk_encryption        | INT(11)      | -                                         | Encryption type for PUK (0 = NO_ENCRYPTION, 1 = AES_HMAC)                                         |
+| puk_index             | INT(11)      | index                                     | Index of the PUK (value starts by 1).                                                             |
+| status                | INT(11)      | -                                         | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
+| timestamp_last_change | DATETIME     | -                                         | Timestamp of record last change.                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_recovery_config -->
@@ -294,7 +297,7 @@ Stores configuration of activation recovery and recovery postcards.
 
 | Name                          | Type         | Info                            | Note                                                                |
 |-------------------------------|--------------|---------------------------------|---------------------------------------------------------------------|
-| id                            | INT(37)      | primary key                     | Unique record ID.                                                   |
+| id                            | BIGINT(20)   | primary key                     | Unique record ID.                                                   |
 | application_id                | BIGINT(20)   | foreign key: pa\_application.id | Related application ID.                                             |
 | activation_recovery_enabled   | INT(1)       | -                               | Whether activation recovery is enabled.                             |
 | recovery_postcard_enabled     | INT(1)       | -                               | Whether recovery postcard is enabled.                               |
@@ -391,17 +394,17 @@ Table stores details about temporary key pairs used for data encryption.
 
 #### Columns
 
-| Name                   | Type         | Info                                                   | Note                                                                                  |
-|------------------------|--------------|--------------------------------------------------------|---------------------------------------------------------------------------------------|
-| id                     | varchar(37)  | primary key                                            | Identifier of the temporary key pair.                                                 |
-| application_key        | varchar(32)  | foreign key: pa\_application\_version.application\_key | Identifier of the application version (app key).                                      |
-| activation_id          | varchar(37)  | foreign key: pa\_activation.activation\_id             | Identifier of an associated activation (activation ID).                               |
-| private_key_encryption | integer      | -                                                      | Indication whether server private key is encrypted (0 = no encryption, 1 = AES_HMAC). |
-| private_key_base64     | varchar(255) | -                                                      | Temporary private key encoded as Base64.                                              |
-| public_key_base64      | varchar(255) | -                                                      | Temporary public key encoded as Base64.                                               |
-| secret_key_base64      | VARCHAR(255) | -                                                      | Base64-encoded secret key.                                                            |
-| secret_key_encryption  | INT(11)      | -                                                      | Encryption indicator (0 = no encryption, 1 = AES_HMAC).                               |
-| timestamp_expires      | timestamp    | index                                                  | Timestamp of when the temporary key pair expires.                                     |
+| Name                   | Type         | Info                                                             | Note                                                                                                |
+|------------------------|--------------|------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| id                     | VARCHAR(37)  | primary key                                                      | Identifier of the temporary key pair.                                                               |
+| application_key        | VARCHAR(32)  | NOT NULL, foreign key: pa\_application\_version.application\_key | Identifier of the application version (application key).                                            |
+| activation_id          | VARCHAR(37)  | foreign key: pa\_activation.activation\_id                       | Identifier of an associated activation (activation ID).                                             |
+| private_key_encryption | INT(11)      | -                                                                | Encryption indicator for private key 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current).   |
+| private_key_base64     | VARCHAR(255) | -                                                                | Temporary private key encoded as Base64.                                                            |
+| public_key_base64      | VARCHAR(255) | -                                                                | Temporary public key encoded as Base64.                                                             |
+| secret_key_base64      | VARCHAR(255) | -                                                                | Base64-encoded shared secret key.                                                                   |
+| secret_key_encryption  | INT(11)      | -                                                                | Encryption indicator for shared secret 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current). |
+| timestamp_expires      | DATETIME     | index                                                            | Timestamp when the temporary key pair expires.                                                      |
 <!-- end -->
 
 <!-- begin database table pa_application_callback_event -->
@@ -417,10 +420,10 @@ Table stores Callback URL Events to monitor processing of the callbacks.
 | application_callback_id | varchar(37) | -           | Reference to configuration of the Callback URL Event in `pa_application_callback` table. |
 | callback_data           | text        | -           | Data payload of the Callback URL Event.                                                  |
 | status                  | varchar(32) | -           | Current status of the Callback URL Event.                                                |
-| timestamp_created       | timestamp   | -           | Timestamp of the Callback URL Event creation.                                            |
+| timestamp_created       | timestamp   | NOT NULL    | Timestamp of the Callback URL Event creation.                                            |
 | timestamp_last_call     | timestamp   | -           | Timestamp of the last attempt to send the Callback URL Event.                            |
-| timestamp_next_call     | timestamp   | -           | Timestamp of the next scheduled time to send the Callback URL Event.                     |
-| timestamp_delete_after  | timestamp   | -           | Timestamp after which the Callback URL Event record can be deleted from the table.       |
+| timestamp_next_call     | timestamp   | NOT NULL    | Timestamp of the next scheduled time to send the Callback URL Event.                     |
+| timestamp_delete_after  | timestamp   | NOT NULL    | Timestamp after which the Callback URL Event record can be deleted from the table.       |
 | timestamp_rerun_after   | timestamp   | -           | Timestamp after which the Callback URL Event in processing state will be rerun.          |
 | attempts                | integer     | -           | Number of dispatch attempts made for the Callback URL Event.                             |
 | idempotency_key         | varchar(36) | -           | Idempotency key associated with the Callback URL Event.                                  |

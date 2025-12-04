@@ -23,7 +23,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * Model class representing request for revoking HMAC token.
+ * Model class representing request for revoking MAC token.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

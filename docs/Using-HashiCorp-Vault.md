@@ -1,59 +1,67 @@
 # Integrating with HashiCorp Vault
 
-In order to protect the database records, PowerAuth has an embedded [mechanism for secret data encryption via a symmetric key](./Encrypting-Records-in-Database.md). The encryption key can be configured via setting the `powerauth.server.db.master.encryption.key` property in the `application.properties` file. However, to achieve better security of this key, you can also use a [HashiCorp Vault](https://www.hashicorp.com/products/vault/).
+To protect database records, PowerAuth provides an embedded mechanism for application-level encryption of sensitive data [via a symmetric key](./Encrypting-Records-in-Database.md). The encryption key can be configured using the `powerauth.server.db.master.encryption.aead-kmac.key` property in the `application.properties` file. To improve the security of this master key, you can store it in a HashiCorp Vault instance.
 
 ## About HashiCorp Vault
 
-[HashiCorp Vault](https://www.hashicorp.com/products/vault/) (or just Vault, for short) is just like [HSM](https://en.wikipedia.org/wiki/Hardware_security_module), but in software. It is a convenient mechanism to store secret keys, passwords, or perform cryptographic operations in an isolated secure environment. It provides a convenient API-based interface (RESTful API) and extremely easy integration with Spring Boot apps via [Spring Cloud Vault](https://cloud.spring.io/spring-cloud-vault). Finally, the enterprise version of Vault supports integration with HSM for even better key protection.
+[HashiCorp Vault](https://www.vaultproject.io) (or simply "Vault") is a software-based secure storage and cryptographic service. It can store secret keys, credentials, and certificates, and it can perform cryptographic operations in an isolated, policy-controlled environment. It exposes a REST API and integrates easily with Spring Boot applications through Spring Cloud Vault. The enterprise edition of Vault also supports HSM integration for hardware-backed master key protection.
 
 ## Installation and Setup
 
-To install Vault, simply follow the [download and installation instruction on HashiCorp website](https://www.vaultproject.io/downloads.html). On Mac, you can install Vault easily by running:
+To install Vault, follow the official installation instructions:  
+https://www.vaultproject.io/downloads
+
+On macOS, you can install Vault using Homebrew:
 
 ```bash
-$ brew install vault
+brew install vault
 ```
 
-The easiest way to start Vault for initial testing is by using the development mode with a "zero token", like so:
+For basic testing, you can start Vault in development mode:
 
 ```bash
-$ vault server --dev --dev-root-token-id="00000000-0000-0000-0000-000000000000"
+vault server --dev --dev-root-token-id="00000000-0000-0000-0000-000000000000"
 ```
 
-The Vault starts rather quickly, the last message should be of a format:
+The server will start quickly and show a log entry similar to:
 
 ```bash
-2019-08-07T20:47:41.280+0200 [INFO]  secrets.kv.kv_3cfd3149: upgrading keys finished
+[INFO]  secrets.kv: upgrading keys finished
 ```
 
-Beware! Never use the "zero token" authentication mentioned above for production environment. Refer to the [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
+Warning: Never use development mode or the example token above in production. See the [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for recommended authentication and deployment practices.
 
-After starting the Vault, you need to set two environment variables to point the Vault CLI to the Vault endpoint and to provide an authentication token:
+Before using the Vault CLI, configure environment variables:
 
 ```bash
-$ export export VAULT_TOKEN="00000000-0000-0000-0000-000000000000"
-$ export VAULT_ADDR="http://127.0.0.1:8200"
+export VAULT_TOKEN="00000000-0000-0000-0000-000000000000"
+export VAULT_ADDR="http://127.0.0.1:8200"
 ```
 
-## Adding Database Encryption Key in the Vault
+## Adding the Database Encryption Key to Vault
 
-To add a key used to encrypt and decrypt sensitive records in the PowerAuth database, simply call the following command from the terminal:
+To store the PowerAuth database encryption key inside Vault, run:
 
 ```bash
-$ vault kv put secret/powerauth-java-server powerauth.server.db.master.encryption.key=[16 bytes encoded in base64, for example 'MTIzNDU2Nzg5MDEyMzQ1Ng==']
+vault kv put secret/powerauth-java-server powerauth.server.db.master.encryption.aead-kmac.key=[32 bytes base64, for example 'mC92FrUKjMCqIKW5qVOduxRlBeEQ+fLsQjPxf1k9ow8=']
 ```
 
-Note the key name `secret/powerauth-java-server`. This is the default name of the secure bucket in Vault based on the value of `spring.application.name` property (that is set to `powerauth-java-server` by default). Adjust the name of this key in case you changed the value of `spring.application.name` property. Also, in case you use a custom configuration profile (for example, `testing`), you need to adjust the name by appending the profile name (for example, `secret/powerauth-java-server/testing`).
+Notes:
 
-To check that the value is present in the Vault, you can use:
+- The `secret/powerauth-java-server` path corresponds to the application name specified by the `spring.application.name` property (default: `powerauth-java-server`).
+- If you are using a Spring profile (for example `testing`), the effective path becomes:  
+  `secret/powerauth-java-server/testing`
+- The key must be exactly 32 random bytes, Base64-encoded.
+
+To verify the stored value:
 
 ```bash
-$ vault kv get secret/powerauth-java-server
+vault kv get secret/powerauth-java-server
 ```
 
 ## Configuring PowerAuth Server
 
-In order to make the running PowerAuth Server aware of the running Vault instance and to configure Vault authentication, you need to set the following properties in `application.properties` (or `application.yml` file).
+To connect PowerAuth Server to Vault and configure authentication, add the following properties to `application.properties` or `application.yml`:
 
 ```properties
 spring.cloud.vault.enabled=true
@@ -62,19 +70,22 @@ spring.cloud.vault.port=8200
 spring.cloud.vault.scheme=http
 spring.cloud.vault.authentication=TOKEN
 spring.cloud.vault.token=00000000-0000-0000-0000-000000000000
+spring.cloud.vault.kv.enabled=true
+spring.cloud.vault.kv.backend=secret
+spring.cloud.vault.kv.default-context=powerauth-java-server
 ```
 
-<!-- begin box warning -->
-Note: For production environment, make sure to use different authentication parameters than the one in the example above. Please refer to [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
-<!-- end -->
+Note: Do not use development-mode authentication or example tokens in production. Please refer to [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
 
-In case you are using Apache Tomcat for deployment, you can set the properties via your `${CATALINA_HOME}/conf/Catalina/localhost/powerauth-java-server.xml` configuration file:
+### Deployment on Apache Tomcat
+
+If deploying under Apache Tomcat, you may include these properties inside `${CATALINA_HOME}/conf/Catalina/localhost/powerauth-java-server.xml`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
 
-    <!-- ... other configuration properties -->
+    <!-- Other configuration properties -->
 
     <Parameter name="spring.cloud.vault.enabled" value="true"/>
     <Parameter name="spring.cloud.vault.host" value="localhost"/>
@@ -82,12 +93,13 @@ In case you are using Apache Tomcat for deployment, you can set the properties v
     <Parameter name="spring.cloud.vault.scheme" value="http"/>
     <Parameter name="spring.cloud.vault.authentication" value="TOKEN"/>
     <Parameter name="spring.cloud.vault.token" value="00000000-0000-0000-0000-000000000000"/>
+    <Parameter name="spring.cloud.vault.kv.enabled" value="true"/>
+    <Parameter name="spring.cloud.vault.kv.backend" value="secret"/>
+    <Parameter name="spring.cloud.vault.kv.default-context" value="powerauth-java-server"/>
 
 </Context>
 ```
 
-After restarting the PowerAuth Server, the configuration of encryption key will be automatically picked up from the Vault instance configured in the properties.
+After restarting the PowerAuth Server, the encryption key will be automatically loaded from the configured Vault instance.
 
-<!-- begin box info -->
-In case you set the `powerauth.server.db.master.encryption.key` property in your Tomcat XML configuration directly (in a plain text), the configuration from the Vault still has a precedence and will be used over the hardcoded encryption key value.
-<!-- end -->
+Note: If you set the `powerauth.server.db.master.encryption.aead-kmac.key` property directly in your Tomcat XML configuration, the value from Vault will still take precedence and override the plaintext configuration.

@@ -21,15 +21,12 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OfflineAuthenticationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OnlineAuthenticationServiceBehavior;
-import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreatePersonalizedOfflineAuthPayloadRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAuthenticationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyOfflineAuthenticationRequest;
-import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAuthenticationResponse;
@@ -61,7 +58,6 @@ public class AuthenticationController {
 
     private final OnlineAuthenticationServiceBehavior onlineAuthenticationService;
     private final OfflineAuthenticationServiceBehavior offlineAuthenticationService;
-    private final AuditingServiceBehavior auditingService;
 
     /**
      * Verify authentication code.
@@ -135,22 +131,5 @@ public class AuthenticationController {
         return response;
     }
 
-    /**
-     * Get the audit of signatures.
-     *
-     * @param request Signature audit request.
-     * @return Signature audit response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PostMapping("/list")
-    public ObjectResponse<SignatureAuditResponse> getAuthenticationAuditLog(@Valid @RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
-        final SignatureAuditRequest req = request.getRequestObject();
-        logger.info("action: getSignatureAuditLog, state: initiated, userId: {}, applicationId: {}", req.getUserId(), req.getApplicationId());
-        logger.debug("action: getSignatureAuditLog, state: initiated, request: {}", request);
-        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getAuthenticationLog(req));
-        logger.info("action: getSignatureAuditLog, state: succeeded");
-        logger.debug("action: getSignatureAuditLog, state: succeeded, response: {}", response);
-        return response;
-    }
 
 }
