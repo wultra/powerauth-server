@@ -477,7 +477,7 @@ ALTER TABLE pa_activation ADD commit_phase int CONSTRAINT DF_pa_activation_commi
 GO
 
 -- Changeset powerauth-java-server/1.9.x/20240704-callback-event-table.xml::1::Jan Pesek
--- Create a new table pa_callback_event
+-- Create a new table pa_application_callback_event
 CREATE TABLE pa_application_callback_event (id bigint NOT NULL, application_callback_id varchar(37) NOT NULL, callback_data varchar (max) NOT NULL, status varchar(32) NOT NULL, timestamp_created datetime2(6) CONSTRAINT DF_pa_application_callback_event_timestamp_created DEFAULT GETDATE() NOT NULL, timestamp_last_call datetime2(6), timestamp_next_call datetime2(6), timestamp_delete_after datetime2(6), timestamp_rerun_after datetime2(6), attempts int CONSTRAINT DF_pa_application_callback_event_attempts DEFAULT 0 NOT NULL, idempotency_key varchar(36) NOT NULL, CONSTRAINT PK_PA_APPLICATION_CALLBACK_EVENT PRIMARY KEY (id));
 GO
 

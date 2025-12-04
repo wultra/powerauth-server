@@ -10,7 +10,7 @@
                 <tableExists tableName="pa_application_callback_event" />
             </not>
         </preConditions>
-        <comment>Create a new table pa_callback_event</comment>
+        <comment>Create a new table pa_application_callback_event</comment>
         <createTable tableName="pa_application_callback_event">
             <column name="id" type="bigint">
                 <constraints primaryKey="true" />
