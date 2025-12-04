@@ -580,7 +580,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV4RestApi("/auth/list", request, queryParams, httpHeaders, SignatureAuditResponse.class);
+        return callV4RestApi("/audit/list", request, queryParams, httpHeaders, SignatureAuditResponse.class);
     }
 
     @Override
