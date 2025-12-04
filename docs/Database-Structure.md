@@ -169,7 +169,7 @@ Stores the records with values used for attempts for the signature validation.
 | valid               | INT(11)      | -                                          | Flag indicating if the provided signature was valid.                      |
 | note                | TEXT         | -                                          | Additional information about the validation result.                       |
 | timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
-| version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
+| version             | INT(11)      | -                                          | PowerAuth protocol version.                                               |
 | signature_version   | VARCHAR(255) | -                                          | PowerAuth signature version.                                              |
 <!-- end -->
 
