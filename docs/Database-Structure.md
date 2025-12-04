@@ -123,7 +123,7 @@ Stores activations. Activation is a unit associating signature / transport and e
 | ctr_data_v4                    | VARCHAR(255)  | -                                         | Counter data used by cryptography protocol v4.                                                                                                                                           |
 | parent_activation_id           | VARCHAR(37)   | -                                         | The parent activation ID. Mandatory when `transfer_type` is present.                                                                                                                     |
 | transfer_type                  | VARCHAR(32)   | -                                         | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parent_activation_id` is present.                                                                                     |
-| master_keypair_id              | INTEGER       | foreign key: pa\_master\_keypair.id       | Master key pair used during activation.                                                                                                                                                  |
+| master_keypair_id              | BIGINT(20)    | foreign key: pa\_master\_keypair.id       | Master key pair used during activation.                                                                                                                                                  |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
