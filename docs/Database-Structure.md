@@ -420,10 +420,10 @@ Table stores Callback URL Events to monitor processing of the callbacks.
 | application_callback_id | varchar(37) | -           | Reference to configuration of the Callback URL Event in `pa_application_callback` table. |
 | callback_data           | text        | -           | Data payload of the Callback URL Event.                                                  |
 | status                  | varchar(32) | -           | Current status of the Callback URL Event.                                                |
-| timestamp_created       | timestamp   | -           | Timestamp of the Callback URL Event creation.                                            |
+| timestamp_created       | timestamp   | NOT NULL    | Timestamp of the Callback URL Event creation.                                            |
 | timestamp_last_call     | timestamp   | -           | Timestamp of the last attempt to send the Callback URL Event.                            |
-| timestamp_next_call     | timestamp   | -           | Timestamp of the next scheduled time to send the Callback URL Event.                     |
-| timestamp_delete_after  | timestamp   | -           | Timestamp after which the Callback URL Event record can be deleted from the table.       |
+| timestamp_next_call     | timestamp   | NOT NULL    | Timestamp of the next scheduled time to send the Callback URL Event.                     |
+| timestamp_delete_after  | timestamp   | NOT NULL    | Timestamp after which the Callback URL Event record can be deleted from the table.       |
 | timestamp_rerun_after   | timestamp   | -           | Timestamp after which the Callback URL Event in processing state will be rerun.          |
 | attempts                | integer     | -           | Number of dispatch attempts made for the Callback URL Event.                             |
 | idempotency_key         | varchar(36) | -           | Idempotency key associated with the Callback URL Event.                                  |
