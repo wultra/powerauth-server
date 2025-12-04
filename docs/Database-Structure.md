@@ -133,17 +133,17 @@ Stores master key pairs associated with applications and used during the activat
 
 #### Columns
 
-| Name                           | Type         | Info                           | Note                                                                     |
-|--------------------------------|--------------|--------------------------------|--------------------------------------------------------------------------|
-| id                             | BIGINT(20)   | primary key, autoincrement     | Unique master key pair ID.                                               |
-| application_id                 | BIGINT(20)   | foreign key: pa_application.id | Associated application ID.                                               |
-| name                           | VARCHAR(255) | -                              | Name of the key pair.                                                    |
-| master_key_private_base64      | VARCHAR(255) | -                              | Legacy private key encoded as Base64.                                    |
-| master_key_public_base64       | VARCHAR(255) | -                              | Legacy public key encoded as Base64.                                     |
-| master_private_keys            | TEXT         | -                              | Private keys used for newer cryptography algorithms serialized as JSON.  |
-| master_private_keys_encryption | INT(11)      | NOT NULL, DEFAULT 0            | Encryption: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current). |
-| master_public_keys             | TEXT         | -                              | Public keys used for newer cryptography algorithms serialized as JSON.   |
-| timestamp_created              | DATETIME     | NOT NULL                       | Timestamp of creation.                                                   |
+| Name                           | Type         | Info                            | Note                                                                     |
+|--------------------------------|--------------|---------------------------------|--------------------------------------------------------------------------|
+| id                             | BIGINT(20)   | primary key, autoincrement      | Unique master key pair ID.                                               |
+| application_id                 | BIGINT(20)   | foreign key: pa\_application.id | Associated application ID.                                               |
+| name                           | VARCHAR(255) | -                               | Name of the key pair.                                                    |
+| master_key_private_base64      | VARCHAR(255) | -                               | Legacy private key encoded as Base64.                                    |
+| master_key_public_base64       | VARCHAR(255) | -                               | Legacy public key encoded as Base64.                                     |
+| master_private_keys            | TEXT         | -                               | Private keys used for newer cryptography algorithms serialized as JSON.  |
+| master_private_keys_encryption | INT(11)      | NOT NULL, DEFAULT 0             | Encryption: 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current). |
+| master_public_keys             | TEXT         | -                               | Public keys used for newer cryptography algorithms serialized as JSON.   |
+| timestamp_created              | DATETIME     | NOT NULL                        | Timestamp of creation.                                                   |
 <!-- end -->
 
 <!-- begin database table pa_signature_audit -->
