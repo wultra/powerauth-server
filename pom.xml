@@ -107,7 +107,7 @@
         <central.publishing.plugin.version>0.9.0</central.publishing.plugin.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.30.0.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.30.1.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
