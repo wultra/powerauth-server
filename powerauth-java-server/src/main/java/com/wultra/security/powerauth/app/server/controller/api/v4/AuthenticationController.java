@@ -77,7 +77,7 @@ public class AuthenticationController {
     @PostMapping("/verify")
     public ObjectResponse<VerifyAuthenticationResponse> verifyAuthentication(@Valid @RequestBody ObjectRequest<VerifyAuthenticationRequest> request) throws Exception {
         final VerifyAuthenticationRequest req = request.getRequestObject();
-        logger.info("action: verifyAuthentication, state: initiated, activationId: {}, applicationKey: {}, version: {}", req.getActivationId(), req.getApplicationKey(), req.getAuthenticationVersion());
+        logger.info("action: verifyAuthentication, state: initiated, activationId: {}, applicationKey: {}, authenticationVersion: {}", req.getActivationId(), req.getApplicationKey(), req.getAuthenticationVersion());
         logger.debug("action: verifyAuthentication, state: initiated, request: {}", request);
 
         final VerifyAuthenticationResponse response = ProtocolVersion.V40.getVersion().equals(req.getAuthenticationVersion())
