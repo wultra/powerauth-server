@@ -167,15 +167,7 @@ public class AuthenticationController {
         legacyRequest.setData(src.getData());
         legacyRequest.setSignature(src.getAuthenticationCode());
         legacyRequest.setSignatureVersion(src.getAuthenticationVersion());
-        final SignatureType signatureType = switch (src.getAuthenticationCodeType()) {
-            case POSSESSION -> SignatureType.POSSESSION;
-            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
-            case BIOMETRY -> SignatureType.BIOMETRY;
-            case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
-        };
-        legacyRequest.setSignatureType(signatureType);
+        legacyRequest.setSignatureType(convert(src.getAuthenticationCodeType()));
         return legacyRequest;
     }
 
@@ -190,8 +182,23 @@ public class AuthenticationController {
         response.setRemainingAttempts(src.getRemainingAttempts());
         response.setApplicationRoles(src.getApplicationRoles());
         response.setActivationFlags(src.getActivationFlags());
+        response.setAuthenticationCodeType(convert(src.getSignatureType()));
+        return response;
+    }
 
-        final AuthenticationCodeType authenticationCodeType = switch (src.getSignatureType()) {
+    private static SignatureType convert(final AuthenticationCodeType src) {
+        return switch (src) {
+            case POSSESSION -> SignatureType.POSSESSION;
+            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
+            case BIOMETRY -> SignatureType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
+    }
+
+    private static AuthenticationCodeType convert(final SignatureType src) {
+        return switch (src) {
             case POSSESSION -> AuthenticationCodeType.POSSESSION;
             case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
             case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
@@ -199,8 +206,6 @@ public class AuthenticationController {
             case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
             case POSSESSION_KNOWLEDGE_BIOMETRY -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
-        response.setAuthenticationCodeType(authenticationCodeType);
-        return response;
     }
 
 }
