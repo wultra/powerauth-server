@@ -143,7 +143,17 @@ public class AuthenticationController {
         return response;
     }
 
-    @Deprecated
+    /**
+     * Verifies an authentication code using the legacy signature verification flow.
+     * This method exists to support V3 signature verification when invoked through the V4
+     * endpoint. It will be removed once protocol V3 support is dropped in a future release.
+     *
+     * @param request Verify authentication code request.
+     * @return The result of the authentication verification.
+     * @throws Exception In case the service throws exception.
+     * @deprecated since 2.0.0, for removal once the V3 protocol is no longer supported
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
     private VerifyAuthenticationResponse verifyAuthenticationLegacy(final VerifyAuthenticationRequest request) throws Exception {
         final VerifySignatureRequest legacyRequest = convert(request);
         final VerifySignatureResponse legacyResponse = onlineSignatureService.verifySignature(legacyRequest, new ArrayList<>());
