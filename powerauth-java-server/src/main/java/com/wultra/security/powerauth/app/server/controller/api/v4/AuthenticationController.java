@@ -21,16 +21,22 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.OnlineSignatureServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OfflineAuthenticationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OnlineAuthenticationServiceBehavior;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.request.v3.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreateNonPersonalizedOfflineAuthPayloadRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreatePersonalizedOfflineAuthPayloadRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAuthenticationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyOfflineAuthenticationRequest;
+import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAuthenticationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthenticationResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -59,6 +65,8 @@ public class AuthenticationController {
     private final OnlineAuthenticationServiceBehavior onlineAuthenticationService;
     private final OfflineAuthenticationServiceBehavior offlineAuthenticationService;
 
+    private final OnlineSignatureServiceBehavior onlineSignatureService;
+
     /**
      * Verify authentication code.
      *
@@ -69,12 +77,16 @@ public class AuthenticationController {
     @PostMapping("/verify")
     public ObjectResponse<VerifyAuthenticationResponse> verifyAuthentication(@Valid @RequestBody ObjectRequest<VerifyAuthenticationRequest> request) throws Exception {
         final VerifyAuthenticationRequest req = request.getRequestObject();
-        logger.info("action: verifyAuthentication, state: initiated, activationId: {}, applicationKey: {}", req.getActivationId(), req.getApplicationKey());
+        logger.info("action: verifyAuthentication, state: initiated, activationId: {}, applicationKey: {}, authenticationVersion: {}", req.getActivationId(), req.getApplicationKey(), req.getAuthenticationVersion());
         logger.debug("action: verifyAuthentication, state: initiated, request: {}", request);
-        final ObjectResponse<VerifyAuthenticationResponse> response = new ObjectResponse<>(onlineAuthenticationService.verifyAuthentication(request.getRequestObject(), new ArrayList<>()));
-        logger.info("action: verifyAuthentication, state: succeeded, authenticationValid: {}", response.getResponseObject().isAuthenticationValid());
+
+        final VerifyAuthenticationResponse response = ProtocolVersion.V40.getVersion().equals(req.getAuthenticationVersion())
+                ? onlineAuthenticationService.verifyAuthentication(req, new ArrayList<>())
+                : verifyAuthenticationLegacy(req);
+
+        logger.info("action: verifyAuthentication, state: succeeded, authenticationValid: {}", response.isAuthenticationValid());
         logger.debug("action: verifyAuthentication, state: succeeded, response: {}", response);
-        return response;
+        return new ObjectResponse<>(response);
     }
 
     /**
@@ -131,5 +143,69 @@ public class AuthenticationController {
         return response;
     }
 
+    /**
+     * Verifies an authentication code using the legacy signature verification flow.
+     * This method exists to support V3 signature verification when invoked through the V4
+     * endpoint. It will be removed once protocol V3 support is dropped in a future release.
+     *
+     * @param request Verify authentication code request.
+     * @return The result of the authentication verification.
+     * @throws Exception In case the service throws exception.
+     * @deprecated since 2.0.0, for removal once the V3 protocol is no longer supported
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
+    private VerifyAuthenticationResponse verifyAuthenticationLegacy(final VerifyAuthenticationRequest request) throws Exception {
+        final VerifySignatureRequest legacyRequest = convert(request);
+        final VerifySignatureResponse legacyResponse = onlineSignatureService.verifySignature(legacyRequest, new ArrayList<>());
+        return convert(legacyResponse);
+    }
+
+    private static VerifySignatureRequest convert(final VerifyAuthenticationRequest src) {
+        final VerifySignatureRequest legacyRequest = new VerifySignatureRequest();
+        legacyRequest.setActivationId(src.getActivationId());
+        legacyRequest.setApplicationKey(src.getApplicationKey());
+        legacyRequest.setData(src.getData());
+        legacyRequest.setSignature(src.getAuthenticationCode());
+        legacyRequest.setSignatureVersion(src.getAuthenticationVersion());
+        legacyRequest.setSignatureType(convert(src.getAuthenticationCodeType()));
+        return legacyRequest;
+    }
+
+    private static VerifyAuthenticationResponse convert(final VerifySignatureResponse src) {
+        final VerifyAuthenticationResponse response = new VerifyAuthenticationResponse();
+        response.setAuthenticationValid(src.isSignatureValid());
+        response.setActivationStatus(src.getActivationStatus());
+        response.setBlockedReason(src.getBlockedReason());
+        response.setActivationId(src.getActivationId());
+        response.setUserId(src.getUserId());
+        response.setApplicationId(src.getApplicationId());
+        response.setRemainingAttempts(src.getRemainingAttempts());
+        response.setApplicationRoles(src.getApplicationRoles());
+        response.setActivationFlags(src.getActivationFlags());
+        response.setAuthenticationCodeType(convert(src.getSignatureType()));
+        return response;
+    }
+
+    private static SignatureType convert(final AuthenticationCodeType src) {
+        return switch (src) {
+            case POSSESSION -> SignatureType.POSSESSION;
+            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
+            case BIOMETRY -> SignatureType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
+    }
+
+    private static AuthenticationCodeType convert(final SignatureType src) {
+        return switch (src) {
+            case POSSESSION -> AuthenticationCodeType.POSSESSION;
+            case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
+            case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> AuthenticationCodeType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
+    }
 
 }
