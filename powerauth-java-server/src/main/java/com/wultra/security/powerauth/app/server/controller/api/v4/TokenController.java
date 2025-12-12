@@ -22,12 +22,15 @@ package com.wultra.security.powerauth.app.server.controller.api.v4;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.TokenServiceBehavior;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.v4.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
 import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v4.ValidateTokenResponse;
 import com.wultra.security.powerauth.client.model.response.v4.CreateTokenResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -51,7 +54,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TokenController {
 
-    private final TokenServiceBehavior service;
+    private final TokenServiceBehavior tokenService;
+
+    private final com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.TokenServiceBehavior legacyTokenService;
 
     /**
      * Create a token.
@@ -65,7 +70,7 @@ public class TokenController {
         final CreateTokenRequest req = request.getRequestObject();
         logger.info("action: createToken, state: initiated, activationId: {}, applicationKey: {}, requestTimestamp: {}", req.getActivationId(), req.getApplicationKey(), req.getTimestamp());
         logger.debug("action: createToken, state: initiated, request: {}", request);
-        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(req));
+        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(tokenService.createToken(req));
         logger.info("action: createToken, state: succeeded");
         logger.debug("action: createToken, state: succeeded, response: {}", response);
         return response;
@@ -81,12 +86,16 @@ public class TokenController {
     @PostMapping("/validate")
     public ObjectResponse<ValidateTokenResponse> validateToken(@Valid @RequestBody ObjectRequest<ValidateTokenRequest> request) throws Exception {
         final ValidateTokenRequest req = request.getRequestObject();
-        logger.info("action: validateToken, state: initiated, tokenId: {}, requestTimestamp: {}", req.getTokenId(), req.getTimestamp());
+        logger.info("action: validateToken, state: initiated, tokenId: {}, requestTimestamp: {}, protocolVersion: {}", req.getTokenId(), req.getTimestamp(), req.getProtocolVersion());
         logger.debug("action: validateToken, state: initiated, request: {}", request);
-        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(req));
-        logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.getResponseObject().isTokenValid());
+
+        final ValidateTokenResponse response = ProtocolVersion.V40.getVersion().equals(req.getProtocolVersion())
+                ? tokenService.validateToken(req)
+                : validateTokenLegacy(req);
+
+        logger.info("action: validateToken, state: succeeded, tokenValid: {}", response.isTokenValid());
         logger.debug("action: validateToken, state: succeeded, response: {}", response);
-        return response;
+        return new ObjectResponse<>(response);
     }
 
     /**
@@ -101,10 +110,50 @@ public class TokenController {
         final RemoveTokenRequest req = request.getRequestObject();
         logger.info("action: removeToken, state: initiated, tokenId: {}", req.getTokenId());
         logger.debug("action: removeToken, state: initiated, request: {}", request);
-        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>(service.removeToken(req));
+        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>(tokenService.removeToken(req));
         logger.info("action: removeToken, state: succeeded");
         logger.debug("action: removeToken, state: succeeded, response: {}", response);
         return response;
+    }
+
+    /**
+     * Validates token using the legacy flow.
+     * This method exists to support V3 token validation when invoked through the V4
+     * endpoint. It will be removed once protocol V3 support is dropped in a future release.
+     *
+     * @param request Validate token request.
+     * @return Token validation result.
+     * @throws Exception In case the service throws exception.
+     * @deprecated since 2.0.0, for removal once the V3 protocol is no longer supported
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
+    private ValidateTokenResponse validateTokenLegacy(final ValidateTokenRequest request) throws Exception {
+        return convert(legacyTokenService.validateToken(request));
+    }
+
+    private ValidateTokenResponse convert(final com.wultra.security.powerauth.client.model.response.v3.ValidateTokenResponse src) {
+        final ValidateTokenResponse response = new ValidateTokenResponse();
+        response.setTokenValid(src.isTokenValid());
+        response.setActivationId(src.getActivationId());
+        response.setActivationStatus(src.getActivationStatus());
+        response.setBlockedReason(src.getBlockedReason());
+        response.setUserId(src.getUserId());
+        response.setApplicationId(src.getApplicationId());
+        response.setAuthenticationCodeType(convert(src.getSignatureType()));
+        response.setApplicationRoles(src.getApplicationRoles());
+        response.setActivationFlags(src.getActivationFlags());
+        return response;
+    }
+
+    private static AuthenticationCodeType convert(final SignatureType src) {
+        return switch (src) {
+            case POSSESSION -> AuthenticationCodeType.POSSESSION;
+            case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
+            case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> AuthenticationCodeType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
     }
 
 }
