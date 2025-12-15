@@ -11,5 +11,6 @@
     <include file="20250925-crypto4-upgrade.xml" relativeToChangelogFile="true" />
     <include file="20251005-activation-parent-id.xml" relativeToChangelogFile="true" />
     <include file="20251106-allow-null-legacy-keypairs.xml" relativeToChangelogFile="true" />
+    <include file="20251215-add-tag-2.0.0.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml" author="Lubos Racansky">
+        <tagDatabase tag="powerauth-server/2.0.0"/>
+    </changeSet>
+
+</databaseChangeLog>
