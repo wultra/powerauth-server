@@ -776,6 +776,25 @@ class PowerAuthControllerTest {
     @Test
     void testPersonalizedOfflineSignaturePayload() throws Exception {
         initActivation();
+
+        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
+
+        final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
+        prepareActivationRequest.setActivationCode(config.getActivationCode());
+        prepareActivationRequest.setApplicationKey(config.getApplicationKey());
+        prepareActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        prepareActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        prepareActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        prepareActivationRequest.setMac(encryptedRequest.getMac());
+        prepareActivationRequest.setNonce(encryptedRequest.getNonce());
+        prepareActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+
+        final PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(prepareActivationRequest);
+        assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
+
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(config.getActivationId(), null);
+        assertEquals(config.getActivationId(), commitResponse.getActivationId());
+
         final CreatePersonalizedOfflineSignaturePayloadRequest personalizedOfflineSignaturePayloadRequest =
                 new CreatePersonalizedOfflineSignaturePayloadRequest();
         personalizedOfflineSignaturePayloadRequest.setActivationId(config.getActivationId());

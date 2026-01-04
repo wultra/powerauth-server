@@ -159,10 +159,15 @@ public class OfflineSignatureServiceBehavior {
                 return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             });
 
-            final OfflineSignatureParameter offlineSignatureParameter = convert(request);
-
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
+            final ActivationStatus activationStatus = activation.getActivationStatus();
+            if (activationStatus != ActivationStatus.ACTIVE) {
+                logger.warn("Activation is in incorrect status, activation ID: {}, status: {}", activationId, activationStatus);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            final OfflineSignatureParameter offlineSignatureParameter = convert(request);
             final String nonce = fetchNonce(offlineSignatureParameter);
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'

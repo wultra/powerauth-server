@@ -35,6 +35,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -78,6 +79,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final AuditingServiceBehavior audit;
     private final ActivationQueryService activationQueryService;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final KeyPairGenerationService keyPairGenerationService;
 
     private final LocalizationProvider localizationProvider;
 
@@ -190,6 +192,9 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, applicationEntity);
+
+            // Generate new server key pairs
+            keyPairGenerationService.generateServerKeyPairs(activation, SharedSecretAlgorithm.EC_P256);
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = authenticatorDetail.getPublicKeyBytes();

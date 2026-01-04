@@ -208,12 +208,15 @@ public class ActivationInitServiceBehavior {
                 activation.getFlags().addAll(flags);
             }
 
-            // Generate server key pairs
-            keyPairGenerationService.generateServerKeyPairs(activation);
-
             // Shared secret is empty until device public keys are received
             activation.setSharedSecret(null);
             activation.setSharedSecretEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
+
+            // Server keypair is empty until key exchange with client
+            activation.setServerPrivateKeyBase64(null);
+            activation.setServerPrivateKeyEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
+            activation.setServerPrivateKeys(null);
+            activation.setServerPrivateKeysEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);

@@ -142,13 +142,13 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Base64 encoded server private key.
      */
-    @Column(name = "server_private_key_base64", nullable = false)
+    @Column(name = "server_private_key_base64")
     private String serverPrivateKeyBase64;
 
     /**
      * Base64 encoded server public key
      */
-    @Column(name = "server_public_key_base64", nullable = false)
+    @Column(name = "server_public_key_base64")
     private String serverPublicKeyBase64;
 
     /**
