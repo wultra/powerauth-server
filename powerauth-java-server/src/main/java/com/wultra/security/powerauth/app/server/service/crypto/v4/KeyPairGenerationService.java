@@ -72,6 +72,7 @@ public class KeyPairGenerationService {
                 return;
             }
 
+            // Handle V4 algorithms
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
             final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
 
@@ -87,6 +88,7 @@ public class KeyPairGenerationService {
                 }
                 case ML_L3 -> generateServerKeyPairMlDsa65(serverPublicKeys, serverPrivateKeys);
                 case ML_L5 -> generateServerKeyPairMlDsa87(serverPublicKeys, serverPrivateKeys);
+                default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
             }
 
             storePublicKeyRegistry(activation, serverPublicKeys);
