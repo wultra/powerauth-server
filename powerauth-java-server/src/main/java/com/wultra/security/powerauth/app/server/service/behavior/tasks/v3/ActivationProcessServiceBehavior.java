@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -70,6 +71,7 @@ public class ActivationProcessServiceBehavior {
     private final ObjectMapper objectMapper;
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final ProtocolVersionValidationService protocolVersionValidationService;
+    private final KeyPairGenerationService keyPairGenerationService;
 
     /**
      * Process a new activation which is initialized in the database.
@@ -106,6 +108,9 @@ public class ActivationProcessServiceBehavior {
 
             // Validate activation OTP for stage ON_KEY_EXCHANGE
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+
+            // Generate new server key pairs
+            keyPairGenerationService.generateServerKeyPairs(activation, SharedSecretAlgorithm.EC_P256);
 
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);

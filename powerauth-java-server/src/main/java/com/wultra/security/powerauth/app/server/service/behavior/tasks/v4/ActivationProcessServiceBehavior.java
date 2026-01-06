@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -68,6 +69,7 @@ public class ActivationProcessServiceBehavior {
     private final ObjectMapper objectMapper;
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final AlgorithmValidationService algorithmValidationService;
+    private final KeyPairGenerationService keyPairGenerationService;
 
     public AeadEncryptedResponse processNewActivation(ActivationRecordEntity activation, DecryptionResult decryptionResult, String protocolVersion) throws GenericServiceException {
         try {
@@ -102,6 +104,9 @@ public class ActivationProcessServiceBehavior {
 
             // Validate activation OTP for stage ON_KEY_EXCHANGE
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
+
+            // Generate new server key pairs
+            keyPairGenerationService.generateServerKeyPairs(activation, algorithm);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);

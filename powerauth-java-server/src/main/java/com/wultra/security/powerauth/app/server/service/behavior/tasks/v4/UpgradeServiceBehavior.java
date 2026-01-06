@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
+import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -69,6 +70,7 @@ public class UpgradeServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final EncryptionServiceAead encryptionService;
     private final SharedSecretServiceBehavior sharedSecretServiceBehavior;
+    private final KeyPairGenerationService keyPairGenerationService;
 
     // Helper classes
     private final ObjectMapper objectMapper;
@@ -127,6 +129,11 @@ public class UpgradeServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
+            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
+
+            // Generate new server key pairs
+            keyPairGenerationService.generateServerKeyPairs(activation, algorithm);
+
             // Generate new counter data for V4 ctd_data column
             final HashBasedCounter hashBasedCounter = new HashBasedCounter(ProtocolVersion.V40.getVersion());
             final byte[] ctrData = hashBasedCounter.init();
@@ -137,7 +144,6 @@ public class UpgradeServiceBehavior {
 
             // Derive shared secret, store device public keys and initial factor keys, enable biometry if requested
             final SharedSecretResponsePayload sharedSecretResponsePayload = sharedSecretServiceBehavior.deriveSharedSecret(activation, requestPayload);
-            final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);

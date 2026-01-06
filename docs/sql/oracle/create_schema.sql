@@ -2,8 +2,8 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 11/14/25, 11:28 AM
--- Against: null@offline:oracle?outputLiquibaseSql=none
+-- Ran at: 04/01/2026, 13:12
+-- Against: null@offline:oracle
 -- Liquibase version: 4.33.0
 -- *********************************************************************
 
@@ -479,11 +479,11 @@ ALTER TABLE pa_temporary_key MODIFY public_key_base64 NULL;
 -- Add column confirmation_pending to pa_activation table
 ALTER TABLE pa_activation ADD confirmation_pending BOOLEAN DEFAULT 0;
 
--- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::1::Roman Strobl
 -- Add column upgrade_confirmation_pending to pa_activation table
 ALTER TABLE pa_activation ADD upgrade_confirmation_pending BOOLEAN DEFAULT 0;
 
--- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::2::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::2::Roman Strobl
 -- Add column ctr_data_v4 to pa_activation table
 ALTER TABLE pa_activation ADD ctr_data_v4 VARCHAR2(255);
 
@@ -502,3 +502,13 @@ ALTER TABLE pa_activation ADD transfer_type VARCHAR2(32);
 ALTER TABLE pa_master_keypair MODIFY master_key_private_base64 NULL;
 
 ALTER TABLE pa_master_keypair MODIFY master_key_public_base64 NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::1::Jan Pesek
+-- Change the server_private_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation MODIFY server_private_key_base64 NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::2::Jan Pesek
+-- Change the server_public_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation MODIFY server_public_key_base64 NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky

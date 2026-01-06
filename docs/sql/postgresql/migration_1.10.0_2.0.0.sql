@@ -56,6 +56,8 @@ ALTER TABLE pa_activation ADD confirmation_pending BOOLEAN DEFAULT FALSE;
 -- Add column upgrade_confirmation_pending to pa_activation table
 ALTER TABLE pa_activation ADD upgrade_confirmation_pending BOOLEAN DEFAULT FALSE;
 
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::2::Roman Strobl
+-- Add column ctr_data_v4 to pa_activation table
 ALTER TABLE pa_activation ADD ctr_data_v4 VARCHAR(255);
 
 -- Changeset powerauth-java-server/2.0.x/20251005-activation-parent-id.xml::1::Lubos Racansky
@@ -73,3 +75,13 @@ ALTER TABLE pa_activation ADD transfer_type VARCHAR(32);
 ALTER TABLE pa_master_keypair ALTER COLUMN  master_key_private_base64 DROP NOT NULL;
 
 ALTER TABLE pa_master_keypair ALTER COLUMN  master_key_public_base64 DROP NOT NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::1::Jan Pesek
+-- Change the server_private_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation ALTER COLUMN  server_private_key_base64 DROP NOT NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::2::Jan Pesek
+-- Change the server_public_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation ALTER COLUMN  server_public_key_base64 DROP NOT NULL;
+
+-- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky

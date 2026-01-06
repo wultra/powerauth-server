@@ -3,7 +3,7 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml" author="Roman Strobl">
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_activation" columnName="upgrade_confirmation_pending" />
@@ -15,7 +15,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml" author="Roman Strobl">
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_activation" columnName="ctr_data_v4" />

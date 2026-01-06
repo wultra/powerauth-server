@@ -2,8 +2,8 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 11/14/25, 11:24 AM
--- Against: null@offline:mssql?outputLiquibaseSql=none
+-- Ran at: 04/01/2026, 13:10
+-- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
 
@@ -604,12 +604,12 @@ GO
 ALTER TABLE pa_activation ADD confirmation_pending bit CONSTRAINT DF_pa_activation_confirmation_pending DEFAULT 0;
 GO
 
--- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::1::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::1::Roman Strobl
 -- Add column upgrade_confirmation_pending to pa_activation table
 ALTER TABLE pa_activation ADD upgrade_confirmation_pending bit CONSTRAINT DF_pa_activation_upgrade_confirmation_pending DEFAULT 0;
 GO
 
--- Changeset powerauth-java-server/2.0.x/20250925-crypto4-activation-confirmation.xml::2::Roman Strobl
+-- Changeset powerauth-java-server/2.0.x/20250925-crypto4-upgrade.xml::2::Roman Strobl
 -- Add column ctr_data_v4 to pa_activation table
 ALTER TABLE pa_activation ADD ctr_data_v4 varchar(255);
 GO
@@ -634,3 +634,15 @@ GO
 
 ALTER TABLE pa_master_keypair ALTER COLUMN master_key_public_base64 varchar(255) NULL;
 GO
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::1::Jan Pesek
+-- Change the server_private_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation ALTER COLUMN server_private_key_base64 varchar(255) NULL;
+GO
+
+-- Changeset powerauth-java-server/2.0.x/20251231-allow-null-legacy-server-keypair.xml::2::Jan Pesek
+-- Change the server_public_key_base64 column to nullable in the pa_activation table
+ALTER TABLE pa_activation ALTER COLUMN server_public_key_base64 varchar(255) NULL;
+GO
+
+-- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky

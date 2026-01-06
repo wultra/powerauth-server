@@ -160,10 +160,15 @@ public class OfflineAuthenticationServiceBehavior {
                 return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             });
 
-            final OfflineAuthenticationParameter offlineAuthenticationParameter = convert(request);
-
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
+            final ActivationStatus activationStatus = activation.getActivationStatus();
+            if (activationStatus != ActivationStatus.ACTIVE) {
+                logger.warn("Activation is in incorrect status, activation ID: {}, status: {}", activationId, activationStatus);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            final OfflineAuthenticationParameter offlineAuthenticationParameter = convert(request);
             final String nonce = fetchNonce(offlineAuthenticationParameter);
 
             // Compute KMAC-256 of '{DATA}\n{NONCE}\n{KEY_MAC_PERSONALIZED_DATA}

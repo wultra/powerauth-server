@@ -60,24 +60,40 @@ public class KeyPairGenerationService {
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     /**
-     * Generate server key pairs for an activation.
-     * @param activation Activation entity.
+     * Generate and persist a new key pair associated with the given activation.
+     * @param activation Activation record for which the server key pair is generated.
+     * @param algorithm Algorithm for which the keys should be generated.
      */
-    public void generateServerKeyPairs(ActivationRecordEntity activation) throws GenericServiceException {
+    public void generateServerKeyPairs(ActivationRecordEntity activation, SharedSecretAlgorithm algorithm) throws GenericServiceException {
         try {
-            // V3 key pairs
-            generateAndStoreServerKeyPairEcP256(activation);
+            if (algorithm == SharedSecretAlgorithm.EC_P256) {
+                // Generate keypair for V3 algorithm only
+                generateAndStoreServerKeyPairEcP256(activation);
+                return;
+            }
 
-            // V4 key pairs
+            // Handle V4 algorithms
             final PublicKeyRegistry serverPublicKeys = new PublicKeyRegistry();
             final PrivateKeyRegistry serverPrivateKeys = new PrivateKeyRegistry();
 
-            generateServerKeyPairEcP384(serverPublicKeys, serverPrivateKeys);
-            generateServerKeyPairMlDsa65(serverPublicKeys, serverPrivateKeys);
-            generateServerKeyPairMlDsa87(serverPublicKeys, serverPrivateKeys);
+            switch (algorithm) {
+                case EC_P384 -> generateServerKeyPairEcP384(serverPublicKeys, serverPrivateKeys);
+                case EC_P384_ML_L3 -> {
+                    generateServerKeyPairEcP384(serverPublicKeys, serverPrivateKeys);
+                    generateServerKeyPairMlDsa65(serverPublicKeys, serverPrivateKeys);
+                }
+                case EC_P384_ML_L5 -> {
+                    generateServerKeyPairEcP384(serverPublicKeys, serverPrivateKeys);
+                    generateServerKeyPairMlDsa87(serverPublicKeys, serverPrivateKeys);
+                }
+                case ML_L3 -> generateServerKeyPairMlDsa65(serverPublicKeys, serverPrivateKeys);
+                case ML_L5 -> generateServerKeyPairMlDsa87(serverPublicKeys, serverPrivateKeys);
+                default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
+            }
 
             storePublicKeyRegistry(activation, serverPublicKeys);
             storePrivateKeyRegistry(activation, serverPrivateKeys);
+
         } catch (Exception e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

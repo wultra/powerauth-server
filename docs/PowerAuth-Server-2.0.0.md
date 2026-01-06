@@ -142,6 +142,8 @@ Additionally, existing columns were updated to allow nullable values:
 * The column `master_key_public_base64` in the `pa_master_keypair` table was modified to allow `NULL` values.
 * The column `private_key_base64` in the `pa_temporary_key` table was modified to allow `NULL` values.
 * The column `public_key_base64` in the `pa_temporary_key` table was modified to allow `NULL` values.
+* The column `server_private_key_base64` in the `pa_activation` table was modified to allow `NULL` values.
+* The column `server_public_key_base64` in the `pa_activation` table was modified to allow `NULL` values.
 
 ### Added new columns for activation spawn or move
 
