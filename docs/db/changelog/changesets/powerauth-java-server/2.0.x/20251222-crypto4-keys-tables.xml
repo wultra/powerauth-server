@@ -95,10 +95,10 @@
                 <constraints foreignKeyName="pa_device_public_key_id_fk" referencedTableName="pa_device_public_key" referencedColumnNames="id"/>
             </column>
             <column name="server_private_key_id" type="bigint">
-                <constraints foreignKeyName="pa_server_public_key_id_fk" referencedTableName="pa_server_public_key" referencedColumnNames="id"/>
+                <constraints foreignKeyName="pa_server_private_key_id_fk" referencedTableName="pa_server_private_key" referencedColumnNames="id"/>
             </column>
             <column name="server_public_key_id" type="bigint">
-                <constraints foreignKeyName="pa_server_private_key_id_fk" referencedTableName="pa_server_private_key" referencedColumnNames="id"/>
+                <constraints foreignKeyName="pa_server_public_key_id_fk" referencedTableName="pa_server_public_key" referencedColumnNames="id"/>
             </column>
         </addColumn>
     </changeSet>

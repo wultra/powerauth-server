@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 05/01/2026, 11:48
+-- Ran at: 06/01/2026, 15:47
 -- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -674,13 +674,13 @@ GO
 ALTER TABLE pa_activation ADD server_private_key_id bigint;
 GO
 
-ALTER TABLE pa_activation ADD CONSTRAINT pa_server_public_key_id_fk FOREIGN KEY (server_private_key_id) REFERENCES pa_server_public_key (id);
+ALTER TABLE pa_activation ADD CONSTRAINT pa_server_private_key_id_fk FOREIGN KEY (server_private_key_id) REFERENCES pa_server_private_key (id);
 GO
 
 ALTER TABLE pa_activation ADD server_public_key_id bigint;
 GO
 
-ALTER TABLE pa_activation ADD CONSTRAINT pa_server_private_key_id_fk FOREIGN KEY (server_public_key_id) REFERENCES pa_server_private_key (id);
+ALTER TABLE pa_activation ADD CONSTRAINT pa_server_public_key_id_fk FOREIGN KEY (server_public_key_id) REFERENCES pa_server_public_key (id);
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky
