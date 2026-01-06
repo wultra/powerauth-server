@@ -22,13 +22,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
-import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -119,21 +118,21 @@ class TemporaryKeyBehaviorTest {
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationCreateServiceBehavior activationServiceBehaviorV4;
     private final ActivationRepository activationRepository;
-    private final PublicKeysConverter publicKeysConverter;
     private final SdkConfigurationSerializer sdkConfigurationSerializer;
+    private final KeyProvider keyProvider;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, PublicKeysConverter publicKeysConverter, SdkConfigurationSerializer sdkConfigurationSerializer, TemporaryKeyTestService temporaryKeyTestService) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, SdkConfigurationSerializer sdkConfigurationSerializer, KeyProvider keyProvider, TemporaryKeyTestService temporaryKeyTestService) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
         this.activationServiceBehaviorV4 = activationServiceBehaviorV4;
         this.activationRepository = activationRepository;
-        this.publicKeysConverter = publicKeysConverter;
         this.sdkConfigurationSerializer = sdkConfigurationSerializer;
+        this.keyProvider = keyProvider;
         this.temporaryKeyTestService = temporaryKeyTestService;
     }
 
@@ -425,16 +424,14 @@ class TemporaryKeyBehaviorTest {
 
     private PublicKey getServerPublicEcKey(String activationId) throws Exception {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
-        final String serverPublicKeys = activation.getServerPublicKeys();
-        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-        return publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        return keyProvider.getServerPublicKey(activation, KeyType.ECDSA_P384)
+                .orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
     private PublicKey getServerPublicPqcKey(String activationId) throws Exception {
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow(() -> new IllegalStateException("Missing activation"));
-        final String serverPublicKeys = activation.getServerPublicKeys();
-        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
-        return publicKeyRegistry.getPublicKey(KeyType.MLDSA_65).orElseThrow(() -> new IllegalStateException("Missing public key"));
+        return keyProvider.getServerPublicKey(activation, KeyType.MLDSA_65)
+                .orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
     private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, GenericServiceException {

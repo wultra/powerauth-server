@@ -241,29 +241,25 @@ public class ActivationRecordEntity implements Serializable {
     private SharedSecretAlgorithm cryptoAlgorithm;
 
     /**
-     * Device public keys for newer cryptography algorithms serialized into JSON.
+     * Device public keys for V4 cryptography algorithms.
      */
-    @Column(name = "device_public_keys", columnDefinition = "CLOB")
-    private String devicePublicKeys;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "device_public_key_id")
+    private DevicePublicKeyEntity devicePublicKey;
 
     /**
-     * Server private keys for newer cryptography algorithms serialized into JSON.
+     * Server private keys for V4 cryptography algorithms.
      */
-    @Column(name = "server_private_keys", columnDefinition = "CLOB")
-    private String serverPrivateKeys;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_private_key_id")
+    private ServerPrivateKeyEntity serverPrivateKey;
 
     /**
-     * Mode of server private keys encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     * Server public keys for V4 cryptography algorithms.
      */
-    @Column(name = "server_private_keys_encryption", nullable = false)
-    @Enumerated
-    private EncryptionAlgorithm serverPrivateKeysEncryption;
-
-    /**
-     * Server public keys for newer cryptography algorithms serialized into JSON.
-     */
-    @Column(name = "server_public_keys", columnDefinition = "CLOB")
-    private String serverPublicKeys;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_public_key_id")
+    private ServerPublicKeyEntity serverPublicKey;
 
     /**
      * Pre-computed shared secret.

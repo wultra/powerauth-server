@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_device_public_key"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_device_public_key</comment>
+        <createTable tableName="pa_device_public_key">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="key_data" type="clob"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_device_public_key_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_device_public_key_seq</comment>
+        <createSequence sequenceName="pa_device_public_key_seq" startValue="1" incrementBy="1" cacheSize="20"/>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_server_public_key"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_server_public_key</comment>
+        <createTable tableName="pa_server_public_key">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="key_data" type="clob"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="4" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_server_public_key_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_server_public_key_seq</comment>
+        <createSequence sequenceName="pa_server_public_key_seq" startValue="1" incrementBy="1" cacheSize="20"/>
+    </changeSet>
+
+    <changeSet id="5" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_server_private_key"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_server_private_key</comment>
+        <createTable tableName="pa_server_private_key">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="key_data" type="clob"/>
+            <column name="key_data_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="6" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_server_private_key_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_server_private_key_seq</comment>
+        <createSequence sequenceName="pa_server_private_key_seq" startValue="1" incrementBy="1" cacheSize="20"/>
+    </changeSet>
+
+    <changeSet id="7" logicalFilePath="powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="device_public_key_id"/>
+                <columnExists tableName="pa_activation" columnName="server_private_key_id"/>
+                <columnExists tableName="pa_activation" columnName="server_public_key_id"/>
+            </not>
+        </preConditions>
+        <comment>Add new crypto4 key referencing columns to pa_activation table</comment>
+        <addColumn tableName="pa_activation">
+            <column name="device_public_key_id" type="bigint">
+                <constraints foreignKeyName="pa_device_public_key_id_fk" referencedTableName="pa_device_public_key" referencedColumnNames="id"/>
+            </column>
+            <column name="server_private_key_id" type="bigint">
+                <constraints foreignKeyName="pa_server_public_key_id_fk" referencedTableName="pa_server_public_key" referencedColumnNames="id"/>
+            </column>
+            <column name="server_public_key_id" type="bigint">
+                <constraints foreignKeyName="pa_server_private_key_id_fk" referencedTableName="pa_server_private_key" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

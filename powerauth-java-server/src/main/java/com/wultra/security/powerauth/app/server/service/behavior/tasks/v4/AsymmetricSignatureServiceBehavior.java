@@ -66,6 +66,7 @@ public class AsymmetricSignatureServiceBehavior {
      * @return ECDSA signature for provided data payload.
      * @throws GenericServiceException In case signature verification fails.
      */
+    @Transactional
     public SignAsymmetricResponse signData(SignAsymmetricRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();

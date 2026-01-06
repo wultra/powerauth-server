@@ -102,15 +102,21 @@ For manual changes use SQL scripts:
 - [Oracle script](sql/oracle/migration_1.10.0_2.0.0.sql)
 - [MSSQL script](sql/mssql/migration_1.10.0_2.0.0.sql)
 
+### Added new tables for cryptography protocol version 4
+
+Following tables were added for keys used in cryptography protocol version 4:
+* A new table `pa_device_public_key` has been created to store device public keys for new cryptography algorithms.
+* A new table `pa_server_public_key` has been created to store server public keys for new cryptography algorithms.
+* A new table `pa_server_private_key` has been created to store server private keys for new cryptography algorithms.
+
 ### Added new columns for cryptography protocol version 4
 
 Following columns were added for keys used in cryptography protocol version 4:
 
 * A new column `crypto_algorithm` has been added to the `pa_activation` table to specify the cryptographic algorithm used during activation.
-* A new column `device_public_keys` has been added to the `pa_activation` table to store device public keys for new cryptography algorithms.
-* A new column `server_private_keys` has been added to the `pa_activation` table to store server private keys for new cryptography algorithms.
-* A new column `server_private_keys_encryption` has been added to the `pa_activation` table to configure encryption of server private keys.
-* A new column `server_public_keys` has been added to the `pa_activation` table to store server public keys for new cryptography algorithms.
+* A new column `device_public_key_id` has been added to the `pa_activation` table to reference device public keys associated with the activation.
+* A new column `server_private_key_id` has been added to the `pa_activation` table to reference server private keys associated with the activation.
+* A new column `server_public_key_id` has been added to the `pa_activation` table to reference server public keys associated with the activation.
 * A new column `shared_secret` has been added to the `pa_activation` table to store share secret for new cryptography algorithms.
 * A new column `shared_secret_encryption` has been added to the `pa_activation` table to configure encryption of shared secret values.
 * A new column `confirmation_pending` has been added to the `pa_activation` table to store whether activation confirmation is pending.

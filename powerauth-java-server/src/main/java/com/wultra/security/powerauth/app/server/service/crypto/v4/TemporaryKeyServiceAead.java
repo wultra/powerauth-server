@@ -37,6 +37,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationV
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.database.repository.TemporaryKeyRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.crypto.TemporaryKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -87,7 +88,6 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final ApplicationVersionRepository applicationVersionRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
-    private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final AlgorithmValidationService algorithmValidationService;
     private final SharedSecretService sharedSecretService;
     private final ObjectMapper objectMapper;
@@ -95,9 +95,10 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
     private final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
+    private final KeyProvider keyProvider;
 
     @Autowired
-    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, ServerPrivateKeysConverter serverPrivateKeysConverter, AlgorithmValidationService algorithmValidationService, SharedSecretService sharedSecretService) {
+    public TemporaryKeyServiceAead(ActivationRepository activationRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, TemporarySharedSecretConverter temporarySharedSecretConverter, ActivationSharedSecretConverter activationSharedSecretConverter, TemporaryKeyRepository temporaryKeyRepository, LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, MasterPrivateKeysConverter masterPrivateKeysConverter, ObjectMapper objectMapper, AlgorithmValidationService algorithmValidationService, SharedSecretService sharedSecretService, KeyProvider keyProvider) {
         super(localizationProvider, temporaryKeyRepository);
         this.activationRepository = activationRepository;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
@@ -110,9 +111,9 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.masterPrivateKeysConverter = masterPrivateKeysConverter;
         this.objectMapper = objectMapper;
-        this.serverPrivateKeysConverter = serverPrivateKeysConverter;
         this.algorithmValidationService = algorithmValidationService;
         this.sharedSecretService = sharedSecretService;
+        this.keyProvider = keyProvider;
     }
 
     /**
@@ -381,10 +382,9 @@ public class TemporaryKeyServiceAead extends TemporaryKeyService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
                 }
 
-                final String serverPrivateKeys = activation.getServerPrivateKeys();
-                final EncryptionAlgorithm encryptionAlgorithm = activation.getServerPrivateKeysEncryption();
-                final PrivateKeysRecord privateKeys = new PrivateKeysRecord(encryptionAlgorithm, serverPrivateKeys);
-                final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
+                final PrivateKeyRegistry privateKeyRegistry = keyProvider.getServerPrivateKeys(activation)
+                        .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
+
                 final PrivateKey serverEcPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384)
                         .orElseThrow(() -> localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR));
 

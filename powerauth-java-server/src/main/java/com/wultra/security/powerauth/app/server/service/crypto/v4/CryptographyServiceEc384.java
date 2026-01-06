@@ -22,7 +22,6 @@ package com.wultra.security.powerauth.app.server.service.crypto.v4;
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.MasterPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -31,6 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -71,10 +71,10 @@ public class CryptographyServiceEc384 extends CryptographyService {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final LocalizationProvider localizationProvider;
     private final MasterPrivateKeysConverter masterPrivateKeysConverter;
-    private final ServerPrivateKeysConverter serverPrivateKeysConverter;
     private final ActivationSharedSecretConverter sharedSecretConverter;
     private final PublicKeysConverter publicKeysConverter;
     private final AlgorithmQueryService algorithmQueryService;
+    private final KeyProvider keyProvider;
 
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
@@ -150,31 +150,24 @@ public class CryptographyServiceEc384 extends CryptographyService {
     public void storeDevicePublicKey(ActivationRecordEntity activation, BasePublicKey devicePublicKey) throws GenericServiceException {
         // The device public key is stored in JSON format in column device_public_keys
         final PublicKey ecPublicKey = ((EcPublicKey) devicePublicKey).getEcPublicKey();
-        final PublicKeyRegistry publicKeys;
-        if (activation.getDevicePublicKeys() != null) {
-            publicKeys = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
-        } else {
-            publicKeys = new PublicKeyRegistry();
-        }
-        publicKeys.storePublicKey(KeyType.ECDSA_P384, ecPublicKey);
-        activation.setDevicePublicKeys(publicKeysConverter.toDBValue(publicKeys));
+        keyProvider.storeDevicePublicKey(activation, KeyType.ECDSA_P384, ecPublicKey);
     }
 
     @Override
     public String generateActivationFingerprint(ActivationRecordEntity activation) throws GenericServiceException {
         try {
-            final PublicKeyRegistry devicePublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
-            final ECPublicKey devicePublicKey = (ECPublicKey) devicePublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+            final ECPublicKey devicePublicKey = (ECPublicKey) keyProvider.getDevicePublicKey(activation, KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing device public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
-            final PublicKeyRegistry serverPublicKeyRegistry = publicKeysConverter.fromDBValue(activation.getServerPublicKeys());
-            final ECPublicKey serverPublicKey = (ECPublicKey) serverPublicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+
+            final ECPublicKey serverPublicKey = (ECPublicKey) keyProvider.getServerPublicKey(activation, KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing server public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             });
+
             return HybridPublicKeyFingerprint.computeEcdsaFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId(), ActivationVersion.VERSION_4);
         } catch (GenericCryptoException e) {
             logger.error("Could not calculate activation fingerprint", e);
@@ -208,9 +201,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
-            final PrivateKeysRecord privateKeys = new PrivateKeysRecord(activation.getServerPrivateKeysEncryption(), activation.getServerPrivateKeys());
-            final PrivateKeyRegistry privateKeyRegistry = serverPrivateKeysConverter.fromDBValue(privateKeys, activation.getUserId(), activation.getActivationId());
-            final PrivateKey serverPrivateKey = privateKeyRegistry.getPrivateKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+            final PrivateKey serverPrivateKey = keyProvider.getServerPrivateKey(activation, KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing server private key for activation ID: {}", activation.getActivationId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -232,8 +223,7 @@ public class CryptographyServiceEc384 extends CryptographyService {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         try {
-            final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(activation.getDevicePublicKeys());
-            final PublicKey devicePublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
+            final PublicKey devicePublicKey = keyProvider.getDevicePublicKey(activation, KeyType.ECDSA_P384).orElseThrow(() -> {
                 logger.error("Missing device public key for application ID: {}", activation.getApplication().getId());
                 // Rollback is not required, database is not used for writing
                 return localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
