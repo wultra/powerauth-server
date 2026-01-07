@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 06/01/2026, 15:49
+-- Ran at: 07/01/2026, 10:50
 -- Against: null@offline:postgresql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -504,28 +504,28 @@ ALTER TABLE pa_activation ALTER COLUMN  server_private_key_base64 DROP NOT NULL;
 ALTER TABLE pa_activation ALTER COLUMN  server_public_key_base64 DROP NOT NULL;
 
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::1::Jan Pesek
--- Create a new table pa_device_public_key
-CREATE TABLE pa_device_public_key (id BIGINT NOT NULL, key_data TEXT, CONSTRAINT pa_device_public_key_pkey PRIMARY KEY (id));
-
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::2::Jan Pesek
 -- Create a new sequence pa_device_public_key_seq
 CREATE SEQUENCE  IF NOT EXISTS pa_device_public_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::3::Jan Pesek
--- Create a new table pa_server_public_key
-CREATE TABLE pa_server_public_key (id BIGINT NOT NULL, key_data TEXT, CONSTRAINT pa_server_public_key_pkey PRIMARY KEY (id));
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::2::Jan Pesek
+-- Create a new table pa_device_public_key
+CREATE TABLE pa_device_public_key (id BIGINT DEFAULT nextval('pa_device_public_key_seq') NOT NULL, key_data TEXT, CONSTRAINT pa_device_public_key_pkey PRIMARY KEY (id));
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::4::Jan Pesek
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::3::Jan Pesek
 -- Create a new sequence pa_server_public_key_seq
 CREATE SEQUENCE  IF NOT EXISTS pa_server_public_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::5::Jan Pesek
--- Create a new table pa_server_private_key
-CREATE TABLE pa_server_private_key (id BIGINT NOT NULL, key_data TEXT, key_data_encryption INTEGER DEFAULT 0 NOT NULL, CONSTRAINT pa_server_private_key_pkey PRIMARY KEY (id));
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::4::Jan Pesek
+-- Create a new table pa_server_public_key
+CREATE TABLE pa_server_public_key (id BIGINT DEFAULT nextval('pa_server_public_key_seq') NOT NULL, key_data TEXT, CONSTRAINT pa_server_public_key_pkey PRIMARY KEY (id));
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::6::Jan Pesek
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::5::Jan Pesek
 -- Create a new sequence pa_server_private_key_seq
 CREATE SEQUENCE  IF NOT EXISTS pa_server_private_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::6::Jan Pesek
+-- Create a new table pa_server_private_key
+CREATE TABLE pa_server_private_key (id BIGINT DEFAULT nextval('pa_server_private_key_seq') NOT NULL, key_data TEXT, key_data_encryption INTEGER DEFAULT 0 NOT NULL, CONSTRAINT pa_server_private_key_pkey PRIMARY KEY (id));
 
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::7::Jan Pesek
 -- Add new crypto4 key referencing columns to pa_activation table

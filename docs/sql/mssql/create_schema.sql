@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 06/01/2026, 15:47
+-- Ran at: 07/01/2026, 10:56
 -- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -634,33 +634,33 @@ ALTER TABLE pa_activation ALTER COLUMN server_public_key_base64 varchar(255) NUL
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::1::Jan Pesek
--- Create a new table pa_device_public_key
-CREATE TABLE pa_device_public_key (id bigint NOT NULL, key_data varchar(MAX), CONSTRAINT PK_PA_DEVICE_PUBLIC_KEY PRIMARY KEY (id));
-GO
-
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::2::Jan Pesek
 -- Create a new sequence pa_device_public_key_seq
 CREATE SEQUENCE pa_device_public_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::3::Jan Pesek
--- Create a new table pa_server_public_key
-CREATE TABLE pa_server_public_key (id bigint NOT NULL, key_data varchar(MAX), CONSTRAINT PK_PA_SERVER_PUBLIC_KEY PRIMARY KEY (id));
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::2::Jan Pesek
+-- Create a new table pa_device_public_key
+CREATE TABLE pa_device_public_key (id bigint CONSTRAINT DF_pa_device_public_key_id DEFAULT NEXT VALUE FOR pa_device_public_key_seq NOT NULL, key_data varchar(MAX), CONSTRAINT PK_PA_DEVICE_PUBLIC_KEY PRIMARY KEY (id));
 GO
 
--- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::4::Jan Pesek
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::3::Jan Pesek
 -- Create a new sequence pa_server_public_key_seq
 CREATE SEQUENCE pa_server_public_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
+-- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::4::Jan Pesek
+-- Create a new table pa_server_public_key
+CREATE TABLE pa_server_public_key (id bigint CONSTRAINT DF_pa_server_public_key_id DEFAULT NEXT VALUE FOR pa_server_public_key_seq NOT NULL, key_data varchar(MAX), CONSTRAINT PK_PA_SERVER_PUBLIC_KEY PRIMARY KEY (id));
+GO
+
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::5::Jan Pesek
--- Create a new table pa_server_private_key
-CREATE TABLE pa_server_private_key (id bigint NOT NULL, key_data varchar(MAX), key_data_encryption int CONSTRAINT DF_pa_server_private_key_key_data_encryption DEFAULT 0 NOT NULL, CONSTRAINT PK_PA_SERVER_PRIVATE_KEY PRIMARY KEY (id));
+-- Create a new sequence pa_server_private_key_seq
+CREATE SEQUENCE pa_server_private_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::6::Jan Pesek
--- Create a new sequence pa_server_private_key_seq
-CREATE SEQUENCE pa_server_private_key_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+-- Create a new table pa_server_private_key
+CREATE TABLE pa_server_private_key (id bigint CONSTRAINT DF_pa_server_private_key_id DEFAULT NEXT VALUE FOR pa_server_private_key_seq NOT NULL, key_data varchar(MAX), key_data_encryption int CONSTRAINT DF_pa_server_private_key_key_data_encryption DEFAULT 0 NOT NULL, CONSTRAINT PK_PA_SERVER_PRIVATE_KEY PRIMARY KEY (id));
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20251222-crypto4-keys-tables.xml::7::Jan Pesek
