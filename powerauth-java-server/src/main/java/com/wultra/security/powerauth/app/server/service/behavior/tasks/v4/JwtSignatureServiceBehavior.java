@@ -67,7 +67,7 @@ public class JwtSignatureServiceBehavior {
      * @return Sign JWT response.
      * @throws GenericServiceException In case of invalid request or signature calculation failure.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public SignJwtResponse signJwt(SignJwtRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String data = request.getData();
