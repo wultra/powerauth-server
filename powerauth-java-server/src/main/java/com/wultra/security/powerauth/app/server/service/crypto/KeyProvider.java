@@ -105,16 +105,20 @@ public class KeyProvider {
      * @throws GenericServiceException If the conversion to database representation fails.
      */
     public void storeServerPrivateKeys(final ActivationRecordEntity activation, final PrivateKeyRegistry registry) throws GenericServiceException {
-        ServerPrivateKeyEntity entity = activation.getServerPrivateKey();
-        if (entity == null) {
-            entity = new ServerPrivateKeyEntity();
-            activation.setServerPrivateKey(entity);
-        }
-
         final PrivateKeysRecord record = serverPrivateKeysConverter.toDBValue(registry, activation.getUserId(), activation.getActivationId());
-        entity.setEncryptionAlgorithm(record.encryptionAlgorithm());
-        entity.setKeyData(record.privateKeysBase64());
-        serverPrivateKeyRepository.save(entity);
+
+        final ServerPrivateKeyEntity existingEntity = activation.getServerPrivateKey();
+        if (existingEntity != null) {
+            existingEntity.setEncryptionAlgorithm(record.encryptionAlgorithm());
+            existingEntity.setKeyData(record.privateKeysBase64());
+            serverPrivateKeyRepository.save(existingEntity);
+        } else {
+            final ServerPrivateKeyEntity newEntity = new ServerPrivateKeyEntity();
+            activation.setServerPrivateKey(newEntity);
+            newEntity.setEncryptionAlgorithm(record.encryptionAlgorithm());
+            newEntity.setKeyData(record.privateKeysBase64());
+            serverPrivateKeyRepository.save(newEntity);
+        }
     }
 
     /**
@@ -154,14 +158,16 @@ public class KeyProvider {
      * @throws GenericServiceException If the conversion to database representation fails.
      */
     public void storeServerPublicKeys(final ActivationRecordEntity activation, final PublicKeyRegistry registry) throws GenericServiceException {
-        ServerPublicKeyEntity entity = activation.getServerPublicKey();
-        if (entity == null) {
-            entity = new ServerPublicKeyEntity();
-            activation.setServerPublicKey(entity);
+        final ServerPublicKeyEntity existingEntity = activation.getServerPublicKey();
+        if (existingEntity != null) {
+            existingEntity.setKeyData(publicKeysConverter.toDBValue(registry));
+            serverPublicKeyRepository.save(existingEntity);
+        } else {
+            final ServerPublicKeyEntity newEntity = new ServerPublicKeyEntity();
+            activation.setServerPublicKey(newEntity);
+            newEntity.setKeyData(publicKeysConverter.toDBValue(registry));
+            serverPublicKeyRepository.save(newEntity);
         }
-
-        entity.setKeyData(publicKeysConverter.toDBValue(registry));
-        serverPublicKeyRepository.save(entity);
     }
 
     /**
@@ -202,19 +208,25 @@ public class KeyProvider {
      * @throws GenericServiceException If the conversion to database representation fails.
      */
     public void storeDevicePublicKey(final ActivationRecordEntity activation, final KeyType keyType, final PublicKey publicKey) throws GenericServiceException {
-        DevicePublicKeyEntity entity = activation.getDevicePublicKey();
-        if (entity == null) {
-            entity = new DevicePublicKeyEntity();
-            activation.setDevicePublicKey(entity);
+        final DevicePublicKeyEntity existingEntity = activation.getDevicePublicKey();
+        if (existingEntity == null) {
+            final PublicKeyRegistry registry = new PublicKeyRegistry();
+            registry.storePublicKey(keyType, publicKey);
+
+            final DevicePublicKeyEntity newEntity = new DevicePublicKeyEntity();
+            activation.setDevicePublicKey(newEntity);
+            newEntity.setKeyData(publicKeysConverter.toDBValue(registry));
+            devicePublicKeyRepository.save(newEntity);
+            return;
         }
 
-        final PublicKeyRegistry registry = entity.getKeyData() == null
+        final PublicKeyRegistry registry = existingEntity.getKeyData() == null
                 ? new PublicKeyRegistry()
-                : publicKeysConverter.fromDBValue(entity.getKeyData());
-
+                : publicKeysConverter.fromDBValue(existingEntity.getKeyData());
         registry.storePublicKey(keyType, publicKey);
-        entity.setKeyData(publicKeysConverter.toDBValue(registry));
-        devicePublicKeyRepository.save(entity);
+
+        existingEntity.setKeyData(publicKeysConverter.toDBValue(registry));
+        devicePublicKeyRepository.save(existingEntity);
     }
 
 }
