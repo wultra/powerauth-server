@@ -19,11 +19,10 @@
 
 package com.wultra.security.powerauth.app.server.service.crypto.v4;
 
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import com.wultra.security.powerauth.app.server.converter.ServerPrivateKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.*;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -51,8 +50,7 @@ public class KeyPairGenerationService {
 
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final PublicKeysConverter publicKeysConverter;
-    private final ServerPrivateKeysConverter serverPrivateKeysConverter;
+    private final KeyProvider keyProvider;
 
     private final com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation SERVER_ACTIVATION_V3 = new com.wultra.security.powerauth.crypto.server.activation.PowerAuthServerActivation();
     private final com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation SERVER_ACTIVATION_V4 = new com.wultra.security.powerauth.crypto.server.v4.activation.PowerAuthServerActivation();
@@ -91,9 +89,8 @@ public class KeyPairGenerationService {
                 default -> throw new IllegalArgumentException("Unsupported shared secret algorithm: " + algorithm);
             }
 
-            storePublicKeyRegistry(activation, serverPublicKeys);
-            storePrivateKeyRegistry(activation, serverPrivateKeys);
-
+            keyProvider.storeServerPublicKeys(activation, serverPublicKeys);
+            keyProvider.storeServerPrivateKeys(activation, serverPrivateKeys);
         } catch (Exception e) {
             logger.error("Could not generate keypair", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
@@ -111,16 +108,6 @@ public class KeyPairGenerationService {
         final ServerPrivateKeyRecord serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, activation.getUserId(), activation.getActivationId());
         activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionAlgorithm());
         activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
-    }
-
-    private void storePublicKeyRegistry(ActivationRecordEntity activation, PublicKeyRegistry serverPublicKeys) throws GenericServiceException {
-        activation.setServerPublicKeys(publicKeysConverter.toDBValue(serverPublicKeys));
-    }
-
-    private void storePrivateKeyRegistry(ActivationRecordEntity activation, PrivateKeyRegistry serverPrivateKeys) throws GenericServiceException {
-        final PrivateKeysRecord privateKeys = serverPrivateKeysConverter.toDBValue(serverPrivateKeys, activation.getUserId(), activation.getActivationId());
-        activation.setServerPrivateKeysEncryption(privateKeys.encryptionAlgorithm());
-        activation.setServerPrivateKeys(privateKeys.privateKeysBase64());
     }
 
     private void generateServerKeyPairEcP384(PublicKeyRegistry serverPublicKeys, PrivateKeyRegistry serverPrivateKeys) throws CryptoProviderException {

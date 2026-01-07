@@ -67,6 +67,7 @@ public class JwtSignatureServiceBehavior {
      * @return Sign JWT response.
      * @throws GenericServiceException In case of invalid request or signature calculation failure.
      */
+    @Transactional(readOnly = true)
     public SignJwtResponse signJwt(SignJwtRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String data = request.getData();
@@ -91,7 +92,7 @@ public class JwtSignatureServiceBehavior {
         };
     }
 
-    public SignJwtResponse signJwsCompactInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
+    private SignJwtResponse signJwsCompactInternal(byte[] dataBytes, AsymmetricSignatureType signatureType, ActivationRecordEntity activation) throws GenericServiceException {
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
         final SignJwtResponse signJwtResponse = new SignJwtResponse();
         signJwtResponse.setSignatureFormat(JwtSignatureFormat.JWS_COMPACT);

@@ -215,8 +215,6 @@ public class ActivationInitServiceBehavior {
             // Server keypair is empty until key exchange with client
             activation.setServerPrivateKeyBase64(null);
             activation.setServerPrivateKeyEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
-            activation.setServerPrivateKeys(null);
-            activation.setServerPrivateKeysEncryption(EncryptionAlgorithm.NO_ENCRYPTION);
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);

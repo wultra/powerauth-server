@@ -20,7 +20,6 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
@@ -29,6 +28,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.SharedSecretService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -73,8 +73,8 @@ public class SharedSecretServiceBehavior {
     private final CallbackUrlBehavior callbackUrlBehavior;
 
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
-    private final PublicKeysConverter publicKeysConverter;
     private final SharedSecretService sharedSecretService;
+    private final KeyProvider keyProvider;
 
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
 
@@ -131,8 +131,12 @@ public class SharedSecretServiceBehavior {
 
         final SharedSecretResponsePayload responsePayload = new SharedSecretResponsePayload();
 
-        final String serverPublicKeys = activation.getServerPublicKeys();
-        final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(serverPublicKeys);
+        final PublicKeyRegistry publicKeyRegistry = keyProvider.getServerPublicKeys(activation).orElseThrow(() -> {
+            logger.warn("Server public keys are not available, activationId={}", activationId);
+            // Activation failed due to invalid request, rollback transaction
+            return localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        });
+
         final PublicKey ecServerPublicKey = publicKeyRegistry.getPublicKey(KeyType.ECDSA_P384).orElseThrow(() -> {
             logger.warn("Missing ECDSA public key in shared secret request, activation ID: {}", activationId);
             // Activation failed due to invalid request, rollback transaction

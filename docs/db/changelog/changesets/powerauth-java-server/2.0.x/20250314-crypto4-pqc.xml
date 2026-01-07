@@ -18,22 +18,12 @@
     <changeSet id="2" logicalFilePath="powerauth-java-server/2.0.x/20250314-crypto4-pqc.xml" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="pa_activation" columnName="device_public_keys" />
-                <columnExists tableName="pa_activation" columnName="server_private_keys" />
-                <columnExists tableName="pa_activation" columnName="server_private_keys_encryption" />
-                <columnExists tableName="pa_activation" columnName="server_public_keys" />
                 <columnExists tableName="pa_activation" columnName="shared_secret" />
                 <columnExists tableName="pa_activation" columnName="shared_secret_encryption" />
             </not>
         </preConditions>
         <comment>Add new columns for crypto4 keys to pa_activation table</comment>
         <addColumn tableName="pa_activation">
-            <column name="device_public_keys" type="clob"/>
-            <column name="server_private_keys" type="clob"/>
-            <column name="server_private_keys_encryption" type="integer" defaultValue="0">
-                <constraints nullable="false" />
-            </column>
-            <column name="server_public_keys" type="clob"/>
             <column name="shared_secret" type="varchar(255)"/>
             <column name="shared_secret_encryption" type="integer" defaultValue="0">
                 <constraints nullable="false" />
