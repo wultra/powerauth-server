@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.client.model.response.GetErrorCodeListRespo
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,7 @@ public class ErrorCodeBehavior {
      * Return error code list
      * @return Error code list
      */
+    @Transactional(readOnly = true)
     public GetErrorCodeListResponse getErrorCodeList() {
         final Locale locale = Locale.ENGLISH;
 

@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.TelemetryRepo
 import com.wultra.security.powerauth.client.model.response.TelemetryReportResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -56,6 +57,7 @@ public class TelemetryServiceBehavior {
 
     private final ActivationRepository activationRepository;
 
+    @Transactional(readOnly = true)
     public TelemetryReportResponse report(String reportName, Map<String, Object> parameters) throws TelemetryReportException {
         switch (reportName.toUpperCase()) {
             case CURRENT_MAU -> {
@@ -66,9 +68,7 @@ public class TelemetryServiceBehavior {
             case USERS_IN_PAST_DAYS -> {
                 return reportUsersInPastDays(USERS_IN_PAST_DAYS, parameters);
             }
-            default -> {
-                throw new TelemetryReportException("Unknown report name: " + reportName);
-            }
+            default -> throw new TelemetryReportException("Unknown report name: " + reportName);
         }
     }
 
