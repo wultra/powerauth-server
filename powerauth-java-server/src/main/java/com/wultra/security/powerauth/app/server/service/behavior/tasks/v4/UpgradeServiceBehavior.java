@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.EncryptionServiceAead;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -75,6 +76,7 @@ public class UpgradeServiceBehavior {
     // Helper classes
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
      * Start upgrade of activation to version 3.
@@ -130,6 +132,7 @@ public class UpgradeServiceBehavior {
             }
 
             final SharedSecretAlgorithm algorithm = SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm());
+            activation.setCryptoAlgorithm(algorithm);
 
             // Generate new server key pairs
             keyPairGenerationService.generateServerKeyPairs(activation, algorithm);
@@ -147,7 +150,10 @@ public class UpgradeServiceBehavior {
 
             // Set activation upgrade confirmation pending
             activation.setUpgradeConfirmationPending(true);
-            activation.setCryptoAlgorithm(algorithm);
+
+            // Store the activation fingerprint
+            final String activationFingerprint = cryptographyServiceFactory.getService(algorithm).generateActivationFingerprint(activation);
+            activation.setActivationFingerprint(activationFingerprint);
 
             final UpgradeStartResponsePayload responsePayload = new UpgradeStartResponsePayload();
             responsePayload.setSharedSecretResponse(sharedSecretResponsePayload.getSharedSecretResponse());

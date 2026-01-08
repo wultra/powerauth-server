@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.0.x/20260107-crypto4-store-fingerprint.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_activation" columnName="activation_fingerprint" />
+            </not>
+        </preConditions>
+        <comment>Add column activation_fingerprint to pa_activation table</comment>
+        <addColumn tableName="pa_activation">
+            <column name="activation_fingerprint" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

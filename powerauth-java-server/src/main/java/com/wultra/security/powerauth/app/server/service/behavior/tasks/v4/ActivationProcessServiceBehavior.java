@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -70,6 +71,7 @@ public class ActivationProcessServiceBehavior {
     private final ActivationRemoveServiceBehavior activationRemoveServiceBehavior;
     private final AlgorithmValidationService algorithmValidationService;
     private final KeyPairGenerationService keyPairGenerationService;
+    private final CryptographyServiceFactory cryptographyServiceFactory;
 
     public AeadEncryptedResponse processNewActivation(ActivationRecordEntity activation, DecryptionResult decryptionResult, String protocolVersion) throws GenericServiceException {
         try {
@@ -102,6 +104,8 @@ public class ActivationProcessServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
             }
 
+            activation.setCryptoAlgorithm(algorithm);
+
             // Validate activation OTP for stage ON_KEY_EXCHANGE
             activationValidationServiceBehavior.validateActivationOtp(CommitPhase.ON_KEY_EXCHANGE, layer2Request.getActivationOtp(), activation, null);
 
@@ -129,7 +133,9 @@ public class ActivationProcessServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
             }
 
-            activation.setCryptoAlgorithm(SharedSecretAlgorithm.valueOf(requestPayload.getSharedSecretRequest().getAlgorithm()));
+            // Store the activation fingerprint
+            final String activationFingerprint = cryptographyServiceFactory.getService(algorithm).generateActivationFingerprint(activation);
+            activation.setActivationFingerprint(activationFingerprint);
 
             // Update and persist the activation record
             changeActivationStatusAndDeleteParent(activation, layer2Request);

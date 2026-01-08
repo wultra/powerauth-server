@@ -151,6 +151,10 @@ Additionally, existing columns were updated to allow nullable values:
 * The column `server_private_key_base64` in the `pa_activation` table was modified to allow `NULL` values.
 * The column `server_public_key_base64` in the `pa_activation` table was modified to allow `NULL` values.
 
+### Added new column for activation fingerprint persistence
+
+The column `activation_fingerprint` was added to the `pa_activation` table to persist activation fingerprints and eliminate repeated computation.
+
 ### Added new columns for activation spawn or move
 
 The columns `parent_activation_id` and `transfer_type` were added to the `pa_activation` table to track activation spawn or move.

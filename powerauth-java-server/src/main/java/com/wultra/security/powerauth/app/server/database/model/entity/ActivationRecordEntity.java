@@ -262,6 +262,12 @@ public class ActivationRecordEntity implements Serializable {
     private ServerPublicKeyEntity serverPublicKey;
 
     /**
+     * Activation fingerprint derived from device public key and server public key.
+     */
+    @Column(name = "activation_fingerprint")
+    private String activationFingerprint;
+
+    /**
      * Pre-computed shared secret.
      */
     @Column(name = "shared_secret")

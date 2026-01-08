@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 07/01/2026, 10:50
+-- Ran at: 08/01/2026, 10:17
 -- Against: null@offline:postgresql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -540,5 +540,9 @@ ALTER TABLE pa_activation ADD CONSTRAINT pa_server_private_key_id_fk FOREIGN KEY
 ALTER TABLE pa_activation ADD server_public_key_id BIGINT;
 
 ALTER TABLE pa_activation ADD CONSTRAINT pa_server_public_key_id_fk FOREIGN KEY (server_public_key_id) REFERENCES pa_server_public_key (id);
+
+-- Changeset powerauth-java-server/2.0.x/20260107-crypto4-store-fingerprint.xml::1::Jan Pesek
+-- Add column activation_fingerprint to pa_activation table
+ALTER TABLE pa_activation ADD activation_fingerprint VARCHAR(255);
 
 -- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky
