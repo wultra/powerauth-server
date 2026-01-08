@@ -114,10 +114,10 @@ public class KeyProvider {
             serverPrivateKeyRepository.save(existingEntity);
         } else {
             final ServerPrivateKeyEntity newEntity = new ServerPrivateKeyEntity();
-            activation.setServerPrivateKey(newEntity);
             newEntity.setEncryptionAlgorithm(record.encryptionAlgorithm());
             newEntity.setKeyData(record.privateKeysBase64());
             serverPrivateKeyRepository.save(newEntity);
+            activation.setServerPrivateKey(newEntity);
         }
     }
 
@@ -164,9 +164,9 @@ public class KeyProvider {
             serverPublicKeyRepository.save(existingEntity);
         } else {
             final ServerPublicKeyEntity newEntity = new ServerPublicKeyEntity();
-            activation.setServerPublicKey(newEntity);
             newEntity.setKeyData(publicKeysConverter.toDBValue(registry));
             serverPublicKeyRepository.save(newEntity);
+            activation.setServerPublicKey(newEntity);
         }
     }
 
@@ -214,9 +214,9 @@ public class KeyProvider {
             registry.storePublicKey(keyType, publicKey);
 
             final DevicePublicKeyEntity newEntity = new DevicePublicKeyEntity();
-            activation.setDevicePublicKey(newEntity);
             newEntity.setKeyData(publicKeysConverter.toDBValue(registry));
             devicePublicKeyRepository.save(newEntity);
+            activation.setDevicePublicKey(newEntity);
             return;
         }
 
