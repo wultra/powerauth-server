@@ -31,7 +31,6 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.AsymmetricSignatureService;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -80,7 +79,6 @@ public class ActivationStatusServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationQueryService activationQueryService;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final AlgorithmQueryService algorithmQueryService;
     private final AsymmetricSignatureService asymmetricSignatureService;
@@ -171,7 +169,6 @@ public class ActivationStatusServiceBehavior {
 
                     final byte[] statusBlob;
                     final SharedSecretAlgorithm sharedSecretAlgorithm;
-                    final String activationFingerPrint;
                     if (sharedSecretEncrypted != null) {
                         // Resolve shared secret algorithm
                         sharedSecretAlgorithm = activation.getCryptoAlgorithm();
@@ -212,11 +209,8 @@ public class ActivationStatusServiceBehavior {
                                 .put(statusBlobData)
                                 .put(statusBlobMac)
                                 .array();
-                        // Assign the activation fingerprint
-                        activationFingerPrint = cryptographyServiceFactory.getService(sharedSecretAlgorithm).generateActivationFingerprint(activation);
                     } else {
                         statusBlob = null;
-                        activationFingerPrint = null;
                     }
 
                     // return the data
@@ -240,7 +234,7 @@ public class ActivationStatusServiceBehavior {
                         response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
                     }
                     response.setActivationCode(null);
-                    response.setDevicePublicKeyFingerprint(activationFingerPrint);
+                    response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
                     response.setExternalId(activation.getExternalId());
