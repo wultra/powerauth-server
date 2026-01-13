@@ -133,7 +133,7 @@ public class ActivationProcessServiceBehavior {
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
             // Store the activation fingerprint
-            final String activationFingerprint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
+            final String activationFingerprint = cryptographyService.generateActivationFingerprint(activation);
             activation.setActivationFingerprint(activationFingerprint);
 
             // Update and persist the activation record
