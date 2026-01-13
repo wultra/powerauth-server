@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationValidationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.crypto.CryptographyService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.crypto.ProtocolVersionValidationService;
 import com.wultra.security.powerauth.app.server.service.crypto.v4.KeyPairGenerationService;
@@ -112,22 +113,28 @@ public class ActivationProcessServiceBehavior {
             // Generate new server key pairs
             keyPairGenerationService.generateServerKeyPairs(activation, SharedSecretAlgorithm.EC_P256);
 
+            final CryptographyService cryptographyService = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256);
+
             // Extract the device public key from request
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             BasePublicKey devicePublicKey = null;
             try {
-                devicePublicKey = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).convertDevicePublicKey(KeyType.ECDSA_P256, devicePublicKeyBytes);
+                devicePublicKey = cryptographyService.convertDevicePublicKey(KeyType.ECDSA_P256, devicePublicKeyBytes);
             } catch (GenericServiceException e) {
                 logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
                 logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), e);
                 handleInvalidPublicKey(activation);
             }
-            cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).storeDevicePublicKey(activation, devicePublicKey);
+            cryptographyService.storeDevicePublicKey(activation, devicePublicKey);
 
             // Initialize hash based counter
             final HashBasedCounter counter = new HashBasedCounter(protocolVersion);
             final byte[] ctrData = counter.init();
             final String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
+
+            // Store the activation fingerprint
+            final String activationFingerprint = cryptographyService.generateActivationFingerprint(activation);
+            activation.setActivationFingerprint(activationFingerprint);
 
             // Update and persist the activation record
             changeActivationStatusAndDeleteParent(activation, layer2Request);
