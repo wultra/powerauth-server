@@ -105,6 +105,9 @@ public class ApplicationDetailServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+
+        final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? masterKeyPairEntity.getMasterKeyPublicBase64() : null;
+
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
         String publicKeyMlDsa87 = null;
@@ -148,7 +151,7 @@ public class ApplicationDetailServiceBehavior {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
                     .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(masterKeyPairEntity.getMasterKeyPublicBase64())
+                    .masterPublicKeyP256(publicKeyP256)
                     .masterPublicKeyP384(publicKeyP384)
                     .masterPublicKeyMlDsa65(publicKeyMlDsa65)
                     .masterPublicKeyMlDsa87(publicKeyMlDsa87)
