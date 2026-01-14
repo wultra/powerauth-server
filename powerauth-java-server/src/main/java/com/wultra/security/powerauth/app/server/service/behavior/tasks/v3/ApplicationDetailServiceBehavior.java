@@ -107,14 +107,10 @@ public class ApplicationDetailServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
 
-        final String masterPublicKeyBase64;
-        if (algorithmQueryService.isAlgorithmSupported(application, SharedSecretAlgorithm.EC_P256)) {
-            masterPublicKeyBase64 = masterKeyPairEntity.getMasterKeyPublicBase64();
-        } else {
-            masterPublicKeyBase64 = null;
-        }
-
         final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+
+        final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? masterKeyPairEntity.getMasterKeyPublicBase64() : null;
+
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
         String publicKeyMlDsa87 = null;
@@ -151,14 +147,14 @@ public class ApplicationDetailServiceBehavior {
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
-        response.setMasterPublicKey(masterPublicKeyBase64);
+        response.setMasterPublicKey(publicKeyP256);
 
         final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
                     .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(masterKeyPairEntity.getMasterKeyPublicBase64())
+                    .masterPublicKeyP256(publicKeyP256)
                     .masterPublicKeyP384(publicKeyP384)
                     .masterPublicKeyMlDsa65(publicKeyMlDsa65)
                     .masterPublicKeyMlDsa87(publicKeyMlDsa87)
