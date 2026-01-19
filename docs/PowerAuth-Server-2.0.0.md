@@ -185,10 +185,7 @@ In case an activation was created using the `v3` REST API before upgrading to th
 
 As a result, when the activation status is requested using `v4` REST API, the response contains a null fingerprint value. For `v3` activations use the `v3` REST API. The issue is only temporary during upgrade until all `v3` activations are committed or expired. 
 
-Affected endpoints:
-
-- `v3` activation status endpoint: `POST /rest/v3/activation/status`
-- `v4` activation status endpoint: `POST /rest/v4/activation/status`
+Affected `v4` activation status endpoint: `POST /rest/v4/activation/status`
 
 ### Removed Recovery Code Functionality
 
