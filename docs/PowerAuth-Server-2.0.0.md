@@ -179,6 +179,17 @@ We have unified validations in PowerAuth server REST API. The error code returne
 
 The validation of requests is now stricter and more complete to ensure data integrity. In case you get the `ERR0024` error in your integration with PowerAuth server, please make sure the requests contain all parameters, as seen in REST API documentation available at `http[s]://[hostname]:[port]/powerauth-java-server/swagger-ui/index.html`.
 
+### Missing Activation Fingerprint for v3 Activations Queried via v4 Status Endpoint
+
+In case an activation was created using the `v3` REST API before upgrading to the `2.0.x` release, the activation fingerprint is not stored in the database.
+
+As a result, when the activation status is requested using `v4` REST API, the response contains a null fingerprint value. For `v3` activations use the `v3` REST API. The issue is only temporary during upgrade until all `v3` activations are committed or expired. 
+
+Affected endpoints:
+
+- `v3` activation status endpoint: `POST /rest/v3/activation/status`
+- `v4` activation status endpoint: `POST /rest/v4/activation/status`
+
 ### Removed Recovery Code Functionality
 
 The recovery code feature has been removed from the REST API and services due to its insufficient protection against social engineering attacks.
