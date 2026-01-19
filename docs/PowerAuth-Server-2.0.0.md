@@ -181,9 +181,9 @@ The validation of requests is now stricter and more complete to ensure data inte
 
 ### Missing Activation Fingerprint for v3 Activations Queried via v4 Status Endpoint
 
-In case an activation was created using the `v3` REST API before upgrading to the `2.0.x` release, the activation fingerprint is not stored in the database.
+If an activation was created using the `v3` REST API before upgrading to the `2.0.x` release, the activation fingerprint is unavailable (not stored in the database) and will be returned as `null` when queried via the `v4` REST API.
 
-As a result, when the activation status is requested using `v4` REST API, the response contains a null fingerprint value. For `v3` activations use the `v3` REST API. The issue is only temporary during upgrade until all `v3` activations are committed or expired. 
+If you need the fingerprint for such activations, use the `v3` REST API. The choice of REST API version is done correctly by applications which use the PowerAuth Restful Integration.
 
 Affected `v4` activation status endpoint: `POST /rest/v4/activation/status`
 
