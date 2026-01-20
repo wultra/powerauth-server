@@ -220,8 +220,13 @@ public class ActivationStatusServiceBehavior {
                         // Activation fingerprint is pre-calculated on PA server 2.x.x
                         activationFingerprint = activation.getActivationFingerprint();
                     } else {
-                        // Activation was created on a previous PA server version (v3) which does not store the fingerprint
-                        activationFingerprint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
+                        // Calculate fingerprint based on crypto algorithm
+                        if (activation.getCryptoAlgorithm() != null ) {
+                            activationFingerprint = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateActivationFingerprint(activation);
+                        } else {
+                            // Fallback to the EC_P256 algorithm
+                            activationFingerprint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
+                        }
                     }
 
                     // return the data
