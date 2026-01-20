@@ -183,7 +183,7 @@ The validation of requests is now stricter and more complete to ensure data inte
 
 If an activation was created using the `v3` REST API before upgrading to the `2.0.x` release, the activation fingerprint is unavailable (not stored in the database) and will be returned as `null` when queried via the `v4` REST API.
 
-If you need the fingerprint for such activations, use the `v3` REST API. The choice of REST API version is done correctly by applications which use the PowerAuth Restful Integration.
+If you need the fingerprint for such activations, use the `v3` REST API. The choice of REST API version is done correctly by applications which use the PowerAuth Restful Integration, such as the Enrollment Server.
 
 Affected `v4` activation status endpoint: `POST /rest/v4/activation/status`
 
