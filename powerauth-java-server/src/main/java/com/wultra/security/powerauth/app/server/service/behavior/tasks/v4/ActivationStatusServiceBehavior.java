@@ -215,20 +215,6 @@ public class ActivationStatusServiceBehavior {
                         statusBlob = null;
                     }
 
-                    final String activationFingerprint;
-                    if (activation.getActivationFingerprint() != null) {
-                        // Activation fingerprint is pre-calculated on PA server 2.x.x
-                        activationFingerprint = activation.getActivationFingerprint();
-                    } else {
-                        // Calculate fingerprint based on crypto algorithm
-                        if (activation.getCryptoAlgorithm() != null ) {
-                            activationFingerprint = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateActivationFingerprint(activation);
-                        } else {
-                            // Fallback to the EC_P256 algorithm
-                            activationFingerprint = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateActivationFingerprint(activation);
-                        }
-                    }
-
                     // return the data
                     final GetActivationStatusResponse response = new GetActivationStatusResponse();
                     response.setActivationId(activationId);
@@ -250,7 +236,7 @@ public class ActivationStatusServiceBehavior {
                         response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
                     }
                     response.setActivationCode(null);
-                    response.setDevicePublicKeyFingerprint(activationFingerprint);
+                    response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
                     response.setPlatform(activation.getPlatform());
                     response.setProtocol(convertProtocol(activation.getProtocol()));
                     response.setExternalId(activation.getExternalId());
