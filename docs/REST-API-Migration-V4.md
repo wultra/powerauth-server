@@ -96,7 +96,7 @@ POST /rest/v4/audit/list
 
 ### Migration Steps
 
-1. Change endpoint path from `/signature/list` to `/audit/list`. 
+1. Change endpoint path from `/rest/v3/signature/list` to `/rest/v4/audit/list`. 
 2. No request or response parameter changes.
 
 ## ECDSA Signing → DSA Signing
