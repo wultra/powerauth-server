@@ -80,7 +80,7 @@ POST /rest/v4/auth/offline/non-personalized/create
 ### Migration Steps
 
 1. Replace `/signature/offline/non-personalized/create` with `/auth/offline/non-personalized/create`.
-2. Payload and response remain unchanged.
+2. Request and response payload remain unchanged.
 
 ## Authentication Audit Log
 
