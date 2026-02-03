@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:open-21.0.8_9-jre
+FROM ibm-semeru-runtimes:open-21.0.9_10-jre-noble
 
 LABEL maintainer="Wultra <hello@wultra.com>"
 
@@ -24,7 +24,6 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
-COPY ./powerauth-java-server/src/main/resources/application.properties /app/application.properties
 COPY ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war "${APP_PATH}"
 
 # Docker configuration

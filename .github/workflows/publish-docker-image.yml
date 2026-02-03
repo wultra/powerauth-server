@@ -99,6 +99,7 @@ jobs:
         run: |
           mkdir -p ./powerauth-java-server/docker/images-and-libs
           mvn -B -U -pl powerauth-java-server -DuseInternalRepo=true -Dmaven.test.skip=true --no-transfer-progress package
+          mvn -B -U -pl powerauth-java-server dependency:copy-dependencies -DoutputDirectory=../powerauth-java-server/docker/images-and-libs --no-transfer-progress
           cp ./powerauth-java-server/target/powerauth-java-server-${{ env.REVISION }}.war ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war
       - name: Prepare SBOM files
         run: |
