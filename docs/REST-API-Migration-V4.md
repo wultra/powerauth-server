@@ -10,33 +10,33 @@ This document describes how to migrate client integrations from **PowerAuth Serv
 
 ## Online Authentication Verification
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/verify
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/auth/verify
 ```
 
 ### Migration Steps
 
-1. Change endpoint path from `/signature/verify` to `/auth/verify`.
-2. Request parameter `signature` should be changed to `authenticationCode`.
-3. Request parameter `signatureType` should be changed to `authenticationCodeType`.
-4. Request parameter `signatureVersion` should be changed to `authenticationVersion`.
-5. Response parameter `signatureValid` should be changed to `authenticationValid`.
-6. Response parameter `signatureType` should be changed to `authenticationCodeType`.
+1. Change endpoint path from `/rest/v3/signature/verify` to `/rest/v4/auth/verify`.
+2. Request parameter `signature` was changed to `authenticationCode`.
+3. Request parameter `signatureType` was changed to `authenticationCodeType`.
+4. Request parameter `signatureVersion` was changed to `authenticationVersion`.
+5. Response parameter `signatureValid` was changed to `authenticationValid`.
+6. Response parameter `signatureType` was changed to `authenticationCodeType`.
 
 ## Offline Authentication Verification
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/offline/verify
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/auth/offline/verify
 ```
@@ -44,18 +44,18 @@ POST /rest/v4/auth/offline/verify
 ### Migration Steps
 
 1. Update endpoint path to `/rest/v4/auth/offline/verify`.
-2. Request parameter `signature` should be changed to `authenticationCode`.
-3. Response parameter `signatureValid` should be changed to `authenticationValid`.
-4. Response parameter `signatureType` should be changed to `authenticationCodeType`.
+2. Request parameter `signature` was changed to `authenticationCode`.
+3. Response parameter `signatureValid` was changed to `authenticationValid`.
+4. Response parameter `signatureType` was changed to `authenticationCodeType`.
 
 ## Create Personalized Offline Authentication Payload
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/offline/personalized/create
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/auth/offline/personalized/create
 ```
@@ -63,16 +63,16 @@ POST /rest/v4/auth/offline/personalized/create
 ### Migration Steps
 
 1. Replace `/signature/offline/personalized/create` with `/auth/offline/personalized/create`.
-2. Payload and response remain unchanged.
+2. Request and response payload remain unchanged.
 
 ## Create Non-Personalized Offline Authentication Payload
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/offline/non-personalized/create
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/auth/offline/non-personalized/create
 ```
@@ -82,14 +82,14 @@ POST /rest/v4/auth/offline/non-personalized/create
 1. Replace `/signature/offline/non-personalized/create` with `/auth/offline/non-personalized/create`.
 2. Payload and response remain unchanged.
 
-## Signature / Authentication Audit Log
+## Authentication Audit Log
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/list
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/audit/list
 ```
@@ -101,12 +101,12 @@ POST /rest/v4/audit/list
 
 ## ECDSA Signing → DSA Signing
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/ecdsa/sign
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/dsa/sign
 ```
@@ -119,12 +119,12 @@ POST /rest/v4/dsa/sign
 
 ## ECDSA Verification → DSA Verification
 
-### v3
+v3 endpoint:
 ```
 POST /rest/v3/signature/ecdsa/verify
 ```
 
-### v4
+v4 endpoint:
 ```
 POST /rest/v4/dsa/verify
 ```
