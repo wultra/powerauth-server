@@ -165,6 +165,14 @@ Package names in Java code have been updated from historical `io.getlime` to `co
 
 ## REST API Changes
 
+### REST API Migration
+
+A new version of REST API has been published under `/rest/v4` endpoints which replace original `/rest/v3` endpoints.
+
+A new PowerAuth REST client is available as `com.wultra.security.powerauth.client.v4.PowerAuthClient`. In case you use the PowerAuth REST client, the migration starts by changing the client class package.
+
+For details how to migrate individual endpoints from version 3 to version 4 of the REST API see [REST API Migration for Version 4](./REST-API-Migration-V4.md).
+
 ### Application Configuration Changes
 
 Application configuration endpoints have been extended to support new configuration keys:
