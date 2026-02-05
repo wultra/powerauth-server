@@ -784,6 +784,30 @@ class OperationServiceBehaviorTest {
         assertEquals("Operation cannot be rejected.", exception.getMessage());
     }
 
+    @Test
+    void testCreateOperationAllowsNullParameters() throws Exception {
+        // given
+        final Map<String, String> parameters = new HashMap<>();
+        parameters.put("testKey1", "testValue1");
+        parameters.put("testKey2", null);
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setUserId("user-1");
+        request.setApplications(List.of("PA_Tests"));
+        request.setTemplateName("test-template");
+        request.getParameters().putAll(parameters);
+
+        OperationDetailResponse response = assertDoesNotThrow(() ->
+                operationService.createOperation(request)
+        );
+        assertNotNull(response);
+        assertNotNull(response.getParameters());
+
+        assertEquals("testValue1", response.getParameters().get("testKey1"));
+        assertTrue(response.getParameters().containsKey("testKey2"));
+        assertNull(response.getParameters().get("testKey2"));
+    }
+
     private void createApplication() throws GenericServiceException {
         boolean appExists = applicationService.getApplicationList().getApplications().stream()
                 .anyMatch(app -> app.getApplicationId().equals(APP_ID));

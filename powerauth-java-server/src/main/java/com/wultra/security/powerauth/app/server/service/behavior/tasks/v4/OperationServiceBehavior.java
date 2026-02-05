@@ -293,6 +293,9 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         for (final String parameterValue : request.getParameters().values()) {
+            if (parameterValue == null) {
+                continue;
+            }
             if (PATTERN_FORBIDDEN_ASCII.matcher(parameterValue).find()) {
                 logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameterValue);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
