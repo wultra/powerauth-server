@@ -254,7 +254,11 @@ public class OperationServiceBehavior {
     }
 
     private static Map.Entry<String, String> escapeParameter(final Map.Entry<String, String> source) {
-        final String escapedValue = source.getValue()
+        final String value = source.getValue();
+        if (value == null) {
+            return source;
+        }
+        final String escapedValue = value
                 .replace("\\", "\\\\")
                 .replace("*", "\\*")
                 .replace("\n", "\\n");
