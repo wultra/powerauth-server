@@ -248,13 +248,19 @@ public class OperationServiceBehavior {
     }
 
     private static Map<String, String> escapeParameters(final Map<String, String> source) {
-        return source.entrySet().stream()
+        final Map<String, String> resultMap = new HashMap<>(source.size());
+        source.entrySet().stream()
                 .map(OperationServiceBehavior::escapeParameter)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .forEach(e -> resultMap.put(e.getKey(), e.getValue()));
+        return resultMap;
     }
 
     private static Map.Entry<String, String> escapeParameter(final Map.Entry<String, String> source) {
-        final String escapedValue = source.getValue()
+        final String value = source.getValue();
+        if (value == null) {
+            return source;
+        }
+        final String escapedValue = value
                 .replace("\\", "\\\\")
                 .replace("*", "\\*")
                 .replace("\n", "\\n");
@@ -285,9 +291,16 @@ public class OperationServiceBehavior {
             logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        for (final String parameterValue : request.getParameters().values()) {
-            if (PATTERN_FORBIDDEN_ASCII.matcher(parameterValue).find()) {
-                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameterValue);
+        for (final Map.Entry<String, String> parameter : request.getParameters().entrySet()) {
+            if (parameter.getKey() == null) {
+                logger.warn("Null key present in parameter map when creating an operation");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (parameter.getValue() == null) {
+                continue;
+            }
+            if (PATTERN_FORBIDDEN_ASCII.matcher(parameter.getValue()).find()) {
+                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameter.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
