@@ -291,12 +291,16 @@ public class OperationServiceBehavior {
             logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        for (final String parameterValue : request.getParameters().values()) {
-            if (parameterValue == null) {
+        for (final Map.Entry<String, String> parameter : request.getParameters().entrySet()) {
+            if (parameter.getKey() == null) {
+                logger.warn("Null key present in parameter map when creating an operation");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (parameter.getValue() == null) {
                 continue;
             }
-            if (PATTERN_FORBIDDEN_ASCII.matcher(parameterValue).find()) {
-                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameterValue);
+            if (PATTERN_FORBIDDEN_ASCII.matcher(parameter.getValue()).find()) {
+                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameter.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
