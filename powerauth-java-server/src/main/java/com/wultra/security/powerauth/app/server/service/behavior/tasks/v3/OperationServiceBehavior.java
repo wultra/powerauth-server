@@ -248,9 +248,11 @@ public class OperationServiceBehavior {
     }
 
     private static Map<String, String> escapeParameters(final Map<String, String> source) {
-        return source.entrySet().stream()
+        final Map<String, String> resultMap = new HashMap<>(source.size());
+        source.entrySet().stream()
                 .map(OperationServiceBehavior::escapeParameter)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .forEach(e -> resultMap.put(e.getKey(), e.getValue()));
+        return resultMap;
     }
 
     private static Map.Entry<String, String> escapeParameter(final Map.Entry<String, String> source) {
