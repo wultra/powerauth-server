@@ -785,7 +785,7 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
-    void testCreateOperationAllowsNullParameters() throws Exception {
+    void testCreateOperationAllowsNullParameterValues() throws Exception {
         // given
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("testKey1", "testValue1");
@@ -806,6 +806,24 @@ class OperationServiceBehaviorTest {
         assertEquals("testValue1", response.getParameters().get("testKey1"));
         assertTrue(response.getParameters().containsKey("testKey2"));
         assertNull(response.getParameters().get("testKey2"));
+    }
+
+    @Test
+    void testCreateOperationDisallowsNullParameterKeys() throws Exception {
+        // given
+        final Map<String, String> parameters = new HashMap<>();
+        parameters.put("testKey1", "testValue1");
+        parameters.put(null, null);
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setUserId("user-1");
+        request.setApplications(List.of("PA_Tests"));
+        request.setTemplateName("test-template");
+        request.getParameters().putAll(parameters);
+
+        assertThrows(GenericServiceException.class, () ->
+                operationService.createOperation(request)
+        );
     }
 
     private void createApplication() throws GenericServiceException {
