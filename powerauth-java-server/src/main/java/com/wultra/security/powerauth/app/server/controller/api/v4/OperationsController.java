@@ -63,7 +63,8 @@ public class OperationsController {
     @PostMapping("/create")
     public ObjectResponse<OperationDetailResponse> createOperation(@Valid @RequestBody ObjectRequest<OperationCreateRequest> request) throws Exception {
         final OperationCreateRequest req = request.getRequestObject();
-        logger.info("action: createOperation, state: initiated, userId: {}, applications: {}, templateName: {}", req.getUserId(), req.getApplications(), req.getTemplateName());
+        logger.info("action: createOperation, state: initiated, userId: {}, applications: {}, activationId: {}, templateName: {}",
+                req.getUserId(), req.getApplications(), req.getActivationId(), req.getTemplateName());
         logger.debug("action: createOperation, state: initiated, request: {}", request);
         final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.createOperation(req));
         logger.info("action: createOperation, state: succeeded");
