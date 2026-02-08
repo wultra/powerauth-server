@@ -32,18 +32,7 @@
         <version>2.1.0-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <!-- JDBC Drivers -->
-        <mssql-jdbc.version>13.2.1.jre11</mssql-jdbc.version>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>${mssql-jdbc.version}</version>
-        </dependency>
-
         <!-- Spring Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
