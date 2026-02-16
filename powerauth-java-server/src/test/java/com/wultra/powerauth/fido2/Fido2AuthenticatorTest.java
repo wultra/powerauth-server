@@ -126,7 +126,13 @@ class Fido2AuthenticatorTest {
     @Test
     void packedAuthenticatorSuccessTest() throws Exception {
         registerCredential();
-        authenticate();
+        authenticate(true);
+    }
+
+    @Test
+    void packedAuthenticatorNoApplicationIdSuccessTest() throws Exception {
+        registerCredential();
+        authenticate(false);
     }
 
     @Test
@@ -231,13 +237,13 @@ class Fido2AuthenticatorTest {
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
         final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
         final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
-        final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
+        final String userHandle = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getUserHandle());
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
         final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
-        assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
+        assertionResponse.setUserHandle(userHandle);
         assertionResponse.setSignature(signature);
         authRequest.setResponse(assertionResponse);
 
@@ -279,12 +285,12 @@ class Fido2AuthenticatorTest {
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
         final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
         final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
-        final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
+        final String userHandle = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getUserHandle());
 
         final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
-        assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
+        assertionResponse.setUserHandle(userHandle);
         assertionResponse.setSignature(new byte[32]);
         authRequest.setResponse(assertionResponse);
 
@@ -553,7 +559,7 @@ class Fido2AuthenticatorTest {
         operationTemplateService.createOperationTemplate(templateCreateRequest);
     }
 
-    private void authenticate() throws Exception {
+    private void authenticate(final boolean appIdInVerificationRequest) throws Exception {
         // Obtain authentication challenge from PowerAuth server
         final AssertionChallengeRequest challengeRequest = new AssertionChallengeRequest();
         challengeRequest.setApplicationIds(Collections.singletonList(APPLICATION_ID));
@@ -575,7 +581,7 @@ class Fido2AuthenticatorTest {
         authRequest.setCredentialId(credential.getId());
         authRequest.setType(credential.getType());
         authRequest.setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM.getValue());
-        authRequest.setApplicationId(APPLICATION_ID);
+        authRequest.setApplicationId(appIdInVerificationRequest ? APPLICATION_ID : null);
         authRequest.setRelyingPartyId(RP_ID);
         authRequest.setAllowedOrigins(Collections.singletonList(ORIGIN.toString()));
         authRequest.setRequiresUserVerification(true);
@@ -584,13 +590,13 @@ class Fido2AuthenticatorTest {
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
         final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
         final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
-        final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
+        final String userHandle = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getUserHandle());
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
         final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
-        assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
+        assertionResponse.setUserHandle(userHandle);
         assertionResponse.setSignature(signature);
         authRequest.setResponse(assertionResponse);
 

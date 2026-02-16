@@ -107,4 +107,13 @@ public interface ActivationQueryService {
      */
     List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId);
 
+    /**
+     * Find all activations for given user ID and external ID
+     *
+     * @param userId     User identifier.
+     * @param externalId External identifier.
+     * @return List of activations for given user ID and external ID
+     */
+    List<ActivationRecordEntity> findByUserIdAndExternalId(String userId, String externalId);
+
 }

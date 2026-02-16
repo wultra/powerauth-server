@@ -62,4 +62,14 @@ public interface AuthenticatorProvider {
      */
     Optional<AuthenticatorDetail> findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException;
 
+    /**
+     * Find an authenticator by a credential identifier and user identifier.
+     *
+     * @param credentialId Credential identifier.
+     * @param userId       User identifier.
+     * @return Authenticator detail, if found.
+     * @throws Fido2AuthenticationFailedException Thrown in case lookup fails.
+     */
+    Optional<AuthenticatorDetail> findByCredentialIdAndUserId(String credentialId, String userId) throws Fido2AuthenticationFailedException;
+
 }

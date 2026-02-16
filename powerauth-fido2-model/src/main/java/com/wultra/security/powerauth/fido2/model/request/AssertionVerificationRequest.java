@@ -43,7 +43,6 @@ public class AssertionVerificationRequest {
     private String authenticatorAttachment;
     @NotNull
     private AuthenticatorAssertionResponse response = new AuthenticatorAssertionResponse();
-    @NotBlank
     private String applicationId;
     @NotBlank
     private String relyingPartyId;

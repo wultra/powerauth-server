@@ -127,4 +127,14 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
         }
     }
 
+    @Override
+    public List<ActivationRecordEntity> findByUserIdAndExternalId(final String userId, final String externalId) {
+        try {
+            return activationRepository.findByUserIdAndExternalId(userId, externalId);
+        } catch (final Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
 }
