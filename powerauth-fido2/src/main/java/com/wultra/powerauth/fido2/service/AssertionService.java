@@ -121,7 +121,7 @@ public class AssertionService {
                 if (credentialIdBytes.length > 32) {
                    final String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
                     logger.debug("Looking up authenticator for trimmed credential ID: {}, application ID: {}", credentialIdTrimmed, applicationId);
-                    authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId,userId);
+                    authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId, userId);
                     // Check if trimming is supported
                     final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
                     final boolean isWultraModel = Fido2DefaultAuthenticators.isWultraModel(aaguid);
