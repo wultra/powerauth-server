@@ -184,4 +184,13 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     @Query("SELECT COUNT(DISTINCT a.userId) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.timestampLastUsed >= :fromDate AND a.timestampLastUsed <= :toDate")
     long uniqueUserCountForApplicationBetweenDates(String applicationId, Date fromDate, Date toDate);
 
+    /**
+     * Find all activations for the given user ID and external ID.
+     *
+     * @param userId     User ID.
+     * @param externalId External ID.
+     * @return List of activations for the given user ID and external ID.
+     */
+    List<ActivationRecordEntity> findByUserIdAndExternalId(String userId, String externalId);
+
 }

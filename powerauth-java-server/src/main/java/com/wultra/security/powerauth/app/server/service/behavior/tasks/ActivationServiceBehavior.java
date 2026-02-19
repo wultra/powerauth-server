@@ -735,14 +735,41 @@ public class ActivationServiceBehavior {
         }
     }
 
+    /**
+     * Find activations by application ID and external ID. In case any matching activation is pending and expired, it is marked as removed.
+     *
+     * @param applicationId Application ID
+     * @param externalId    External ID
+     * @return List of matching activations
+     * @throws GenericServiceException In case marking of expired activations as removed fails
+     */
     public List<Activation> findByExternalId(String applicationId, String externalId) throws GenericServiceException {
         final Date timestamp = new Date();
         final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
 
+        return deactivatePendingAndConvert(timestamp, activationsList);
+    }
+
+    /**
+     * Find activations by user ID and external ID. In case any matching activation is pending and expired, it is marked as removed.
+     *
+     * @param userId     User ID
+     * @param externalId External ID
+     * @return List of matching activations
+     * @throws GenericServiceException In case marking of expired activations as removed fails
+     */
+    public List<Activation> findByUserIdAndExternalId(final String userId, final String externalId) throws GenericServiceException {
+        final Date timestamp = new Date();
+        final List<ActivationRecordEntity> activationsList = activationQueryService.findByUserIdAndExternalId(userId, externalId);
+
+        return deactivatePendingAndConvert(timestamp, activationsList);
+    }
+
+    private List<Activation> deactivatePendingAndConvert(final Date timestamp, final List<ActivationRecordEntity> activationsList) throws GenericServiceException {
         final List<Activation> result = new ArrayList<>();
 
         if (activationsList != null) {
-            for (ActivationRecordEntity activation : activationsList) {
+            for (final ActivationRecordEntity activation : activationsList) {
 
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 

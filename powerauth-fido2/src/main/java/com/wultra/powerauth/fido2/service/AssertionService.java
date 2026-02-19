@@ -42,9 +42,12 @@ import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationR
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Optional;
 
 /**
  * Service related to handling assertions.
@@ -98,6 +101,7 @@ public class AssertionService {
 
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
+            final String userId = getUserId(response);
             final String applicationId = request.getApplicationId();
             final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
             final AuthenticatorData authenticatorData = wrapper.authenticatorData();
@@ -108,7 +112,7 @@ public class AssertionService {
             AuthenticatorDetail authenticatorDetail;
             try {
                 logger.debug("Looking up authenticator for credential ID: {}, application ID: {}", credentialId, applicationId);
-                authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
+                authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId, userId);
                 logger.info("Found authenticator with ID: {}, for credential ID: {}, application ID: {}", authenticatorDetail.getActivationId(), credentialId, applicationId);
             } catch (Fido2AuthenticationFailedException ex) {
                 logger.debug("Authenticator lookup failed, trying find trimmed version.");
@@ -117,7 +121,7 @@ public class AssertionService {
                 if (credentialIdBytes.length > 32) {
                    final String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
                     logger.debug("Looking up authenticator for trimmed credential ID: {}, application ID: {}", credentialIdTrimmed, applicationId);
-                    authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId);
+                    authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId, userId);
                     // Check if trimming is supported
                     final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
                     final boolean isWultraModel = Fido2DefaultAuthenticators.isWultraModel(aaguid);
@@ -135,7 +139,14 @@ public class AssertionService {
             }
 
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
-                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
+                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(
+                        authenticatorDetail.getApplicationId(),
+                        credentialId,
+                        clientDataJSON,
+                        authenticatorData,
+                        response.getSignature(),
+                        authenticatorDetail
+                );
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);
@@ -152,9 +163,25 @@ public class AssertionService {
         }
     }
 
-    private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
-        return authenticatorProvider.findByCredentialId(credentialId, applicationId)
-                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+    private static String getUserId(final AuthenticatorAssertionResponse authenticatorAssertionResponse) {
+        return Optional.ofNullable(authenticatorAssertionResponse.getUserHandle())
+                .map(it -> Base64.getDecoder().decode(it))
+                .map(it -> new String(it, StandardCharsets.UTF_8))
+                .orElse(null);
+    }
+
+    private AuthenticatorDetail getAuthenticatorDetail(final String credentialId, final String applicationId, final String userId) throws Fido2AuthenticationFailedException {
+        final Optional<AuthenticatorDetail> result;
+
+        if (StringUtils.hasText(applicationId)) {
+            result = authenticatorProvider.findByCredentialId(credentialId, applicationId);
+        } else if (StringUtils.hasText(userId)) {
+            result = authenticatorProvider.findByCredentialIdAndUserId(credentialId, userId);
+        } else {
+            result = Optional.empty();
+        }
+
+        return result.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
     }
 
 }

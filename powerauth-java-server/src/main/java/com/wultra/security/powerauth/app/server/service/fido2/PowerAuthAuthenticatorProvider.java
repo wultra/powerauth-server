@@ -152,6 +152,37 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<AuthenticatorDetail> findByCredentialIdAndUserId(final String credentialId, final String userId) throws Fido2AuthenticationFailedException {
+        final List<Activation> activationRecordEntities;
+
+        try {
+            activationRecordEntities = activations.findByUserIdAndExternalId(userId, credentialId);
+        } catch (final GenericServiceException e) {
+            throw new Fido2AuthenticationFailedException("Activation was removed during authentication.");
+        }
+
+        if (activationRecordEntities == null || activationRecordEntities.isEmpty()) {
+            throw new Fido2AuthenticationFailedException("No authenticator with given ID found.");
+        }
+
+        if (activationRecordEntities.size() > 1) {
+            throw new Fido2AuthenticationFailedException("Multiple authenticators with the same ID exist - ambiguous result.");
+        }
+
+        final Activation activation = activationRecordEntities.get(0);
+        final String applicationId = activation.getApplicationId();
+
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (application.isEmpty()) {
+            logger.warn("Application with given ID is not present: {}", applicationId);
+            throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
+        }
+
+        return convert(activation, application.get());
+    }
+
+    @Override
     @Transactional
     public AuthenticatorDetail storeAuthenticator(String applicationId, String activationCode, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException {
 
