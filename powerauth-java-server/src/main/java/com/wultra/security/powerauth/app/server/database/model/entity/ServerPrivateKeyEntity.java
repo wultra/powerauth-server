@@ -24,6 +24,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.util.ProxyUtils;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -34,7 +36,10 @@ import java.util.Objects;
 @Entity
 @Table(name = "pa_server_private_key")
 @Getter @Setter
-public class ServerPrivateKeyEntity {
+public class ServerPrivateKeyEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 4927323350975493534L;
 
     @Id
     @SequenceGenerator(name = "pa_server_private_key", sequenceName = "pa_server_private_key_seq", allocationSize = 1)
