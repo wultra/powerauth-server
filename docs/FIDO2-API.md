@@ -341,21 +341,23 @@ If the challenge is successfully created, API returns the following response:
           "string"
         ]
       }
-    ]
+    ],
+    "operationId": "string"
   }
 }
 ```
 
 ##### Description of Response Params
 
-| Attribute                                                        | Type                 | Description                                                                     |
-|------------------------------------------------------------------|----------------------|---------------------------------------------------------------------------------|
-| `applicationIds`<span class="required" title="Required">*</span> | `String[]`           | Applications that are capable of approving the operation.                       |
-| `challenge`                                                      | `String`             | The assertion challenge to be signed by the authenticator.                      |
-| `userId`                                                         | `String`             | User with which the assertion should be associated with. Can be null.           |
-| `failedAttempts`                                                 | `String`             | Information about how many times this assertion was unsuccessfully approved.    |
-| `maxFailedAttempts`                                              | `String`             | Information about how many times this assertion can be unsuccessfully approved. |
-| `allowCredentials`                                               | `AllowCredentials`   | Credentials that are associated with this assertion.                            |
+| Attribute                                                        | Type               | Description                                                                     |
+|------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------|
+| `applicationIds`<span class="required" title="Required">*</span> | `String[]`         | Applications that are capable of approving the operation.                       |
+| `challenge`                                                      | `String`           | The assertion challenge to be signed by the authenticator.                      |
+| `userId`                                                         | `String`           | User with which the assertion should be associated with. Can be null.           |
+| `failedAttempts`                                                 | `String`           | Information about how many times this assertion was unsuccessfully approved.    |
+| `maxFailedAttempts`                                              | `String`           | Information about how many times this assertion can be unsuccessfully approved. |
+| `allowCredentials`                                               | `AllowCredentials` | Credentials that are associated with this assertion.                            |
+| `operationId`                                                    | `String`           | Operation ID the assertion is associated with.                                  |
 
 ##### `AllowCredentials` Object
 

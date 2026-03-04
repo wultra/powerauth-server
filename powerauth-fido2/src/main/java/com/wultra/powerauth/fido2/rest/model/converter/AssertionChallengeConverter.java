@@ -68,6 +68,7 @@ public class AssertionChallengeConverter {
         destination.setFailedAttempts(source.getFailedAttempts());
         destination.setMaxFailedAttempts(source.getMaxFailedAttempts());
         destination.setAllowCredentials(source.getAllowCredentials());
+        destination.setOperationId(source.getOperationId());
         return destination;
     }
 
@@ -112,6 +113,7 @@ public class AssertionChallengeConverter {
         destination.setChallenge(source.getId() + "&" + source.getData());
         destination.setFailedAttempts(source.getFailureCount());
         destination.setMaxFailedAttempts(source.getMaxFailureCount());
+        destination.setOperationId(source.getId());
 
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
             final List<Credential> allowCredentials = new ArrayList<>();
