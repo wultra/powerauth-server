@@ -19,6 +19,8 @@
 .idea/
 .mvn
 dist/
+## Idea runtime configuration with sensiteva data
+.run/PowerAuthServerApplication.run.xml
 
 ### JRebel
 rebel.xml
