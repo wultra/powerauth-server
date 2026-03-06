@@ -64,7 +64,7 @@ liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/
 
 #### Database encryption
 
-See the [doc/PowerAuth-Server-2.0.0.md](doc/PowerAuth-Server-2.0.0.md) document for how to create and configure an _Encryption Key_.
+See the [PowerAuth Server 2.0.0](../docs/PowerAuth-Server-2.0.0.md) document for how to create and configure an _Encryption Key_.
 
 #### Local dev env.
 
@@ -106,6 +106,10 @@ You can check other APIs on:
 
 * http://localhost:8080/swagger-ui/index.html
 
+### Application test
+
+You can create and get a testing application (a resource) following the document
+[Deploying PowerAuth Server](../docs/Deploying-PowerAuth-Server.md#generating-your-first-application)
 
 ### Schema Diagram
 

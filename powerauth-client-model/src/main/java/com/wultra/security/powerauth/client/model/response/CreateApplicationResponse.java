@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -33,5 +34,7 @@ public class CreateApplicationResponse {
 
     private String applicationId;
     private List<String> applicationRoles = new ArrayList<>();
+    private List<ApplicationVersion> versions = new ArrayList<>();
+    private List<String> supportedAlgorithms = new ArrayList<>();
 
 }

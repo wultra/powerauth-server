@@ -41,7 +41,7 @@ public class AlgorithmConfigChangeListener {
     @EventListener
     public void onAlgorithmConfigChanged(AlgorithmConfigChangedEvent event) {
         try {
-            masterKeyGenerationService.generateMasterKeyPairs(event.getApplication());
+            masterKeyGenerationService.saveMasterKeyPairs(event.getApplication());
         } catch (GenericServiceException e) {
             logger.error("Unable to generate master key pairs", e);
         }
