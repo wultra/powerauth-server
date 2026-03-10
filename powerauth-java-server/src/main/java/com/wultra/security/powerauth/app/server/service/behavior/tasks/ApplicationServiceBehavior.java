@@ -34,7 +34,7 @@ import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import lombok.experimental.SuperBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,14 +49,18 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
-@SuperBuilder
 public class ApplicationServiceBehavior extends AbstractApplicationServiceBehavior {
 
-    private final MasterKeyGenerationService masterKeyGenerationService;
-    private final LocalizationProvider localizationProvider;
-    private final ApplicationRepository applicationRepository;
-    private final ApplicationVersionRepository applicationVersionRepository;
-    private final AlgorithmQueryService algorithmQueryService;
+    @Autowired
+    private MasterKeyGenerationService masterKeyGenerationService;
+    @Autowired
+    private LocalizationProvider localizationProvider;
+    @Autowired
+    private ApplicationRepository applicationRepository;
+    @Autowired
+    private ApplicationVersionRepository applicationVersionRepository;
+    @Autowired
+    private AlgorithmQueryService algorithmQueryService;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
@@ -173,7 +177,7 @@ public class ApplicationServiceBehavior extends AbstractApplicationServiceBehavi
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
-            final Result result = getResult(keyPair, supportedAlgorithms);
+            final Result result = getPublicKeys(keyPair, publicKeyP256, supportedAlgorithms);
             final String sdkConfigSerialized = getSdkConfigSerialized(version, publicKeyP256, result);
             final ApplicationVersion ver = getApplicationVersion(version, sdkConfigSerialized);
 

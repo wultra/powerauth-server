@@ -17,9 +17,18 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.AbstractApplicationDetailServiceBehavior;
-import lombok.experimental.SuperBuilder;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
+import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Behavior class implementing application detail endpoint.
@@ -27,6 +36,45 @@ import org.springframework.stereotype.Service;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service("applicationDetailServiceBehaviorV3")
-@SuperBuilder
 public class ApplicationDetailServiceBehavior extends AbstractApplicationDetailServiceBehavior {
+    /**
+     * Get application details by ID.
+     *
+     * @param request Request with application ID
+     * @return Response with application details
+     * @throws GenericServiceException Thrown when application does not exist.
+     */
+    @Transactional
+    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            final ApplicationEntity application = findApplicationById(applicationId);
+            return createApplicationDetailResponse(application);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+    }
+
+    private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
+        final String applicationId = application.getId();
+        final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
+        response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(application.getRoles());
+
+        final List<SharedSecretAlgorithm> supportedAlgorithms = supportedAlgorithms(application);
+        final List<ApplicationVersion> versions = versions(applicationId, supportedAlgorithms);
+        response.setVersions(versions);
+
+        final String publicKeyP256 = getPublicKeys(applicationId, supportedAlgorithms).publicKeyP256();
+        response.setMasterPublicKey(publicKeyP256);
+
+        return response;
+    }
 }

@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyP
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ApplicationDetailServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -31,12 +30,11 @@ import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
-import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
-import lombok.experimental.SuperBuilder;
-import org.springframework.transaction.annotation.Transactional;
+import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,40 +44,20 @@ import java.util.Optional;
  *
  * @author Vít Kotačka, vit.kotacka@wultra.com
  */
-@SuperBuilder
 public abstract class AbstractApplicationDetailServiceBehavior extends AbstractApplicationServiceBehavior {
 
-    private final LocalizationProvider localizationProvider;
-    private final ApplicationRepository applicationRepository;
-    private final MasterKeyPairRepository masterKeyPairRepository;
-    private final ApplicationVersionRepository applicationVersionRepository;
-    private final AlgorithmQueryService algorithmQueryService;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
-
-    /**
-     * Get application details by ID.
-     *
-     * @param request Request with application ID
-     * @return Response with application details
-     * @throws GenericServiceException Thrown when application does not exist.
-     */
-    @Transactional
-    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
-        try {
-            final String applicationId = request.getApplicationId();
-            final ApplicationEntity application = findApplicationById(applicationId);
-            return createApplicationDetailResponse(application);
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
-        } catch (RuntimeException ex) {
-            ApplicationDetailServiceBehavior.logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            ApplicationDetailServiceBehavior.logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
-        }
-    }
+    @Autowired
+    private LocalizationProvider localizationProvider;
+    @Autowired
+    private ApplicationRepository applicationRepository;
+    @Autowired
+    private MasterKeyPairRepository masterKeyPairRepository;
+    @Autowired
+    private ApplicationVersionRepository applicationVersionRepository;
+    @Autowired
+    private AlgorithmQueryService algorithmQueryService;
+    @Autowired
+    private SdkConfigurationSerializer sdkConfigurationSerializer;
 
     /**
      * Find application entity by ID.
@@ -87,52 +65,52 @@ public abstract class AbstractApplicationDetailServiceBehavior extends AbstractA
      * @return Application entity.
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    private ApplicationEntity findApplicationById(String applicationId) throws GenericServiceException {
+    protected ApplicationEntity findApplicationById(String applicationId) throws GenericServiceException {
         final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
         if (applicationOptional.isEmpty()) {
-            ApplicationDetailServiceBehavior.logger.info("Application not found, application ID: '{}'", applicationId);
+            logger.info("Application not found, application ID: '{}'", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationOptional.get();
     }
 
-    private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
-        final String applicationId = application.getId();
-        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-        if (masterKeyPairEntity == null) {
-            // This can happen only when an application was not created properly using PA Server service
-            ApplicationDetailServiceBehavior.logger.error("Missing key pair for application ID: {}", applicationId);
-            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-        }
-        final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+    protected List<SharedSecretAlgorithm> supportedAlgorithms(ApplicationEntity application) {
+        return algorithmQueryService.getSupportedAlgorithms(application);
+    }
 
-        final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? masterKeyPairEntity.getMasterKeyPublicBase64() : null;
-
-        final Result result = getResult(masterKeyPairEntity, supportedAlgorithms);
-
-        final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
-        response.setApplicationId(applicationId);
-        response.getApplicationRoles().addAll(application.getRoles());
-        response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
-
-        final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
-        for (ApplicationVersionEntity version : versions) {
+    protected List<ApplicationVersion> versions(String applicationId, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
+        final List<ApplicationVersionEntity> entities = applicationVersionRepository.findByApplicationId(applicationId);
+        final List<ApplicationVersion> versions = new ArrayList<>();
+        final Result result = getPublicKeys(applicationId, supportedAlgorithms);
+        for (ApplicationVersionEntity version : entities) {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
                     .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(publicKeyP256)
+                    .masterPublicKeyP256(result.publicKeyP256())
                     .masterPublicKeyP384(result.publicKeyP384())
                     .masterPublicKeyMlDsa65(result.publicKeyMlDsa65())
                     .masterPublicKeyMlDsa87(result.publicKeyMlDsa87())
                     .build();
             final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
-
             final ApplicationVersion ver = getApplicationVersion(version, sdkConfigSerialized);
 
-            response.getVersions().add(ver);
+            versions.add(ver);
         }
 
-        return response;
+        return versions;
+    }
+
+    protected @NonNull Result getPublicKeys(String applicationId, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
+        final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+        if (masterKeyPairEntity == null) {
+            // This can happen only when an application was not created properly using PA Server service
+            logger.error("Missing key pair for application ID: {}", applicationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+        }
+
+        final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? masterKeyPairEntity.getMasterKeyPublicBase64() : null;
+
+        return super.getPublicKeys(masterKeyPairEntity, publicKeyP256, supportedAlgorithms);
     }
 }

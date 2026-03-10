@@ -32,10 +32,9 @@ import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.function.ThrowingFunction;
 
 import java.security.PublicKey;
@@ -48,13 +47,13 @@ import java.util.List;
  *
  * @author Vít Kotačka, vit.kotacka@wultra.com
  */
-@AllArgsConstructor
 @Slf4j(access = AccessLevel.PROTECTED)
-@SuperBuilder
-public class AbstractApplicationServiceBehavior {
+public abstract class AbstractApplicationServiceBehavior {
 
-    private final PublicKeysConverter publicKeysConverter;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
+    @Autowired
+    private PublicKeysConverter publicKeysConverter;
+    @Autowired
+    private SdkConfigurationSerializer sdkConfigurationSerializer;
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
@@ -92,7 +91,7 @@ public class AbstractApplicationServiceBehavior {
     }
 
     @NonNull
-    protected Result getResult(MasterKeyPairEntity keyPair, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
+    protected Result getPublicKeys(MasterKeyPairEntity keyPair, String publicKeyP256, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
         String publicKeyP384 = null;
         String publicKeyMlDsa65 = null;
         String publicKeyMlDsa87 = null;
@@ -127,7 +126,7 @@ public class AbstractApplicationServiceBehavior {
             }
         }
 
-        return new Result(publicKeyP384, publicKeyMlDsa65, publicKeyMlDsa87);
+        return new Result(publicKeyP256, publicKeyP384, publicKeyMlDsa65, publicKeyMlDsa87);
     }
 
     protected String getSdkConfigSerialized(ApplicationVersionEntity version, String publicKeyP256, Result result) throws GenericServiceException {
@@ -143,6 +142,7 @@ public class AbstractApplicationServiceBehavior {
         return sdkConfigurationSerializer.serialize(sdkConfig);
     }
 
-    protected record Result(String publicKeyP384, String publicKeyMlDsa65, String publicKeyMlDsa87) {
+    protected record Result(String publicKeyP256, String publicKeyP384, String publicKeyMlDsa65,
+                            String publicKeyMlDsa87) {
     }
 }
