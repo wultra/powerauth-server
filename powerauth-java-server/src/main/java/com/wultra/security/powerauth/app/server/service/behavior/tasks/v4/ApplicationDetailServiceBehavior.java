@@ -37,6 +37,7 @@ import java.util.List;
  */
 @Service("applicationDetailServiceBehaviorV4")
 public class ApplicationDetailServiceBehavior extends AbstractApplicationDetailServiceBehavior {
+
     /**
      * Get application details by ID.
      *
