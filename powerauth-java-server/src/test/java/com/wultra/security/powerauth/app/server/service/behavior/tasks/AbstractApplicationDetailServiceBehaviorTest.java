@@ -360,8 +360,8 @@ class AbstractApplicationDetailServiceBehaviorTest {
                 () -> tested.versions(applicationId, List.of())
         );
         assertSame(expected, thrown);
-        verify(applicationVersionRepository).findByApplicationId(applicationId);
-        verify(sdkConfigurationSerializer, never()).serialize(any());
+        verifyNoInteractions(applicationVersionRepository);
+        verifyNoInteractions(sdkConfigurationSerializer);
     }
 
     // -------------------------------------------------------------------------
