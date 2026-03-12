@@ -82,8 +82,8 @@ public abstract class AbstractApplicationDetailServiceBehavior extends AbstractA
         for (ApplicationVersionEntity version : entities) {
             final String masterPublicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? publicKeys.publicKeyP256() : null;
             final String masterPublicKeyP384 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384) ? publicKeys.publicKeyP384() : null;
-            final String masterPublicKeyMlDsa65 = supportedAlgorithms.contains(SharedSecretAlgorithm.ML_DSA_65) ? publicKeys.publicKeyMlDsa65() : null;
-            final String masterPublicKeyMlDsa87 = supportedAlgorithms.contains(SharedSecretAlgorithm.ML_DSA_87) ? publicKeys.publicKeyMlDsa87() : null;
+            final String masterPublicKeyMlDsa65 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3) ? publicKeys.publicKeyMlDsa65() : null;
+            final String masterPublicKeyMlDsa87 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5) ? publicKeys.publicKeyMlDsa87() : null;
 
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
