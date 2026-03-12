@@ -69,11 +69,11 @@ public class ApplicationDetailServiceBehavior extends AbstractApplicationDetailS
         response.getApplicationRoles().addAll(application.getRoles());
 
         final List<SharedSecretAlgorithm> supportedAlgorithms = supportedAlgorithms(application);
-        final List<ApplicationVersion> versions = versions(applicationId, supportedAlgorithms);
+        final Result publicKeys = getPublicKeys(applicationId, supportedAlgorithms);
+        final List<ApplicationVersion> versions = versions(applicationId, supportedAlgorithms, publicKeys);
         response.setVersions(versions);
 
-        final String publicKeyP256 = getPublicKeys(applicationId, supportedAlgorithms).publicKeyP256();
-        response.setMasterPublicKey(publicKeyP256);
+        response.setMasterPublicKey(publicKeys.publicKeyP256());
 
         return response;
     }

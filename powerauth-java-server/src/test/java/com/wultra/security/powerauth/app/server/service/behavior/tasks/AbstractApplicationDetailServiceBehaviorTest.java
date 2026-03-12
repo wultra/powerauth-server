@@ -230,11 +230,10 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldReturnEmptyList_whenNoVersionsExist() throws GenericServiceException {
         final String applicationId = "app-no-versions";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
         when(applicationVersionRepository.findByApplicationId(applicationId)).thenReturn(List.of());
 
-        final List<ApplicationVersion> result = tested.versions(applicationId, List.of());
+        final List<ApplicationVersion> result = tested.versions(applicationId, List.of(),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         assertTrue(result.isEmpty());
     }
@@ -242,15 +241,14 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldReturnMappedApplicationVersion_forEachVersionEntity() throws GenericServiceException {
         final String applicationId = "app-with-versions";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
 
         final ApplicationVersionEntity v1 = versionEntity("v1", "key-1", "secret-1", true);
         final ApplicationVersionEntity v2 = versionEntity("v2", "key-2", "secret-2", false);
         when(applicationVersionRepository.findByApplicationId(applicationId)).thenReturn(List.of(v1, v2));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
 
-        final List<ApplicationVersion> result = tested.versions(applicationId, List.of());
+        final List<ApplicationVersion> result = tested.versions(applicationId, List.of(),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         assertEquals(2, result.size());
     }
@@ -258,14 +256,13 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldMapVersionEntityFieldsCorrectly() throws GenericServiceException {
         final String applicationId = "app-version-fields";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
 
         final ApplicationVersionEntity entity = versionEntity("default", "the-app-key", "the-app-secret", true);
         when(applicationVersionRepository.findByApplicationId(applicationId)).thenReturn(List.of(entity));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("serialized-sdk-config");
 
-        final List<ApplicationVersion> result = tested.versions(applicationId, List.of());
+        final List<ApplicationVersion> result = tested.versions(applicationId, List.of(),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         final ApplicationVersion version = result.get(0);
         assertEquals("default", version.getApplicationVersionId());
@@ -278,14 +275,13 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldPassVersionAppKeyAndSecretToSdkConfigSerializer() throws GenericServiceException {
         final String applicationId = "app-sdk-config";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
 
         final ApplicationVersionEntity entity = versionEntity("v1", "specific-app-key", "specific-app-secret", true);
         when(applicationVersionRepository.findByApplicationId(applicationId)).thenReturn(List.of(entity));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk");
 
-        tested.versions(applicationId, List.of());
+        tested.versions(applicationId, List.of(),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         verify(sdkConfigurationSerializer).serialize(argThat(config ->
                 "specific-app-key".equals(config.appKey())
@@ -296,14 +292,13 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldIncludeP256KeyInSdkConfig_whenEc256IsSupported() throws GenericServiceException {
         final String applicationId = "app-p256-sdk";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-p256-key"));
 
         when(applicationVersionRepository.findByApplicationId(applicationId))
                 .thenReturn(List.of(versionEntity("v1", "key", "secret", true)));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk");
 
-        tested.versions(applicationId, List.of(SharedSecretAlgorithm.EC_P256));
+        tested.versions(applicationId, List.of(SharedSecretAlgorithm.EC_P256),
+                new AbstractApplicationServiceBehavior.Result("v3-p256-key", null, null, null));
 
         verify(sdkConfigurationSerializer).serialize(argThat(config ->
                 "v3-p256-key".equals(config.masterPublicKeyP256())
@@ -313,14 +308,13 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldOmitP256KeyFromSdkConfig_whenEc256IsNotSupported() throws GenericServiceException {
         final String applicationId = "app-no-p256-sdk";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
 
         when(applicationVersionRepository.findByApplicationId(applicationId))
                 .thenReturn(List.of(versionEntity("v1", "key", "secret", true)));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk");
 
-        tested.versions(applicationId, List.of(SharedSecretAlgorithm.EC_P384));
+        tested.versions(applicationId, List.of(SharedSecretAlgorithm.EC_P384),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         verify(sdkConfigurationSerializer).serialize(argThat(config ->
                 config.masterPublicKeyP256() == null
@@ -330,8 +324,6 @@ class AbstractApplicationDetailServiceBehaviorTest {
     @Test
     void versions_shouldCallSerializerOncePerVersion() throws GenericServiceException {
         final String applicationId = "app-three-versions";
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(keyPairWithV3Key(applicationId, "v3-key"));
 
         when(applicationVersionRepository.findByApplicationId(applicationId)).thenReturn(List.of(
                 versionEntity("v1", "key-1", "secret-1", true),
@@ -340,28 +332,10 @@ class AbstractApplicationDetailServiceBehaviorTest {
         ));
         when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk");
 
-        tested.versions(applicationId, List.of());
+        tested.versions(applicationId, List.of(),
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null));
 
         verify(sdkConfigurationSerializer, times(3)).serialize(any());
-    }
-
-    @Test
-    void versions_shouldThrowGenericServiceException_whenNoKeyPairFound() throws GenericServiceException {
-        final String applicationId = "app-missing-keys";
-        final GenericServiceException expected =
-                new GenericServiceException(ServiceError.NO_MASTER_SERVER_KEYPAIR, "No key pair");
-
-        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
-                .thenReturn(null);
-        when(localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR)).thenReturn(expected);
-
-        final GenericServiceException thrown = assertThrows(
-                GenericServiceException.class,
-                () -> tested.versions(applicationId, List.of())
-        );
-        assertSame(expected, thrown);
-        verifyNoInteractions(applicationVersionRepository);
-        verifyNoInteractions(sdkConfigurationSerializer);
     }
 
     // -------------------------------------------------------------------------

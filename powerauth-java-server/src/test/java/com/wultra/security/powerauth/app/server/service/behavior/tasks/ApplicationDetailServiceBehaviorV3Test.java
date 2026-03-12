@@ -43,9 +43,10 @@ class ApplicationDetailServiceBehaviorV3Test {
 
         doReturn(application).when(tested).findApplicationById(applicationId);
         doReturn(algorithms).when(tested).supportedAlgorithms(application);
-        doReturn(versions).when(tested).versions(applicationId, algorithms);
-        doReturn(new AbstractApplicationServiceBehavior.Result(MASTER_PUBLIC_KEY, null, null, null))
-                .when(tested).getPublicKeys(applicationId, algorithms);
+        final AbstractApplicationServiceBehavior.Result publicKeys =
+                new AbstractApplicationServiceBehavior.Result(MASTER_PUBLIC_KEY, null, null, null);
+        doReturn(publicKeys).when(tested).getPublicKeys(applicationId, algorithms);
+        doReturn(versions).when(tested).versions(applicationId, algorithms, publicKeys);
 
         final GetApplicationDetailResponse response = tested.getApplicationDetail(request);
 
@@ -70,9 +71,10 @@ class ApplicationDetailServiceBehaviorV3Test {
         final List<SharedSecretAlgorithm> algorithms = List.of(SharedSecretAlgorithm.EC_P384);
         doReturn(application).when(tested).findApplicationById(applicationId);
         doReturn(algorithms).when(tested).supportedAlgorithms(application);
-        doReturn(List.of()).when(tested).versions(applicationId, algorithms);
-        doReturn(new AbstractApplicationServiceBehavior.Result(MASTER_PUBLIC_KEY, null, null, null))
-                .when(tested).getPublicKeys(applicationId, algorithms);
+        final AbstractApplicationServiceBehavior.Result publicKeys =
+                new AbstractApplicationServiceBehavior.Result(MASTER_PUBLIC_KEY, null, null, null);
+        doReturn(publicKeys).when(tested).getPublicKeys(applicationId, algorithms);
+        doReturn(List.of()).when(tested).versions(applicationId, algorithms, publicKeys);
 
         final GetApplicationDetailResponse response = tested.getApplicationDetail(request);
 
@@ -93,9 +95,10 @@ class ApplicationDetailServiceBehaviorV3Test {
         final List<SharedSecretAlgorithm> algorithms = List.of(SharedSecretAlgorithm.EC_P384_ML_L3);
         doReturn(application).when(tested).findApplicationById(applicationId);
         doReturn(algorithms).when(tested).supportedAlgorithms(application);
-        doReturn(List.of()).when(tested).versions(applicationId, algorithms);
-        doReturn(new AbstractApplicationServiceBehavior.Result(null, null, null, null))
-                .when(tested).getPublicKeys(applicationId, algorithms);
+        final AbstractApplicationServiceBehavior.Result publicKeys =
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null);
+        doReturn(publicKeys).when(tested).getPublicKeys(applicationId, algorithms);
+        doReturn(List.of()).when(tested).versions(applicationId, algorithms, publicKeys);
 
         final GetApplicationDetailResponse response = tested.getApplicationDetail(request);
 

@@ -47,7 +47,10 @@ class ApplicationDetailServiceBehaviorV4Test {
 
         doReturn(application).when(tested).findApplicationById(applicationId);
         doReturn(algorithms).when(tested).supportedAlgorithms(application);
-        doReturn(versions).when(tested).versions(applicationId, algorithms);
+        final AbstractApplicationServiceBehavior.Result publicKeys =
+                new AbstractApplicationServiceBehavior.Result(null, null, null, null);
+        doReturn(publicKeys).when(tested).getPublicKeys(applicationId, algorithms);
+        doReturn(versions).when(tested).versions(applicationId, algorithms, publicKeys);
 
         final GetApplicationDetailResponse response = tested.getApplicationDetail(request);
 
@@ -68,7 +71,8 @@ class ApplicationDetailServiceBehaviorV4Test {
 
         verify(tested).findApplicationById(applicationId);
         verify(tested).supportedAlgorithms(application);
-        verify(tested).versions(applicationId, algorithms);
+        verify(tested).getPublicKeys(applicationId, algorithms);
+        verify(tested).versions(applicationId, algorithms, publicKeys);
     }
 
     @Test

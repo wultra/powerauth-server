@@ -72,7 +72,8 @@ public class ApplicationDetailServiceBehavior extends AbstractApplicationDetailS
         final List<SharedSecretAlgorithm> supportedAlgorithms = supportedAlgorithms(application);
         response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
 
-        final List<ApplicationVersion> versions = versions(applicationId, supportedAlgorithms);
+        final Result publicKeys = getPublicKeys(applicationId, supportedAlgorithms);
+        final List<ApplicationVersion> versions = versions(applicationId, supportedAlgorithms, publicKeys);
         response.setVersions(versions);
 
         return response;
