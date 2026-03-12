@@ -26,7 +26,7 @@ mvn clean package
 
 #### Set up
 
-You have installed and running DB with an admin account.
+Ensure you have a database installed and running, and that you have an admin account.
 
 ##### Create a user and a schema
 
