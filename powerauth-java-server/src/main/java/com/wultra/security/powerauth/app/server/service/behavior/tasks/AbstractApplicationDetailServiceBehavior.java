@@ -79,18 +79,17 @@ public abstract class AbstractApplicationDetailServiceBehavior extends AbstractA
         return algorithmQueryService.getSupportedAlgorithms(application);
     }
 
-    protected List<ApplicationVersion> versions(String applicationId, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
+    protected List<ApplicationVersion> versions(String applicationId, List<SharedSecretAlgorithm> supportedAlgorithms, Result publicKeys) throws GenericServiceException {
         final List<ApplicationVersion> versions = new ArrayList<>();
-        final Result result = getPublicKeys(applicationId, supportedAlgorithms);
         final List<ApplicationVersionEntity> entities = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : entities) {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
                     .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(result.publicKeyP256())
-                    .masterPublicKeyP384(result.publicKeyP384())
-                    .masterPublicKeyMlDsa65(result.publicKeyMlDsa65())
-                    .masterPublicKeyMlDsa87(result.publicKeyMlDsa87())
+                    .masterPublicKeyP256(publicKeys.publicKeyP256())
+                    .masterPublicKeyP384(publicKeys.publicKeyP384())
+                    .masterPublicKeyMlDsa65(publicKeys.publicKeyMlDsa65())
+                    .masterPublicKeyMlDsa87(publicKeys.publicKeyMlDsa87())
                     .build();
             final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
             final ApplicationVersion ver = getApplicationVersion(version, sdkConfigSerialized);
