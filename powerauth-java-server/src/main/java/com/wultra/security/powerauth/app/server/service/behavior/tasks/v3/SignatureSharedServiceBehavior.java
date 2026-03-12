@@ -304,9 +304,9 @@ public class SignatureSharedServiceBehavior {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
             final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
-                logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, reason: max failed attempts reached", activation.getActivationId());
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 final KeyValue entry = new KeyValue();
@@ -403,9 +403,9 @@ public class SignatureSharedServiceBehavior {
 
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
-            logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, reason: max failed attempts reached", activation.getActivationId());
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             final KeyValue entry = new KeyValue();
@@ -463,9 +463,9 @@ public class SignatureSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Enforce the blocked status on activation
-        logger.info("action: handleInactiveActivationWithMismatchSignature, state: blocked, activationId: {}, reason: max failed attempts reached", activation.getActivationId());
         activation.setActivationStatus(ActivationStatus.BLOCKED);
         activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        logger.info("action: handleInactiveActivationWithMismatchSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
 
         // Save the activation and log change
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);

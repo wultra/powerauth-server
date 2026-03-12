@@ -242,9 +242,9 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
-            logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, reason: max failed attempts reached", activation.getActivationId());
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistory.saveActivationAndLogChange(activation);
             final KeyValue entry = new KeyValue();
