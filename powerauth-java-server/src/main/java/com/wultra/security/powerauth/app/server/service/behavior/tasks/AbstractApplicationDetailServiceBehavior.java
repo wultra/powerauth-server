@@ -80,9 +80,9 @@ public abstract class AbstractApplicationDetailServiceBehavior extends AbstractA
     }
 
     protected List<ApplicationVersion> versions(String applicationId, List<SharedSecretAlgorithm> supportedAlgorithms) throws GenericServiceException {
-        final List<ApplicationVersionEntity> entities = applicationVersionRepository.findByApplicationId(applicationId);
         final List<ApplicationVersion> versions = new ArrayList<>();
         final Result result = getPublicKeys(applicationId, supportedAlgorithms);
+        final List<ApplicationVersionEntity> entities = applicationVersionRepository.findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : entities) {
             final SdkConfiguration sdkConfig = SdkConfiguration.builder()
                     .appKey(version.getApplicationKey())
