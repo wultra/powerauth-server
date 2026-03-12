@@ -170,12 +170,12 @@ public class ApplicationServiceBehavior extends AbstractApplicationServiceBehavi
             response.getApplicationRoles().addAll(application.getRoles());
             response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
 
-            final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? keyPair.getMasterKeyPublicBase64() : null;
             if (keyPair == null) {
                 // This can happen only when an application was not created properly using PA Server service
                 logger.error("Missing key pair for application ID: {}", applicationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
+            final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? keyPair.getMasterKeyPublicBase64() : null;
 
             final Result result = getPublicKeys(keyPair, publicKeyP256, supportedAlgorithms);
             final String sdkConfigSerialized = getSdkConfigSerialized(version, publicKeyP256, result);
