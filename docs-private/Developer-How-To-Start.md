@@ -89,8 +89,8 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=dev"
 #### IntelliJ Idea
 
 1. Copy `../.run/PowerAuthServerApplication.run.xml.tmp` to `../.run/PowerAuthServerApplication.run.xml` and modify it
-   with sensual values (keys, etc.).
-1. Use IntelliJ Idea run the modified configuration at `../.run/PowerAuthServerApplication.run.xml`
+   with sensitive values (keys, etc.).
+1. Use IntelliJ Idea to run the modified configuration at `../.run/PowerAuthServerApplication.run.xml`
 
 ### Smoke test
 
