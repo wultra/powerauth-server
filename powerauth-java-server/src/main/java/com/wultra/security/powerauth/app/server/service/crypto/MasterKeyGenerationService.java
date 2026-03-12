@@ -85,8 +85,8 @@ public class MasterKeyGenerationService {
      */
     public MasterKeyPairEntity generateAndSaveMasterKeyPairs(ApplicationEntity application) throws GenericServiceException {
         final MasterKeyPairEntity keyPair = generateMasterKeyPairs(application);
-        masterKeyPairRepository.save(keyPair);
-        return keyPair;
+        final MasterKeyPairEntity persistedKeyPair = masterKeyPairRepository.save(keyPair);
+        return persistedKeyPair;
     }
 
     /**
