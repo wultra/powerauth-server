@@ -83,7 +83,7 @@ public abstract class AbstractApplicationServiceBehavior {
                         final byte[] bytes = converter.apply(publicKey);
                         return Base64.getEncoder().encodeToString(bytes);
                     } catch (Exception e) {
-                        AbstractApplicationDetailServiceBehavior.logger.warn("Public key conversion failed for {}: {}", keyType, e.getMessage());
+                        logger.warn("Public key conversion failed for {}: {}", keyType, e.getMessage());
                         return null;
                     }
                 })
