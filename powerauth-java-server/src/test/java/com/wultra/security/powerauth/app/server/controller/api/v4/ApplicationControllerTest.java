@@ -47,7 +47,7 @@ class ApplicationControllerTest {
     private ApplicationController applicationController;
 
     @Test
-    void createApplication_ReturnsWrappedResponseWhenServiceSucceeds() throws Exception {
+    void createApplication_shouldReturnWrappedResponse_whenServiceSucceeds() throws Exception {
         final CreateApplicationRequest req = new CreateApplicationRequest();
         req.setApplicationId("app-1");
         final ObjectRequest<CreateApplicationRequest> request = new ObjectRequest<>();
@@ -63,7 +63,7 @@ class ApplicationControllerTest {
     }
 
     @Test
-    void createApplication_PropagatesExceptionWhenServiceFails() throws Exception {
+    void createApplication_shouldPropagateException_whenServiceFails() throws Exception {
         final CreateApplicationRequest req = new CreateApplicationRequest();
         req.setApplicationId("app-1");
         final ObjectRequest<CreateApplicationRequest> request = new ObjectRequest<>();
@@ -75,14 +75,14 @@ class ApplicationControllerTest {
     }
 
     @Test
-    void createApplication_ThrowsNullPointerExceptionWhenRequestObjectIsNull() {
+    void createApplication_shouldThrowNullPointerException_whenRequestObjectIsNull() {
         final ObjectRequest<CreateApplicationRequest> request = new ObjectRequest<>();
 
         assertThrows(NullPointerException.class, () -> applicationController.createApplication(request));
     }
 
     @Test
-    void getApplicationDetail_ReturnsWrappedResponseWhenServiceSucceeds() throws Exception {
+    void getApplicationDetail_shouldReturnWrappedResponse_whenServiceSucceeds() throws Exception {
         final GetApplicationDetailRequest req = new GetApplicationDetailRequest();
         req.setApplicationId("app-1");
         final ObjectRequest<GetApplicationDetailRequest> request = new ObjectRequest<>();
@@ -98,7 +98,7 @@ class ApplicationControllerTest {
     }
 
     @Test
-    void getApplicationDetail_PropagatesExceptionWhenServiceFails() throws Exception {
+    void getApplicationDetail_shouldPropagateException_whenServiceFails() throws Exception {
         final GetApplicationDetailRequest req = new GetApplicationDetailRequest();
         req.setApplicationId("app-1");
         final ObjectRequest<GetApplicationDetailRequest> request = new ObjectRequest<>();
@@ -110,7 +110,7 @@ class ApplicationControllerTest {
     }
 
     @Test
-    void getApplicationDetail_ThrowsNullPointerExceptionWhenRequestObjectIsNull() {
+    void getApplicationDetail_shouldThrowNullPointerException_whenRequestObjectIsNull() {
         final ObjectRequest<GetApplicationDetailRequest> request = new ObjectRequest<>();
 
         assertThrows(NullPointerException.class, () -> applicationController.getApplicationDetail(request));
