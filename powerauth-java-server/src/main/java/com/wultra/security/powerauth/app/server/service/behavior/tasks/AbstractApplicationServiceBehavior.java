@@ -53,7 +53,7 @@ public abstract class AbstractApplicationServiceBehavior {
     @Autowired
     private PublicKeysConverter publicKeysConverter;
     @Autowired
-    private SdkConfigurationSerializer sdkConfigurationSerializer;
+    protected SdkConfigurationSerializer sdkConfigurationSerializer;
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 

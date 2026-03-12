@@ -28,7 +28,6 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.jspecify.annotations.NonNull;
@@ -56,8 +55,6 @@ public abstract class AbstractApplicationDetailServiceBehavior extends AbstractA
     private ApplicationVersionRepository applicationVersionRepository;
     @Autowired
     private AlgorithmQueryService algorithmQueryService;
-    @Autowired
-    private SdkConfigurationSerializer sdkConfigurationSerializer;
 
     /**
      * Find application entity by ID.
