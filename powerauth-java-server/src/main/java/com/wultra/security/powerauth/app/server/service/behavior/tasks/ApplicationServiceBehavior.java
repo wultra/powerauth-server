@@ -17,26 +17,41 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.function.ThrowingFunction;
 
+import java.security.PublicKey;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -54,8 +69,13 @@ public class ApplicationServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ApplicationRepository applicationRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final AlgorithmQueryService algorithmQueryService;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
+    private final PublicKeysConverter publicKeysConverter;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
+    private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
+    private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
     /**
      * Lookup application based on version app key.
@@ -141,19 +161,53 @@ public class ApplicationServiceBehavior {
             application = applicationRepository.save(application);
 
             // Generate master server key pairs
-            masterKeyGenerationService.generateMasterKeyPairs(application);
+            final MasterKeyPairEntity masterKeyPair = masterKeyGenerationService.generateMasterKeyPairs(application);
 
             // Use cryptography methods before writing to database to avoid rollbacks
+            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+            final String publicKeyP256 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256) ? masterKeyPair.getMasterKeyPublicBase64() : null;
+            String publicKeyP384 = null;
+            String publicKeyMlDsa65 = null;
+            String publicKeyMlDsa87 = null;
+            if (masterKeyPair.getMasterPublicKeys() != null) {
+                final PublicKeyRegistry publicKeyRegistry = publicKeysConverter.fromDBValue(masterKeyPair.getMasterPublicKeys());
+                final boolean supportsEcP384 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384);
+                final boolean supportsEcP384MlL3 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L3);
+                final boolean supportsEcP384MlL5 = supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P384_ML_L5);
+                if (supportsEcP384 || supportsEcP384MlL3 || supportsEcP384MlL5) {
+                    publicKeyP384 = convertPublicKeyToBase64(publicKeyRegistry, KeyType.ECDSA_P384,
+                            pk -> KEY_CONVERTOR_EC.convertPublicKeyToBytes(EcCurve.P384, pk));
+                }
+                if (supportsEcP384MlL3) {
+                    publicKeyMlDsa65 = convertPublicKeyToBase64(publicKeyRegistry, KeyType.MLDSA_65,
+                            KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes);
+                }
+                if (supportsEcP384MlL5) {
+                    publicKeyMlDsa87 = convertPublicKeyToBase64(publicKeyRegistry, KeyType.MLDSA_87,
+                            KEY_CONVERTOR_PQC_DSA::convertPublicKeyToBytes);
+                }
+            }
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
             final byte[] applicationSecretBytes = KEY_GENERATOR.generateRandomBytes(16);
+            final String appKey = Base64.getEncoder().encodeToString(applicationKeyBytes);
+            final String appSecret = Base64.getEncoder().encodeToString(applicationSecretBytes);
+            final SdkConfiguration sdkConfig = SdkConfiguration.builder()
+                    .appKey(appKey)
+                    .appSecret(appSecret)
+                    .masterPublicKeyP256(publicKeyP256)
+                    .masterPublicKeyP384(publicKeyP384)
+                    .masterPublicKeyMlDsa65(publicKeyMlDsa65)
+                    .masterPublicKeyMlDsa87(publicKeyMlDsa87)
+                    .build();
+            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
 
             // Create the default application version
             final ApplicationVersionEntity version = new ApplicationVersionEntity();
             version.setApplication(application);
             version.setId("default");
             version.setSupported(true);
-            version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
-            version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
+            version.setApplicationKey(appKey);
+            version.setApplicationSecret(appSecret);
             applicationVersionRepository.save(version);
 
             final CreateApplicationResponse response = new CreateApplicationResponse();
@@ -163,6 +217,7 @@ public class ApplicationServiceBehavior {
             ver.setApplicationVersionId(version.getId());
             ver.setApplicationKey(version.getApplicationKey());
             ver.setApplicationSecret(version.getApplicationSecret());
+            ver.setMobileSdkConfig(sdkConfigSerialized);
             ver.setSupported(version.getSupported());
             response.getVersions().add(ver);
 
@@ -317,6 +372,26 @@ public class ApplicationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    /**
+     * Converts a public key from the registry to a Base64-encoded string.
+     * @param registry Public key registry.
+     * @param keyType Key type.
+     * @param converter Key converter function with possible exception.
+     * @return Base-64 encoded public key.
+     */
+    private String convertPublicKeyToBase64(PublicKeyRegistry registry, KeyType keyType, ThrowingFunction<PublicKey, byte[]> converter) {
+        return registry.getPublicKey(keyType)
+                .map(publicKey -> {
+                    try {
+                        return Base64.getEncoder().encodeToString(converter.apply(publicKey));
+                    } catch (Exception e) {
+                        logger.warn("Public key conversion failed for {}: {}", keyType, e.getMessage());
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 
     /**

@@ -71,9 +71,10 @@ public class MasterKeyGenerationService {
     /**
      * Generate master server key pairs for application.
      * @param application Application.
+     * @return The persisted master key pair entity.
      * @throws GenericServiceException Thrown in case of a cryptography error.
      */
-    public void generateMasterKeyPairs(ApplicationEntity application) throws GenericServiceException {
+    public MasterKeyPairEntity generateMasterKeyPairs(ApplicationEntity application) throws GenericServiceException {
         try {
             MasterKeyPairEntity keyPair = findMasterKeyPair(application);
 
@@ -99,7 +100,7 @@ public class MasterKeyGenerationService {
             generateV3KeyPairIfAbsent(keyPair, supportedAlgorithms);
             generateV4KeyPairsIfAbsent(privateKeyRegistry, publicKeyRegistry, supportedAlgorithms);
             writeRegistriesToEntity(keyPair, privateKeyRegistry, publicKeyRegistry, application);
-            masterKeyPairRepository.save(keyPair);
+            return masterKeyPairRepository.save(keyPair);
 
         } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not generate keypair", e);
