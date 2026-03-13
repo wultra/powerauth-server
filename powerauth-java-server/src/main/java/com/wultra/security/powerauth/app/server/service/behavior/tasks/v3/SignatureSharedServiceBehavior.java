@@ -306,6 +306,7 @@ public class SignatureSharedServiceBehavior {
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 final KeyValue entry = new KeyValue();
@@ -404,6 +405,7 @@ public class SignatureSharedServiceBehavior {
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             final KeyValue entry = new KeyValue();
@@ -463,6 +465,7 @@ public class SignatureSharedServiceBehavior {
         // Enforce the blocked status on activation
         activation.setActivationStatus(ActivationStatus.BLOCKED);
         activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        logger.info("action: handleInactiveActivationWithMismatchSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
 
         // Save the activation and log change
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);

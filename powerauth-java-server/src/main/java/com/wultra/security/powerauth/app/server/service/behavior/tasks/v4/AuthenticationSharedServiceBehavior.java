@@ -345,6 +345,7 @@ public class AuthenticationSharedServiceBehavior {
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 final KeyValue entry = new KeyValue();
@@ -441,6 +442,7 @@ public class AuthenticationSharedServiceBehavior {
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            logger.info("action: handleInvalidAuthentication, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             final KeyValue entry = new KeyValue();
@@ -500,6 +502,7 @@ public class AuthenticationSharedServiceBehavior {
         // Enforce the blocked status on activation
         activation.setActivationStatus(ActivationStatus.BLOCKED);
         activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        logger.info("action: handleInactiveActivationWithMismatchAuthentication, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
 
         // Save the activation and log change
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
