@@ -2,6 +2,9 @@
 
 ## General prerequisites
 
+Following are _minimal_ versions of the tools and technologies used in the development
+of the PowerAuth Server. You can use higher versions, but make sure to check the compatibility.
+
 * _JDK_ version 21.x
 * _Maven_ version 3.9.x
 * _PostgreSQL_ version 18.x
@@ -15,7 +18,7 @@
 Build with:
 
 ```shell
-mvn clean package
+mvn clean install
 ```
 
 
