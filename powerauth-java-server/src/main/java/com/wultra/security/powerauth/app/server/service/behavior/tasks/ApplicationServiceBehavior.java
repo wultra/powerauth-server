@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -157,6 +158,13 @@ public class ApplicationServiceBehavior {
 
             final CreateApplicationResponse response = new CreateApplicationResponse();
             response.setApplicationId(application.getId());
+
+            final ApplicationVersion ver = new ApplicationVersion();
+            ver.setApplicationVersionId(version.getId());
+            ver.setApplicationKey(version.getApplicationKey());
+            ver.setApplicationSecret(version.getApplicationSecret());
+            ver.setSupported(version.getSupported());
+            response.getVersions().add(ver);
 
             return response;
         } catch (CryptoProviderException ex) {

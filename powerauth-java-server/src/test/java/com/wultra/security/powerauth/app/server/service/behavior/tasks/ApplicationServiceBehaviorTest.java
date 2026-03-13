@@ -86,6 +86,27 @@ class ApplicationServiceBehaviorTest {
     }
 
     @Test
+    void createApplication_shouldReturnVersionInResponse_whenSucceeds() throws Exception {
+        final CreateApplicationRequest request = new CreateApplicationRequest();
+        request.setApplicationId("test-app");
+
+        final ApplicationEntity savedApplication = new ApplicationEntity();
+        savedApplication.setId("test-app");
+        when(applicationRepository.findById("test-app")).thenReturn(Optional.empty());
+        when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
+        when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
+
+        final CreateApplicationResponse response = applicationServiceBehavior.createApplication(request);
+
+        assertEquals(1, response.getVersions().size());
+        final var ver = response.getVersions().get(0);
+        assertEquals("default", ver.getApplicationVersionId());
+        assertTrue(ver.isSupported());
+        assertNotNull(ver.getApplicationKey());
+        assertNotNull(ver.getApplicationSecret());
+    }
+
+    @Test
     void createApplication_shouldSaveApplication_withCorrectId() throws Exception {
         final CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId("my-app");
