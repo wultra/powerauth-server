@@ -19,7 +19,7 @@
 .idea/
 .mvn
 dist/
-## Idea runtime configuration with sensitiv data
+## Idea runtime configuration with sensitive data
 .run/PowerAuthServerApplication.run.xml
 
 ### JRebel
