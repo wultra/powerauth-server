@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="DEBUG_MODE" value="true" />
     <envs>
-      <env name="POWERAUTH_SERVER_DB_MASTER_ENCRYPTION_KEY_AEAD_KMAC" value="<base64-encoded-256-bit-key>" />
+      <env name="POWERAUTH_SERVER_DB_MASTER_ENCRYPTION_KEY_AEAD_KMAC" value="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" />
     </envs>
     <module name="powerauth-java-server" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.wultra.security.powerauth.app.server.Application" />
