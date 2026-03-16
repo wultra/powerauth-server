@@ -137,10 +137,26 @@ public class ActivationInitServiceBehavior {
             // Generate hash from activation OTP
             final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
-            // Generate new activation data. Collision probability for UUIDs (~10^-18) and activation
-            // codes is negligible; the DB unique constraint handles the extremely rare collision case.
+            // Generate a unique activation ID. Collision probability for UUIDs (~10^-18) is negligible;
+            // the DB primary key constraint handles the extremely rare collision case.
             final String activationId = identifierGenerator.generateActivationId();
-            final String activationCode = identifierGenerator.generateActivationCode();
+
+            // Generate a unique activation code
+            String activationCode = null;
+            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
+                final String tmpActivationCode = identifierGenerator.generateActivationCode();
+                final Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
+                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
+                if (activationCount == 0) {
+                    activationCode = tmpActivationCode;
+                    break;
+                }
+            }
+            if (activationCode == null) {
+                logger.error("Unable to generate activation code");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
+            }
 
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
