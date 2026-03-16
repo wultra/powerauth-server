@@ -108,38 +108,14 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
-     * Get count of activations identified by an activation short ID associated with given application.
-     * <p>
-     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
-     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
-     * supported.
-     * <p>
-     * This method will be removed when crypto version 2.0 is deprecated.
-     *
-     * @param applicationId     Application ID
-     * @param activationIdShort Activation ID short
-     * @return Count of activations matching the search criteria
-     */
-    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort%")
-    Long getActivationCountByActivationIdShort(String applicationId, String activationIdShort);
-
-    /**
      * Get count of activations identified by an activation code associated with given application.
-     * <p>
-     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
-     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
-     * supported.
      *
      * @param applicationId  Application ID
      * @param activationCode Activation code
      * @return Count of activations matching the search criteria
      */
-    default Long getActivationCountByActivationCode(String applicationId, String activationCode) {
-        if (activationCode == null || activationCode.length() != 23) {
-            throw new IllegalArgumentException("Invalid activation code: " + activationCode);
-        }
-        return getActivationCountByActivationIdShort(applicationId, activationCode.substring(0, 11));
-    }
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode")
+    Long getActivationCountByActivationCode(String applicationId, String activationCode);
 
     /**
      * Find all activations which match the query criteria.
