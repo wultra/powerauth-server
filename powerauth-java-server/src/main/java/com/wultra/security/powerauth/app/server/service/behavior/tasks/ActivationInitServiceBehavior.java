@@ -44,6 +44,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -214,6 +215,10 @@ public class ActivationInitServiceBehavior {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (DataIntegrityViolationException ex) {
+            logger.error("Unable to generate unique activation ID, activation ID collision occurred", ex);
+            // Rollback is not required, the transaction is already rolled back by Spring
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
