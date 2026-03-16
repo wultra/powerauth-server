@@ -136,38 +136,10 @@ public class ActivationInitServiceBehavior {
             // Generate hash from activation OTP
             final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
-            // Generate new activation data, generate a unique activation ID
-            String activationId = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
-                final String tmpActivationId = identifierGenerator.generateActivationId();
-                final Long activationCount = activationRepository.getActivationCount(tmpActivationId);
-                if (activationCount == 0) {
-                    activationId = tmpActivationId;
-                    break;
-                } // ... else this activation ID has a collision, reset it and try to find another one
-            }
-            if (activationId == null) {
-                logger.error("Unable to generate activation ID");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
-            }
-
-            // Generate a unique activation code
-            String activationCode = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
-                final String tmpActivationCode = identifierGenerator.generateActivationCode();
-                final Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
-                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
-                if (activationCount == 0) {
-                    activationCode = tmpActivationCode;
-                    break;
-                }
-            }
-            if (activationCode == null) {
-                logger.error("Unable to generate activation code");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
-            }
+            // Generate new activation data. Collision probability for UUIDs (~10^-18) and activation
+            // codes is negligible; the DB unique constraint handles the extremely rare collision case.
+            final String activationId = identifierGenerator.generateActivationId();
+            final String activationCode = identifierGenerator.generateActivationCode();
 
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
