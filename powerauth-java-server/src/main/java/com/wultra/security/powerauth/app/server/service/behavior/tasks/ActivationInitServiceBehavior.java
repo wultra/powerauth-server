@@ -170,6 +170,11 @@ public class ActivationInitServiceBehavior {
             }
 
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing master key pair for application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
 
             // Store the new activation
             final ActivationRecordEntity activation = new ActivationRecordEntity();
