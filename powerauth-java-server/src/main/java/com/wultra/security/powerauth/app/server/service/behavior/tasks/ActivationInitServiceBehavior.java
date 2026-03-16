@@ -141,22 +141,9 @@ public class ActivationInitServiceBehavior {
             // the DB primary key constraint handles the extremely rare collision case.
             final String activationId = identifierGenerator.generateActivationId();
 
-            // Generate a unique activation code
-            String activationCode = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
-                final String tmpActivationCode = identifierGenerator.generateActivationCode();
-                final Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
-                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
-                if (activationCount == 0) {
-                    activationCode = tmpActivationCode;
-                    break;
-                }
-            }
-            if (activationCode == null) {
-                logger.error("Unable to generate activation code");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
-            }
+            // Generate an activation code. Uniqueness is enforced by the DB constraint pa_activation_code_application_uk;
+            // a DataIntegrityViolationException on insert is mapped to UNABLE_TO_GENERATE_ACTIVATION_CODE below.
+            final String activationCode = identifierGenerator.generateActivationCode();
 
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
@@ -232,9 +219,12 @@ public class ActivationInitServiceBehavior {
             // already logged
             throw ex;
         } catch (DataIntegrityViolationException ex) {
-            logger.error("Unable to generate unique activation ID, activation ID collision occurred", ex);
+            // The DB enforces uniqueness of (application_id, activation_code) via pa_activation_code_application_uk
+            // and uniqueness of activation_id via the primary key. UUID activation ID collision probability is
+            // negligible (~10^-18), so this is almost certainly an activation code collision.
+            logger.error("Unable to generate unique activation code, activation code collision occurred", ex);
             // Rollback is not required, the transaction is already rolled back by Spring
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;

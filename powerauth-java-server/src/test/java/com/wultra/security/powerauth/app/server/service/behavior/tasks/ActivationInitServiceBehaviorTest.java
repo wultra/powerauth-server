@@ -231,21 +231,17 @@ class ActivationInitServiceBehaviorTest {
     }
 
     @Test
-    void initActivation_shouldThrowUnableToGenerateActivationCode_whenAllIterationsCollide() throws Exception {
+    void initActivation_shouldThrowUnableToGenerateActivationCode_whenActivationCodeConstraintViolationOccurs() throws Exception {
         final InitActivationRequest request = request("app-10", "user-10");
-        stubApplicationOnly("app-10");
-        when(powerAuthServiceConfiguration.getActivationValidityBeforeActive()).thenReturn(300_000);
-        when(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts()).thenReturn(5L);
-        when(powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations()).thenReturn(3);
-        // All generated codes collide
-        when(activationRepository.getActivationCountByActivationCode(eq("app-10"), any())).thenReturn(1L);
+        stubHappyPath("app-10");
+        doThrow(new DataIntegrityViolationException("Unique constraint violation: pa_activation_code_application_uk"))
+                .when(activationHistoryServiceBehavior).saveActivationAndLogChange(any());
         final GenericServiceException expected = new GenericServiceException(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE, "collision");
         when(localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE)).thenReturn(expected);
 
         final GenericServiceException ex = assertThrows(GenericServiceException.class,
                 () -> behavior.initActivation(request));
         assertEquals(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE, ex.getCode());
-        verify(activationRepository, times(3)).getActivationCountByActivationCode(eq("app-10"), any());
     }
 
     @Test
@@ -254,8 +250,6 @@ class ActivationInitServiceBehaviorTest {
         stubApplicationOnly("app-11");
         when(powerAuthServiceConfiguration.getActivationValidityBeforeActive()).thenReturn(300_000);
         when(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts()).thenReturn(5L);
-        when(powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations()).thenReturn(10);
-        when(activationRepository.getActivationCountByActivationCode(eq("app-11"), any())).thenReturn(0L);
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-11")).thenReturn(null);
         final GenericServiceException expected = new GenericServiceException(ServiceError.NO_MASTER_SERVER_KEYPAIR, "missing");
         when(localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR)).thenReturn(expected);
@@ -267,17 +261,17 @@ class ActivationInitServiceBehaviorTest {
     }
 
     @Test
-    void initActivation_shouldThrowUnableToGenerateActivationId_whenDataIntegrityViolationOccurs() throws Exception {
+    void initActivation_shouldThrowUnableToGenerateActivationCode_whenDataIntegrityViolationOccurs() throws Exception {
         final InitActivationRequest request = request("app-12", "user-12");
         stubHappyPath("app-12");
-        doThrow(new DataIntegrityViolationException("PK violation"))
+        doThrow(new DataIntegrityViolationException("PK or unique constraint violation"))
                 .when(activationHistoryServiceBehavior).saveActivationAndLogChange(any());
-        final GenericServiceException expected = new GenericServiceException(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID, "collision");
-        when(localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID)).thenReturn(expected);
+        final GenericServiceException expected = new GenericServiceException(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE, "collision");
+        when(localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE)).thenReturn(expected);
 
         final GenericServiceException ex = assertThrows(GenericServiceException.class,
                 () -> behavior.initActivation(request));
-        assertEquals(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID, ex.getCode());
+        assertEquals(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE, ex.getCode());
     }
 
     @Test
@@ -335,8 +329,6 @@ class ActivationInitServiceBehaviorTest {
         lenient().when(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts()).thenReturn(5L);
         // lenient: not called when timestampActivationExpire is provided in request
         lenient().when(powerAuthServiceConfiguration.getActivationValidityBeforeActive()).thenReturn(300_000);
-        when(powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations()).thenReturn(10);
-        when(activationRepository.getActivationCountByActivationCode(eq(applicationId), any())).thenReturn(0L);
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId))
                 .thenReturn(new MasterKeyPairEntity());
         // lenient: not called when save throws DataIntegrityViolationException
