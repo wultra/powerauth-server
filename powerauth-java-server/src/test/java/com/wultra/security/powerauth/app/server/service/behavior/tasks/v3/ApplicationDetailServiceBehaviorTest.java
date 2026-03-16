@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
-import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -26,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
@@ -35,6 +34,7 @@ import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -71,10 +71,17 @@ class ApplicationDetailServiceBehaviorTest {
     private SdkConfigurationSerializer sdkConfigurationSerializer;
 
     @Mock
-    private PublicKeysConverter publicKeysConverter;
+    private MasterPublicKeyService masterPublicKeyService;
 
     @InjectMocks
     private ApplicationDetailServiceBehavior applicationDetailServiceBehavior;
+
+    @BeforeEach
+    void stubMasterPublicKeyService() throws Exception {
+        // lenient: not needed in tests that fail before key extraction (e.g. missing app, missing key pair)
+        lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("p256-key", null, null, null));
+    }
 
     @Test
     void getApplicationDetail_shouldThrowException_whenApplicationNotFound() throws Exception {
@@ -149,6 +156,8 @@ class ApplicationDetailServiceBehaviorTest {
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
+        when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("my-p256-key", null, null, null));
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of());
 
         final GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
@@ -166,6 +175,8 @@ class ApplicationDetailServiceBehaviorTest {
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
+        when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys(null, null, null, null));
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of());
 
         final GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
@@ -183,6 +194,8 @@ class ApplicationDetailServiceBehaviorTest {
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
+        when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys(null, null, null, null));
 
         final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
@@ -232,7 +245,8 @@ class ApplicationDetailServiceBehaviorTest {
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application))
                 .thenReturn(List.of(SharedSecretAlgorithm.EC_P384, SharedSecretAlgorithm.EC_P384_ML_L3, SharedSecretAlgorithm.EC_P384_ML_L5));
-        when(publicKeysConverter.fromDBValue("{}")).thenReturn(new PublicKeyRegistry());
+        when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys(null, null, null, null));
 
         final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));

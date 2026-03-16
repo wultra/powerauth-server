@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -25,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -34,6 +34,7 @@ import com.wultra.security.powerauth.client.model.response.CreateApplicationResp
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -71,7 +72,7 @@ class ApplicationServiceBehaviorTest {
     private SdkConfigurationSerializer sdkConfigurationSerializer;
 
     @Mock
-    private PublicKeysConverter publicKeysConverter;
+    private MasterPublicKeyService masterPublicKeyService;
 
     @InjectMocks
     private ApplicationServiceBehavior applicationServiceBehavior;
@@ -81,6 +82,13 @@ class ApplicationServiceBehaviorTest {
         if (Security.getProvider("BC") == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
+    }
+
+    @BeforeEach
+    void stubMasterPublicKeyService() throws Exception {
+        // lenient: not needed in tests that fail before key extraction (e.g. duplicate app, master key error)
+        lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
+                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("p256-key", null, null, null));
     }
 
     @Test
