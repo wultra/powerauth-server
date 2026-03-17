@@ -9,3 +9,14 @@ The `$.requestObject.applicationId` attribute used to verify the challenge can b
 ### POST /fido2/assertions/challenge
 
 The response contains a new `$.responseObject.operationId` attribute representing the operation ID the assertion is associated with.
+
+## Database Changes
+
+For convenience, you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](sql/postgresql/migration_1.10.0_2.0.0.sql)
+- [Oracle script](sql/oracle/migration_1.10.0_2.0.0.sql)
+- [MSSQL script](sql/mssql/migration_1.10.0_2.0.0.sql)
+
