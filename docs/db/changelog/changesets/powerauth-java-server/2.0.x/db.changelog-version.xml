@@ -15,6 +15,5 @@
     <include file="20251222-crypto4-keys-tables.xml" relativeToChangelogFile="true" />
     <include file="20251231-allow-null-legacy-server-keypair.xml" relativeToChangelogFile="true" />
     <include file="20260107-crypto4-store-fingerprint.xml" relativeToChangelogFile="true" />
-    <include file="20260316-activation-code-unique.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
