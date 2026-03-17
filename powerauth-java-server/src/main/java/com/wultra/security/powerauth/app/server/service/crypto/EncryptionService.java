@@ -55,11 +55,11 @@ public abstract class EncryptionService {
      * @param applicationKey Application key.
      * @param activationId Activation ID.
      * @param encryptorId Encryptor ID.
-     * @param validateRequest Whether request should be validated.
+     * @param validateRequestData Whether request data should be validated.
      * @return Decryption result.
      * @throws GenericServiceException In case of a cryptography error.
      */
-    public abstract DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequest) throws GenericServiceException;
+    public abstract DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequestData) throws GenericServiceException;
 
     /**
      * Decrypt an encrypted request using server encryptor.
