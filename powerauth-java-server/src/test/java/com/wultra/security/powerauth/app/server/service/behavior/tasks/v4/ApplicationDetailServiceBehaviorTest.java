@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -80,7 +81,7 @@ class ApplicationDetailServiceBehaviorTest {
     void stubMasterPublicKeyService() throws Exception {
         // lenient: not needed in tests that fail before key extraction (e.g. missing app, missing key pair)
         lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys("p256-key", null, null, null));
     }
 
     @Test
@@ -177,7 +178,7 @@ class ApplicationDetailServiceBehaviorTest {
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeyService.MasterPublicKeys(null, null, null, null));
+                .thenReturn(new MasterPublicKeys(null, null, null, null));
 
         final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
@@ -201,7 +202,7 @@ class ApplicationDetailServiceBehaviorTest {
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("my-p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys("my-p256-key", null, null, null));
 
         final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
@@ -252,7 +253,7 @@ class ApplicationDetailServiceBehaviorTest {
         when(algorithmQueryService.getSupportedAlgorithms(application))
                 .thenReturn(List.of(SharedSecretAlgorithm.EC_P384, SharedSecretAlgorithm.EC_P384_ML_L3, SharedSecretAlgorithm.EC_P384_ML_L5));
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeyService.MasterPublicKeys(null, null, null, null));
+                .thenReturn(new MasterPublicKeys(null, null, null, null));
 
         final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));

@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -88,7 +89,7 @@ class ApplicationServiceBehaviorTest {
     void stubMasterPublicKeyService() throws Exception {
         // lenient: not needed in tests that fail before key extraction (e.g. duplicate app, master key error)
         lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeyService.MasterPublicKeys("p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys("p256-key", null, null, null));
     }
 
     @Test

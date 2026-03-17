@@ -1,0 +1,28 @@
+/*
+ * PowerAuth Server and related software components
+ * Copyright (C) 2026 Wultra s.r.o.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.wultra.security.powerauth.app.server.database.model;
+
+/**
+ * Holds the four possible master public keys extracted from a master key pair entity.
+ *
+ * @param p256    Base64-encoded EC P-256 master public key, or {@code null} when not supported.
+ * @param p384    Base64-encoded EC P-384 master public key, or {@code null} when not supported.
+ * @param mlDsa65 Base64-encoded ML-DSA-65 master public key, or {@code null} when not supported.
+ * @param mlDsa87 Base64-encoded ML-DSA-87 master public key, or {@code null} when not supported.
+ */
+public record MasterPublicKeys(String p256, String p384, String mlDsa65, String mlDsa87) {}

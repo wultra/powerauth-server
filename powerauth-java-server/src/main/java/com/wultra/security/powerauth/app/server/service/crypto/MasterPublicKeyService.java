@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.app.server.service.crypto;
 
 import com.wultra.security.powerauth.app.server.converter.PublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -51,16 +52,6 @@ public class MasterPublicKeyService {
 
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
-
-    /**
-     * Holds the four possible master public keys extracted from a {@link MasterKeyPairEntity}.
-     *
-     * @param p256    Base64-encoded EC P-256 master public key, or {@code null} when not supported.
-     * @param p384    Base64-encoded EC P-384 master public key, or {@code null} when not supported.
-     * @param mlDsa65 Base64-encoded ML-DSA-65 master public key, or {@code null} when not supported.
-     * @param mlDsa87 Base64-encoded ML-DSA-87 master public key, or {@code null} when not supported.
-     */
-    public record MasterPublicKeys(String p256, String p384, String mlDsa65, String mlDsa87) {}
 
     /**
      * Extracts the master public keys from the given key pair entity for the provided supported algorithms.

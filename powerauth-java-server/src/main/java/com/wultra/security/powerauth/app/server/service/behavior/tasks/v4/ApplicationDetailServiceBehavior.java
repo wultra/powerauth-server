@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -93,7 +94,7 @@ public class ApplicationDetailServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
-        final MasterPublicKeyService.MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPairEntity, supportedAlgorithms);
+        final MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPairEntity, supportedAlgorithms);
 
         final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);

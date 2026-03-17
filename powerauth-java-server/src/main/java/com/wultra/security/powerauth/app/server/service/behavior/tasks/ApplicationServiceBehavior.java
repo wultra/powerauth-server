@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.repository.ApplicationR
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -155,7 +156,7 @@ public class ApplicationServiceBehavior {
 
             // Use cryptography methods before writing to database to avoid rollbacks
             final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
-            final MasterPublicKeyService.MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPair, supportedAlgorithms);
+            final MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPair, supportedAlgorithms);
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
             final byte[] applicationSecretBytes = KEY_GENERATOR.generateRandomBytes(16);
             final String appKey = Base64.getEncoder().encodeToString(applicationKeyBytes);
