@@ -14,9 +14,7 @@ The response contains a new `$.responseObject.operationId` attribute representin
 
 For convenience, you can use liquibase for your database migration.
 
-For manual changes use SQL scripts:
+### `pa_activation` Table
 
-- [PostgreSQL script](sql/postgresql/migration_1.10.0_2.0.0.sql)
-- [Oracle script](sql/oracle/migration_1.10.0_2.0.0.sql)
-- [MSSQL script](sql/mssql/migration_1.10.0_2.0.0.sql)
-
+* Dropped the non-unique index `pa_activation_code` on column `activation_code`.
+* Added a unique constraint `pa_activation_code_application_uk` on columns `(application_id, activation_code)` to enforce activation code uniqueness at the database level per application.
