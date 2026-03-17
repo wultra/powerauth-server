@@ -72,7 +72,6 @@ public class ActivationInitServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
-    private final KeyPairGenerationService keyPairGenerationService;
     private final AsymmetricSignatureService asymmetricSignatureService;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();

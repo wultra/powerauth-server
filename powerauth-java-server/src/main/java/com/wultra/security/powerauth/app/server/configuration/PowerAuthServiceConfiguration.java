@@ -384,14 +384,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get number of activation ID generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getActivationGenerateActivationIdIterations() {
-        return activationGenerateActivationIdIterations;
-    }
-
-    /**
      * Set number of activation ID generation attempts in case of collision.
      * @param activationGenerateActivationIdIterations Retry iteration count (10, by default).
      */
@@ -413,14 +405,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setGenerateTokenIdIterations(int generateTokenIdIterations) {
         this.generateTokenIdIterations = generateTokenIdIterations;
-    }
-
-    /**
-     * Get number of activation code generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getActivationGenerateActivationCodeIterations() {
-        return activationGenerateActivationCodeIterations;
     }
 
     /**
