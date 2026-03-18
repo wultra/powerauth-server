@@ -30,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for {@link ActivationRepository}.
+ *
+ * @author Vit Kotacka
  */
 @DataJpaTest
 @ActiveProfiles("test")
