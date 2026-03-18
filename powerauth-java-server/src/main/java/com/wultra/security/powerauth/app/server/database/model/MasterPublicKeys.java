@@ -24,5 +24,6 @@ package com.wultra.security.powerauth.app.server.database.model;
  * @param p384    Base64-encoded EC P-384 master public key, or {@code null} when not supported.
  * @param mlDsa65 Base64-encoded ML-DSA-65 master public key, or {@code null} when not supported.
  * @param mlDsa87 Base64-encoded ML-DSA-87 master public key, or {@code null} when not supported.
+ * @author Vit Kotacka
  */
 public record MasterPublicKeys(String p256, String p384, String mlDsa65, String mlDsa87) {}

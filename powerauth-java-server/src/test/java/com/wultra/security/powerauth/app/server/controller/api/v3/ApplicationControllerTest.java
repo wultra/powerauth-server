@@ -34,6 +34,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+/**
+ * Tests for v3 {@link com.wultra.security.powerauth.app.server.controller.api.v3.ApplicationController}.
+ *
+ * @author Vit Kotacka
+ */
 @ExtendWith(MockitoExtension.class)
 class ApplicationControllerTest {
 
