@@ -19,23 +19,32 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterKeyGenerationService;
+import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
+import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
+import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,6 +62,9 @@ public class ApplicationServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ApplicationRepository applicationRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final AlgorithmQueryService algorithmQueryService;
+    private final SdkConfigurationSerializer sdkConfigurationSerializer;
+    private final MasterPublicKeyService masterPublicKeyService;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
@@ -140,23 +152,44 @@ public class ApplicationServiceBehavior {
             application = applicationRepository.save(application);
 
             // Generate master server key pairs
-            masterKeyGenerationService.generateMasterKeyPairs(application);
+            final MasterKeyPairEntity masterKeyPair = masterKeyGenerationService.generateMasterKeyPairs(application);
 
             // Use cryptography methods before writing to database to avoid rollbacks
+            final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
+            final MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPair, supportedAlgorithms);
             final byte[] applicationKeyBytes = KEY_GENERATOR.generateRandomBytes(16);
             final byte[] applicationSecretBytes = KEY_GENERATOR.generateRandomBytes(16);
+            final String appKey = Base64.getEncoder().encodeToString(applicationKeyBytes);
+            final String appSecret = Base64.getEncoder().encodeToString(applicationSecretBytes);
+            final SdkConfiguration sdkConfig = SdkConfiguration.builder()
+                    .appKey(appKey)
+                    .appSecret(appSecret)
+                    .masterPublicKeyP256(masterPublicKeys.p256())
+                    .masterPublicKeyP384(masterPublicKeys.p384())
+                    .masterPublicKeyMlDsa65(masterPublicKeys.mlDsa65())
+                    .masterPublicKeyMlDsa87(masterPublicKeys.mlDsa87())
+                    .build();
+            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
 
             // Create the default application version
             final ApplicationVersionEntity version = new ApplicationVersionEntity();
             version.setApplication(application);
             version.setId("default");
             version.setSupported(true);
-            version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
-            version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
+            version.setApplicationKey(appKey);
+            version.setApplicationSecret(appSecret);
             applicationVersionRepository.save(version);
 
             final CreateApplicationResponse response = new CreateApplicationResponse();
             response.setApplicationId(application.getId());
+
+            final ApplicationVersion ver = new ApplicationVersion();
+            ver.setApplicationVersionId(version.getId());
+            ver.setApplicationKey(version.getApplicationKey());
+            ver.setApplicationSecret(version.getApplicationSecret());
+            ver.setMobileSdkConfig(sdkConfigSerialized);
+            ver.setSupported(version.getSupported());
+            response.getVersions().add(ver);
 
             return response;
         } catch (CryptoProviderException ex) {

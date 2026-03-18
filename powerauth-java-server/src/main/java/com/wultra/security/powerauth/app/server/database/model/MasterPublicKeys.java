@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2026 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,25 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.wultra.security.powerauth.client.model.response;
-
-import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
+package com.wultra.security.powerauth.app.server.database.model;
 
 /**
- * Model class representing response with created application.
+ * Holds the four possible master public keys extracted from a master key pair entity.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @param p256    Base64-encoded EC P-256 master public key, or {@code null} when not supported.
+ * @param p384    Base64-encoded EC P-384 master public key, or {@code null} when not supported.
+ * @param mlDsa65 Base64-encoded ML-DSA-65 master public key, or {@code null} when not supported.
+ * @param mlDsa87 Base64-encoded ML-DSA-87 master public key, or {@code null} when not supported.
  */
-@Data
-public class CreateApplicationResponse {
-
-    private String applicationId;
-    private List<String> applicationRoles = new ArrayList<>();
-    private List<ApplicationVersion> versions = new ArrayList<>();
-
-}
+public record MasterPublicKeys(String p256, String p384, String mlDsa65, String mlDsa87) {}
