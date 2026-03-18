@@ -50,6 +50,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for v3 {@link com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ApplicationDetailServiceBehavior}.
+ *
+ * @author Vit Kotacka
+ */
 @ExtendWith(MockitoExtension.class)
 class ApplicationDetailServiceBehaviorTest {
 
