@@ -153,7 +153,7 @@ CREATE INDEX pa_activation_keypair ON pa_activation(master_keypair_id);
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::28::Lubos Racansky
 -- Create a new index on pa_activation(activation_code)
-CREATE INDEX pa_activation_code ON pa_activation(activation_code);
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (application_id, activation_code);
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::29::Lubos Racansky
 -- Create a new index on pa_activation(user_id)
