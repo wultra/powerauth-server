@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.request.EncryptionContext;
 import com.wultra.security.powerauth.app.server.service.model.response.DecryptionResult;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
@@ -47,6 +48,8 @@ public abstract class EncryptionService {
     private final LocalizationProvider localizationProvider;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final ActivationQueryService activationQueryService;
+
+    private final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
 
     /**
      * Decrypt an encrypted request.
@@ -148,4 +151,29 @@ public abstract class EncryptionService {
             return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         });
     }
+
+    /**
+     * Validate encrypted request.
+     *
+     * @param encryptedRequest Encrypted request.
+     * @param protocolVersion PowerAuth protocol version.
+     * @param validateRequestData Whether request data should be validated.
+     * @throws GenericServiceException In case of a cryptography error.
+     * @throws EncryptorException In case of invalid request parameters.
+     */
+    protected void validateEncryptedRequest(EncryptedRequest encryptedRequest, String protocolVersion, boolean validateRequestData) throws GenericServiceException, EncryptorException {
+        // Validate encrypted request (with request data)
+        if (validateRequestData && !ENCRYPTOR_FACTORY.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
+            logger.warn("Invalid encrypted request parameters (with request data)");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        // Validate encrypted request (without request data)
+        if (!validateRequestData && !ENCRYPTOR_FACTORY.getRequestResponseValidator(protocolVersion).validateEncryptedRequestWithoutData(encryptedRequest)) {
+            logger.warn("Invalid encrypted request parameters (without request data)");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+    }
+
 }

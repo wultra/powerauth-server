@@ -94,12 +94,8 @@ public class EncryptionServiceEcies extends EncryptionService {
     @Override
     public DecryptionResult decrypt(EncryptedRequest encryptedRequest, String protocolVersion, String applicationKey, String activationId, EncryptorId encryptorId, boolean validateRequestData) throws GenericServiceException {
         try {
-            // Validate encrypted request
-            if (!ENCRYPTOR_FACTORY.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest, validateRequestData)) {
-                logger.warn("Invalid encrypted request parameters");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+
+            validateEncryptedRequest(encryptedRequest, protocolVersion, validateRequestData);
 
             final ApplicationVersionEntity applicationVersion = findApplicationVersion(applicationKey);
             final ActivationRecordEntity activation = findActivation(activationId);
