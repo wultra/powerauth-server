@@ -208,7 +208,7 @@ Stores callback URLs - per-application endpoints that are notified whenever an a
 | max_attempts           | INTEGER       | -                                      | Maximum number of attempts to dispatch a callback.                                                                         |
 | initial_backoff        | VARCHAR(64)   | -                                      | Initial backoff period before the next send attempt, stored as a ISO 8601 string.                                          |
 | retention_period       | VARCHAR(64)   | -                                      | Minimal duration for which is a completed callback event persisted, stored as a ISO 8601 string.                           |
-| enabled                | BOOLEAN       | -                                      | Indicator specifying whether the Callback URL should be used.                                                              |
+| enabled                | BOOLEAN       | DEFAULT TRUE                           | Indicator specifying whether the Callback URL should be used.                                                              |
 | timestamp_created      | TIMESTAMP(6)  | NOT NULL, DEFAULT NOW()                | Timestamp when the record was created.                                                                                     |
 | timestamp_last_updated | TIMESTAMP(6)  | -                                      | Timestamp of the last update of the record via the Callback Management API.                                                |
 <!-- end -->
@@ -223,7 +223,7 @@ Stores tokens used for token-based authentication.
 | Name              | Type         | Info                                             | Note                                                     |
 |-------------------|--------------|--------------------------------------------------|----------------------------------------------------------|
 | token_id          | VARCHAR(37)  | primary key, UUID (level 4)                      | Unique identifier of the token.                          |
-| token_secret      | VARCHAR(255) | -                                                | Secret value used for computing the token digest.        |
+| token_secret      | VARCHAR(255) | NOT NULL                                         | Secret value used for computing the token digest.        |
 | activation_id     | VARCHAR(37)  | foreign key: pa\_activation.activation_id, index | Reference to associated activation.                      |
 | signature_type    | VARCHAR(255) | -                                                | Type of the signature that was used to issue this token. |
 | timestamp_created | TIMESTAMP(6) | -                                                | Timestamp of the record creation.                        |
@@ -317,8 +317,8 @@ Table stores operations, i.e., the login attempts or payment approvals, that are
 
 | Name                | Type         | Info                                  | Note                                                                                                                             |
 |---------------------|--------------|---------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| id                  | VARCHAR(37)  | primary key, sequence                 | Unique operation ID.                                                                                                             |
-| user_id             | VARCHAR(255) | NOT NULL, index                       | Related user ID.                                                                                                                 |
+| id                  | VARCHAR(37)  | primary key                           | Unique operation ID.                                                                                                             |
+| user_id             | VARCHAR(255) | index                                 | Related user ID.                                                                                                                 |
 | template_name       | VARCHAR(255) | index                                 | Template name used for creating the operation.                                                                                   |
 | external_id         | VARCHAR(255) | -                                     | Identifier in external system.                                                                                                   |
 | activation_flag     | VARCHAR(255) | -                                     | Activation flag.                                                                                                                 |
@@ -348,7 +348,7 @@ Table stores operation templates that are used while creating the operations.
 
 | Name                    | Type         | Info                    | Note                                                                             |
 |-------------------------|--------------|-------------------------|----------------------------------------------------------------------------------|
-| id                      | VARCHAR(37)  | primary key, sequence   | Unique template ID.                                                              |
+| id                      | BIGINT       | primary key, sequence   | Unique template ID.                                                              |
 | template_name           | VARCHAR(255) | NOT NULL, index         | Template name.                                                                   |
 | operation_type          | VARCHAR(255) | NOT NULL                | Name of the type of operation.                                                   |
 | data_template           | VARCHAR(255) | NOT NULL                | Template string for the data that will enter signature later.                    |
@@ -400,8 +400,8 @@ Table stores details about temporary key pairs used for data encryption.
 | application_key        | VARCHAR(32)  | NOT NULL, foreign key: pa\_application\_version.application\_key | Identifier of the application version (application key).                                            |
 | activation_id          | VARCHAR(37)  | foreign key: pa\_activation.activation\_id                       | Identifier of an associated activation (activation ID).                                             |
 | private_key_encryption | INTEGER      | NOT NULL, DEFAULT 0                                              | Encryption indicator for private key 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current).   |
-| private_key_base64     | VARCHAR(255) | NOT NULL                                                         | Temporary private key encoded as Base64.                                                            |
-| public_key_base64      | VARCHAR(255) | NOT NULL                                                         | Temporary public key encoded as Base64.                                                             |
+| private_key_base64     | VARCHAR(255) | -                                                                | Temporary private key encoded as Base64.                                                            |
+| public_key_base64      | VARCHAR(255) | -                                                                | Temporary public key encoded as Base64.                                                             |
 | secret_key_base64      | VARCHAR(255) | -                                                                | Base64-encoded shared secret key.                                                                   |
 | secret_key_encryption  | INTEGER      | NOT NULL, DEFAULT 0                                              | Encryption indicator for shared secret 0=NO_ENCRYPTION, 1=AES_HMAC (legacy), 2=AEAD_KMAC (current). |
 | timestamp_expires      | TIMESTAMP    | NOT NULL, index                                                  | Timestamp when the temporary key pair expires.                                                      |
