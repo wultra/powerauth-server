@@ -53,7 +53,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for v3 {@link com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.ApplicationDetailServiceBehavior}.
  *
- * @author Vit Kotacka
+ * @author Vit Kotacka, vit.kotacka@wultra.com
  */
 @ExtendWith(MockitoExtension.class)
 class ApplicationDetailServiceBehaviorTest {

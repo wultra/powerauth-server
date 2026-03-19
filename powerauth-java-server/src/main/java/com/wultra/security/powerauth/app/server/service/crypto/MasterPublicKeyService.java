@@ -41,7 +41,7 @@ import java.util.List;
  * Service responsible for extracting master public keys from a {@link MasterKeyPairEntity}
  * based on the set of supported algorithms for an application.
  *
- * @author Vit Kotacka
+ * @author Vit Kotacka, vit.kotacka@wultra.com
  */
 @Service
 @Slf4j

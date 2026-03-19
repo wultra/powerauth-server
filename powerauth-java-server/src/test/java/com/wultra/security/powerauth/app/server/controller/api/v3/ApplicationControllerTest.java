@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for v3 {@link com.wultra.security.powerauth.app.server.controller.api.v3.ApplicationController}.
  *
- * @author Vit Kotacka
+ * @author Vit Kotacka, vit.kotacka@wultra.com
  */
 @ExtendWith(MockitoExtension.class)
 class ApplicationControllerTest {

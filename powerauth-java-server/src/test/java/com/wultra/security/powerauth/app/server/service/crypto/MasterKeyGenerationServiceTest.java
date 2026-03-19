@@ -50,7 +50,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link MasterKeyGenerationService}.
  *
- * @author Vit Kotacka
+ * @author Vit Kotacka, vit.kotacka@wultra.com
  */
 @ExtendWith(MockitoExtension.class)
 class MasterKeyGenerationServiceTest {
