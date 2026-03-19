@@ -12,7 +12,11 @@ The response contains a new `$.responseObject.operationId` attribute representin
 
 ## Database Changes
 
-For convenience, you can use liquibase for your database migration.
+For convenience, you can use Liquibase for your database migration.
+
+> **Note:** The migration adds a unique constraint on `pa_activation(application_id, activation_code)`.
+> On large tables this index build can take a significant amount of time and may cause an outage.
+> Consider running the Liquibase migration manually during a maintenance window before upgrading the application.
 
 ### `pa_activation` Table
 
