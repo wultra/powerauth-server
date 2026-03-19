@@ -51,6 +51,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for {@link ApplicationServiceBehavior}.
+ *
+ * @author Vit Kotacka, vit.kotacka@wultra.com
+ */
 @ExtendWith(MockitoExtension.class)
 class ApplicationServiceBehaviorTest {
 
