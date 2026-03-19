@@ -88,6 +88,7 @@ public class ActivationInitServiceBehavior {
      */
     @Transactional
     public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
+        String activationId = null;
         try {
             final ActivationProtocol protocol = request.getProtocol();
             final String userId = request.getUserId();
@@ -138,7 +139,7 @@ public class ActivationInitServiceBehavior {
 
             // Generate a unique activation ID. Collision probability for UUIDs (~10^-18) is negligible;
             // the DB primary key constraint handles the extremely rare collision case.
-            final String activationId = identifierGenerator.generateActivationId();
+            activationId = identifierGenerator.generateActivationId();
 
             // Generate an activation code. Uniqueness is enforced by the DB constraint pa_activation_code_application_uk;
             // a DataIntegrityViolationException on insert is mapped to UNABLE_TO_GENERATE_ACTIVATION_CODE below.
@@ -221,7 +222,8 @@ public class ActivationInitServiceBehavior {
             // The DB enforces uniqueness of (application_id, activation_code) via pa_activation_code_application_uk
             // and uniqueness of activation_id via the primary key. UUID activation ID collision probability is
             // negligible (~10^-18), so this is almost certainly an activation code collision.
-            logger.error("Unable to generate unique activation code, activation code collision occurred", ex);
+            final String activationIdPrefix = activationId.substring(0, activationId.indexOf('-', activationId.indexOf('-') + 1));
+            logger.warn("Unable to generate unique activation code, activation code collision occurred for activation ID prefix: {}", activationIdPrefix);
             // Rollback is not required, the transaction is already rolled back by Spring
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
         } catch (RuntimeException ex) {
