@@ -44,6 +44,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import com.wultra.security.powerauth.crypto.lib.util.PasswordHash;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -71,7 +72,6 @@ public class ActivationInitServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
     private final CallbackUrlBehavior callbackUrlBehavior;
-    private final KeyPairGenerationService keyPairGenerationService;
     private final AsymmetricSignatureService asymmetricSignatureService;
 
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
@@ -88,6 +88,7 @@ public class ActivationInitServiceBehavior {
      */
     @Transactional
     public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
+        String activationId = null;
         try {
             final ActivationProtocol protocol = request.getProtocol();
             final String userId = request.getUserId();
@@ -136,40 +137,20 @@ public class ActivationInitServiceBehavior {
             // Generate hash from activation OTP
             final String activationOtpHash = StringUtils.hasText(activationOtp) ? PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8)) : null;
 
-            // Generate new activation data, generate a unique activation ID
-            String activationId = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
-                final String tmpActivationId = identifierGenerator.generateActivationId();
-                final Long activationCount = activationRepository.getActivationCount(tmpActivationId);
-                if (activationCount == 0) {
-                    activationId = tmpActivationId;
-                    break;
-                } // ... else this activation ID has a collision, reset it and try to find another one
-            }
-            if (activationId == null) {
-                logger.error("Unable to generate activation ID");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
-            }
+            // Generate a unique activation ID. Collision probability for UUIDs (~10^-18) is negligible;
+            // the DB primary key constraint handles the extremely rare collision case.
+            activationId = identifierGenerator.generateActivationId();
 
-            // Generate a unique activation code
-            String activationCode = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
-                final String tmpActivationCode = identifierGenerator.generateActivationCode();
-                final Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
-                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
-                if (activationCount == 0) {
-                    activationCode = tmpActivationCode;
-                    break;
-                }
-            }
-            if (activationCode == null) {
-                logger.error("Unable to generate activation code");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
-            }
+            // Generate an activation code. Uniqueness is enforced by the DB constraint pa_activation_code_application_uk;
+            // a DataIntegrityViolationException on insert is mapped to UNABLE_TO_GENERATE_ACTIVATION_CODE below.
+            final String activationCode = identifierGenerator.generateActivationCode();
 
             final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing master key pair for application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
 
             // Store the new activation
             final ActivationRecordEntity activation = new ActivationRecordEntity();
@@ -237,6 +218,14 @@ public class ActivationInitServiceBehavior {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (DataIntegrityViolationException ex) {
+            // The DB enforces uniqueness of (application_id, activation_code) via pa_activation_code_application_uk
+            // and uniqueness of activation_id via the primary key. UUID activation ID collision probability is
+            // negligible (~10^-18), so this is almost certainly an activation code collision.
+            final String activationIdPrefix = activationId.substring(0, activationId.indexOf('-', activationId.indexOf('-') + 1));
+            logger.warn("Unable to generate unique activation code, activation code collision occurred for activation ID prefix: {}", activationIdPrefix);
+            // Rollback is not required, the transaction is already rolled back by Spring
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;

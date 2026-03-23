@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2026 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
+        <preConditions onFail="MARK_RAN">
+            <indexExists indexName="pa_activation_code"/>
+        </preConditions>
+        <comment>Drop non-unique index on pa_activation(activation_code) before replacing with unique constraint</comment>
+        <dropIndex tableName="pa_activation" indexName="pa_activation_code"/>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="pa_activation" constraintName="pa_activation_code_application_uk"/>
+            </not>
+        </preConditions>
+        <comment>Add unique constraint on (application_id, activation_code) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check</comment>
+        <addUniqueConstraint tableName="pa_activation"
+                             columnNames="application_id, activation_code"
+                             constraintName="pa_activation_code_application_uk"/>
+    </changeSet>
+
+</databaseChangeLog>

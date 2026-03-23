@@ -97,28 +97,12 @@ public class PowerAuthServiceConfiguration {
     private Boolean restrictAccess;
 
     /**
-     * When a duplicate activation ID is encountered during the activation, how
-     * many times generate a new one.
-     */
-    @Value("${powerauth.service.crypto.generateActivationIdIterations}")
-    @Min(1)
-    private int activationGenerateActivationIdIterations;
-
-    /**
      * When a duplicate token ID is encountered during the token generation, how
      * many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateTokenIdIterations}")
     @Min(1)
     private int generateTokenIdIterations;
-
-    /**
-     * When a duplicate activation code is encountered during the
-     * activation, how many times generate a new one.
-     */
-    @Value("${powerauth.service.crypto.generateActivationCodeIterations}")
-    @Min(1)
-    private int activationGenerateActivationCodeIterations;
 
     /**
      * When a duplicate operation ID is encountered, how many times generate a new one.
@@ -384,22 +368,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get number of activation ID generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getActivationGenerateActivationIdIterations() {
-        return activationGenerateActivationIdIterations;
-    }
-
-    /**
-     * Set number of activation ID generation attempts in case of collision.
-     * @param activationGenerateActivationIdIterations Retry iteration count (10, by default).
-     */
-    public void setActivationGenerateActivationIdIterations(int activationGenerateActivationIdIterations) {
-        this.activationGenerateActivationIdIterations = activationGenerateActivationIdIterations;
-    }
-
-    /**
      * Get number of token ID generation attempts in case of collision.
      * @return Retry iteration count (10, by default).
      */
@@ -413,22 +381,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setGenerateTokenIdIterations(int generateTokenIdIterations) {
         this.generateTokenIdIterations = generateTokenIdIterations;
-    }
-
-    /**
-     * Get number of activation code generation attempts in case of collision.
-     * @return Retry iteration count (10, by default).
-     */
-    public int getActivationGenerateActivationCodeIterations() {
-        return activationGenerateActivationCodeIterations;
-    }
-
-    /**
-     * Set number of activation code generation attempts in case of collision.
-     * @param activationGenerateActivationCodeIterations Retry iteration count (10, by default).
-     */
-    public void setActivationGenerateActivationCodeIterations(int activationGenerateActivationCodeIterations) {
-        this.activationGenerateActivationCodeIterations = activationGenerateActivationCodeIterations;
     }
 
     /**
