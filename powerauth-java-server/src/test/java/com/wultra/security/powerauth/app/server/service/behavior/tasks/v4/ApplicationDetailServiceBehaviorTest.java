@@ -28,21 +28,21 @@ import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -76,17 +76,18 @@ class ApplicationDetailServiceBehaviorTest {
     @Mock
     private MasterPublicKeyService masterPublicKeyService;
 
-    @Mock
-    private SdkConfigurationSerializer sdkConfigurationSerializer;
-
     @InjectMocks
     private ApplicationDetailServiceBehavior applicationDetailServiceBehavior;
+
+    private static final String KEY_P256   = Base64.getEncoder().encodeToString("my-p256-key".getBytes());
+    private static final String APP_KEY    = Base64.getEncoder().encodeToString("app-key".getBytes());
+    private static final String APP_SECRET = Base64.getEncoder().encodeToString("app-secret".getBytes());
 
     @BeforeEach
     void stubMasterPublicKeyService() throws Exception {
         // lenient: not needed in tests that fail before key extraction (e.g. missing app, missing key pair)
         lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeys("p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys(KEY_P256, null, null, null));
     }
 
     @Test
@@ -123,7 +124,7 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
@@ -142,7 +143,7 @@ class ApplicationDetailServiceBehaviorTest {
 
         final ApplicationEntity application = applicationEntity("app-1");
         application.getRoles().addAll(List.of("ROLE_A", "ROLE_B"));
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
@@ -159,7 +160,7 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         final List<SharedSecretAlgorithm> algorithms = List.of(SharedSecretAlgorithm.EC_P256, SharedSecretAlgorithm.EC_P384);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
@@ -178,22 +179,23 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
                 .thenReturn(new MasterPublicKeys(null, null, null, null));
 
-        final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
+        final ApplicationVersionEntity version = versionEntity("v1", APP_KEY, APP_SECRET, true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
 
-        applicationDetailServiceBehavior.getApplicationDetail(request);
-
-        final ArgumentCaptor<SdkConfiguration> captor = ArgumentCaptor.forClass(SdkConfiguration.class);
-        verify(sdkConfigurationSerializer).serialize(captor.capture());
-        assertNull(captor.getValue().masterPublicKeyP256());
+        final var applicationDetail = applicationDetailServiceBehavior.getApplicationDetail(request);
+        assertEquals(1, applicationDetail.getVersions().size());
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(APP_KEY)
+                .appSecret(APP_SECRET)
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), applicationDetail.getVersions().get(0).getMobileSdkConfig());
     }
 
     @Test
@@ -202,22 +204,24 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("my-p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeys("my-p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys(KEY_P256, null, null, null));
 
-        final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
+        final ApplicationVersionEntity version = versionEntity("v1", APP_KEY, APP_SECRET, true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
 
-        applicationDetailServiceBehavior.getApplicationDetail(request);
-
-        final ArgumentCaptor<SdkConfiguration> captor = ArgumentCaptor.forClass(SdkConfiguration.class);
-        verify(sdkConfigurationSerializer).serialize(captor.capture());
-        assertEquals("my-p256-key", captor.getValue().masterPublicKeyP256());
+        final var applicationDetail = applicationDetailServiceBehavior.getApplicationDetail(request);
+        assertEquals(1, applicationDetail.getVersions().size());
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(APP_KEY)
+                .appSecret(APP_SECRET)
+                .masterPublicKeyP256(KEY_P256)
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), applicationDetail.getVersions().get(0).getMobileSdkConfig());
     }
 
     @Test
@@ -226,24 +230,24 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application))
                 .thenReturn(List.of(SharedSecretAlgorithm.EC_P256, SharedSecretAlgorithm.EC_P384,
                         SharedSecretAlgorithm.EC_P384_ML_L3, SharedSecretAlgorithm.EC_P384_ML_L5));
 
-        final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
+        final ApplicationVersionEntity version = versionEntity("v1", APP_KEY, APP_SECRET, true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
 
-        applicationDetailServiceBehavior.getApplicationDetail(request);
-
-        final ArgumentCaptor<SdkConfiguration> captor = ArgumentCaptor.forClass(SdkConfiguration.class);
-        verify(sdkConfigurationSerializer).serialize(captor.capture());
-        assertNull(captor.getValue().masterPublicKeyP384());
-        assertNull(captor.getValue().masterPublicKeyMlDsa65());
-        assertNull(captor.getValue().masterPublicKeyMlDsa87());
+        final var applicationDetail = applicationDetailServiceBehavior.getApplicationDetail(request);
+        assertEquals(1, applicationDetail.getVersions().size());
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(APP_KEY)
+                .appSecret(APP_SECRET)
+                .masterPublicKeyP256(KEY_P256)
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), applicationDetail.getVersions().get(0).getMobileSdkConfig());
     }
 
     @Test
@@ -252,7 +256,7 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", "{}");
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, "{}");
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application))
@@ -260,17 +264,16 @@ class ApplicationDetailServiceBehaviorTest {
         when(masterPublicKeyService.extractPublicKeys(any(), any()))
                 .thenReturn(new MasterPublicKeys(null, null, null, null));
 
-        final ApplicationVersionEntity version = versionEntity("v1", "key1", "secret1", true);
+        final ApplicationVersionEntity version = versionEntity("v1", APP_KEY, APP_SECRET, true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
 
-        applicationDetailServiceBehavior.getApplicationDetail(request);
-
-        final ArgumentCaptor<SdkConfiguration> captor = ArgumentCaptor.forClass(SdkConfiguration.class);
-        verify(sdkConfigurationSerializer).serialize(captor.capture());
-        assertNull(captor.getValue().masterPublicKeyP384());
-        assertNull(captor.getValue().masterPublicKeyMlDsa65());
-        assertNull(captor.getValue().masterPublicKeyMlDsa87());
+        final var applicationDetail = applicationDetailServiceBehavior.getApplicationDetail(request);
+        assertEquals(1, applicationDetail.getVersions().size());
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(APP_KEY)
+                .appSecret(APP_SECRET)
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), applicationDetail.getVersions().get(0).getMobileSdkConfig());
     }
 
     @Test
@@ -279,24 +282,28 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
 
-        final ApplicationVersionEntity version = versionEntity("default", "app-key-1", "app-secret-1", true);
+        final ApplicationVersionEntity version = versionEntity("default", APP_KEY, APP_SECRET, true);
         when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("serialized-sdk-config");
 
         final GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
-
         assertEquals(1, response.getVersions().size());
         final ApplicationVersion ver = response.getVersions().get(0);
         assertEquals("default", ver.getApplicationVersionId());
-        assertEquals("app-key-1", ver.getApplicationKey());
-        assertEquals("app-secret-1", ver.getApplicationSecret());
-        assertEquals("serialized-sdk-config", ver.getMobileSdkConfig());
+        assertEquals(APP_KEY, ver.getApplicationKey());
+        assertEquals(APP_SECRET, ver.getApplicationSecret());
         assertTrue(ver.isSupported());
+
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(APP_KEY)
+                .appSecret(APP_SECRET)
+                .masterPublicKeyP256(KEY_P256)
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), ver.getMobileSdkConfig());
     }
 
     @Test
@@ -305,7 +312,7 @@ class ApplicationDetailServiceBehaviorTest {
         request.setApplicationId("app-1");
 
         final ApplicationEntity application = applicationEntity("app-1");
-        final MasterKeyPairEntity keyPair = keyPairEntity("p256-key", null);
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
         when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
         when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
         when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
@@ -314,7 +321,6 @@ class ApplicationDetailServiceBehaviorTest {
         final GetApplicationDetailResponse response = applicationDetailServiceBehavior.getApplicationDetail(request);
 
         assertTrue(response.getVersions().isEmpty());
-        verifyNoInteractions(sdkConfigurationSerializer);
     }
 
     @Test
@@ -325,6 +331,29 @@ class ApplicationDetailServiceBehaviorTest {
         when(applicationRepository.findById("app-1")).thenThrow(new RuntimeException("DB error"));
 
         assertThrows(RuntimeException.class, () -> applicationDetailServiceBehavior.getApplicationDetail(request));
+    }
+
+    @Test
+    void getApplicationDetail_shouldThrowInvalidApplication_whenAppKeyIsMissing() {
+        final GetApplicationDetailRequest request = new GetApplicationDetailRequest();
+        request.setApplicationId("app-1");
+
+        final ApplicationEntity application = applicationEntity("app-1");
+        final MasterKeyPairEntity keyPair = keyPairEntity(KEY_P256, null);
+        when(applicationRepository.findById("app-1")).thenReturn(Optional.of(application));
+        when(masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc("app-1")).thenReturn(keyPair);
+        when(algorithmQueryService.getSupportedAlgorithms(application)).thenReturn(List.of());
+
+        // Trigger SdkConfigurationException by passing null appKey
+        final ApplicationVersionEntity version = versionEntity("v1", null, APP_SECRET, true);
+        when(applicationVersionRepository.findByApplicationId("app-1")).thenReturn(List.of(version));
+
+        when(localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION))
+                .thenReturn(new GenericServiceException(ServiceError.INVALID_APPLICATION, "Invalid application."));
+
+        final GenericServiceException ex = assertThrows(GenericServiceException.class,
+                () -> applicationDetailServiceBehavior.getApplicationDetail(request));
+        assertEquals(ServiceError.INVALID_APPLICATION, ex.getCode());
     }
 
     // --- helpers ---

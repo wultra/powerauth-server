@@ -19,7 +19,6 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import com.wultra.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
@@ -29,9 +28,10 @@ import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeySe
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +44,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.security.Security;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,9 +76,6 @@ class ApplicationServiceBehaviorTest {
     private AlgorithmQueryService algorithmQueryService;
 
     @Mock
-    private SdkConfigurationSerializer sdkConfigurationSerializer;
-
-    @Mock
     private MasterPublicKeyService masterPublicKeyService;
 
     @InjectMocks
@@ -94,7 +92,7 @@ class ApplicationServiceBehaviorTest {
     void stubMasterPublicKeyService() throws Exception {
         // lenient: not needed in tests that fail before key extraction (e.g. duplicate app, master key error)
         lenient().when(masterPublicKeyService.extractPublicKeys(any(), any()))
-                .thenReturn(new MasterPublicKeys("p256-key", null, null, null));
+                .thenReturn(new MasterPublicKeys(Base64.getEncoder().encodeToString("p256Key".getBytes()), null, null, null));
     }
 
     @Test
@@ -106,9 +104,7 @@ class ApplicationServiceBehaviorTest {
         savedApplication.setId("test-app");
         when(applicationRepository.findById("test-app")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         final CreateApplicationResponse response = applicationServiceBehavior.createApplication(request);
@@ -126,9 +122,7 @@ class ApplicationServiceBehaviorTest {
         savedApplication.setId("test-app");
         when(applicationRepository.findById("test-app")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("serialized-sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         final CreateApplicationResponse response = applicationServiceBehavior.createApplication(request);
@@ -139,7 +133,12 @@ class ApplicationServiceBehaviorTest {
         assertTrue(ver.isSupported());
         assertNotNull(ver.getApplicationKey());
         assertNotNull(ver.getApplicationSecret());
-        assertEquals("serialized-sdk-config", ver.getMobileSdkConfig());
+        final var sdkConfig = SdkConfiguration.builder()
+                .appKey(ver.getApplicationKey())
+                .appSecret(ver.getApplicationSecret())
+                .masterPublicKeyP256(Base64.getEncoder().encodeToString("p256Key".getBytes()))
+                .build();
+        assertEquals(SdkConfigurationSerializer.serialize(sdkConfig), ver.getMobileSdkConfig());
     }
 
     @Test
@@ -151,9 +150,7 @@ class ApplicationServiceBehaviorTest {
         savedApplication.setId("my-app");
         when(applicationRepository.findById("my-app")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         applicationServiceBehavior.createApplication(request);
@@ -172,9 +169,7 @@ class ApplicationServiceBehaviorTest {
         savedApplication.setId("app-x");
         when(applicationRepository.findById("app-x")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         applicationServiceBehavior.createApplication(request);
@@ -196,9 +191,7 @@ class ApplicationServiceBehaviorTest {
         savedApplication.setId("app-y");
         when(applicationRepository.findById("app-y")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApplication);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         applicationServiceBehavior.createApplication(request);
@@ -220,9 +213,7 @@ class ApplicationServiceBehaviorTest {
         when(applicationRepository.findById("app-1")).thenReturn(Optional.empty());
         when(applicationRepository.findById("app-2")).thenReturn(Optional.empty());
         when(applicationRepository.save(any(ApplicationEntity.class))).thenReturn(savedApp1, savedApp2);
-        when(masterKeyGenerationService.generateMasterKeyPairs(any(ApplicationEntity.class))).thenReturn(masterKeyPair("p256-key"));
         when(algorithmQueryService.getSupportedAlgorithms(any())).thenReturn(List.of(SharedSecretAlgorithm.EC_P256));
-        when(sdkConfigurationSerializer.serialize(any())).thenReturn("sdk-config");
         when(applicationVersionRepository.save(any(ApplicationVersionEntity.class))).thenAnswer(i -> i.getArgument(0));
 
         final CreateApplicationRequest request1 = new CreateApplicationRequest();
@@ -308,12 +299,4 @@ class ApplicationServiceBehaviorTest {
         assertThrows(RuntimeException.class, () -> applicationServiceBehavior.createApplication(request));
     }
 
-    // --- helpers ---
-
-    private static MasterKeyPairEntity masterKeyPair(String publicKeyP256) {
-        final MasterKeyPairEntity entity = new MasterKeyPairEntity();
-        entity.setMasterKeyPublicBase64(publicKeyP256);
-        // masterPublicKeys is null → no P384/ML-DSA conversion
-        return entity;
-    }
 }

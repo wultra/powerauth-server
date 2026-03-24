@@ -33,7 +33,6 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.request.v3.CreateActivationRequest;
@@ -52,6 +51,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -103,10 +103,9 @@ class TemporaryKeyBehaviorTest {
     private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter, SdkConfigurationSerializer sdkConfigurationSerializer) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
@@ -114,7 +113,6 @@ class TemporaryKeyBehaviorTest {
         this.activationCreateServiceBehavior = activationCreateServiceBehavior;
         this.activationRepository = activationRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.sdkConfigurationSerializer = sdkConfigurationSerializer;
     }
 
     @Test
@@ -145,7 +143,7 @@ class TemporaryKeyBehaviorTest {
         final TemporaryPublicKeyResponse response = temporaryKeyBehavior.requestTemporaryKey(request);
         assertNotNull(response.getJwt());
         final SignedJWT decodedJWT = SignedJWT.parse(response.getJwt());
-        final String masterPublicKeyBase64 = sdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyP256();
+        final String masterPublicKeyBase64 = SdkConfigurationSerializer.deserialize(defaultVersion.getMobileSdkConfig()).masterPublicKeyP256();
         final PublicKey masterPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(masterPublicKeyBase64));
         assertTrue(validateJwtSignature(decodedJWT, masterPublicKey));
         assertEquals(defaultVersion.getApplicationKey(), decodedJWT.getJWTClaimsSet().getClaim("applicationKey"));

@@ -29,10 +29,8 @@ import com.wultra.security.powerauth.app.server.service.behavior.tasks.Activatio
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.response.v4.ActivationLayer2Response;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
 import com.wultra.security.powerauth.app.server.util.TemporaryKeyTestService;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
@@ -55,6 +53,8 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
@@ -84,7 +84,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
@@ -118,20 +117,18 @@ class TemporaryKeyBehaviorTest {
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationCreateServiceBehavior activationServiceBehaviorV4;
     private final ActivationRepository activationRepository;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
     private final KeyProvider keyProvider;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, SdkConfigurationSerializer sdkConfigurationSerializer, KeyProvider keyProvider, TemporaryKeyTestService temporaryKeyTestService) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, KeyProvider keyProvider, TemporaryKeyTestService temporaryKeyTestService) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
         this.activationServiceBehaviorV4 = activationServiceBehaviorV4;
         this.activationRepository = activationRepository;
-        this.sdkConfigurationSerializer = sdkConfigurationSerializer;
         this.keyProvider = keyProvider;
         this.temporaryKeyTestService = temporaryKeyTestService;
     }
@@ -434,17 +431,17 @@ class TemporaryKeyBehaviorTest {
                 .orElseThrow(() -> new IllegalStateException("Missing public key"));
     }
 
-    private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, GenericServiceException {
+    private PublicKey getMasterPublicEcKey(ApplicationVersion applicationVersion) throws Exception {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
-        final SdkConfiguration sdkConfiguration = sdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
         final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyP384();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, masterPublicKeyBytes);
     }
 
-    private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws GenericCryptoException, GenericServiceException {
+    private PublicKey getMasterPublicPqcKey(ApplicationVersion applicationVersion) throws Exception {
         final String mobileSdkConfig = applicationVersion.getMobileSdkConfig();
-        final SdkConfiguration sdkConfiguration = sdkConfigurationSerializer.deserialize(mobileSdkConfig);
+        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
         final String masterPublicKeyBase64 = Objects.requireNonNull(sdkConfiguration).masterPublicKeyMlDsa65();
         final byte[] masterPublicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
         return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterPublicKeyBytes);
