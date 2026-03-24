@@ -28,12 +28,13 @@ import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationException;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,6 @@ public class ApplicationDetailServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final AlgorithmQueryService algorithmQueryService;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
     private final MasterPublicKeyService masterPublicKeyService;
     /**
      * Get application details by ID.
@@ -96,34 +96,38 @@ public class ApplicationDetailServiceBehavior {
         final List<SharedSecretAlgorithm> supportedAlgorithms = algorithmQueryService.getSupportedAlgorithms(application);
         final MasterPublicKeys masterPublicKeys = masterPublicKeyService.extractPublicKeys(masterKeyPairEntity, supportedAlgorithms);
 
-        final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
-        response.setApplicationId(applicationId);
-        response.getApplicationRoles().addAll(application.getRoles());
-        response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
+        try {
+            final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
+            response.setApplicationId(applicationId);
+            response.getApplicationRoles().addAll(application.getRoles());
+            response.getSupportedAlgorithms().addAll(supportedAlgorithms.stream().map(SharedSecretAlgorithm::name).toList());
 
-        final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
-        for (ApplicationVersionEntity version : versions) {
-            final SdkConfiguration sdkConfig = SdkConfiguration.builder()
-                    .appKey(version.getApplicationKey())
-                    .appSecret(version.getApplicationSecret())
-                    .masterPublicKeyP256(masterPublicKeys.p256())
-                    .masterPublicKeyP384(masterPublicKeys.p384())
-                    .masterPublicKeyMlDsa65(masterPublicKeys.mlDsa65())
-                    .masterPublicKeyMlDsa87(masterPublicKeys.mlDsa87())
-                    .build();
-            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
+            final List<ApplicationVersionEntity> versions = applicationVersionRepository.findByApplicationId(applicationId);
+            for (ApplicationVersionEntity version : versions) {
+                final SdkConfiguration sdkConfig = SdkConfiguration.builder()
+                        .appKey(version.getApplicationKey())
+                        .appSecret(version.getApplicationSecret())
+                        .masterPublicKeyP256(masterPublicKeys.p256())
+                        .masterPublicKeyP384(masterPublicKeys.p384())
+                        .masterPublicKeyMlDsa65(masterPublicKeys.mlDsa65())
+                        .masterPublicKeyMlDsa87(masterPublicKeys.mlDsa87())
+                        .build();
+                final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
-            final ApplicationVersion ver = new ApplicationVersion();
-            ver.setApplicationVersionId(version.getId());
-            ver.setApplicationKey(version.getApplicationKey());
-            ver.setApplicationSecret(version.getApplicationSecret());
-            ver.setMobileSdkConfig(sdkConfigSerialized);
-            ver.setSupported(version.getSupported());
+                final ApplicationVersion ver = new ApplicationVersion();
+                ver.setApplicationVersionId(version.getId());
+                ver.setApplicationKey(version.getApplicationKey());
+                ver.setApplicationSecret(version.getApplicationSecret());
+                ver.setMobileSdkConfig(sdkConfigSerialized);
+                ver.setSupported(version.getSupported());
 
-            response.getVersions().add(ver);
+                response.getVersions().add(ver);
+            }
+            return response;
+        } catch (SdkConfigurationException exception) {
+            logger.warn(exception.getMessage(), exception);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-
-        return response;
     }
 
     /**

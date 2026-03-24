@@ -28,15 +28,16 @@ import com.wultra.security.powerauth.app.server.database.model.MasterPublicKeys;
 import com.wultra.security.powerauth.app.server.service.crypto.MasterPublicKeyService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import com.wultra.security.powerauth.app.server.service.model.SdkConfiguration;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
-import com.wultra.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationException;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,6 @@ public class ApplicationServiceBehavior {
     private final ApplicationRepository applicationRepository;
     private final ApplicationVersionRepository applicationVersionRepository;
     private final AlgorithmQueryService algorithmQueryService;
-    private final SdkConfigurationSerializer sdkConfigurationSerializer;
     private final MasterPublicKeyService masterPublicKeyService;
 
     private final KeyGenerator KEY_GENERATOR = new KeyGenerator();
@@ -169,7 +169,7 @@ public class ApplicationServiceBehavior {
                     .masterPublicKeyMlDsa65(masterPublicKeys.mlDsa65())
                     .masterPublicKeyMlDsa87(masterPublicKeys.mlDsa87())
                     .build();
-            final String sdkConfigSerialized = sdkConfigurationSerializer.serialize(sdkConfig);
+            final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             // Create the default application version
             final ApplicationVersionEntity version = new ApplicationVersionEntity();
@@ -196,6 +196,9 @@ public class ApplicationServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, exception can be triggered only before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (SdkConfigurationException ex) {
+            logger.warn(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
