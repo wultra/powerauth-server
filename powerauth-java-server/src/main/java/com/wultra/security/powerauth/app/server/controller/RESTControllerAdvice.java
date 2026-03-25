@@ -140,4 +140,14 @@ public class RESTControllerAdvice {
         return new ObjectResponse<>("ERROR", error);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleHttpMessageNotReadableException(final HttpMessageNotReadableException e) {
+        logger.error("Error occurred while processing the request: {}", e.getMessage());
+        logger.debug("Exception details:", e);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("INVALID_REQUEST");
+        error.setMessage(e.getMessage());
+        error.setLocalizedMessage(e.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);    }
 }

@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRe
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -36,6 +37,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.util.Base64;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -150,4 +152,61 @@ class AssertionControllerTest {
         verify(assertionService).authenticate(request);
     }
 
+    @Test
+    void testAuthenticate_base64UrlCredentialId_normalizedToBase64() throws Exception {
+        final String requestBody = """
+                {
+                  "requestObject": {
+                    "credentialId": "-_-",
+                    "type": "public-key",
+                    "response": {
+                      "clientDataJSON": "dGVzdAo=",
+                      "authenticatorData": "dGVzdAo=",
+                      "signature": "dGVzdAo="
+                    },
+                    "relyingPartyId": "example.com"
+                  }
+                }
+                """;
+
+        webTestClient.post()
+                .uri("/fido2/assertions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange()
+                .expectStatus().isOk();
+
+        final ArgumentCaptor<AssertionVerificationRequest> captor = ArgumentCaptor.forClass(AssertionVerificationRequest.class);
+        verify(assertionService).authenticate(captor.capture());
+        assertEquals("+/+=", captor.getValue().getCredentialId());
+    }
+
+    @Test
+    void testAuthenticate_invalidBase64CredentialId_returnsBadRequest() {
+        final String requestBody = """
+                {
+                  "requestObject": {
+                    "credentialId": "A",
+                    "type": "public-key",
+                    "response": {
+                      "clientDataJSON": "dGVzdAo=",
+                      "authenticatorData": "dGVzdAo=",
+                      "signature": "dGVzdAo="
+                    },
+                    "relyingPartyId": "example.com"
+                  }
+                }
+                """;
+
+        webTestClient.post()
+                .uri("/fido2/assertions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.responseObject.code").isEqualTo("INVALID_REQUEST")
+                .jsonPath("$.responseObject.message")
+                .isEqualTo("JSON parse error: Invalid value for path '/requestObject/credentialId': length mod 4 == 1 is not a valid Base64 remainder");
+    }
 }
