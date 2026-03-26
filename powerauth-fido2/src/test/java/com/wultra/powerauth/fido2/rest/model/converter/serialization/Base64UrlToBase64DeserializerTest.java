@@ -22,9 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.wultra.security.powerauth.fido2.model.converter.serialization.Base64UrlToBase64Deserializer;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for {@link Base64UrlToBase64Deserializer}.
@@ -43,50 +45,34 @@ class Base64UrlToBase64DeserializerTest {
         objectMapper.registerModule(module);
     }
 
-    @Test
-    void testDeserialize_base64UrlWithoutPadding_convertedToBase64() throws Exception {
-        final String result = objectMapper.readValue("\"-_--\"", String.class);
-        assertEquals("+/++", result);
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(
+            value = {
+                    "base64UrlWithoutPadding_convertedToBase64,              -_--,     +/++",
+                    "base64UrlMissingPadding_paddingAdded,                   SGVsbG8,  SGVsbG8=",
+                    "alreadyStandardBase64_returnedUnchanged,                SGVsbG8=, SGVsbG8=",
+                    "alreadyStandardBase64NoPaddingNeeded_returnedUnchanged, ABCDEFGH, ABCDEFGH",
+                    "null_returnsNull,                                       null,     null",
+                    "dashOnly_convertedToPlus,                               AA-A,     AA+A",
+                    "underscoreOnly_convertedToSlash,                        AA_A,     AA/A"
+            },
+            nullValues = "null"
+    )
+    void testDeserialize_validInput(final String name, final String input, final String expected) throws Exception {
+        assertEquals(expected, objectMapper.readValue(
+                input != null ? "\"%s\"".formatted(input) : "null",
+                String.class
+        ));
     }
 
-    @Test
-    void testDeserialize_base64UrlMissingPadding_paddingAdded() throws Exception {
-        final String result = objectMapper.readValue("\"SGVsbG8\"", String.class);
-        assertEquals("SGVsbG8=", result);
-    }
-
-    @Test
-    void testDeserialize_alreadyStandardBase64_returnedUnchanged() throws Exception {
-        final String result = objectMapper.readValue("\"SGVsbG8=\"", String.class);
-        assertEquals("SGVsbG8=", result);
-    }
-
-    @Test
-    void testDeserialize_alreadyStandardBase64NoPaddingNeeded_returnedUnchanged() throws Exception {
-        final String result = objectMapper.readValue("\"ABCDEFGH\"", String.class);
-        assertEquals("ABCDEFGH", result);
-    }
-
-    @Test
-    void testDeserialize_null_returnsNull() throws Exception {
-        final String result = objectMapper.readValue("null", String.class);
-        assertNull(result);
-    }
-
-    @Test
-    void testDeserialize_dashOnly_convertedToPlus() throws Exception {
-        final String result = objectMapper.readValue("\"AA-A\"", String.class);
-        assertEquals("AA+A", result);
-    }
-
-    @Test
-    void testDeserialize_underscoreOnly_convertedToSlash() throws Exception {
-        final String result = objectMapper.readValue("\"AA_A\"", String.class);
-        assertEquals("AA/A", result);
-    }
-
-    @Test
-    void testDeserialize_invalidLength_throwsException() {
-        assertThrows(JsonMappingException.class, () -> objectMapper.readValue("\"A\"", String.class));
+    @ParameterizedTest(name = "{0}")
+    @CsvSource({
+            "invalidLength,                             A",
+            "invalidCharInStandardBase64,               A!B=",
+            "invalidCharInBase64UrlRequiringPadding,    A!-",
+            "invalidCharInBase64UrlNotRequiringPadding, -_!-"
+    })
+    void testDeserialize_invalidInput_throwsException(final String name, final String input) {
+        assertThrows(JsonMappingException.class, () -> objectMapper.readValue("\"%s\"".formatted(input), String.class));
     }
 }

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Base64;
 
 /**
  * Jackson deserializer that transparently normalizes Base64URL-encoded strings
@@ -64,7 +65,7 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
 
         if (value.length() % 4 == 0 && !value.contains("-") && !value.contains("_")) {
             // already standard Base64 string
-            return value;
+            return validate(value, parser);
         }
 
         final String normalized = value.replace('-', '+').replace('_', '/');
@@ -72,10 +73,27 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
         final int remainder = normalized.length() % 4;
         if (remainder == 0) {
             // no padding needed
-            return normalized;
+            return validate(normalized, parser);
         }
 
         // add padding
-        return normalized + "=".repeat(4 - remainder);
+        final String normalizedPadded = normalized + "=".repeat(4 - remainder);
+
+        return validate(normalizedPadded, parser);
+    }
+
+    private String validate(final String value, final JsonParser parser) throws InvalidFormatException {
+        try {
+            Base64.getDecoder().decode(value);
+        } catch (final Exception e) {
+            throw InvalidFormatException.from(
+                    parser,
+                    "Invalid value for path '%s': %s".formatted(parser.getParsingContext().pathAsPointer(), e.getMessage()),
+                    value,
+                    String.class
+            );
+        }
+
+        return value;
     }
 }
