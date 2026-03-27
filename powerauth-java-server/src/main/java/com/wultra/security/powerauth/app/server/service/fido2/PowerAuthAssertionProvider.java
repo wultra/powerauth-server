@@ -217,6 +217,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private void auditAssertionResult(final AuthenticatorDetail authenticator, final UserActionResult result) {
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AUDIT_TYPE_FIDO2)
+                .subjectId(authenticator.getUserId())
                 .param("userId", authenticator.getUserId())
                 .param("applicationId", authenticator.getApplicationId())
                 .param("activationId", authenticator.getActivationId())

@@ -161,6 +161,7 @@ public class ActivationHistoryServiceBehavior {
         // Prepare shared parameters
         final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
                 .type(AuditType.ACTIVATION.getCode())
+                .subjectId(activation.getUserId())
                 .param("activationId", activation.getActivationId())
                 .param("userId", activation.getUserId())
                 .param("applicationId", activation.getApplication().getId())

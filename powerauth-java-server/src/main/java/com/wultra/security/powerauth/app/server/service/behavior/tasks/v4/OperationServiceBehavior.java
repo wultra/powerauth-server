@@ -213,6 +213,7 @@ public class OperationServiceBehavior {
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
+                    .subjectId(operationEntity.getUserId())
                     .param("id", operationId)
                     .param("userId", operationEntity.getUserId())
                     .param("applications", applications)
@@ -390,6 +391,7 @@ public class OperationServiceBehavior {
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
+                        .subjectId(userId)
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
@@ -423,6 +425,7 @@ public class OperationServiceBehavior {
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
+                            .subjectId(userId)
                             .param("id", operationId)
                             .param("userId", userId)
                             .param("appId", applicationId)
@@ -455,6 +458,7 @@ public class OperationServiceBehavior {
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
+                            .subjectId(userId)
                             .param("id", operationId)
                             .param("userId", userId)
                             .param("appId", applicationId)
@@ -546,6 +550,7 @@ public class OperationServiceBehavior {
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
+                        .subjectId(userId)
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
@@ -564,6 +569,7 @@ public class OperationServiceBehavior {
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
+                        .subjectId(userId)
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
@@ -629,6 +635,7 @@ public class OperationServiceBehavior {
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
+                        .subjectId(operationEntity.getUserId())
                         .param("id", operationId)
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("status", operationEntity.getStatus().name())
@@ -653,6 +660,7 @@ public class OperationServiceBehavior {
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
+                        .subjectId(operationEntity.getUserId())
                         .param("id", operationId)
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("status", operationEntity.getStatus().name())
@@ -712,6 +720,7 @@ public class OperationServiceBehavior {
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
+                    .subjectId(operationEntity.getUserId())
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())

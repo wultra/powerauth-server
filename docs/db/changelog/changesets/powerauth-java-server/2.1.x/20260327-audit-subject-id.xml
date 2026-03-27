@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2026 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.1.x/20260327-audit-subject-id.xml" author="Pavel Sindelar">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="audit_log" columnName="subject_id"/>
+            </not>
+        </preConditions>
+        <comment>Add subject_id column to audit_log table</comment>
+        <addColumn tableName="audit_log">
+            <column name="subject_id" type="varchar(256)"/>
+        </addColumn>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.1.x/20260327-audit-subject-id.xml" author="Pavel Sindelar">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_log" indexName="audit_log_subject_id_idx"/>
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(subject_id)</comment>
+        <createIndex tableName="audit_log" indexName="audit_log_subject_id_idx">
+            <column name="subject_id"/>
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+</databaseChangeLog>

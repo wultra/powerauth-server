@@ -59,6 +59,7 @@ class ActivationHistoryServiceBehaviorTest {
     @Test
     void testLogAuditItem_additionalData() {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setUserId("internal-user-id");
         activation.setApplication(new ApplicationEntity());
         activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setAdditionalData("""
@@ -75,11 +76,13 @@ class ActivationHistoryServiceBehaviorTest {
 
         assertThat(capturedAuditDetail.getType()).isEqualTo("activation");
         assertThat(capturedAuditDetail.getParam().get("additionalData")).isEqualTo(Map.of("foo", "bar"));
+        assertThat(capturedAuditDetail.getSubjectId()).isEqualTo("internal-user-id");
     }
 
     @Test
     void testLogAuditItem_additionalData_invalidJson() {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setUserId("internal-user-id");
         activation.setApplication(new ApplicationEntity());
         activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setAdditionalData("invalid json");
@@ -94,5 +97,6 @@ class ActivationHistoryServiceBehaviorTest {
 
         assertThat(capturedAuditDetail.getType()).isEqualTo("activation");
         assertThat(capturedAuditDetail.getParam().get("additionalData")).isNull();
+        assertThat(capturedAuditDetail.getSubjectId()).isEqualTo("internal-user-id");
     }
 }

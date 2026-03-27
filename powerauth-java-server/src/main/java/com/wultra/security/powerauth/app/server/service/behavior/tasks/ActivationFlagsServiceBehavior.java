@@ -112,7 +112,9 @@ public class ActivationFlagsServiceBehavior {
             if (!newFlags.isEmpty()) { // only in case there are new flags
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.ACTIVATION.getCode())
+                        .subjectId(activation.getUserId())
                         .param("activationId", activationId)
+                        .param("userId", activation.getUserId())
                         .param("flags", newFlags)
                         .param("addedFlags", activationFlags)
                         .build();
@@ -158,7 +160,9 @@ public class ActivationFlagsServiceBehavior {
             });
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.ACTIVATION.getCode())
+                    .subjectId(activation.getUserId())
                     .param("activationId", activationId)
+                    .param("userId", activation.getUserId())
                     .param("flags", activationFlags)
                     .build();
             audit.log(AuditLevel.INFO, "Setting new activation flags: {} to activation {}", auditDetail, activationFlags, activationId);
@@ -201,7 +205,9 @@ public class ActivationFlagsServiceBehavior {
             });
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.ACTIVATION.getCode())
+                    .subjectId(activation.getUserId())
                     .param("activationId", activationId)
+                    .param("userId", activation.getUserId())
                     .param("removedFlags", activationFlags)
                     .build();
             audit.log(AuditLevel.INFO, "Removing activation flags: {} from activation {}", auditDetail, activationFlags, activationId);
