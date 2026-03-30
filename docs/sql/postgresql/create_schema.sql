@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 08/01/2026, 10:17
+-- Ran at: 3/30/26, 9:54
 -- Against: null@offline:postgresql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -153,7 +153,7 @@ CREATE INDEX pa_activation_keypair ON pa_activation(master_keypair_id);
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::28::Lubos Racansky
 -- Create a new index on pa_activation(activation_code)
-ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (application_id, activation_code);
+CREATE INDEX pa_activation_code ON pa_activation(activation_code);
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::29::Lubos Racansky
 -- Create a new index on pa_activation(user_id)
@@ -546,3 +546,11 @@ ALTER TABLE pa_activation ADD CONSTRAINT pa_server_public_key_id_fk FOREIGN KEY 
 ALTER TABLE pa_activation ADD activation_fingerprint VARCHAR(255);
 
 -- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::1::Vit Kotacka
+-- Drop non-unique index on pa_activation(activation_code) before replacing with unique constraint
+DROP INDEX pa_activation_code;
+
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::2::Vit Kotacka
+-- Add unique constraint on (application_id, activation_code) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (application_id, activation_code);
+
