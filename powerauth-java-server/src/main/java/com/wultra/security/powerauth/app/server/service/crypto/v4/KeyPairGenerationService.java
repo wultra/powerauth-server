@@ -97,7 +97,7 @@ public class KeyPairGenerationService {
         }
     }
 
-    private void generateAndStoreServerKeyPairEcP256(ActivationRecordEntity activation) throws CryptoProviderException, GenericServiceException {
+    private void generateAndStoreServerKeyPairEcP256(ActivationRecordEntity activation) throws CryptoProviderException, GenericServiceException, GenericCryptoException {
         final KeyPair serverKeyPair = SERVER_ACTIVATION_V3.generateServerKeyPair();
 
         final byte[] serverKeyPrivateBytes = KEY_CONVERTOR.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
