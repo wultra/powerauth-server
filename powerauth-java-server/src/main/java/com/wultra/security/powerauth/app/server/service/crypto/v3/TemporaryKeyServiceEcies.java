@@ -286,7 +286,7 @@ public class TemporaryKeyServiceEcies extends TemporaryKeyService {
         }
     }
 
-    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, KeyPair temporaryKeyPair) throws CryptoProviderException, GenericServiceException {
+    private TemporaryPublicKeyResponseClaims storeTemporaryKey(TemporaryPublicKeyRequestClaims requestClaims, Date currentTimestamp, KeyPair temporaryKeyPair) throws CryptoProviderException, GenericServiceException, GenericCryptoException {
 
         // Prepare the parameters key pair
         final String keyId = UUID.randomUUID().toString();

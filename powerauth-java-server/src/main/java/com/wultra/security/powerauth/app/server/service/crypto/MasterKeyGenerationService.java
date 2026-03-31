@@ -120,7 +120,7 @@ public class MasterKeyGenerationService {
         return entity;
     }
 
-    private void generateV3KeyPairIfAbsent(MasterKeyPairEntity keyPairEntity, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException {
+    private void generateV3KeyPairIfAbsent(MasterKeyPairEntity keyPairEntity, List<SharedSecretAlgorithm> supportedAlgorithms) throws CryptoProviderException, GenericCryptoException {
         if (!supportedAlgorithms.contains(SharedSecretAlgorithm.EC_P256)) {
             return;
         }

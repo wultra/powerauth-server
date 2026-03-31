@@ -22,6 +22,7 @@ package com.wultra.security.powerauth.app.server.converter;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 
 import java.io.IOException;
@@ -44,7 +45,11 @@ public class PrivateKeySerializer extends JsonSerializer<PrivateKey> {
         }
         switch (privateKey.getAlgorithm()) {
             case "EC": {
-                gen.writeString(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
+                try {
+                    gen.writeString(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
+                } catch (GenericCryptoException e) {
+                    throw new IOException("Private key conversion failed", e);
+                }
                 break;
             }
             case "ML-DSA-65", "ML-DSA-87": {

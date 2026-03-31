@@ -155,7 +155,7 @@ public class CryptographyServiceEc256 extends CryptographyService {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             final PublicKey ecPublicKey = ((EcPublicKey) devicePublicKey).getEcPublicKey();
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P256, ecPublicKey)));
-        } catch (CryptoProviderException e) {
+        } catch (CryptoProviderException | GenericCryptoException e) {
             logger.error("Could not store device public key", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
