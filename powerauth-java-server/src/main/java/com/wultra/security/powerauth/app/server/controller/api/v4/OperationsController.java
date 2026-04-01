@@ -157,7 +157,7 @@ public class OperationsController {
         logger.info("action: findAllOperationsByExternalId, state: initiated, externalId: {}, applications: {}", req.getExternalId(), req.getApplications());
         logger.debug("action: findAllOperationsByExternalId, state: initiated, request: {}", request);
         final OperationListResponse response = service.findOperationsByExternalId(req);
-        logger.info("action: findAllOperationsByExternalId, state: succeeded size: {}", response.size());
+        logger.info("action: findAllOperationsByExternalId, state: succeeded, size: {}", response.size());
         logger.debug("action: findAllOperationsByExternalId, state: succeeded, response: {}", response);
         return new ObjectResponse<>(response);
     }
