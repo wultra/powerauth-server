@@ -120,10 +120,10 @@ public class OperationsController {
         final OperationListForUserRequest req = request.getRequestObject();
         logger.info("action: operationList, state: initiated, userId: {}, applications: {}", req.getUserId(), req.getApplications());
         logger.debug("action: operationList, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findAllOperationsForUser(req));
-        logger.info("action: operationList, state: succeeded");
+        final OperationListResponse response = service.findAllOperationsForUser(req);
+        logger.info("action: operationList, state: succeeded, size: {}", response.size());
         logger.debug("action: operationList, state: succeeded, response: {}", response);
-        return response;
+        return new ObjectResponse<>(response);
     }
 
     /**
@@ -138,10 +138,10 @@ public class OperationsController {
         final OperationListForUserRequest req = request.getRequestObject();
         logger.info("action: pendingOperationList, state: initiated, userId: {}, applications: {}", req.getUserId(), req.getApplications());
         logger.debug("action: pendingOperationList, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findPendingOperationsForUser(req));
-        logger.info("action: pendingOperationList, state: succeeded");
+        final OperationListResponse response = service.findPendingOperationsForUser(req);
+        logger.info("action: pendingOperationList, state: succeeded, size: {}", response.size());
         logger.debug("action: pendingOperationList, state: succeeded, response: {}", response);
-        return response;
+        return new ObjectResponse<>(response);
     }
 
     /**
@@ -156,10 +156,10 @@ public class OperationsController {
         final OperationExtIdRequest req = request.getRequestObject();
         logger.info("action: findAllOperationsByExternalId, state: initiated, externalId: {}, applications: {}", req.getExternalId(), req.getApplications());
         logger.debug("action: findAllOperationsByExternalId, state: initiated, request: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findOperationsByExternalId(req));
-        logger.info("action: findAllOperationsByExternalId, state: succeeded");
+        final OperationListResponse response = service.findOperationsByExternalId(req);
+        logger.info("action: findAllOperationsByExternalId, state: succeeded size: {}", response.size());
         logger.debug("action: findAllOperationsByExternalId, state: succeeded, response: {}", response);
-        return response;
+        return new ObjectResponse<>(response);
     }
 
     /**
