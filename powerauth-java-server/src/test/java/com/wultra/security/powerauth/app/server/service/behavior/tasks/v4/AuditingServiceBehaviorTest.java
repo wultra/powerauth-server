@@ -111,5 +111,7 @@ class AuditingServiceBehaviorTest {
         authMetadata.setAuthDataMethod("POST");
         authMetadata.setAuthDataUriId("/pa/auth/validate");
         assertEquals(authMetadata, params.get("authenticationMetadata"));
+
+        assertEquals("user789", auditDetail.getSubjectId());
     }
 }

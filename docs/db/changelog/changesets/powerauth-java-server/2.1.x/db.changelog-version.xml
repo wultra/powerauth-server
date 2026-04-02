@@ -4,5 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <include file="20260316-activation-code-unique.xml" relativeToChangelogFile="true" />
+    <include file="20260327-audit-subject-id.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

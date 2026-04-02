@@ -210,6 +210,7 @@ public class AuditingServiceBehavior {
                 .param("note", note)
                 .param("timestamp", currentTimestamp)
                 .type(AuditType.AUTHENTICATION.getCode())
+                .subjectId(activation.getUserId())
                 .build();
         audit.log("Authentication validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),

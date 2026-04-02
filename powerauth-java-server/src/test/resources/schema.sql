@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS audit_log
     calling_class     VARCHAR(256) NOT NULL,
     thread_name       VARCHAR(256) NOT NULL,
     version           VARCHAR(256),
-    build_time        TIMESTAMP
+    build_time        TIMESTAMP,
+    subject_id        VARCHAR(256)
 );
 
 CREATE TABLE IF NOT EXISTS audit_param

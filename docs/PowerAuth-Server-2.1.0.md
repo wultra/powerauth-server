@@ -22,3 +22,11 @@ For convenience, you can use Liquibase for your database migration.
 
 * Dropped the non-unique index `pa_activation_code` on column `activation_code`.
 * Added a unique constraint `pa_activation_code_application_uk` on columns `(application_id, activation_code)` to enforce activation code uniqueness at the database level per application.
+
+### `audit_log` Table
+
+Added a new indexed column `subject_id` holding an identifier linking the audit record to an entity it is related to (e.g. user ID for user-related audit records).
+
+<!-- begin box warning -->
+The auditing tables may be already updated in your database schema if the database schema is not separated for different PowerAuth applications. In case the column `audit_log.subject_id` and its index `audit_log_subject_id_idx` are already present, you can safely skip this migration step.
+<!-- end -->
