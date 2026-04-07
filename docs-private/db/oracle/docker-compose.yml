@@ -1,0 +1,11 @@
+services:
+  oracle:
+    image: gvenzl/oracle-free:latest
+    container_name: pa-oracle
+    environment:
+      ORACLE_PASSWORD: "YourStrong_Passw0rd"
+    ports:
+      - "1521:1521"
+    volumes:
+      - ~/dev/oracle/data:/opt/oracle/oradata
+    restart: unless-stopped
