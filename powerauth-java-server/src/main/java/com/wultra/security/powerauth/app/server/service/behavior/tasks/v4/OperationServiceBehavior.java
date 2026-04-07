@@ -90,7 +90,7 @@ public class OperationServiceBehavior {
     /**
      * All characters with ASCII code < 32 (except 10 line feed) are forbidden (e.g. \t should not be in the string).
      */
-    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile(".*[\\x00-\\x09\\x0B-\\x1F].*");
+    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile("[\\x00-\\x09\\x0B-\\x1F]");
 
     private final CallbackUrlBehavior callbackUrlBehavior;
 
