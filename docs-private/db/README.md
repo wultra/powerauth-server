@@ -11,13 +11,16 @@ The scripts measure the time required to:
 
 ## Test Environment
 
-| DB | Version | Image |
-|----|---------|-------|
-| PostgreSQL | 17 | `postgres:17` |
-| Oracle | 19c Enterprise | `container-registry.oracle.com/database/enterprise:19.3.0.0.0` (linux/amd64 via QEMU) |
-| Oracle | 23ai Free (26ai) | `gvenzl/oracle-free:latest` (linux/arm64 native) |
-| MS SQL Server | 2022 | `mcr.microsoft.com/mssql/server:2022-CU24-ubuntu-22.04` (linux/amd64 via QEMU) |
-| Azure SQL Edge | 2.0.0 | `mcr.microsoft.com/azure-sql-edge:latest` (linux/arm64 native) |
+All tests were run on **macOS with Apple Silicon (ARM64)** using [Colima](https://github.com/abiosoft/colima) as the container runtime.
+Images without native ARM64 support ran under QEMU x86_64 emulation.
+
+| DB | Version | Image | macOS/ARM64 |
+|----|---------|-------|:-----------:|
+| PostgreSQL | 18.2 | `postgres:18.2` | ✅ native |
+| Oracle | 23ai Free (26ai) | `gvenzl/oracle-free:latest` | ✅ native |
+| Azure SQL Edge | 2.0.0 | `mcr.microsoft.com/azure-sql-edge:latest` | ✅ native |
+| MS SQL Server | 2022 CU24 | `mcr.microsoft.com/mssql/server:2022-CU24-ubuntu-22.04` | ⚠️ QEMU |
+| Oracle | 19c Enterprise | `container-registry.oracle.com/database/enterprise:19.3.0.0.0` | ⚠️ QEMU |
 
 Dataset: **10,000,000 rows** in `pa_activation_perf_test`.
 
@@ -25,7 +28,7 @@ Dataset: **10,000,000 rows** in `pa_activation_perf_test`.
 
 ### Migration steps (production-relevant)
 
-| Step | Operation | PostgreSQL 17 | Oracle 19c ³ | Oracle 23ai ⁴ | MSSQL 2022 ³ | Azure SQL Edge ⁴ |
+| Step | Operation | PostgreSQL 18 | Oracle 19c ³ | Oracle 23ai ⁴ | MSSQL 2022 ³ | Azure SQL Edge ⁴ |
 |------|-----------|:-------------:|:------------:|:-------------:|:------------:|:----------------:|
 | 1 | ADD NOT NULL on `activation_code` | 1.8 s | 11.2 s | 1.2 s | ~0 ms ¹ | — ¹ |
 | 2 | ADD UNIQUE (`application_id`, `activation_code`) | **18.9 s** | **251.9 s** | **6.9 s** | **88.8 s** | **22.0 s** |
@@ -40,7 +43,7 @@ Dataset: **10,000,000 rows** in `pa_activation_perf_test`.
 
 ### Full results including data generation
 
-| Step | Operation | PostgreSQL 17 | Oracle 19c ³ | Oracle 23ai ⁴ | MSSQL 2022 ³ | Azure SQL Edge ⁴ |
+| Step | Operation | PostgreSQL 18 | Oracle 19c ³ | Oracle 23ai ⁴ | MSSQL 2022 ³ | Azure SQL Edge ⁴ |
 |------|-----------|:-------------:|:------------:|:-------------:|:------------:|:----------------:|
 | 0 | Data generation (10M rows) ² | 284.7 s | 1 842 s | 174 s | 650.9 s | 90.9 s |
 | 1 | ADD NOT NULL on `activation_code` | 1.8 s | 11.2 s | 1.2 s | ~0 ms | — |
@@ -73,7 +76,7 @@ Dataset: **10,000,000 rows** in `pa_activation_perf_test`.
 | DB | Estimated downtime |
 |----|-------------------|
 | Oracle 23ai Free | < 1 min |
-| PostgreSQL 17 | < 1 min |
+| PostgreSQL 18 | < 1 min |
 | Azure SQL Edge 2.0 | < 1 min |
 | MSSQL 2022 | ~2 min (QEMU) |
 | Oracle 19c | ~5 min (QEMU) |
