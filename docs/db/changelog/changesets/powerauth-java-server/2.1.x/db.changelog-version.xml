@@ -3,6 +3,7 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
+    <include file="20260316-activation-code-fix-nulls.xml" relativeToChangelogFile="true" />
     <include file="20260316-activation-code-unique.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

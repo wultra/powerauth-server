@@ -1,0 +1,17 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    platform: linux/arm64
+    container_name: pa-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong@Passw0rd"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  mssql-data:

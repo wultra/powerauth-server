@@ -8,7 +8,7 @@
 --   3. Step 2: Add unique constraint (application_id, activation_code)
 --   4. Step 3: Drop old non-unique index
 --
--- Run with: sqlplus pa_perf_test_user/pa_perf_test_password@service @pa_activation_perf_test.sql
+-- Run with: sqlplus pa_perf_test_user/pa_perf_test_password@localhost:1521/ORCLPDB1 @pa_activation_perf_test.sql
 -- Monitor index build progress in a separate session (see MONITORING section at the bottom).
 --
 -- Results are stored in pa_perf_test_results and can be queried after the run:
@@ -89,82 +89,101 @@ CREATE TABLE pa_activation_perf_test (
 CREATE INDEX pa_activation_perf_test_code_old ON pa_activation_perf_test(activation_code);
 
 -- -----------------------------------------------------------------------------
--- 2. DATA GENERATION: Insert 10,000,000 rows
+-- 2. DATA GENERATION: Insert 10,000,000 rows in batches of 100,000
 --    activation_id:   UUID derived from SYS_GUID() (one call per row)
---    activation_code: XXXXX-XXXXX-XXXXX-XXXXX derived from LEVEL (deterministic, unique)
+--    activation_code: XXXXX-XXXXX-XXXXX-XXXXX derived from row number (deterministic, unique)
 --    application_id:  spread across 10 apps
---    Note: /*+ APPEND */ enables direct-path insert for better performance.
+--    Note: Batch inserts avoid undo/redo log pressure of a single 10M-row statement.
 -- -----------------------------------------------------------------------------
 PROMPT
-PROMPT --- [2/6] Inserting 10,000,000 rows (this may take several minutes) ---
+PROMPT --- [2/6] Inserting 10,000,000 rows in batches (this may take several minutes) ---
 
 DECLARE
-    v_start TIMESTAMP := SYSTIMESTAMP;
-    v_end   TIMESTAMP;
-BEGIN
-    INSERT /*+ APPEND */ INTO pa_activation_perf_test (
-        activation_id,
-        application_id,
-        user_id,
-        activation_code,
-        activation_status,
-        activation_otp_validation,
-        counter,
-        failed_attempts,
-        max_failed_attempts,
-        server_private_key_base64,
-        server_private_key_encryption,
-        server_public_key_base64,
-        timestamp_activation_expire,
-        timestamp_created,
-        timestamp_last_used
-    )
-    SELECT
-        -- activation_id: UUID format (36 chars) from a single SYS_GUID() call
-        REGEXP_REPLACE(
-            LOWER(RAWTOHEX(SYS_GUID())),
-            '([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})',
-            '\1-\2-\3-\4-\5'),
-        -- application_id: 10 applications
-        MOD(LEVEL - 1, 10) + 1,
-        -- user_id
-        'user-' || TO_CHAR(MOD(LEVEL - 1, 1000000)),
-        -- activation_code: XXXXX-XXXXX-XXXXX-XXXXX derived from LEVEL (globally unique)
-        SUBSTR(LPAD(TO_CHAR(LEVEL, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'),  1, 5) || '-' ||
-        SUBSTR(LPAD(TO_CHAR(LEVEL, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'),  6, 5) || '-' ||
-        SUBSTR(LPAD(TO_CHAR(LEVEL, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'), 11, 5) || '-' ||
-        SUBSTR(LPAD(TO_CHAR(LEVEL, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'), 16, 5),
-        -- activation_status: realistic mix (1=CREATED, 3=ACTIVE, 4=REMOVED, 5=BLOCKED)
-        CASE MOD(LEVEL, 10)
-            WHEN 0 THEN 1   -- 10% CREATED
-            WHEN 1 THEN 1
-            WHEN 2 THEN 3   -- 50% ACTIVE
-            WHEN 3 THEN 3
-            WHEN 4 THEN 3
-            WHEN 5 THEN 3
-            WHEN 6 THEN 3
-            WHEN 7 THEN 4   -- 30% REMOVED
-            WHEN 8 THEN 4
-            ELSE 5          -- 10% BLOCKED
-        END,
-        0,  -- activation_otp_validation
-        0,  -- counter
-        0,  -- failed_attempts
-        5,  -- max_failed_attempts
-        SUBSTR(RAWTOHEX(SYS_GUID()), 1, 44),  -- server_private_key_base64 (placeholder)
-        0,  -- server_private_key_encryption
-        SUBSTR(RAWTOHEX(SYS_GUID()), 1, 44),  -- server_public_key_base64 (placeholder)
-        SYSTIMESTAMP + INTERVAL '5' MINUTE,
-        SYSTIMESTAMP - NUMTODSINTERVAL(LEVEL, 'SECOND'),
-        SYSTIMESTAMP - NUMTODSINTERVAL(LEVEL, 'SECOND')
-    FROM DUAL
-    CONNECT BY LEVEL <= 10000000;
+    v_start      TIMESTAMP := SYSTIMESTAMP;
+    v_end        TIMESTAMP;
+    v_batch_size CONSTANT PLS_INTEGER := 100000;
+    v_total      CONSTANT PLS_INTEGER := 10000000;
+    v_offset     PLS_INTEGER := 0;
 
-    COMMIT;
+    TYPE t_varchar37  IS TABLE OF VARCHAR2(37)  INDEX BY PLS_INTEGER;
+    TYPE t_integer    IS TABLE OF INTEGER       INDEX BY PLS_INTEGER;
+    TYPE t_varchar255 IS TABLE OF VARCHAR2(255) INDEX BY PLS_INTEGER;
+    TYPE t_timestamp  IS TABLE OF TIMESTAMP(6)  INDEX BY PLS_INTEGER;
+
+    t_act_id     t_varchar37;
+    t_app_id     t_integer;
+    t_user_id    t_varchar255;
+    t_act_code   t_varchar255;
+    t_act_status t_integer;
+    t_srv_priv   t_varchar255;
+    t_srv_pub    t_varchar255;
+    t_ts_exp     t_timestamp;
+    t_ts_cre     t_timestamp;
+    t_ts_use     t_timestamp;
+
+    v_now        TIMESTAMP := SYSTIMESTAMP;
+    v_i          PLS_INTEGER;
+BEGIN
+    WHILE v_offset < v_total LOOP
+        t_act_id.DELETE;  t_app_id.DELETE;  t_user_id.DELETE;
+        t_act_code.DELETE; t_act_status.DELETE;
+        t_srv_priv.DELETE; t_srv_pub.DELETE;
+        t_ts_exp.DELETE;  t_ts_cre.DELETE;  t_ts_use.DELETE;
+
+        FOR j IN 1 .. v_batch_size LOOP
+            v_i := v_offset + j;
+            EXIT WHEN v_i > v_total;
+
+            t_act_id(j)     := REGEXP_REPLACE(LOWER(RAWTOHEX(SYS_GUID())),
+                                   '([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})',
+                                   '\1-\2-\3-\4-\5');
+            t_app_id(j)     := MOD(v_i - 1, 10) + 1;
+            t_user_id(j)    := 'user-' || TO_CHAR(MOD(v_i - 1, 1000000));
+            t_act_code(j)   := SUBSTR(LPAD(TO_CHAR(v_i, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'),  1, 5) || '-' ||
+                                SUBSTR(LPAD(TO_CHAR(v_i, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'),  6, 5) || '-' ||
+                                SUBSTR(LPAD(TO_CHAR(v_i, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'), 11, 5) || '-' ||
+                                SUBSTR(LPAD(TO_CHAR(v_i, 'FMXXXXXXXXXXXXXXXXXX'), 20, '0'), 16, 5);
+            t_act_status(j) := CASE MOD(v_i, 10)
+                                    WHEN 0 THEN 1 WHEN 1 THEN 1
+                                    WHEN 2 THEN 3 WHEN 3 THEN 3 WHEN 4 THEN 3 WHEN 5 THEN 3 WHEN 6 THEN 3
+                                    WHEN 7 THEN 4 WHEN 8 THEN 4
+                                    ELSE 5
+                                END;
+            t_srv_priv(j)   := SUBSTR(RAWTOHEX(SYS_GUID()), 1, 44);
+            t_srv_pub(j)    := SUBSTR(RAWTOHEX(SYS_GUID()), 1, 44);
+            t_ts_exp(j)     := v_now + INTERVAL '5' MINUTE;
+            t_ts_cre(j)     := v_now - NUMTODSINTERVAL(v_i, 'SECOND');
+            t_ts_use(j)     := v_now - NUMTODSINTERVAL(v_i, 'SECOND');
+        END LOOP;
+
+        FORALL j IN INDICES OF t_act_id
+            INSERT INTO pa_activation_perf_test (
+                activation_id, application_id, user_id, activation_code,
+                activation_status, activation_otp_validation, counter,
+                failed_attempts, max_failed_attempts,
+                server_private_key_base64, server_private_key_encryption,
+                server_public_key_base64,
+                timestamp_activation_expire, timestamp_created, timestamp_last_used
+            ) VALUES (
+                t_act_id(j), t_app_id(j), t_user_id(j), t_act_code(j),
+                t_act_status(j), 0, 0, 0, 5,
+                t_srv_priv(j), 0, t_srv_pub(j),
+                t_ts_exp(j), t_ts_cre(j), t_ts_use(j)
+            );
+
+        COMMIT;
+        v_offset := v_offset + v_batch_size;
+    END LOOP;
+
     v_end := SYSTIMESTAMP;
     INSERT INTO pa_perf_test_results VALUES (0, 'Data generation (10M rows)', v_start, v_end, v_end - v_start);
     COMMIT;
     DBMS_OUTPUT.PUT_LINE('Data generation completed in: ' || TO_CHAR(v_end - v_start));
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('ERROR during data generation at offset ' || v_offset || ': ' || SQLERRM);
+        ROLLBACK;
+        RAISE;
 END;
 /
 

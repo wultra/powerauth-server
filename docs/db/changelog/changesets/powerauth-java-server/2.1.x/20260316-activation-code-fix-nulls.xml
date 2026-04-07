@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2026 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-fix-nulls.xml" author="Vit Kotacka">
+        <preConditions onFail="MARK_RAN">
+            <!--
+                Run only if NULL values exist in activation_code.
+                Legacy databases may have NULL values because the column was intentionally
+                made nullable in the DDL in 2018 (Fix #192) even though the JPA entity
+                defines it as nullable = false. This changeset retrofits any such rows
+                with a unique placeholder value so the subsequent NOT NULL constraint
+                (20260316-activation-code-unique.xml, id=1) can be applied safely.
+            -->
+            <not>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) FROM pa_activation WHERE activation_code IS NULL
+                </sqlCheck>
+            </not>
+        </preConditions>
+        <comment>
+            Retrofit NULL activation_code values with unique LEGACY- prefixed placeholders
+            before adding the NOT NULL constraint. Skipped automatically (MARK_RAN) if no
+            NULL values are present, which is the expected case for all non-legacy databases.
+            Rollback is not supported — original NULL values cannot be restored.
+        </comment>
+
+        <sql dbms="postgresql" splitStatements="false">
+            UPDATE pa_activation
+            SET activation_code = 'LEGACY-' || gen_random_uuid()::text
+            WHERE activation_code IS NULL
+        </sql>
+        <sql dbms="oracle" splitStatements="false">
+            UPDATE pa_activation
+            SET activation_code = 'LEGACY-' || LOWER(RAWTOHEX(SYS_GUID()))
+            WHERE activation_code IS NULL
+        </sql>
+        <sql dbms="mssql" splitStatements="false">
+            UPDATE pa_activation
+            SET activation_code = 'LEGACY-' + LOWER(CONVERT(varchar(36), NEWID()))
+            WHERE activation_code IS NULL
+        </sql>
+
+        <rollback>
+            <!-- Rollback is not possible — original NULL values are not recoverable. -->
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
