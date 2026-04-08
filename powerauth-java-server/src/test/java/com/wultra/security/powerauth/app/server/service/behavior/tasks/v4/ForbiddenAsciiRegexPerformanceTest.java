@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 
 /**
@@ -39,7 +40,11 @@ class ForbiddenAsciiRegexPerformanceTest {
     void testRegexPerformance() {
         final String input = generateString();
 
-        assertTimeout(Duration.ofMillis(100), () -> {
+        // Warmup to avoid measuring initialization cost
+        assertFalse(OperationServiceBehavior.isForbiddenAscii(input));
+
+        // Assert for regexp performance
+        assertTimeout(Duration.ofMillis(10), () -> {
             OperationServiceBehavior.isForbiddenAscii(input);
         }, "Regex performance is too slow for input");
     }
