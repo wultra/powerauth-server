@@ -60,4 +60,3 @@ Index build time measured on a 10M-row table:
 | PostgreSQL 18 | ~19 s |
 | Azure SQL Edge 2.0 | ~22 s |
 | MS SQL Server 2022 | ~89 s |
-| Oracle 19c Enterprise | ~252 s |
