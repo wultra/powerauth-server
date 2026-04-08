@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertTimeout;
 class ForbiddenAsciiRegexPerformanceTest {
 
     /**
-     * It should finish under 50 milliseconds.
-     * The invalid code with {@code .*} took about 250 ms.
+     * It should finish under 10 milliseconds if warmed up.
+     * The invalid code with {@code .*} took more than 200 ms.
      */
     @Test
     void testRegexPerformance() {
