@@ -88,8 +88,11 @@ public class OperationServiceBehavior {
 
     /**
      * All characters with ASCII code < 32 (except 10 line feed) are forbidden (e.g. \t should not be in the string).
+     * The pattern is used with Matcher.find() to check if any forbidden characters are present in the string.
+     * Previously the pattern contained '.*' prefix and suffix, this leads to very poor performance,
+     * be careful when modifying this pattern.
      */
-    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile(".*[\\x00-\\x09\\x0B-\\x1F].*");
+    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile("[\\x00-\\x09\\x0B-\\x1F]");
 
     private final CallbackUrlBehavior callbackUrlBehavior;
 
@@ -300,11 +303,15 @@ public class OperationServiceBehavior {
             if (parameter.getValue() == null) {
                 continue;
             }
-            if (PATTERN_FORBIDDEN_ASCII.matcher(parameter.getValue()).find()) {
+            if (isForbiddenAscii(parameter.getValue())) {
                 logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameter.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
+    }
+
+    static boolean isForbiddenAscii(final String value) {
+        return PATTERN_FORBIDDEN_ASCII.matcher(value).find();
     }
 
     private boolean doesActivationBelongToUser(final String activationId, final String userId) {
