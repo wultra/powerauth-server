@@ -303,11 +303,15 @@ public class OperationServiceBehavior {
             if (parameter.getValue() == null) {
                 continue;
             }
-            if (PATTERN_FORBIDDEN_ASCII.matcher(parameter.getValue()).find()) {
+            if (isForbiddenAscii(parameter.getValue())) {
                 logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameter.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
+    }
+
+    protected static boolean isForbiddenAscii(final String value) {
+        return PATTERN_FORBIDDEN_ASCII.matcher(value).find();
     }
 
     private boolean doesActivationBelongToUser(final String activationId, final String userId) {
