@@ -35,9 +35,9 @@
                 <uniqueConstraintExists tableName="pa_activation" constraintName="pa_activation_code_application_uk"/>
             </not>
         </preConditions>
-        <comment>Add unique constraint on (application_id, activation_code) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check. activation_code is NOT NULL (see changeset id=1), so multiple NULLs bypassing the unique constraint is not a concern.</comment>
+        <comment>Add unique constraint on (activation_code, application_id) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check. activation_code is NOT NULL (see changeset id=1), so multiple NULLs bypassing the unique constraint is not a concern.</comment>
         <addUniqueConstraint tableName="pa_activation"
-                             columnNames="application_id, activation_code"
+                             columnNames="activation_code, application_id"
                              constraintName="pa_activation_code_application_uk"/>
     </changeSet>
 
