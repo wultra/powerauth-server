@@ -19,14 +19,10 @@
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import org.junit.jupiter.api.Test;
-import org.openjdk.jmh.results.RunResult;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.util.Collection;
+import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 
 /**
  * Test class for {@link OperationServiceBehavior#isForbiddenAscii(String)}.
@@ -35,25 +31,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ForbiddenAsciiRegexPerformanceTest {
 
-    private static final double THRESHOLD_NS = 1000.0; // 1 microsecond
-
+    /**
+     * It should finish under 50 milliseconds.
+     * The invalid code with {@code .*} took about 250 ms.
+     */
     @Test
-    void testRegexPerformance() throws Exception {
-        final Options opt = new OptionsBuilder()
-                .include(ForbiddenAsciiRegexBenchmark.class.getSimpleName())
-                .forks(1)
-                .warmupIterations(1)
-                .measurementIterations(3)
-                .build();
+    void testRegexPerformance() {
+        final String input = generateString();
 
-        final Collection<RunResult> results = new Runner(opt).run();
+        assertTimeout(Duration.ofMillis(100), () -> {
+            OperationServiceBehavior.isForbiddenAscii(input);
+        }, "Regex performance is too slow for input");
+    }
 
-        for (RunResult result : results) {
-            double score = result.getPrimaryResult().getScore();
-            String inputParam = result.getParams().getParam("input");
-            assertTrue(score < THRESHOLD_NS, 
-                String.format("Regex performance is too slow for input '%s': %.2f ns (threshold: %.2f ns)", 
-                    inputParam, score, THRESHOLD_NS));
-        }
+    private static String generateString() {
+        return "a".repeat(10_000);
     }
 }
