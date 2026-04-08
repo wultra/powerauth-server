@@ -82,6 +82,7 @@ public class ApplicationConfigServiceBehavior {
             final String applicationId = request.getApplicationId();
             final List<ApplicationConfigurationItem> config = getApplicationConfig(applicationId);
             final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
+            response.setApplicationId(applicationId);
             response.setApplicationConfigs(config);
             return response;
         } catch (RuntimeException ex) {
