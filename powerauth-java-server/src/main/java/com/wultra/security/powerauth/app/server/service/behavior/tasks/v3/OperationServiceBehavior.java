@@ -310,7 +310,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    protected static boolean isForbiddenAscii(final String value) {
+    static boolean isForbiddenAscii(final String value) {
         return PATTERN_FORBIDDEN_ASCII.matcher(value).find();
     }
 
