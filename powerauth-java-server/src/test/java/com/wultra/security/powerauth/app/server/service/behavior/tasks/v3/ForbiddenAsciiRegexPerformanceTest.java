@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 
 /**
- * Test class for {@link com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.OperationServiceBehavior#isForbiddenAscii(String)}.
+ * Test class for {@link OperationServiceBehavior#isForbiddenAscii(String)}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
