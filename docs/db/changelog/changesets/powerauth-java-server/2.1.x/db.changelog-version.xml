@@ -5,5 +5,6 @@
 
     <include file="20260316-activation-code-fix-nulls.xml" relativeToChangelogFile="true" />
     <include file="20260316-activation-code-unique.xml" relativeToChangelogFile="true" />
+    <include file="20260327-audit-subject-id.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

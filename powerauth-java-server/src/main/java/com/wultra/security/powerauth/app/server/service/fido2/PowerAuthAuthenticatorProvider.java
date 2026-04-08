@@ -314,6 +314,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private void auditStoredAuthenticator(Activation activation) {
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AUDIT_TYPE_FIDO2)
+                .subjectId(activation.getUserId())
                 .param("userId", activation.getUserId())
                 .param("applicationId", activation.getApplicationId())
                 .param("activationId", activation.getActivationId())

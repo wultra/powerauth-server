@@ -60,3 +60,11 @@ Index build time measured on a 10M-row table:
 | PostgreSQL 18 | ~19 s |
 | Azure SQL Edge 2.0 | ~22 s |
 | MS SQL Server 2022 | ~89 s |
+
+### `audit_log` Table
+
+Added a new indexed column `subject_id` holding an identifier linking the audit record to an entity it is related to (e.g. user ID for user-related audit records).
+
+<!-- begin box warning -->
+The auditing tables may be already updated in your database schema if the database schema is not separated for different PowerAuth applications. In case the column `audit_log.subject_id` and its index `audit_log_subject_id_idx` are already present, you can safely skip this migration step.
+<!-- end -->
