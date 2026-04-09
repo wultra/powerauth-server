@@ -50,7 +50,7 @@ The migration applies the following changes in order:
 > ```
 > Once done, Liquibase will detect no NULLs remain and automatically skip step 1.
 
-### Performance Reference
+#### Performance Reference
 
 Index build time measured on a 10M-row table:
 
