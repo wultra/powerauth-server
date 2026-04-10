@@ -23,10 +23,10 @@
 
     <changeSet id="1" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
         <preConditions onFail="MARK_RAN">
-            <indexExists indexName="pa_activation_code"/>
+            <columnExists tableName="pa_activation" columnName="activation_code"/>
         </preConditions>
-        <comment>Drop non-unique index on pa_activation(activation_code) before replacing with unique constraint</comment>
-        <dropIndex tableName="pa_activation" indexName="pa_activation_code"/>
+        <comment>Add NOT NULL constraint on pa_activation(activation_code) to align the DB schema with the JPA entity definition. Applied before the unique constraint to fail fast if NULL values exist, avoiding an expensive index build on dirty data.</comment>
+        <addNotNullConstraint tableName="pa_activation" columnName="activation_code" columnDataType="varchar(255)"/>
     </changeSet>
 
     <changeSet id="2" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
@@ -35,10 +35,18 @@
                 <uniqueConstraintExists tableName="pa_activation" constraintName="pa_activation_code_application_uk"/>
             </not>
         </preConditions>
-        <comment>Add unique constraint on (application_id, activation_code) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check</comment>
+        <comment>Add unique constraint on (activation_code, application_id) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check. activation_code is NOT NULL (see changeset id=1), so multiple NULLs bypassing the unique constraint is not a concern.</comment>
         <addUniqueConstraint tableName="pa_activation"
-                             columnNames="application_id, activation_code"
+                             columnNames="activation_code, application_id"
                              constraintName="pa_activation_code_application_uk"/>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
+        <preConditions onFail="MARK_RAN">
+            <indexExists indexName="pa_activation_code"/>
+        </preConditions>
+        <comment>Drop non-unique index on pa_activation(activation_code) replaced by unique constraint pa_activation_code_application_uk</comment>
+        <dropIndex tableName="pa_activation" indexName="pa_activation_code"/>
     </changeSet>
 
 </databaseChangeLog>
