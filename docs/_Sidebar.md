@@ -4,7 +4,7 @@
 - [Deploy PowerAuth Server](./Deploying-PowerAuth-Server.md)
 - [Migration Instructions](./Migration-Instructions.md)
 - [Configuration Properties](./Configuration-Properties.md)
-- [Monitoring](./Monitoring.md)
+- [Monitoring](./PowerAuth-Server-Monitoring.md)
 
 **Integration Tutorials**
 
