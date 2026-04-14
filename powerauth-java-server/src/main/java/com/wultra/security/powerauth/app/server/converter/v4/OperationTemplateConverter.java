@@ -19,15 +19,17 @@
 
 package com.wultra.security.powerauth.app.server.converter.v4;
 
+import com.wultra.security.powerauth.app.server.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
-import org.springframework.stereotype.Component;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,10 +38,10 @@ import java.util.List;
  * @author Petr Dvorak, petr@wultra.com
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("operationTemplateConverterV4")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OperationTemplateConverter {
 
-    public OperationTemplateEntity convertToDB(OperationTemplateCreateRequest source) {
+    public static OperationTemplateEntity convertToDB(final OperationTemplateCreateRequest source) {
         if (source == null) {
             return null;
         }
@@ -52,20 +54,16 @@ public class OperationTemplateConverter {
         destination.setRiskFlags(source.getRiskFlags());
         destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
-        final List<PowerAuthCodeType> authCodeTypes = new ArrayList<>();
-        for (final AuthenticationCodeType type : source.getAuthenticationCodeType()) {
-            final PowerAuthCodeType powerAuthCodeType = PowerAuthCodeType.getEnumFromString(type.toString());
-            if (!authCodeTypes.contains(powerAuthCodeType)) {
-                authCodeTypes.add(powerAuthCodeType);
-            }
-        }
-        final PowerAuthCodeType[] typesArray = authCodeTypes.toArray(new PowerAuthCodeType[0]);
+        final PowerAuthCodeType[] typesArray = source.getAuthenticationCodeType().stream()
+                .map(AuthenticationCodeTypeConverter::convert)
+                .distinct()
+                .toArray(PowerAuthCodeType[]::new);
         destination.setSignatureType(typesArray);
 
         return destination;
     }
 
-    public OperationTemplateEntity convertToDB(OperationTemplateEntity original, OperationTemplateUpdateRequest source) {
+    public static OperationTemplateEntity convertToDB(final OperationTemplateEntity original, final OperationTemplateUpdateRequest source) {
         if (original == null || source == null) {
             return original;
         }
@@ -77,20 +75,16 @@ public class OperationTemplateConverter {
         original.setRiskFlags(source.getRiskFlags());
         original.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
-        final List<PowerAuthCodeType> authCodeTypes = new ArrayList<>();
-        for (final AuthenticationCodeType type : source.getAuthenticationCodeType()) {
-            final PowerAuthCodeType powerAuthCodeType = PowerAuthCodeType.getEnumFromString(type.toString());
-            if (!authCodeTypes.contains(powerAuthCodeType)) {
-                authCodeTypes.add(powerAuthCodeType);
-            }
-        }
-        final PowerAuthCodeType[] typesArray = authCodeTypes.toArray(new PowerAuthCodeType[0]);
+        final PowerAuthCodeType[] typesArray = source.getAuthenticationCodeType().stream()
+                .map(AuthenticationCodeTypeConverter::convert)
+                .distinct()
+                .toArray(PowerAuthCodeType[]::new);
         original.setSignatureType(typesArray);
 
         return original;
     }
 
-    public OperationTemplateDetailResponse convertFromDB(OperationTemplateEntity source) {
+    public static OperationTemplateDetailResponse convertFromDB(final OperationTemplateEntity source) {
         final OperationTemplateDetailResponse destination = new OperationTemplateDetailResponse();
         destination.setId(source.getId());
         destination.setTemplateName(source.getTemplateName());
@@ -100,14 +94,12 @@ public class OperationTemplateConverter {
         destination.setMaxFailureCount(source.getMaxFailureCount());
         destination.setRiskFlags(source.getRiskFlags());
         destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
-        final List<AuthenticationCodeType> authencationCodeTypesResponse = new ArrayList<>();
-        for (final PowerAuthCodeType type : source.getSignatureType()) {
-            final AuthenticationCodeType signatureType = AuthenticationCodeType.enumFromString(type.toString());
-            if (!authencationCodeTypesResponse.contains(signatureType)) {
-                authencationCodeTypesResponse.add(signatureType);
-            }
-        }
-        destination.setAuthenticationCodeTypes(authencationCodeTypesResponse);
+
+        final List<AuthenticationCodeType> authenticationCodeTypesResponse = Arrays.stream(source.getSignatureType())
+                .map(AuthenticationCodeTypeConverter::convert)
+                .distinct()
+                .toList();
+        destination.setAuthenticationCodeTypes(authenticationCodeTypesResponse);
         return destination;
     }
 

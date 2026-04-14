@@ -23,7 +23,6 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
-import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.SignatureEntity;
@@ -66,7 +65,6 @@ public class AuditingServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     private final KeyValueMapConverter keyValueMapConverter;
 
@@ -132,7 +130,7 @@ public class AuditingServiceBehavior {
                     item.setDataBase64(signatureEntity.getDataBase64());
                     item.setSignatureVersion(signatureEntity.getSignatureVersion());
                     item.setSignature(signatureEntity.getSignature());
-                    item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
+                    item.setSignatureType(signatureEntity.getSignatureType());
                     item.setValid(signatureEntity.getValid());
                     item.setVersion(signatureEntity.getVersion());
                     item.setTimestampCreated(signatureEntity.getTimestampCreated());

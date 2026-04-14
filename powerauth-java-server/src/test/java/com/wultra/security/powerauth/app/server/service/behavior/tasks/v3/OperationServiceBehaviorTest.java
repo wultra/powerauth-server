@@ -31,6 +31,7 @@ import com.wultra.security.powerauth.client.model.response.v3.OperationUserActio
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
 import com.wultra.security.powerauth.app.server.database.repository.OperationRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -246,6 +248,84 @@ class OperationServiceBehaviorTest {
         final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
+    }
+
+    /**
+     * Tests the creation of an operation with a specified activation ID.
+     * Verifies that the operation is correctly created and stored with the provided activation ID.
+     * Unsupported signature types on the associated operation template are silently discarded.
+     */
+    @Test
+    void testApproveOperationWithMatchingActivationIdSuccess_usingOperationTemplateContainingUnsupportedSignatureTypes() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setActivationId(ACTIVATION_ID);
+        request.setTemplateName("test-template-unsupported-signature-types");
+        request.setUserId(USER_ID);
+        request.setApplications(Collections.singletonList(APP_ID));
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertThat(operationDetailResponse.getSignatureType())
+                .hasSize(3)
+                .containsExactlyInAnyOrder(SignatureType.POSSESSION, SignatureType.POSSESSION_KNOWLEDGE, SignatureType.POSSESSION_BIOMETRY);
+
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId());
+        assertTrue(savedEntity.isPresent());
+        assertThat(savedEntity.get().getSignatureType())
+                .hasSize(3)
+                .containsExactlyInAnyOrder(PowerAuthCodeType.POSSESSION, PowerAuthCodeType.POSSESSION_KNOWLEDGE, PowerAuthCodeType.POSSESSION_BIOMETRY);
+
+        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
+        operationApproveRequest.setOperationId(savedEntity.get().getId());
+        operationApproveRequest.getAdditionalData().put("activationId", savedEntity.get().getActivationId());
+        operationApproveRequest.setApplicationId(APP_ID);
+        operationApproveRequest.setUserId(savedEntity.get().getUserId());
+        operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
+        operationApproveRequest.setData("A2");
+
+        final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
+        assertNotNull(operationUserActionResponse);
+        assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
+    }
+
+    /**
+     * Tests the creation of an operation with a specified activation ID.
+     * Verifies that the operation is correctly created and stored with the provided activation ID.
+     * Unsupported signature types on the associated operation template are silently discarded,
+     * and so the created operation does not have any signature type assigned, meaning it can't
+     * be later approved by any signature type.
+     */
+    @Test
+    void testApproveOperationWithMatchingActivationIdFailed_usingOperationTemplateContainingUnsupportedSignatureTypesOnly() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setActivationId(ACTIVATION_ID);
+        request.setTemplateName("test-template-unsupported-signature-types-only");
+        request.setUserId(USER_ID);
+        request.setApplications(Collections.singletonList(APP_ID));
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertThat(operationDetailResponse.getSignatureType())
+                .isNotNull()
+                .isEmpty();
+
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId());
+        assertTrue(savedEntity.isPresent());
+        assertThat(savedEntity.get().getSignatureType())
+                .isNotNull()
+                .isEmpty();
+
+        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
+        operationApproveRequest.setOperationId(savedEntity.get().getId());
+        operationApproveRequest.getAdditionalData().put("activationId", savedEntity.get().getActivationId());
+        operationApproveRequest.setApplicationId(APP_ID);
+        operationApproveRequest.setUserId(savedEntity.get().getUserId());
+        operationApproveRequest.setData("A2");
+
+        for (SignatureType signatureType : SignatureType.values()) {
+            operationApproveRequest.setSignatureType(signatureType);
+            final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
+            assertNotNull(operationUserActionResponse);
+            assertEquals(UserActionResult.APPROVAL_FAILED, operationUserActionResponse.getResult());
+        }
     }
 
     /**

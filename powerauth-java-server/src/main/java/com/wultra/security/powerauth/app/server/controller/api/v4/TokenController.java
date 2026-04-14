@@ -148,11 +148,8 @@ public class TokenController {
     private static AuthenticationCodeType convert(final SignatureType src) {
         return switch (src) {
             case POSSESSION -> AuthenticationCodeType.POSSESSION;
-            case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
-            case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> AuthenticationCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

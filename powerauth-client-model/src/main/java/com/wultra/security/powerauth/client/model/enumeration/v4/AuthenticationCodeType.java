@@ -32,16 +32,6 @@ public enum AuthenticationCodeType {
     POSSESSION,
 
     /**
-     * 1FA authentication using knowledge factor key, value = "knowledge"
-     */
-    KNOWLEDGE,
-
-    /**
-     * 1FA authentication using biometry factor key, value = "biometry"
-     */
-    BIOMETRY,
-
-    /**
      * 2FA authentication using possession and knowledge factor key, value = "possession_knowledge"
      */
     POSSESSION_KNOWLEDGE,
@@ -49,12 +39,7 @@ public enum AuthenticationCodeType {
     /**
      * 2FA authentication using possession and biometry factor key, value = "possession_biometry"
      */
-    POSSESSION_BIOMETRY,
-
-    /**
-     * 3FA authentication using possession, knowledge and biometry factor key, value = "possession_knowledge_biometry"
-     */
-    POSSESSION_KNOWLEDGE_BIOMETRY;
+    POSSESSION_BIOMETRY;
 
     /**
      * Get enum value from provided string. In case the provided value does not match any value, null value is returned.

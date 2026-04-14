@@ -1,7 +1,9 @@
 INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration, proximity_check_enabled) VALUES
     (100, 'test-template', 'test-template', 'A2', 'POSSESSION_KNOWLEDGE', 5, 300, false),
     (101, 'test-template-proximity-check', 'test-template', 'A2', 'POSSESSION_KNOWLEDGE', 5, 300, true),
-    (102, 'test-template-text', 'test-template', 'A0*T${text}', 'POSSESSION_KNOWLEDGE', 5, 300, false);
+    (102, 'test-template-text', 'test-template', 'A0*T${text}', 'POSSESSION_KNOWLEDGE', 5, 300, false),
+    (103, 'test-template-unsupported-signature-types', 'test-template', 'A2', 'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 5, 300, false),
+    (104, 'test-template-unsupported-signature-types-only', 'test-template', 'A2', 'knowledge,biometry,possession_knowledge_biometry', 5, 300, false);
 
 INSERT INTO pa_application (id, name) VALUES
     (121, 'PA_Tests');
@@ -16,25 +18,25 @@ INSERT INTO pa_activation (activation_id, application_id, user_id, activation_na
 VALUES ('68c5ca56-b419-4653-949f-49061a4be886', 121, 'testUser', 'test v4', 'PVHMP-NQEZ6-ADSYV-HRSYA', 3, null, 0, null, 0, 'D5XibWWPCv+nOOfcdfnUGQ==', 'BF3Sc/vqg8Zk70Y8rbT45xzAIxblGoWgLqknCHuNj7f6QFBNi2UnLbG7yMqf2eWShhyBJdu9zqx7DG2qzlqhbBE=', null, 'unknown', 'backend-tests', '[ "test-flag1", "test-flag4", "test-flag5" ]', 0, 1, 'PUz/He8+RFoOPS1NG6Gw3TDXIQ/DnS1skNBOQWzXX60=', 0, 'BPHJ4N90NUuLDq92FJUPcaKZOMad1KH2HrwQEN9DB5ST5fiJU4baYF1VlK1JHglnnN1miL3/Qb6IyW3YSMBySYM=', 0, '2023-04-03 14:04:06.015000', '9999-04-03 13:59:06.015000', '9999-04-03 13:59:16.293000', '9999-04-03 13:59:16.343000', 121, false, false, false, 3);
 
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('0f038bac-6c94-45eb-b3a9-f92e809e8ea4', 'testUser', null, 'test-flag5', 'login', 'test', 'A2', null, null, 1,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2023-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
+VALUES ('0f038bac-6c94-45eb-b3a9-f92e809e8ea4', 'testUser', null, 'test-flag5', 'login', 'test', 'A2', null, null, 1,'possession,possession_knowledge,possession_biometry', 0, 5, '2023-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
 /* NULL activation flag */
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('70702b41-7b5a-4a6d-9bc2-e99949c2df53', 'testUser', null, 'test-flag1', 'login', 'test', 'A2', null, null, 3,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2025-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
+VALUES ('70702b41-7b5a-4a6d-9bc2-e99949c2df53', 'testUser', null, 'test-flag1', 'login', 'test', 'A2', null, null, 3,'possession,possession_knowledge,possession_biometry', 0, 5, '2025-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
 /* NULL activation id */
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('f451bcb7-9d76-42d6-97a6-76a9ecaf25813', 'testUser', null, 'test-flag1', 'login', 'test', 'A2', null, null, 3,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2024-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, null);
+VALUES ('f451bcb7-9d76-42d6-97a6-76a9ecaf25813', 'testUser', null, 'test-flag1', 'login', 'test', 'A2', null, null, 3,'possession,possession_knowledge,possession_biometry', 0, 5, '2024-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, null);
 
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('b6e41a83-6357-4670-ac4c-1f7dcaf2aa9e', 'testUser', null, 'test-flag3', 'login', 'test', 'A2', null, null, 3,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2026-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
+VALUES ('b6e41a83-6357-4670-ac4c-1f7dcaf2aa9e', 'testUser', null, 'test-flag3', 'login', 'test', 'A2', null, null, 3,'possession,possession_knowledge,possession_biometry', 0, 5, '2026-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
 
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('e708e33e-e1cb-48e2-9b51-521a3d205330', 'testUser', null, null, 'login', 'test', 'A2', null, null, 3,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2027-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
+VALUES ('e708e33e-e1cb-48e2-9b51-521a3d205330', 'testUser', null, null, 'login', 'test', 'A2', null, null, 3,'possession,possession_knowledge,possession_biometry', 0, 5, '2027-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
 
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('2067b5d1-1c50-43eb-99df-847830e4807a', 'testUser', null, null, 'login', 'test', 'A2', null, null, 1,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2021-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
+VALUES ('2067b5d1-1c50-43eb-99df-847830e4807a', 'testUser', null, null, 'login', 'test', 'A2', null, null, 1,'possession,possession_knowledge,possession_biometry', 0, 5, '2021-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
 /* TO be expired*/
 insert into pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id)
-VALUES ('2067b5d1-1c50-43eb-99df-847830eaaaa', 'testUser', null, null, 'login', 'test', 'A2', null, null, 1,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2020-12-14 21:56:40.773000', '2021-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
+VALUES ('2067b5d1-1c50-43eb-99df-847830eaaaa', 'testUser', null, null, 'login', 'test', 'A2', null, null, 1,'possession,possession_knowledge,possession_biometry', 0, 5, '2020-12-14 21:56:40.773000', '2021-12-14 21:56:40.773000', null, null, null, '68c5ca56-b419-4653-949f-49061a4be886');
 
 insert into pa_operation_application (application_id, operation_id)
 VALUES (121, '0f038bac-6c94-45eb-b3a9-f92e809e8ea4'),

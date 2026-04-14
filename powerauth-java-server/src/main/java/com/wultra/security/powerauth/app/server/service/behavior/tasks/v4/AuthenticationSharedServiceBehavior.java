@@ -546,10 +546,8 @@ public class AuthenticationSharedServiceBehavior {
      * @param codeType Authentication code type.
      * @return Knowledge component present.
      */
-    private boolean hasKnowledgeComponent(AuthenticationCodeType codeType) {
-        return codeType == AuthenticationCodeType.KNOWLEDGE ||
-                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE ||
-                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+    private static boolean hasKnowledgeComponent(AuthenticationCodeType codeType) {
+        return codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE;
     }
 
     /**
@@ -557,10 +555,8 @@ public class AuthenticationSharedServiceBehavior {
      * @param codeType Authentication code type.
      * @return Biometry component present.
      */
-    private boolean hasBiometryComponent(AuthenticationCodeType codeType) {
-        return codeType == AuthenticationCodeType.BIOMETRY ||
-                codeType == AuthenticationCodeType.POSSESSION_BIOMETRY ||
-                codeType == AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
+    private static boolean hasBiometryComponent(AuthenticationCodeType codeType) {
+        return codeType == AuthenticationCodeType.POSSESSION_BIOMETRY;
     }
 
     /**

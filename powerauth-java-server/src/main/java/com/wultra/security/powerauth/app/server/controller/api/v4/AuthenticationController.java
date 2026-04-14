@@ -189,22 +189,16 @@ public class AuthenticationController {
     private static SignatureType convert(final AuthenticationCodeType src) {
         return switch (src) {
             case POSSESSION -> SignatureType.POSSESSION;
-            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
-            case BIOMETRY -> SignatureType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 
     private static AuthenticationCodeType convert(final SignatureType src) {
         return switch (src) {
             case POSSESSION -> AuthenticationCodeType.POSSESSION;
-            case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
-            case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> AuthenticationCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

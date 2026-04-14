@@ -76,7 +76,6 @@ public class SignatureSharedServiceBehavior {
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerAuthentication powerAuthServerAuthentication = new PowerAuthServerAuthentication();
-    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final CryptographyServiceFactory cryptographyServiceFactory;
 
     /**
@@ -261,7 +260,7 @@ public class SignatureSharedServiceBehavior {
             // Check all signature types for each counter value in case there are multiple signature types
             for (SignatureType signatureType : signatureTypes) {
                 // Get the signature keys according to the signature type
-                final PowerAuthCodeType powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureType);
+                final PowerAuthCodeType powerAuthSignatureTypes = SignatureTypeConverter.convert(signatureType);
                 final List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForAuthenticationCodeType(powerAuthSignatureTypes, masterSecretKey);
 
                 signatureValid = powerAuthServerAuthentication.validateAuthCode(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getAuthCodeConfiguration());

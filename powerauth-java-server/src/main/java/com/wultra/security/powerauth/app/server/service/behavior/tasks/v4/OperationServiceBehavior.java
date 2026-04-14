@@ -24,6 +24,7 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import com.wultra.security.powerauth.app.server.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
@@ -57,6 +58,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -374,7 +376,7 @@ public class OperationServiceBehavior {
             }
 
             // Check the operation properties match the request
-            final PowerAuthCodeType factorEnum = PowerAuthCodeType.getEnumFromString(authenticationCodeType.toString());
+            final PowerAuthCodeType factorEnum = AuthenticationCodeTypeConverter.convert(authenticationCodeType);
             final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
             final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
             final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
@@ -965,7 +967,7 @@ public class OperationServiceBehavior {
         destination.setAdditionalData(source.getAdditionalData() != null ? source.getAdditionalData() : Collections.emptyMap());
         final List<AuthenticationCodeType> authenticationCodeTypes = Arrays.stream(source.getSignatureType())
                 .distinct()
-                .map(p -> AuthenticationCodeType.enumFromString(p.toString()))
+                .map(AuthenticationCodeTypeConverter::convert)
                 .toList();
         destination.setAuthenticationCodeTypes(authenticationCodeTypes);
         destination.setFailureCount(source.getFailureCount());
@@ -1025,17 +1027,17 @@ public class OperationServiceBehavior {
         final String operationId = operation.getId();
         final PowerAuthCodeType[] allowedFactors = operation.getSignatureType();
         if (usedFactor == null) { // the used factor is unknown
-            logger.warn("Null authentication factors used for operation ID: {} - allowed: {}", operationId, Arrays.toString(allowedFactors));
+            logger.warn("Null authentication factors used for operationId: {} - allowed: {}", operationId, Arrays.toString(allowedFactors));
             return false;
         }
-        if (allowedFactors == null) {
-            logger.error("Null allowed factors for operation ID: {}. Check your configuration in pa_operation_template table.", operationId);
+        if (ArrayUtils.isEmpty(allowedFactors)) {
+            logger.error("No allowed factors for operationId: {}. Check your configuration in pa_operation_template table.", operationId);
             return false; // likely a misconfiguration
         }
         if (Arrays.asList(allowedFactors).contains(usedFactor)) {
             return true;
         } else {
-            logger.warn("Invalid authentication factors used for operation ID: {} - allowed: {}, used: {}", operationId, Arrays.toString(allowedFactors), usedFactor);
+            logger.warn("Invalid authentication factors used for operationId: {} - allowed: {}, used: {}", operationId, Arrays.toString(allowedFactors), usedFactor);
             return false;
         }
     }
