@@ -98,11 +98,6 @@ public class ActivationStatusServiceBehavior {
 
     /**
      * Get activation status for given activation ID.
-     * <p>
-     * When {@link GetActivationStatusRequest#isIncludeStatusBlob()} is {@code false} the status blob is omitted,
-     * which avoids the associated cryptographic operations. This is the preferred mode for backend-to-backend
-     * calls where the blob is not needed (equivalent to {@code getActivationStatusWithoutBlob}).
-     *
      * @param request Activation status request.
      * @return Activation status response
      * @throws GenericServiceException Thrown when cryptography error occurs.
