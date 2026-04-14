@@ -101,7 +101,7 @@ public class ActivationStatusServiceBehavior {
      * <p>
      * When {@code request.isIncludeStatusBlob()} is {@code false} the status blob is omitted,
      * which avoids the associated cryptographic operations. This is the preferred mode for backend-to-backend
-     * calls where the blob is not needed (equivalent to {@code getActivationDetail}).
+     * calls where the blob is not needed (equivalent to {@code getActivationStatusWithoutBlob}).
      *
      * @param request Activation status request.
      * @return Activation status response
@@ -130,10 +130,10 @@ public class ActivationStatusServiceBehavior {
             final String applicationId = application.getId();
 
             // Build the common response fields shared across all activation states
-            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, applicationId);
+            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application);
 
             if (includeStatusBlob) {
-                setStatusBlob(response, activation, application);
+                response.setStatusBlob(deriveStatusBlob(activation));
             }
 
             return response;
@@ -162,7 +162,7 @@ public class ActivationStatusServiceBehavior {
      * For {@link ActivationStatus#CREATED} activations, activation code and signatures are included.
      * For all other states, device public key fingerprint and additional data are included.
      */
-    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, String applicationId) throws GenericServiceException {
+    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
         final GetActivationStatusResponse response = new GetActivationStatusResponse();
         response.setActivationId(activation.getActivationId());
         response.setUserId(activation.getUserId());
@@ -173,7 +173,7 @@ public class ActivationStatusServiceBehavior {
         response.setConfirmationPending(activation.isConfirmationPending());
         response.setActivationName(activation.getActivationName());
         response.setExtras(activation.getExtras());
-        response.setApplicationId(applicationId);
+        response.setApplicationId(application.getId());
         response.setFailedAttempts(activation.getFailedAttempts());
         response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
         response.setTimestampCreated(activation.getTimestampCreated());
@@ -212,18 +212,19 @@ public class ActivationStatusServiceBehavior {
      * secret is not yet established. For all other states the real blob is derived from the
      * shared secret; if the shared secret is unavailable (e.g. activation removed from CREATED),
      * {@code null} is left in the response.
+     * @param activation Activation record.
+     * @return Activation status blob info as String.
      */
-    private void setStatusBlob(GetActivationStatusResponse response, ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException, GenericCryptoException, CryptoProviderException, InvalidKeyException {
+    private String deriveStatusBlob(ActivationRecordEntity activation) throws GenericServiceException, GenericCryptoException, CryptoProviderException, InvalidKeyException {
         if (activation.getActivationStatus() == ActivationStatus.CREATED) {
             // Created activations cannot produce a valid blob — keys have not been exchanged yet
-            response.setStatusBlob(Base64.getEncoder().encodeToString(KEY_GENERATOR.generateRandomBytes(32)));
-            return;
+            return Base64.getEncoder().encodeToString(KEY_GENERATOR.generateRandomBytes(32));
         }
 
         final String sharedSecretEncrypted = activation.getSharedSecret();
         if (sharedSecretEncrypted == null) {
             // Activation was moved to a non-CREATED state without ever completing key exchange — no blob
-            return;
+            return null;
         }
 
         final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
@@ -233,7 +234,7 @@ public class ActivationStatusServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
-        final boolean algorithmSupported = algorithmQueryService.isAlgorithmSupported(application, sharedSecretAlgorithm);
+        final boolean algorithmSupported = algorithmQueryService.isAlgorithmSupported(activation.getApplication(), sharedSecretAlgorithm);
         final String ctrDataBase64 = activation.getCtrDataV4Base64();
         if (ctrDataBase64 == null) {
             logger.error("Invalid counter data for activation ID: {}", activation.getActivationId());
@@ -274,7 +275,7 @@ public class ActivationStatusServiceBehavior {
                 .put(statusBlobMac)
                 .array();
 
-        response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
+        return Base64.getEncoder().encodeToString(statusBlob);
     }
 
     /**

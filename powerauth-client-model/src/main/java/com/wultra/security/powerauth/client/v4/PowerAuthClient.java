@@ -348,7 +348,7 @@ public interface PowerAuthClient {
      * @return {@link GetActivationStatusResponse} with {@code statusBlob} set to {@code null}.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    default GetActivationStatusResponse getActivationDetail(String activationId) throws PowerAuthClientException {
+    default GetActivationStatusResponse getActivationStatusWithoutBlob(String activationId) throws PowerAuthClientException {
         final GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
         request.setIncludeStatusBlob(false);
