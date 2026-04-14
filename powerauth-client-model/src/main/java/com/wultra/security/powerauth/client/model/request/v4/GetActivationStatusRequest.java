@@ -35,4 +35,7 @@ public class GetActivationStatusRequest {
     @NotBlank(message = "Activation ID must not be empty when requesting activation status")
     private String activationId;
 
+    @Schema(description = "Whether to include the status blob in the response. Set to false to obtain plain activation detail without blob, which is more efficient for backend-to-backend calls.", defaultValue = "true")
+    private boolean includeStatusBlob = true;
+
 }

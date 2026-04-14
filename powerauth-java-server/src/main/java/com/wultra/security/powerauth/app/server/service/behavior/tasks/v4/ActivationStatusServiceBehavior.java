@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
@@ -91,11 +92,16 @@ public class ActivationStatusServiceBehavior {
     private final ActivationCommitPhaseConverter activationCommitPhaseConverter = new ActivationCommitPhaseConverter();
 
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
+    private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final PowerAuthServerKeyFactory SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
     /**
-     * Get activation status for given activation ID
+     * Get activation status for given activation ID.
+     * <p>
+     * When {@code request.isIncludeStatusBlob()} is {@code false} the status blob is omitted,
+     * which avoids the associated cryptographic operations. This is the preferred mode for backend-to-backend
+     * calls where the blob is not needed (equivalent to {@code getActivationDetail}).
      *
      * @param request Activation status request.
      * @return Activation status response
@@ -105,188 +111,35 @@ public class ActivationStatusServiceBehavior {
     public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
+            final boolean includeStatusBlob = request.isIncludeStatusBlob();
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
 
-            // Prepare key generator
-            final KeyGenerator keyGenerator = new KeyGenerator();
-
             final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
-            // Check if the activation exists
-            if (activationOptional.isPresent()) {
-
-                final ActivationRecordEntity activation = activationOptional.get();
-                // Deactivate old pending activations first
-                activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
-
-                final ApplicationEntity application = activation.getApplication();
-                final String applicationId = application.getId();
-
-                // Handle CREATED activation
-                if (activation.getActivationStatus() == ActivationStatus.CREATED) {
-
-                    // Created activations are not able to transfer valid status blob to the client
-                    // since both keys were not exchanged yet and transport cannot be secured.
-                    final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
-
-                    final Map<String, String> signatures = asymmetricSignatureService.computeSignaturesForActivation(activation);
-
-                    // return the data
-                    final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                    response.setActivationId(activationId);
-                    response.setUserId(activation.getUserId());
-                    response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
-                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
-                    response.setBlockedReason(activation.getBlockedReason());
-                    response.setConfirmationPending(activation.isConfirmationPending());
-                    response.setActivationName(activation.getActivationName());
-                    response.setExtras(activation.getExtras());
-                    response.setApplicationId(applicationId);
-                    response.setFailedAttempts(activation.getFailedAttempts());
-                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
-                    response.setTimestampCreated(activation.getTimestampCreated());
-                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
-                    response.setTimestampLastChange(activation.getTimestampLastChange());
-                    response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
-                    response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(signatures.get(JWSAlgorithm.ES256.getName()));
-                    response.getActivationSignatures().putAll(signatures);
-                    response.setDevicePublicKeyFingerprint(null);
-                    response.setPlatform(activation.getPlatform());
-                    response.setProtocol(convertProtocol(activation.getProtocol()));
-                    response.setExternalId(activation.getExternalId());
-                    response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getActivationFlags().addAll(activation.getFlags());
-                    response.getApplicationRoles().addAll(application.getRoles());
-                    // Unknown version is converted to 0 in service
-                    response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
-                    response.setTransferType(convertTransferType(activation.getTransferType()));
-                    return response;
-                } else {
-                    final String sharedSecretEncrypted = activation.getSharedSecret();
-
-                    final byte[] statusBlob;
-                    final SharedSecretAlgorithm sharedSecretAlgorithm;
-                    if (sharedSecretEncrypted != null) {
-                        // Resolve shared secret algorithm
-                        sharedSecretAlgorithm = activation.getCryptoAlgorithm();
-                        if (sharedSecretAlgorithm == null) {
-                            logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
-                            // Rollback is not required, database is not used for writing
-                            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-                        }
-                        final boolean algorithmSupported = algorithmQueryService.isAlgorithmSupported(application, sharedSecretAlgorithm);
-                        final String ctrDataBase64 = activation.getCtrDataV4Base64();
-                        final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
-                        final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
-                        statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
-                        statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
-                        statusBlobInfo.setUpgradeVersion(PowerAuthServiceConfiguration.POWERAUTH_PROTOCOL_VERSION);
-                        statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
-                        statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
-                        statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
-                        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
-                        statusBlobInfo.setStatusFlags(computeStatusFlags(
-                                activation.isConfirmationPending(),
-                                activation.isUpgradeConfirmationPending(),
-                                !algorithmSupported,
-                                activation.isBiometricFactorEnabled())
-                        );
-                        final EncryptionAlgorithm sharedSecretEncryptionAlgorithm = activation.getSharedSecretEncryption();
-                        final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionAlgorithm, sharedSecretEncrypted);
-                        final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
-                        final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
-                        final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);
-                        final SecretKey keyStatusMac = SERVER_KEY_FACTORY.generateKeyMacStatus(sharedSecretKey);
-                        final byte[] ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, keyCtrDataMac, ProtocolVersion.V40);
-                        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
-                        final byte[] statusBlobData = powerAuthServerActivation.generateStatusBlob(statusBlobInfo, ProtocolVersion.V40);
-                        final byte[] statusBlobMac = powerAuthServerActivation.calculateStatusMac(statusBlobData, keyStatusMac, ProtocolVersion.V40);
-                        statusBlob = ByteBuffer
-                                .allocate(statusBlobData.length + statusBlobMac.length)
-                                .put(statusBlobData)
-                                .put(statusBlobMac)
-                                .array();
-                    } else {
-                        statusBlob = null;
-                    }
-
-                    // return the data
-                    final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                    response.setActivationId(activationId);
-                    response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
-                    response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
-                    response.setBlockedReason(activation.getBlockedReason());
-                    response.setConfirmationPending(activation.isConfirmationPending());
-                    response.setActivationName(activation.getActivationName());
-                    response.setUserId(activation.getUserId());
-                    response.setExtras(activation.getExtras());
-                    response.setApplicationId(applicationId);
-                    response.setFailedAttempts(activation.getFailedAttempts());
-                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
-                    response.setTimestampCreated(activation.getTimestampCreated());
-                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
-                    response.setTimestampLastChange(activation.getTimestampLastChange());
-                    if (statusBlob != null) {
-                        response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
-                    }
-                    response.setActivationCode(null);
-                    response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
-                    response.setPlatform(activation.getPlatform());
-                    response.setProtocol(convertProtocol(activation.getProtocol()));
-                    response.setExternalId(activation.getExternalId());
-                    response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getActivationFlags().addAll(activation.getFlags());
-                    response.getApplicationRoles().addAll(application.getRoles());
-                    // Unknown version is converted to 0 in service
-                    response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                    response.setAdditionalData(activation.getAdditionalData());
-                    response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
-                    response.setTransferType(convertTransferType(activation.getTransferType()));
-                    return response;
-                }
-            } else {
-                // Activations that do not exist should return REMOVED state and
-                // a random status blob
-                final byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
-                // Generate date
-                final Date zeroDate = new Date(0);
-
-                // return the data
-                final GetActivationStatusResponse response = new GetActivationStatusResponse();
-                response.setActivationId(activationId);
-                response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
-                response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
-                response.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
-                response.setBlockedReason(null);
-                response.setActivationName("unknown");
-                response.setUserId("unknown");
-                response.setApplicationId(null);
-                response.setExtras(null);
-                response.setPlatform(null);
-                response.setProtocol(null);
-                response.setExternalId(null);
-                response.setDeviceInfo(null);
-                response.setTimestampCreated(zeroDate);
-                response.setTimestampLastUsed(zeroDate);
-                response.setTimestampLastChange(null);
-                response.setFailedAttempts(0L);
-                response.setMaxFailedAttempts(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts());
-                response.setStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
-                response.setActivationCode(null);
-                response.setDevicePublicKeyFingerprint(null);
-                // Use 0 as version when version is undefined
-                response.setVersion(0L);
-                return response;
+            if (activationOptional.isEmpty()) {
+                return buildRemovedActivationResponse(activationId, includeStatusBlob);
             }
+
+            final ActivationRecordEntity activation = activationOptional.get();
+            // Deactivate old pending activations first
+            activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
+
+            final ApplicationEntity application = activation.getApplication();
+            final String applicationId = application.getId();
+
+            // Build the common response fields shared across all activation states
+            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, applicationId);
+
+            if (includeStatusBlob) {
+                setStatusBlob(response, activation, application);
+            }
+
+            return response;
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            /// Rollback is not required, database is not used for writing
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
@@ -302,6 +155,165 @@ public class ActivationStatusServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    /**
+     * Build an activation detail response with all fields populated except the status blob.
+     * For {@link ActivationStatus#CREATED} activations, activation code and signatures are included.
+     * For all other states, device public key fingerprint and additional data are included.
+     */
+    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, String applicationId) throws GenericServiceException {
+        final GetActivationStatusResponse response = new GetActivationStatusResponse();
+        response.setActivationId(activation.getActivationId());
+        response.setUserId(activation.getUserId());
+        response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+        response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
+        response.setCommitPhase(activationCommitPhaseConverter.convertFrom(activation.getCommitPhase()));
+        response.setBlockedReason(activation.getBlockedReason());
+        response.setConfirmationPending(activation.isConfirmationPending());
+        response.setActivationName(activation.getActivationName());
+        response.setExtras(activation.getExtras());
+        response.setApplicationId(applicationId);
+        response.setFailedAttempts(activation.getFailedAttempts());
+        response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
+        response.setTimestampCreated(activation.getTimestampCreated());
+        response.setTimestampLastUsed(activation.getTimestampLastUsed());
+        response.setTimestampLastChange(activation.getTimestampLastChange());
+        response.setPlatform(activation.getPlatform());
+        response.setProtocol(convertProtocol(activation.getProtocol()));
+        response.setExternalId(activation.getExternalId());
+        response.setDeviceInfo(activation.getDeviceInfo());
+        response.getActivationFlags().addAll(activation.getFlags());
+        response.getApplicationRoles().addAll(application.getRoles());
+        // Unknown version is converted to 0 in service
+        response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+        response.setParentActivationId(activation.getParentActivation() == null ? null : activation.getParentActivation().getActivationId());
+        response.setTransferType(convertTransferType(activation.getTransferType()));
+
+        if (activation.getActivationStatus() == ActivationStatus.CREATED) {
+            // Activation code and signatures are relevant for CREATED activations (used during key exchange)
+            final Map<String, String> signatures = asymmetricSignatureService.computeSignaturesForActivation(activation);
+            response.setActivationCode(activation.getActivationCode());
+            response.setActivationSignature(signatures.get(JWSAlgorithm.ES256.getName()));
+            response.getActivationSignatures().putAll(signatures);
+            response.setDevicePublicKeyFingerprint(null);
+        } else {
+            response.setActivationCode(null);
+            response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
+            response.setAdditionalData(activation.getAdditionalData());
+        }
+
+        return response;
+    }
+
+    /**
+     * Compute and set the status blob on the response.
+     * For {@link ActivationStatus#CREATED} activations a random blob is used because the shared
+     * secret is not yet established. For all other states the real blob is derived from the
+     * shared secret; if the shared secret is unavailable (e.g. activation removed from CREATED),
+     * {@code null} is left in the response.
+     */
+    private void setStatusBlob(GetActivationStatusResponse response, ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException, GenericCryptoException, CryptoProviderException, InvalidKeyException {
+        if (activation.getActivationStatus() == ActivationStatus.CREATED) {
+            // Created activations cannot produce a valid blob — keys have not been exchanged yet
+            response.setStatusBlob(Base64.getEncoder().encodeToString(KEY_GENERATOR.generateRandomBytes(32)));
+            return;
+        }
+
+        final String sharedSecretEncrypted = activation.getSharedSecret();
+        if (sharedSecretEncrypted == null) {
+            // Activation was moved to a non-CREATED state without ever completing key exchange — no blob
+            return;
+        }
+
+        final SharedSecretAlgorithm sharedSecretAlgorithm = activation.getCryptoAlgorithm();
+        if (sharedSecretAlgorithm == null) {
+            logger.error("Missing shared secret algorithm for activation ID: {}", activation.getActivationId());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        final boolean algorithmSupported = algorithmQueryService.isAlgorithmSupported(application, sharedSecretAlgorithm);
+        final String ctrDataBase64 = activation.getCtrDataV4Base64();
+        if (ctrDataBase64 == null) {
+            logger.error("Invalid counter data for activation ID: {}", activation.getActivationId());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+        final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
+
+        final ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
+        statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
+        statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
+        statusBlobInfo.setUpgradeVersion(PowerAuthServiceConfiguration.POWERAUTH_PROTOCOL_VERSION);
+        statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
+        statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
+        statusBlobInfo.setCtrLookAhead((byte) powerAuthServiceConfiguration.getAuthenticationCodeValidationLookahead());
+        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
+        statusBlobInfo.setStatusFlags(computeStatusFlags(
+                activation.isConfirmationPending(),
+                activation.isUpgradeConfirmationPending(),
+                !algorithmSupported,
+                activation.isBiometricFactorEnabled())
+        );
+
+        final EncryptionAlgorithm sharedSecretEncryptionAlgorithm = activation.getSharedSecretEncryption();
+        final SharedSecretRecord sharedSecretDb = new SharedSecretRecord(sharedSecretEncryptionAlgorithm, sharedSecretEncrypted);
+        final String sharedSecretKeyBase64 = activationSharedSecretConverter.fromDBValue(sharedSecretDb, activation.getUserId(), activation.getActivationId());
+        final SecretKey sharedSecretKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(Base64.getDecoder().decode(sharedSecretKeyBase64));
+        final SecretKey keyCtrDataMac = SERVER_KEY_FACTORY.generateKeyMacCtrData(sharedSecretKey);
+        final SecretKey keyStatusMac = SERVER_KEY_FACTORY.generateKeyMacStatus(sharedSecretKey);
+        final byte[] ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, keyCtrDataMac, ProtocolVersion.V40);
+        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
+
+        final byte[] statusBlobData = powerAuthServerActivation.generateStatusBlob(statusBlobInfo, ProtocolVersion.V40);
+        final byte[] statusBlobMac = powerAuthServerActivation.calculateStatusMac(statusBlobData, keyStatusMac, ProtocolVersion.V40);
+        final byte[] statusBlob = ByteBuffer
+                .allocate(statusBlobData.length + statusBlobMac.length)
+                .put(statusBlobData)
+                .put(statusBlobMac)
+                .array();
+
+        response.setStatusBlob(Base64.getEncoder().encodeToString(statusBlob));
+    }
+
+    /**
+     * Build a placeholder response for activations that do not exist in the database.
+     * Returns {@link com.wultra.security.powerauth.client.model.enumeration.ActivationStatus#REMOVED}
+     * with a random status blob (when requested) to prevent information leakage.
+     */
+    private GetActivationStatusResponse buildRemovedActivationResponse(String activationId, boolean includeStatusBlob) throws CryptoProviderException {
+        final Date zeroDate = new Date(0);
+
+        final GetActivationStatusResponse response = new GetActivationStatusResponse();
+        response.setActivationId(activationId);
+        response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+        response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
+        response.setCommitPhase(com.wultra.security.powerauth.client.model.enumeration.CommitPhase.ON_COMMIT);
+        response.setBlockedReason(null);
+        response.setActivationName("unknown");
+        response.setUserId("unknown");
+        response.setApplicationId(null);
+        response.setExtras(null);
+        response.setPlatform(null);
+        response.setProtocol(null);
+        response.setExternalId(null);
+        response.setDeviceInfo(null);
+        response.setTimestampCreated(zeroDate);
+        response.setTimestampLastUsed(zeroDate);
+        response.setTimestampLastChange(null);
+        response.setFailedAttempts(0L);
+        response.setMaxFailedAttempts(powerAuthServiceConfiguration.getAuthenticationCodeMaxFailedAttempts());
+        response.setActivationCode(null);
+        response.setDevicePublicKeyFingerprint(null);
+        // Use 0 as version when version is undefined
+        response.setVersion(0L);
+
+        if (includeStatusBlob) {
+            response.setStatusBlob(Base64.getEncoder().encodeToString(KEY_GENERATOR.generateRandomBytes(32)));
+        }
+
+        return response;
     }
 
     private static ActivationTransferType convertTransferType(final com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType source) {
