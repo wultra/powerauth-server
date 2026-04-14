@@ -340,7 +340,7 @@ public interface PowerAuthClient {
     /**
      * Retrieve activation detail without the status blob.
      * <p>
-     * Equivalent to calling {@link #getActivationStatus(String)} with {@code includeStatusBlob=false}.
+     * Equivalent to calling {@link #getActivationStatus(GetActivationStatusRequest)} with {@code includeStatusBlob=false}.
      * Prefer this method for backend-to-backend calls where the status blob is not required,
      * as it avoids the associated cryptographic operations on the server side.
      *
