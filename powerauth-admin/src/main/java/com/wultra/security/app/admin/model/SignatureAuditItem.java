@@ -18,7 +18,6 @@ package com.wultra.security.app.admin.model;
 
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +37,7 @@ public class SignatureAuditItem {
     private ActivationStatus activationStatus;
     private List<KeyValue> additionalInfo;
     private String data;
-    private SignatureType signatureType;
+    private String signatureType;
     private String signatureVersion;
     private String signature;
     private String note;
@@ -111,11 +110,11 @@ public class SignatureAuditItem {
         this.data = data;
     }
 
-    public SignatureType getSignatureType() {
+    public String getSignatureType() {
         return signatureType;
     }
 
-    public void setSignatureType(SignatureType signatureType) {
+    public void setSignatureType(String signatureType) {
         this.signatureType = signatureType;
     }
 

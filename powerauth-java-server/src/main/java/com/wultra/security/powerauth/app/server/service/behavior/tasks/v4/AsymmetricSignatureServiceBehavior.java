@@ -35,6 +35,7 @@ import com.wultra.security.powerauth.client.model.request.v4.SignAsymmetricReque
 import com.wultra.security.powerauth.client.model.request.v4.VerifyAsymmetricSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.v4.SignAsymmetricResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyAsymmetricSignatureResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -85,7 +86,13 @@ public class AsymmetricSignatureServiceBehavior {
             }
 
             final byte[] dataRaw = Base64.getDecoder().decode(data);
-            final byte[] signatureEcdsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
+            final byte[] signatureEcdsa;
+            if (activation.getVersion() == 3) {
+                // Legacy activations use ECDSA on P-256 curve
+                signatureEcdsa = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).generateSignatureForActivation(KeyType.ECDSA_P256, dataRaw, activation);
+            } else {
+                signatureEcdsa = cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).generateSignatureForActivation(KeyType.ECDSA_P384, dataRaw, activation);
+            }
             final String signatureEcdsaBase64 = Base64.getEncoder().encodeToString(signatureEcdsa);
             final String signatureMldsaBase64 = switch (activation.getCryptoAlgorithm()) {
                 case EC_P384_ML_L3 -> {
@@ -151,7 +158,16 @@ public class AsymmetricSignatureServiceBehavior {
             final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
 
             final boolean matches = switch (signatureType) {
-                case ECDSA -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.ECDSA_P384, dataBytes, signatureBytesDER, activation);
+                case ECDSA -> {
+                    if (activation.getVersion() == 3) {
+                        // Legacy activations use ECDSA on P-256 curve
+                        yield cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
+                    }
+                    yield switch (activation.getCryptoAlgorithm()) {
+                        case EC_P384, EC_P384_ML_L3, EC_P384_ML_L5 -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.ECDSA_P384, dataBytes, signatureBytesDER, activation);
+                        default -> false;
+                    };
+                }
                 case MLDSA -> switch (activation.getCryptoAlgorithm()) {
                     case EC_P384_ML_L3 -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_65, dataBytes, signatureBytesDER, activation);
                     case EC_P384_ML_L5 -> cryptographyServiceFactory.getService(activation.getCryptoAlgorithm()).verifySignatureForActivation(KeyType.MLDSA_87, dataBytes, signatureBytesDER, activation);

@@ -31,16 +31,6 @@ public enum SignatureType {
     POSSESSION,
 
     /**
-     * 1FA signature using knowledge factor key, value = "knowledge"
-     */
-    KNOWLEDGE,
-
-    /**
-     * 1FA signature using biometry factor key, value = "biometry"
-     */
-    BIOMETRY,
-
-    /**
      * 2FA signature using possession and knowledge factor key, value = "possession_knowledge"
      */
     POSSESSION_KNOWLEDGE,
@@ -48,12 +38,7 @@ public enum SignatureType {
     /**
      * 2FA signature using possession and biometry factor key, value = "possession_biometry"
      */
-    POSSESSION_BIOMETRY,
-
-    /**
-     * 3FA signature using possession, knowledge and biometry factor key, value = "possession_knowledge_biometry"
-     */
-    POSSESSION_KNOWLEDGE_BIOMETRY;
+    POSSESSION_BIOMETRY;
 
     /**
      * Get enum value from provided string. In case the provided value does not match any value, null value is returned.

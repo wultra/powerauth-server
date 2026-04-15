@@ -19,37 +19,34 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Converter from {@link SignatureType} to {@link PowerAuthCodeType}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-final public class SignatureTypeConverter {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class SignatureTypeConverter {
 
-    public PowerAuthCodeType convertFrom(SignatureType signatureType) {
+    public static PowerAuthCodeType convert(final SignatureType signatureType) {
         return switch (signatureType) {
             case POSSESSION -> PowerAuthCodeType.POSSESSION;
-            case KNOWLEDGE -> PowerAuthCodeType.KNOWLEDGE;
-            case BIOMETRY -> PowerAuthCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> PowerAuthCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> PowerAuthCodeType.POSSESSION_BIOMETRY;
-            default -> PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 
-    public SignatureType convertFrom(String signatureType) {
+    public static SignatureType convert(final String signatureType) {
         return SignatureType.enumFromString(signatureType.toUpperCase());
     }
 
-    public SignatureType convertTo(PowerAuthCodeType PowerAuthCodeType) {
-        return switch (PowerAuthCodeType) {
+    public static SignatureType convert(final PowerAuthCodeType powerAuthCodeType) {
+        return switch (powerAuthCodeType) {
             case POSSESSION -> SignatureType.POSSESSION;
-            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
-            case BIOMETRY -> SignatureType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
-            default -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.client.model.entity;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ public class SignatureAuditItem {
     private List<KeyValue> additionalInfo = new ArrayList<>();
     private String dataBase64;
     private String signatureVersion;
-    private SignatureType signatureType;
+    private String signatureType;
     private String signature;
     private String note;
     private boolean valid;

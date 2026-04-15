@@ -14,6 +14,16 @@ The response contains a new `$.responseObject.operationId` attribute representin
 
 The request contains a new parameter `includeStatusBlob` which controls whether the activation status blob is included in the response. By default, the status blob is included.
 
+### POST /rest/v3/signature/list
+
+The data type of the `signatureType` field in each element of the response list has been updated to `String`. The field
+values remain unchanged and continue to represent the same set of signature types in the existing format.
+
+### POST /rest/v4/audit/list
+
+The data type of the `signatureType` field in each element of the response list has been updated to `String`. The field
+values remain unchanged and continue to represent the same set of signature types in the existing format.
+
 ## Database Changes
 
 For convenience, you can use Liquibase for your database migration.
@@ -72,3 +82,29 @@ Added a new indexed column `subject_id` holding an identifier linking the audit 
 <!-- begin box warning -->
 The auditing tables may be already updated in your database schema if the database schema is not separated for different PowerAuth applications. In case the column `audit_log.subject_id` and its index `audit_log_subject_id_idx` are already present, you can safely skip this migration step.
 <!-- end -->
+
+## Other Changes
+
+### Removal of Deprecated Signature / Authentication Code Types
+
+Since PowerAuth SDK version 1.7.0, client-side support has been limited to the following signature types
+(referred to in current terminology as authentication code types):
+
+- `POSSESSION`
+- `POSSESSION_KNOWLEDGE`
+- `POSSESSION_BIOMETRY`
+
+The remaining types:
+
+- `KNOWLEDGE`
+- `BIOMETRY`
+- `POSSESSION_KNOWLEDGE_BIOMETRY`
+
+remained available on the server side only for backward compatibility with older SDK versions. As of this release,
+server-side components support for these deprecated types has also been removed.
+
+Any occurrence of a removed signature type stored in the `pa_operation.signature_type` or
+`pa_operation_template.signature_type` columns is now ignored during processing. In the rare case where an operation
+template contains only removed signature types, operations created from that template will not receive any allowed
+signature type and therefore cannot be approved. In such cases, update the affected template to use one of the supported
+signature types. Otherwise, this change is not expected to have practical impact, and no database migration is required.
