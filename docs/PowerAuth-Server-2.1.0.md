@@ -10,6 +10,10 @@ The `$.requestObject.applicationId` attribute used to verify the challenge can b
 
 The response contains a new `$.responseObject.operationId` attribute representing the operation ID the assertion is associated with.
 
+#### POST /rest/v4/activation/status
+
+The request contains a new parameter `includeStatusBlob` which controls whether the activation status blob is included in the response. By default, the status blob is included.
+
 ### POST /rest/v3/signature/list
 
 The data type of the `signatureType` field in each element of the response list has been updated to `String`. The field

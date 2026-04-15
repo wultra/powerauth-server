@@ -338,6 +338,24 @@ public interface PowerAuthClient {
     GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException;
 
     /**
+     * Retrieve activation detail without the status blob.
+     * <p>
+     * Equivalent to calling {@link #getActivationStatus(GetActivationStatusRequest)} with {@code includeStatusBlob=false}.
+     * Prefer this method for backend-to-backend calls where the status blob is not required,
+     * as it avoids the associated cryptographic operations on the server side.
+     *
+     * @param activationId Activation identifier to lookup information for.
+     * @return {@link GetActivationStatusResponse} with {@code statusBlob} set to {@code null}.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    default GetActivationStatusResponse getActivationStatusWithoutBlob(String activationId) throws PowerAuthClientException {
+        final GetActivationStatusRequest request = new GetActivationStatusRequest();
+        request.setActivationId(activationId);
+        request.setIncludeStatusBlob(false);
+        return getActivationStatus(request);
+    }
+
+    /**
      * Call the removeActivation method of the PowerAuth Server interface.
      *
      * @param request {@link RemoveActivationRequest} instance.
