@@ -10,6 +10,10 @@ The `$.requestObject.applicationId` attribute used to verify the challenge can b
 
 The response contains a new `$.responseObject.operationId` attribute representing the operation ID the assertion is associated with.
 
+#### POST /rest/v4/activation/status
+
+The request contains a new parameter `includeStatusBlob` which controls whether the activation status blob is included in the response. By default, the status blob is included.
+
 ## Database Changes
 
 For convenience, you can use Liquibase for your database migration.

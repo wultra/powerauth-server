@@ -739,9 +739,10 @@ REST endpoint: `POST /rest/v4/activation/status`
 
 `GetActivationStatusRequest`
 
-| Type     | Name           | Description                     |
-|----------|----------------|---------------------------------|
-| `String` | `activationId` | An identifier of an activation  |
+| Type      | Name                | Description                                                    |
+|-----------|---------------------|----------------------------------------------------------------|
+| `String`  | `activationId`      | An identifier of an activation                                 |
+| `boolean` | `includeStatusBlob` | Whether status blob is included in the response (default=true) |
 
 #### Response
 
@@ -770,7 +771,7 @@ REST endpoint: `POST /rest/v4/activation/status`
 | `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                                        |
 | `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                                      |
 | `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                                       |
-| `String`                  | `statusBlob`                 | Encrypted activation status blob                                                                   |
+| `String`                  | `statusBlob`                 | Activation status blob (optional, depending on request)                                            |
 | `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character          |
 | `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key (*deprecated*)                  |
 | `Map<String,String>`      | `activationSignatures`       | A map of algorithm identifiers to activation signatures                                            |
