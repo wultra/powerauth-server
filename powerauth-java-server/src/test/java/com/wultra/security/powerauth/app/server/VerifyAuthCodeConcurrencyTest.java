@@ -124,7 +124,7 @@ public class VerifyAuthCodeConcurrencyTest {
                 VerifySignatureRequest verifySignatureRequest = new VerifySignatureRequest();
                 verifySignatureRequest.setActivationId(createActivationResponse.getActivationId());
                 verifySignatureRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
-                verifySignatureRequest.setSignatureType(SignatureType.KNOWLEDGE);
+                verifySignatureRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
                 onlineAuthenticationServiceBehavior.verifySignature(verifySignatureRequest, null);

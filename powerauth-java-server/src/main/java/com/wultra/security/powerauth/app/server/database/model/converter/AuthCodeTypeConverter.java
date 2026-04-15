@@ -21,16 +21,17 @@ package com.wultra.security.powerauth.app.server.database.model.converter;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
+@Slf4j
 @Converter
 @Component
 public class AuthCodeTypeConverter implements AttributeConverter<PowerAuthCodeType[], String> {
@@ -50,15 +51,17 @@ public class AuthCodeTypeConverter implements AttributeConverter<PowerAuthCodeTy
         if (authCodeTypes == null) {
             return null;
         }
-        final String[] factorStrings = authCodeTypes.split(",");
-        List<PowerAuthCodeType> result = new ArrayList<>();
-        for (String factorString : factorStrings) {
-            final PowerAuthCodeType authCodeType = PowerAuthCodeType.getEnumFromString(factorString);
-            if (authCodeType != null) {
-                result.add(authCodeType);
-            }
-        }
-        return result.toArray(new PowerAuthCodeType[0]);
+
+        return Arrays.stream(authCodeTypes.split(","))
+                .map(factorString -> {
+                    final PowerAuthCodeType authCodeType = PowerAuthCodeType.getEnumFromString(factorString);
+                    if (authCodeType == null) {
+                        logger.warn("Skipping unknown authentication code type {}", factorString);
+                    }
+                    return authCodeType;
+                })
+                .filter(Objects::nonNull)
+                .toArray(PowerAuthCodeType[]::new);
     }
 
 }

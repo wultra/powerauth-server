@@ -1393,7 +1393,7 @@ REST endpoint: `POST /rest/v4/audit/list`
 | `KeyValueMap`      | `additionalInfo`    | Key-value map with additional information                      |
 | `String`           | `dataBase64`        | A base64 encoded data sent with the signature                  |
 | `String`           | `signatureVersion`  | Requested signature version                                    |
-| `SignatureType`    | `signatureType`     | Requested signature type                                       |
+| `String`           | `signatureType`     | Requested signature type                                       |
 | `String`           | `signature`         | Submitted value of a signature                                 |
 | `String`           | `note`              | Extra info about the result of the signature verification      |
 | `boolean`          | `valid`             | Flag indicating if the provided signature was valid            |
@@ -2845,11 +2845,8 @@ This chapter lists all enums used by PowerAuth Server services.
 
 - `AuthenticationCodeType` - Represents the type of the authentication code, one of the following values:
     - POSSESSION
-    - KNOWLEDGE
-    - BIOMETRY
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
-    - POSSESSION_KNOWLEDGE_BIOMETRY
 
 - `OperationStatus` - Represents the possible operation status
     - PENDING

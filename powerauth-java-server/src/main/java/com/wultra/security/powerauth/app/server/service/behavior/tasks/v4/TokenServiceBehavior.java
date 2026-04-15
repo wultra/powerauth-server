@@ -88,7 +88,6 @@ public class TokenServiceBehavior {
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
 
     // Helper classes
-    private final AuthenticationCodeTypeConverter authenticationCodeTypeConverter = new AuthenticationCodeTypeConverter();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     private final ObjectMapper objectMapper;
@@ -193,7 +192,7 @@ public class TokenServiceBehavior {
             response.getApplicationRoles().addAll(activation.getApplication().getRoles());
             response.getActivationFlags().addAll(activation.getFlags());
             response.setUserId(activation.getUserId());
-            response.setAuthenticationCodeType(authenticationCodeTypeConverter.convertFrom(token.getSignatureTypeCreated()));
+            response.setAuthenticationCodeType(AuthenticationCodeTypeConverter.convert(token.getSignatureTypeCreated()));
             return response;
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);

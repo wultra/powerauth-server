@@ -20,12 +20,18 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.converter.KeyValueMapConverter;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
+import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import com.wultra.security.powerauth.app.server.database.model.entity.SignatureEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationData;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
 import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +45,13 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- * Test for {@link com.wultra.security.powerauth.app.server.service.behavior.tasks.v4.AuditingServiceBehavior}.
+ * Test for {@link AuditingServiceBehavior}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -73,7 +81,7 @@ class AuditingServiceBehaviorTest {
                 .counter(1L)
                 .userId("user789")
                 .ctrDataBase64("Y3RyRGF0YQ==")
-                .activationStatus(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE)
+                .activationStatus(ActivationStatus.ACTIVE)
                 .build();
 
         final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDJGMWRHZ3ZkbUZzYVdSaGRHVT0mMmlUekcvQjM1UUpmN0h4WmZjbHlGZz09JlFXeHNJSGx2ZFhJZ1ltVm5ZbVZuWW1WblltVm5ZbVZuSUhWdklHUnZidz09Jm85NzBnVUJMdndDVGRiSU9Qa1owbHc9PQ==");
@@ -88,7 +96,7 @@ class AuditingServiceBehaviorTest {
 
         verify(audit).log(
                 eq("Authentication validation completed: {}, activation ID: {}, user ID: {}"),
-                eq(com.wultra.core.audit.base.model.AuditLevel.INFO),
+                eq(AuditLevel.INFO),
                 detailCaptor.capture(),
                 eq("SUCCESS"),
                 eq("act123"),
@@ -104,7 +112,7 @@ class AuditingServiceBehaviorTest {
         assertEquals(true, params.get("valid"));
         assertEquals(1L, params.get("counter"));
         assertEquals("Y3RyRGF0YQ==", params.get("counterData"));
-        assertEquals(com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE, params.get("activationStatus"));
+        assertEquals(ActivationStatus.ACTIVE, params.get("activationStatus"));
         assertEquals("Test note", params.get("note"));
 
         final PowerAuthAuthenticationCodeMetadata authMetadata = new PowerAuthAuthenticationCodeMetadata();
@@ -113,5 +121,35 @@ class AuditingServiceBehaviorTest {
         assertEquals(authMetadata, params.get("authenticationMetadata"));
 
         assertEquals("user789", auditDetail.getSubjectId());
+    }
+
+    /**
+     * Test the signature audit log returns also no longer supported authentication code type.
+     */
+    @Test
+    void testGetAuditLog_unsupportedSignatureType() throws Exception {
+        final SignatureAuditRequest request = new SignatureAuditRequest();
+        request.setUserId("user789");
+
+        final ActivationRecordEntity activationRecordEntity = new ActivationRecordEntity();
+        final ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId("app456");
+        activationRecordEntity.setApplication(applicationEntity);
+        activationRecordEntity.setActivationId("act123");
+        activationRecordEntity.setUserId("user789");
+
+        final SignatureEntity signatureEntity = new SignatureEntity();
+        signatureEntity.setId(1L);
+        signatureEntity.setSignatureType("POSSESSION_KNOWLEDGE_BIOMETRY");
+        signatureEntity.setActivationCounter(0L);
+        signatureEntity.setActivationStatus(ActivationStatus.ACTIVE);
+        signatureEntity.setValid(true);
+        signatureEntity.setVersion(4);
+        signatureEntity.setActivation(activationRecordEntity);
+
+        when(signatureAuditRepository.findSignatureAuditRecordsForUser(any(), any(), any()))
+                .thenReturn(List.of(signatureEntity));
+
+        assertEquals("POSSESSION_KNOWLEDGE_BIOMETRY", tested.getAuditLog(request).getItems().get(0).getSignatureType());
     }
 }

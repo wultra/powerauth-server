@@ -19,37 +19,34 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Converter from {@link AuthenticationCodeType} to {@link PowerAuthCodeType}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-final public class AuthenticationCodeTypeConverter {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class AuthenticationCodeTypeConverter {
 
-    public PowerAuthCodeType convertFrom(AuthenticationCodeType authCodeType) {
+    public static PowerAuthCodeType convert(final AuthenticationCodeType authCodeType) {
         return switch (authCodeType) {
             case POSSESSION -> PowerAuthCodeType.POSSESSION;
-            case KNOWLEDGE -> PowerAuthCodeType.KNOWLEDGE;
-            case BIOMETRY -> PowerAuthCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> PowerAuthCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> PowerAuthCodeType.POSSESSION_BIOMETRY;
-            default -> PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 
-    public AuthenticationCodeType convertFrom(String authCodeType) {
+    public static AuthenticationCodeType convert(final String authCodeType) {
         return AuthenticationCodeType.enumFromString(authCodeType.toUpperCase());
     }
 
-    public AuthenticationCodeType convertTo(PowerAuthCodeType PowerAuthCodeType) {
-        return switch (PowerAuthCodeType) {
+    public static AuthenticationCodeType convert(final PowerAuthCodeType powerAuthCodeType) {
+        return switch (powerAuthCodeType) {
             case POSSESSION -> AuthenticationCodeType.POSSESSION;
-            case KNOWLEDGE -> AuthenticationCodeType.KNOWLEDGE;
-            case BIOMETRY -> AuthenticationCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE -> AuthenticationCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY -> AuthenticationCodeType.POSSESSION_BIOMETRY;
-            default -> AuthenticationCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

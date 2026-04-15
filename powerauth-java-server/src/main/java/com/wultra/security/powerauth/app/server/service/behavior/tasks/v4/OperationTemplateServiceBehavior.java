@@ -50,7 +50,6 @@ import java.util.Optional;
 public class OperationTemplateServiceBehavior {
 
     private final OperationTemplateRepository templateRepository;
-    private final OperationTemplateConverter operationTemplateConverter;
     private LocalizationProvider localizationProvider;
 
     /**
@@ -64,7 +63,7 @@ public class OperationTemplateServiceBehavior {
             final Iterable<OperationTemplateEntity> allTemplates = templateRepository.findAll();
             final OperationTemplateListResponse result = new OperationTemplateListResponse();
             allTemplates.forEach(template -> {
-                final OperationTemplateDetailResponse ot = operationTemplateConverter.convertFromDB(template);
+                final OperationTemplateDetailResponse ot = OperationTemplateConverter.convertFromDB(template);
                 result.add(ot);
             });
             return result;
@@ -90,7 +89,7 @@ public class OperationTemplateServiceBehavior {
             if (template.isEmpty()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
             }
-            return operationTemplateConverter.convertFromDB(template.get());
+            return OperationTemplateConverter.convertFromDB(template.get());
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
@@ -116,9 +115,9 @@ public class OperationTemplateServiceBehavior {
             if (templateByName.isPresent()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
             }
-            OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
+            OperationTemplateEntity operationTemplateEntity = OperationTemplateConverter.convertToDB(request);
             operationTemplateEntity = templateRepository.save(operationTemplateEntity);
-            return operationTemplateConverter.convertFromDB(operationTemplateEntity);
+            return OperationTemplateConverter.convertFromDB(operationTemplateEntity);
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
@@ -148,9 +147,9 @@ public class OperationTemplateServiceBehavior {
             }
 
             // Convert and store the new template
-            final OperationTemplateEntity modifiedEntity = operationTemplateConverter.convertToDB(template.get(), request);
+            final OperationTemplateEntity modifiedEntity = OperationTemplateConverter.convertToDB(template.get(), request);
             final OperationTemplateEntity savedEntity = templateRepository.save(modifiedEntity);
-            return operationTemplateConverter.convertFromDB(savedEntity);
+            return OperationTemplateConverter.convertFromDB(savedEntity);
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;

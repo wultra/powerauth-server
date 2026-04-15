@@ -19,12 +19,14 @@ package com.wultra.security.powerauth.app.server.database.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -56,6 +59,9 @@ class OperationRepositoryTest {
 
     @Autowired
     private ActivationRepository activationRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     /**
      * Tests finding an operation by its ID.
@@ -113,4 +119,25 @@ class OperationRepositoryTest {
         assertNotNull(operations3);
         assertEquals(2, operations3.size());
     }
+
+    /**
+     * Tests that fetching {@link OperationEntity} using the {@link OperationRepository} gracefully handles legacy
+     * or unsupported values stored in the {@code signature_type} column of {@code pa_operation} table.
+     */
+    @Test
+    void testHandlingUnsupportedSignatureTypes() {
+        // Assert unsupported signature types are set
+        final String rawSignatureTypes = jdbcTemplate.queryForObject("SELECT signature_type FROM pa_operation WHERE id = '2067b5d1-1c50-43eb-99df-847830e4807a'", String.class);
+        assertEquals("possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry",  rawSignatureTypes);
+
+        // Test the handling
+        final Optional<OperationEntity> operation = operationRepository.findOperationWithoutLock("2067b5d1-1c50-43eb-99df-847830e4807a");
+        assertTrue(operation.isPresent());
+
+        // Unsupported signature types are ignored
+        assertThat(operation.get().getSignatureType())
+                .hasSize(3)
+                .containsExactlyInAnyOrder(PowerAuthCodeType.POSSESSION, PowerAuthCodeType.POSSESSION_KNOWLEDGE, PowerAuthCodeType.POSSESSION_BIOMETRY);
+    }
+
 }

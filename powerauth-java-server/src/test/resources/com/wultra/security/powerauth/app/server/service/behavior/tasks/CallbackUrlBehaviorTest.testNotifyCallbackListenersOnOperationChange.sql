@@ -8,7 +8,7 @@ INSERT INTO pa_activation (activation_id, application_id, user_id, activation_na
     ('e43a5dec-afea-4a10-a80b-b2183399f16b', 1, 'testUser', 'test v4', 'PXSNR-E2B46-7TY3G-TMR2Q', 3, null, 0, null, 0, 'D5XibWWPCv+nOOfcdfnUGQ==', 'BF3Sc/vqg8Zk70Y8rbT45xzAIxblGoWgLqknCHuNj7f6QFBNi2UnLbG7yMqf2eWShhyBJdu9zqx7DG2qzlqhbBE=', null, 'unknown', 'backend-tests', '[ "test-flag1", "test-flag2", "test-flag3" ]', 0, 1, 'PUz/He8+RFoOPS1NG6Gw3TDXIQ/DnS1skNBOQWzXX60=', 0, 'BPHJ4N90NUuLDq92FJUPcaKZOMad1KH2HrwQEN9DB5ST5fiJU4baYF1VlK1JHglnnN1miL3/Qb6IyW3YSMBySYM=', 0, '2023-04-03 14:04:06.015000', '2023-04-03 13:59:06.015000', '2023-04-03 13:59:16.293000', '2023-04-03 13:59:16.343000', 1, false, false, false, 3);
 
 INSERT INTO pa_operation (id, user_id, external_id, activation_flag, operation_type, template_name, data, parameters, additional_data, status, signature_type, failure_count, max_failure_count, timestamp_created, timestamp_expires, timestamp_finalized, risk_flags, totp_seed, activation_id) VALUES
-    ('07e927af-689a-43ac-bd21-291179801912', 'testUser', null, 'test-flag5', 'login', 'test', 'A2', null, null, 1,'possession,knowledge,biometry,possession_knowledge,possession_biometry,possession_knowledge_biometry', 0, 5, '2023-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
+    ('07e927af-689a-43ac-bd21-291179801912', 'testUser', null, 'test-flag5', 'login', 'test', 'A2', null, null, 1,'possession,possession_knowledge,possession_biometry', 0, 5, '2023-12-14 21:56:40.773000', '9999-12-14 21:56:40.773000', null, null, null, 'e43a5dec-afea-4a10-a80b-b2183399f16b');
 
 INSERT INTO pa_operation_application (operation_id, application_id) VALUES
     ('07e927af-689a-43ac-bd21-291179801912', 1);
