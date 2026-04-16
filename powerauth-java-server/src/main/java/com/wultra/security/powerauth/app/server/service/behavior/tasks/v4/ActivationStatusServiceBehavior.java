@@ -122,7 +122,6 @@ public class ActivationStatusServiceBehavior {
             activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
             final ApplicationEntity application = activation.getApplication();
-            final String applicationId = application.getId();
 
             // Build the common response fields shared across all activation states
             final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application);
