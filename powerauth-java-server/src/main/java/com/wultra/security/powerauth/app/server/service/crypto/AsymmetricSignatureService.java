@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Map;
 
 /**
@@ -55,7 +56,7 @@ public class AsymmetricSignatureService {
      */
     public Map<String, String> computeSignaturesForActivation(ActivationRecordEntity activation) throws GenericServiceException {
         final ApplicationEntity application = activation.getApplication();
-        final String activationCode = activation.getActivationCode();
+        final String activationCode = Objects.requireNonNull(activation.getActivationCode(), "Activation code must not be null");
 
         final Map<String, String> signatures = new LinkedHashMap<>();
 
