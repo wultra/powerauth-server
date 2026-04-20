@@ -84,7 +84,7 @@ jobs:
       - name: Build and push Docker image
         uses: wultra/wultra-infrastructure/.github/actions/build-and-push-docker@develop
         with:
-          dockerfile_folder_path: './powerauth-server/docker'
+          dockerfile_folder_path: './powerauth-java-server/docker'
           should_push: ${{ needs.set-environment.outputs.should_push }}
           tags: ${{ steps.resolve-docker-tags.outputs.tags }}
           has_sbom: true
@@ -92,7 +92,7 @@ jobs:
       - name: Build and push Docker init image
         uses: wultra/wultra-infrastructure/.github/actions/build-and-push-docker@develop
         with:
-          dockerfile_folder_path: './powerauth-server/docker-init'
+          dockerfile_folder_path: './powerauth-java-server/docker-init'
           should_push: ${{ needs.set-environment.outputs.should_push }}
           tags: ${{ steps.resolve-docker-tags.outputs.init_tags }}
           has_sbom: false
