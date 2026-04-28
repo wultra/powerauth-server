@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/2.1.x/db.changelog-version.xml
--- Ran at: 28.04.26 15:48
+-- Ran at: 28.04.26 20:17
 -- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -18,7 +18,7 @@ UPDATE pa_activation
 GO
 
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
--- Drop non-unique index pa_activation_code before modifying the column. Required on MSSQL which blocks ALTER COLUMN when a dependent index exists. On environments where id=1..3 already ran successfully, this is a no-op (MARK_RAN).
+-- MSSQL only: drop non-unique index pa_activation_code before ALTER COLUMN. MSSQL blocks ALTER COLUMN when a dependent index exists (error 5074); PostgreSQL and Oracle do not have this restriction.
 DROP INDEX pa_activation_code ON pa_activation;
 GO
 

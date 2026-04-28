@@ -23,9 +23,12 @@
 
     <changeSet id="0" logicalFilePath="powerauth-java-server/2.1.x/20260316-activation-code-unique.xml" author="Vit Kotacka">
         <preConditions onFail="MARK_RAN">
-            <indexExists indexName="pa_activation_code"/>
+            <and>
+                <dbms type="mssql"/>
+                <indexExists indexName="pa_activation_code"/>
+            </and>
         </preConditions>
-        <comment>Drop non-unique index pa_activation_code before modifying the column. Required on MSSQL which blocks ALTER COLUMN when a dependent index exists. On environments where id=1..3 already ran successfully, this is a no-op (MARK_RAN).</comment>
+        <comment>MSSQL only: drop non-unique index pa_activation_code before ALTER COLUMN. MSSQL blocks ALTER COLUMN when a dependent index exists (error 5074); PostgreSQL and Oracle do not have this restriction.</comment>
         <dropIndex tableName="pa_activation" indexName="pa_activation_code"/>
     </changeSet>
 
