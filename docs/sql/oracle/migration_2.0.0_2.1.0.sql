@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/2.1.x/db.changelog-version.xml
--- Ran at: 08.04.26 12:04
+-- Ran at: 28.04.26 15:48
 -- Against: null@offline:oracle
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -16,6 +16,10 @@ UPDATE pa_activation
             SET activation_code = 'LEGACY-' || LOWER(RAWTOHEX(SYS_GUID()))
             WHERE activation_code IS NULL;
 
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
+-- Drop non-unique index pa_activation_code before modifying the column. Required on MSSQL which blocks ALTER COLUMN when a dependent index exists. On environments where id=1..3 already ran successfully, this is a no-op (MARK_RAN).
+DROP INDEX pa_activation_code;
+
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::1::Vit Kotacka
 -- Add NOT NULL constraint on pa_activation(activation_code) to align the DB schema with the JPA entity definition. Applied before the unique constraint to fail fast if NULL values exist, avoiding an expensive index build on dirty data.
 ALTER TABLE pa_activation MODIFY activation_code NOT NULL;
@@ -25,7 +29,7 @@ ALTER TABLE pa_activation MODIFY activation_code NOT NULL;
 ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (activation_code, application_id);
 
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::3::Vit Kotacka
--- Drop non-unique index on pa_activation(activation_code) replaced by unique constraint pa_activation_code_application_uk
+-- Safety-net drop of non-unique index pa_activation_code. Normally already dropped by id=0; this changeset is a no-op (MARK_RAN) on fresh installs but ensures correctness on environments that ran id=1..3 before id=0 was introduced.
 DROP INDEX pa_activation_code;
 
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::1::Pavel Sindelar
@@ -35,3 +39,4 @@ ALTER TABLE audit_log ADD subject_id VARCHAR2(256);
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::2::Pavel Sindelar
 -- Create a new index on audit_log(subject_id)
 CREATE INDEX audit_log_subject_id_idx ON audit_log(subject_id);
+
