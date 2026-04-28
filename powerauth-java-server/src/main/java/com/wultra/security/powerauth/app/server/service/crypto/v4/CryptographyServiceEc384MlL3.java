@@ -84,13 +84,14 @@ public class CryptographyServiceEc384MlL3 extends CryptographyService {
     private final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
-    private static PqcDsa pqcDsaMlL3;
+    private static final PqcDsa pqcDsaMlL3;
 
     static {
         try {
             pqcDsaMlL3 = new MlDsa(MLDSAParameterSpec.ml_dsa_65);
         } catch (GenericCryptoException e) {
-            // impossible case
+            logger.error("Failed to initialize ML-DSA: {}", e.getMessage(), e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 

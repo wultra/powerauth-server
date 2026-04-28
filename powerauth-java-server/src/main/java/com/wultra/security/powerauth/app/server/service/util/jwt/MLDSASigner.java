@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 
 import java.security.PrivateKey;
@@ -43,6 +44,7 @@ import static com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgor
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @AllArgsConstructor
+@Slf4j
 public class MLDSASigner implements JWSSigner {
 
     private static final Set<JWSAlgorithm> SUPPORTED_ALGORITHMS = Set.of(MLDSA65, MLDSA87);
@@ -50,15 +52,16 @@ public class MLDSASigner implements JWSSigner {
 
     private final PrivateKey privateKey;
 
-    private static PqcDsa pqcDsaMlL3;
-    private static PqcDsa pqcDsaMlL5;
+    private static final PqcDsa pqcDsaMlL3;
+    private static final PqcDsa pqcDsaMlL5;
 
     static {
         try {
             pqcDsaMlL3 = new MlDsa(MLDSAParameterSpec.ml_dsa_65);
             pqcDsaMlL5 = new MlDsa(MLDSAParameterSpec.ml_dsa_87);
         } catch (GenericCryptoException e) {
-            // impossible case
+            logger.error("Failed to initialize ML-DSA: {}", e.getMessage(), e);
+            throw new ExceptionInInitializerError(e);
         }
     }
 
