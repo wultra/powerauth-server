@@ -16,10 +16,6 @@ UPDATE pa_activation
             SET activation_code = 'LEGACY-' || LOWER(RAWTOHEX(SYS_GUID()))
             WHERE activation_code IS NULL;
 
--- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
--- MSSQL only: drop non-unique index pa_activation_code before ALTER COLUMN. MSSQL blocks ALTER COLUMN when a dependent index exists (error 5074); PostgreSQL and Oracle do not have this restriction.
-DROP INDEX pa_activation_code;
-
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::1::Vit Kotacka
 -- Add NOT NULL constraint on pa_activation(activation_code) to align the DB schema with the JPA entity definition. Applied before the unique constraint to fail fast if NULL values exist, avoiding an expensive index build on dirty data.
 ALTER TABLE pa_activation MODIFY activation_code NOT NULL;
@@ -29,7 +25,7 @@ ALTER TABLE pa_activation MODIFY activation_code NOT NULL;
 ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (activation_code, application_id);
 
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::3::Vit Kotacka
--- Safety-net drop of non-unique index pa_activation_code. Normally already dropped by id=0; this changeset is a no-op (MARK_RAN) on fresh installs but ensures correctness on environments that ran id=1..3 before id=0 was introduced.
+-- Drop non-unique index on pa_activation(activation_code) replaced by unique constraint pa_activation_code_application_uk
 DROP INDEX pa_activation_code;
 
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::1::Pavel Sindelar
