@@ -34,15 +34,23 @@ The migration applies the following changes in order:
 
 1. **Backfill NULL `activation_code` values** _(legacy databases only)_ — if any rows have a `NULL` activation code, they are updated with a unique `LEGACY-<uuid>` placeholder value. This step is automatically **skipped** (marked as ran) if no NULL values exist, which is the expected case for all databases managed by Liquibase since 1.4.x.
 
-2. **Add `NOT NULL` constraint** on `activation_code` — aligns the DB schema with the JPA entity definition. This is a fast operation (metadata-only on MSSQL when no NULLs exist; full table scan on PostgreSQL and Oracle).
+2. _(MSSQL only)_ **Drop the old non-unique index** `pa_activation_code` — MSSQL blocks `ALTER COLUMN` when a dependent index exists. This step is automatically **skipped** on PostgreSQL and Oracle.
 
-3. **Add unique constraint** `pa_activation_code_application_uk` on `(activation_code, application_id)` — enforces activation code uniqueness at the database level per application, replacing the previous application-level check. **This is an index build and can take significant time on large tables** (see performance data below).
+3. **Add `NOT NULL` constraint** on `activation_code` — aligns the DB schema with the JPA entity definition. This is a fast operation (metadata-only on MSSQL when no NULLs exist; full table scan on PostgreSQL and Oracle).
 
-4. **Drop the old non-unique index** `pa_activation_code` on `activation_code` — replaced by the unique constraint above (near-instant operation).
+4. **Add unique constraint** `pa_activation_code_application_uk` on `(activation_code, application_id)` — enforces activation code uniqueness at the database level per application, replacing the previous application-level check. **This is an index build and can take significant time on large tables** (see performance data below).
+
+5. _(PostgreSQL, Oracle)_ **Drop the old non-unique index** `pa_activation_code` — replaced by the unique constraint above (near-instant operation). Automatically skipped on MSSQL (already dropped in step 2).
 
 > ⚠️ **Maintenance window recommended.**
-> Step 3 (index build) locks the table and can take several minutes on large deployments.
+> Step 4 (index build) locks the table and can take several minutes on large deployments.
 > Consider running the Liquibase migration manually during a maintenance window before upgrading the application.
+
+> ⚠️ **MSSQL: brief index gap during migration.**
+> On MSSQL, step 2 drops the old `pa_activation_code` index before the new unique constraint is created in step 4.
+> During this window, queries filtering on `activation_code` alone will perform a full table scan.
+> The gap is bounded by steps 3 and 4 only, which are fast operations on MSSQL (metadata-only NOT NULL + index build).
+> Plan the migration during a maintenance window to avoid query performance impact.
 
 > ⚠️ **Legacy databases with NULL `activation_code` values.**
 > Step 1 (backfill) will UPDATE any rows with NULL `activation_code`.

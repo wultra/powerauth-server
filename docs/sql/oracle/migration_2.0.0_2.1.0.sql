@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/2.1.x/db.changelog-version.xml
--- Ran at: 08.04.26 12:04
+-- Ran at: 28.04.26 20:17
 -- Against: null@offline:oracle
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -35,3 +35,4 @@ ALTER TABLE audit_log ADD subject_id VARCHAR2(256);
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::2::Pavel Sindelar
 -- Create a new index on audit_log(subject_id)
 CREATE INDEX audit_log_subject_id_idx ON audit_log(subject_id);
+
