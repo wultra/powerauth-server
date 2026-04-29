@@ -51,7 +51,7 @@ The changes are applied in the following order:
 
 > ⚠️ **PostgreSQL / Oracle: maintenance window recommended.**
 > Step 4 (index build) locks the table and can take several minutes on large deployments (see performance data below).
-> Consider running the Liquibase migration manually during a maintenance window before upgrading the application.
+> Plan a maintenance window before upgrading the application.
 
 > ⚠️ **Legacy databases with NULL `activation_code` values.**
 > Step 1 will UPDATE any rows with NULL `activation_code`.
