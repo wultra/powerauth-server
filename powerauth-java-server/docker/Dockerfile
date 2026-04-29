@@ -25,7 +25,7 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
-COPY ./powerauth-java-server/docker/images-and-libs/powerauth-java-server.war "${APP_PATH}"
+COPY ./powerauth-java-server/target/powerauth-java-server*.war "${APP_PATH}"
 
 # Docker configuration
 EXPOSE 8080
