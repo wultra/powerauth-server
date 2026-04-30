@@ -18,9 +18,11 @@
 
 package com.wultra.powerauth.fido2.rest.model.validator;
 
+import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +45,9 @@ public class AssertionRequestValidator {
      * Validate an assertion verification request.
      * @param wrapper Assertion verification request wrapper.
      * @return Validation result.
+     * @throws Fido2AuthenticationFailedException In case of failure during validation.
      */
-    public String validate(final AssertionVerificationRequestWrapper wrapper) {
+    public String validate(final AssertionVerificationRequestWrapper wrapper) throws Fido2AuthenticationFailedException {
         Assert.notNull(wrapper, "Wrapper must not be null");
         final AssertionVerificationRequest request = wrapper.assertionVerificationRequest();
 
@@ -80,7 +83,12 @@ public class AssertionRequestValidator {
 
         final byte[] rpIdHash = authenticatorData.getRpIdHash();
         final String relyingPartyId = request.getRelyingPartyId();
-        final byte[] expectedRpIdHash = Hash.sha256(relyingPartyId);
+        final byte[] expectedRpIdHash;
+        try {
+            expectedRpIdHash = Hash.sha256(relyingPartyId);
+        } catch (CryptoProviderException e) {
+            throw new Fido2AuthenticationFailedException("Failed to calculate relying party ID hash", e);
+        }
         if (!Arrays.equals(rpIdHash, expectedRpIdHash)) {
             return "The relying party ID stored with authenticator does not match the relying party ID provided in the request.";
         }
