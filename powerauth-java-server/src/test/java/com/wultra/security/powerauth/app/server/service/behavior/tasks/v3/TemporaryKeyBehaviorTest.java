@@ -77,7 +77,6 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
