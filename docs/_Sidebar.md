@@ -5,6 +5,7 @@
 - [Migration Instructions](./Migration-Instructions.md)
 - [Configuration Properties](./Configuration-Properties.md)
 - [Monitoring](./PowerAuth-Server-Monitoring.md)
+- [Artifact Signing](./Artifact-Signing.md)
 
 **Integration Tutorials**
 
