@@ -44,11 +44,11 @@ public class ListToStringConverter implements AttributeConverter<List<String>, S
 
     private static final String EMPTY_LIST = "[]";
 
-    private static ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     @Autowired
     public void setObjectMapper(ObjectMapper objectMapper) {
-        ListToStringConverter.objectMapper = objectMapper;
+        this.objectMapper = objectMapper;
     }
 
     @Override
