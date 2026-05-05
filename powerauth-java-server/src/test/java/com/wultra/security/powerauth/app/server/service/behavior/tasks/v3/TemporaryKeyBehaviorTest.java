@@ -91,7 +91,6 @@ class TemporaryKeyBehaviorTest {
 
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
     private static final PowerAuthServerKeyFactory PA_SERVER_KEY_FACTORY = new PowerAuthServerKeyFactory();
 
@@ -102,9 +101,10 @@ class TemporaryKeyBehaviorTest {
     private final ActivationCreateServiceBehavior activationCreateServiceBehavior;
     private final ActivationRepository activationRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorEcies temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationCreateServiceBehavior, ActivationRepository activationRepository, ServerPrivateKeyConverter serverPrivateKeyConverter, ObjectMapper objectMapper) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
@@ -112,6 +112,7 @@ class TemporaryKeyBehaviorTest {
         this.activationCreateServiceBehavior = activationCreateServiceBehavior;
         this.activationRepository = activationRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.objectMapper = objectMapper;
     }
 
     @Test
@@ -236,7 +237,7 @@ class TemporaryKeyBehaviorTest {
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters("3.3", applicationKey, null, temporaryKeyId),
                 new ClientEciesSecrets(temporaryPublicKey, applicationSecret));
-        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(activationLayer2Request));
+        final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
 
         final CreateActivationRequest activationRequest = new CreateActivationRequest();
         activationRequest.setUserId(UUID.randomUUID().toString());

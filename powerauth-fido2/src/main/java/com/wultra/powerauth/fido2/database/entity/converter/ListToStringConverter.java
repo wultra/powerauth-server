@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -43,10 +44,11 @@ public class ListToStringConverter implements AttributeConverter<List<String>, S
 
     private static final String EMPTY_LIST = "[]";
 
-    private final ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper;
 
-    public ListToStringConverter(final ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    @Autowired
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        ListToStringConverter.objectMapper = objectMapper;
     }
 
     @Override

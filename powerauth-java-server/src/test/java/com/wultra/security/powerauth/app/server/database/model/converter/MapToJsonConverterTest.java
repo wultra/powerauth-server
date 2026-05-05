@@ -18,10 +18,13 @@
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.http.common.headers.UserAgent;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,15 +36,15 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-
+@SpringBootTest
+@ActiveProfiles("test")
 class MapToJsonConverterTest {
+
+    @Autowired
     private MapToJsonConverter converter;
 
-    @BeforeEach
-    void setUp() {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        converter = new MapToJsonConverter(objectMapper);
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     /**
      * Tests the conversion of a map containing serializable objects, including a complex object,
@@ -50,7 +53,7 @@ class MapToJsonConverterTest {
      * matches the expected format.
      */
     @Test
-    void testConvertToDatabaseColumnSerializableObject() {
+    void testConvertToDatabaseColumnSerializableObject() throws Exception {
         Map<String, Object> testMap = new HashMap<>();
         testMap.put("key1", "value1");
         final String exampleRequestUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
@@ -59,7 +62,8 @@ class MapToJsonConverterTest {
         final String jsonResult = converter.convertToDatabaseColumn(testMap);
         assertNotNull(jsonResult);
         assertFalse(jsonResult.isEmpty());
-        assertEquals("{\"key1\":\"value1\"," +
+
+        final JsonNode expected = objectMapper.readTree("{\"key1\":\"value1\"," +
                 "\"key2\":{\"networkVersion\":\"1.1.7\"," +
                 "\"language\":\"en\"," +
                 "\"connection\":\"cellular\"," +
@@ -68,7 +72,9 @@ class MapToJsonConverterTest {
                 "\"platform\":\"Apple\"," +
                 "\"os\":\"iOS\"," +
                 "\"osVersion\":\"16.6.1\"," +
-                "\"model\":\"iphone12,3\"}}", jsonResult);
+                "\"model\":\"iphone12,3\"}}");
+        final JsonNode actual = objectMapper.readTree(jsonResult);
+        assertEquals(expected, actual);
     }
 
 
@@ -78,7 +84,7 @@ class MapToJsonConverterTest {
      * matches the expected format.
      */
     @Test
-    void testConvertToDatabaseColumn() {
+    void testConvertToDatabaseColumn() throws Exception {
         Map<String, Object> testMap = new HashMap<>();
         testMap.put("key1", "value1");
         testMap.put("key2", 42);
@@ -86,7 +92,10 @@ class MapToJsonConverterTest {
         final String jsonResult = converter.convertToDatabaseColumn(testMap);
         assertNotNull(jsonResult);
         assertFalse(jsonResult.isEmpty());
-        assertEquals("{\"key1\":\"value1\",\"key2\":42}", jsonResult);
+
+        final JsonNode expected = objectMapper.readTree("{\"key1\":\"value1\",\"key2\":42}");
+        final JsonNode actual = objectMapper.readTree(jsonResult);
+        assertEquals(expected, actual);
     }
 
     /**

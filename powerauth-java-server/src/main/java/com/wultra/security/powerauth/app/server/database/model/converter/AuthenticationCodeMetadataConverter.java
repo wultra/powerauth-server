@@ -24,9 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,27 +37,11 @@ import org.springframework.stereotype.Component;
  */
 @Converter
 @Component
+@AllArgsConstructor
 @Slf4j
 public class AuthenticationCodeMetadataConverter implements AttributeConverter<AuthenticationCodeMetadata, String> {
 
     private final ObjectMapper objectMapper;
-
-    /**
-     * No-arg constructor that initializes a default ObjectMapper.
-     */
-    public AuthenticationCodeMetadataConverter() {
-        this.objectMapper = new ObjectMapper();
-    }
-
-    /**
-     * Constructor that initializes the ObjectMapper.
-     *
-     * @param objectMapper The Jackson ObjectMapper.
-     */
-    @Autowired
-    public AuthenticationCodeMetadataConverter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     /**
      * Converts an AuthenticationMetadata object to its JSON string representation.

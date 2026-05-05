@@ -18,8 +18,12 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Map;
@@ -31,9 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
+@SpringBootTest
+@ActiveProfiles("test")
 class ListToJsonConverterTest {
 
-    private final ListToJsonConverter tested = new ListToJsonConverter(new ObjectMapper());
+    @Autowired
+    private ListToJsonConverter tested;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void testFromString() {
@@ -49,10 +59,12 @@ class ListToJsonConverterTest {
     }
 
     @Test
-    void testToString() {
+    void testToString() throws Exception {
         final String result = tested.convertToDatabaseColumn(List.of(Map.of("name", "a"), "b"));
 
-        assertEquals("""
-            [{"name":"a"},"b"]""", result);
+        final JsonNode expected = objectMapper.readTree("""
+            [{"name":"a"},"b"]""");
+        final JsonNode actual = objectMapper.readTree(result);
+        assertEquals(expected, actual);
     }
 }

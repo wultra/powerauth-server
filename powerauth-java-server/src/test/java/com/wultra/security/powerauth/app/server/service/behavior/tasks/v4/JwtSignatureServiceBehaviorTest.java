@@ -43,16 +43,18 @@ import com.wultra.security.powerauth.client.model.response.v4.VerifyJwtSignature
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,26 +62,30 @@ import static org.mockito.Mockito.when;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class JwtSignatureServiceBehaviorTest {
 
-    @Mock
+    @MockitoBean
     private LocalizationProvider localizationProvider;
 
-    @Mock
+    @MockitoBean
     private ActivationQueryService activationQueryService;
 
-    @Mock
+    @MockitoBean
     private ActivationContextValidator activationValidator;
 
-    @Mock
+    @MockitoBean
     private CryptographyServiceFactory cryptographyServiceFactory;
 
-    @Mock
-    private CryptographyService cryptographyService;
+    private final CryptographyService cryptographyService = mock(CryptographyService.class);
 
-    @InjectMocks
+    @Autowired
+    @Qualifier("jwtSignatureServiceBehaviorV4")
     private JwtSignatureServiceBehavior tested;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private ActivationRecordEntity activation;
     private final Base64URL dataToSign = Base64URL.encode("DataToSign");
@@ -166,8 +172,7 @@ class JwtSignatureServiceBehaviorTest {
 
         SignJwtResponse response = tested.signJwt(request);
         assertNotNull(response.getSignedData());
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jwsJson = mapper.readTree(response.getSignedData());
+        JsonNode jwsJson = objectMapper.readTree(response.getSignedData());
         assertTrue(jwsJson.has("payload"));
         assertTrue(jwsJson.has("signatures"));
         JsonNode signatures = jwsJson.get("signatures");
