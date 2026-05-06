@@ -42,9 +42,6 @@ class ListToJsonConverterTest {
     @Autowired
     private ListToJsonConverter tested;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
     void testFromString() {
         final String source = """
@@ -59,12 +56,12 @@ class ListToJsonConverterTest {
     }
 
     @Test
-    void testToString() throws Exception {
+    void testToString() {
         final String result = tested.convertToDatabaseColumn(List.of(Map.of("name", "a"), "b"));
 
-        final JsonNode expected = objectMapper.readTree("""
-            [{"name":"a"},"b"]""");
-        final JsonNode actual = objectMapper.readTree(result);
-        assertEquals(expected, actual);
+        assertEquals("""
+[ {
+  "name" : "a"
+}, "b" ]""", result);
     }
 }
