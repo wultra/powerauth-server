@@ -74,11 +74,11 @@ public class TokenEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (null == o) {
-            return false;
-        }
         if (this == o) {
             return true;
+        }
+        if (null == o) {
+            return false;
         }
         if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
             return false;
