@@ -105,7 +105,6 @@ class TemporaryKeyBehaviorTest {
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final PqcDsa PQC_DSA = new MlDsa();
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final SharedSecret SHARED_SECRET_ECDHE = SharedSecretFactory.getEcdhe();
     private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
@@ -119,9 +118,10 @@ class TemporaryKeyBehaviorTest {
     private final KeyProvider keyProvider;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, KeyProvider keyProvider, TemporaryKeyTestService temporaryKeyTestService) {
+    TemporaryKeyBehaviorTest(TemporaryKeyBehaviorAead temporaryKeyBehavior, ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationCreateServiceBehavior activationServiceBehaviorV4, ActivationRepository activationRepository, KeyProvider keyProvider, TemporaryKeyTestService temporaryKeyTestService, ObjectMapper objectMapper) {
         this.temporaryKeyBehavior = temporaryKeyBehavior;
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
@@ -130,6 +130,7 @@ class TemporaryKeyBehaviorTest {
         this.activationRepository = activationRepository;
         this.keyProvider = keyProvider;
         this.temporaryKeyTestService = temporaryKeyTestService;
+        this.objectMapper = objectMapper;
     }
 
     @Test
@@ -192,7 +193,7 @@ class TemporaryKeyBehaviorTest {
         assertNull(claims.getClaim("activationId"));
         assertNotNull(claims.getClaim("sharedSecretResponse"));
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getSalt());
         assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
         assertNotNull(serverResponse.getEncapsulatedKeys().get(1));
@@ -242,7 +243,7 @@ class TemporaryKeyBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getSalt());
         assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
         // extract temporary key and use it during an activation
@@ -268,7 +269,7 @@ class TemporaryKeyBehaviorTest {
         assertEquals(activationId, claimsActivation.getClaim("activationId"));
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponseActivation = objectMapper.convertValue(claimActivation, SharedSecretResponse.class);
         assertNotNull(serverResponseActivation.getSalt());
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
     }
@@ -282,7 +283,7 @@ class TemporaryKeyBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         assertNotNull(serverResponse.getSalt());
         assertNotNull(serverResponse.getEncapsulatedKeys().get(0));
         assertNotNull(serverResponse.getEncapsulatedKeys().get(1));
@@ -311,7 +312,7 @@ class TemporaryKeyBehaviorTest {
         assertEquals(activationId, claimsActivation.getClaim("activationId"));
         assertNotNull(claimsActivation.getClaim("sharedSecretResponse"));
         final Object claimActivation = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponseActivation = OBJECT_MAPPER.convertValue(claimActivation, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponseActivation = objectMapper.convertValue(claimActivation, SharedSecretResponse.class);
         assertNotNull(serverResponseActivation.getSalt());
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(0));
         assertNotNull(serverResponseActivation.getEncapsulatedKeys().get(1));
@@ -387,7 +388,7 @@ class TemporaryKeyBehaviorTest {
                 EncryptorId.ACTIVATION_LAYER_2,
                 new EncryptorParameters("4.0", applicationKey, null, temporaryKeyId),
                 new AeadSecrets(temporarySharedSecret.getEncoded(), applicationSecret));
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(activationLayer2Request));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
 
         final CreateActivationRequest activationRequest = new CreateActivationRequest();
         activationRequest.setUserId(UUID.randomUUID().toString());
@@ -406,7 +407,7 @@ class TemporaryKeyBehaviorTest {
         encryptedResponse.setEncryptedData(createActivationResponse.getEncryptedData());
         encryptedResponse.setTimestamp(createActivationResponse.getTimestamp());
         final byte[] decryptedResponse = clientEncryptor.decryptResponse(encryptedResponse);
-        final ActivationLayer2Response layer2Response = OBJECT_MAPPER.readValue(decryptedResponse, ActivationLayer2Response.class);
+        final ActivationLayer2Response layer2Response = objectMapper.readValue(decryptedResponse, ActivationLayer2Response.class);
         return new ActivationContext(activationSharedSecretRequest.getSharedSecretClientContext(), layer2Response);
     }
 

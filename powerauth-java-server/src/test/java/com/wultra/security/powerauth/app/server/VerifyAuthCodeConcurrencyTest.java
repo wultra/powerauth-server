@@ -36,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -51,6 +52,9 @@ public class VerifyAuthCodeConcurrencyTest {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     public void testVerifyAuthCodeConcurrent() throws Exception {
@@ -96,7 +100,7 @@ public class VerifyAuthCodeConcurrencyTest {
         );
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        new ObjectMapper().writeValue(baos, requestL2);
+        objectMapper.writeValue(baos, requestL2);
         final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(baos.toByteArray());
 
         // Create activation

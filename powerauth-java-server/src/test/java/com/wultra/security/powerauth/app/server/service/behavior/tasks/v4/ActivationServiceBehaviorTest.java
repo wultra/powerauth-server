@@ -99,13 +99,13 @@ class ActivationServiceBehaviorTest {
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
 
     private final TemporaryKeyTestService temporaryKeyTestService;
+    private final ObjectMapper objectMapper;
 
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final PqcDsa PQC_DSA = new MlDsa();
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String VERSION = "4.0";
     private static final String USER_ID = UUID.randomUUID().toString();
 
@@ -115,13 +115,14 @@ class ActivationServiceBehaviorTest {
     private static final SharedSecret SHARED_SECRET_HYBRID_ML_L3 = SharedSecretFactory.getHybridMlL3();
 
     @Autowired
-    ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, TemporaryKeyTestService temporaryKeyTestService) {
+    ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, TemporaryKeyTestService temporaryKeyTestService, ObjectMapper objectMapper) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
         this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         this.activationInitServiceBehavior = activationInitServiceBehavior;
         this.temporaryKeyTestService = temporaryKeyTestService;
+        this.objectMapper = objectMapper;
     }
 
     @Test
@@ -150,7 +151,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
@@ -161,7 +162,7 @@ class ActivationServiceBehaviorTest {
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         requestL2.setDevicePublicKeys(devicePublicKeys);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();
@@ -220,7 +221,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
@@ -231,7 +232,7 @@ class ActivationServiceBehaviorTest {
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         requestL2.setDevicePublicKeys(devicePublicKeys);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();
@@ -279,7 +280,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
@@ -291,7 +292,7 @@ class ActivationServiceBehaviorTest {
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.name());
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Prepare activation with missing devicePublicKey
         final String activationCode = initActivationResponse.getActivationCode();
@@ -332,7 +333,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
@@ -343,7 +344,7 @@ class ActivationServiceBehaviorTest {
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         requestL2.setDevicePublicKeys(devicePublicKeys);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Create activation
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
@@ -395,7 +396,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0), serverResponse.getEncapsulatedKeys().get(1)));
@@ -406,7 +407,7 @@ class ActivationServiceBehaviorTest {
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         requestL2.setDevicePublicKeys(devicePublicKeys);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Create activation
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
@@ -447,7 +448,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
@@ -459,7 +460,7 @@ class ActivationServiceBehaviorTest {
         sharedSecretRequest.setAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3.name());
         requestL2.setSharedSecretRequest(sharedSecretRequest);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(detailResponse, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Create activation with missing devicePublicKey
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
@@ -675,13 +676,13 @@ class ActivationServiceBehaviorTest {
     private ActivationLayer2Response decryptResponse(CreateActivationResponse response, ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor) throws Exception {
         final AeadEncryptedResponse encryptedResponse = new AeadEncryptedResponse(response.getEncryptedData(), response.getTimestamp());
         final byte[] decryptedActivationResponsePayload = clientEncryptor.decryptResponse(encryptedResponse);
-        return OBJECT_MAPPER.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
+        return objectMapper.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
     }
 
     private ActivationLayer2Response decryptResponse(PrepareActivationResponse response, ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor) throws Exception {
         final AeadEncryptedResponse encryptedResponse = new AeadEncryptedResponse(response.getEncryptedData(), response.getTimestamp());
         final byte[] decryptedActivationResponsePayload = clientEncryptor.decryptResponse(encryptedResponse);
-        return OBJECT_MAPPER.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
+        return objectMapper.readValue(decryptedActivationResponsePayload, ActivationLayer2Response.class);
     }
 
     private ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> getClientEncryptor(GetApplicationDetailResponse applicationDetail,
@@ -749,7 +750,7 @@ class ActivationServiceBehaviorTest {
 
         final String temporaryKeyId = claims.getSubject();
         final Object claim = claims.getClaim("sharedSecretResponse");
-        final SharedSecretResponse serverResponse = OBJECT_MAPPER.convertValue(claim, SharedSecretResponse.class);
+        final SharedSecretResponse serverResponse = objectMapper.convertValue(claim, SharedSecretResponse.class);
         final DefaultSharedSecretResponse sharedSecretResponse = new DefaultSharedSecretResponse();
         sharedSecretResponse.setSalt(serverResponse.getSalt());
         sharedSecretResponse.setEncapsulatedKeys(List.of(serverResponse.getEncapsulatedKeys().get(0)));
@@ -761,7 +762,7 @@ class ActivationServiceBehaviorTest {
         requestL2.setDevicePublicKeys(devicePublicKeys);
         requestL2.setActivationOtp(otpToUse);
         final ClientEncryptor<AeadEncryptedRequest, AeadEncryptedResponse> clientEncryptor = getClientEncryptor(applicationDetail, temporarySharedSecret, temporaryKeyId);
-        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(requestL2));
+        final AeadEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(requestL2));
 
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();

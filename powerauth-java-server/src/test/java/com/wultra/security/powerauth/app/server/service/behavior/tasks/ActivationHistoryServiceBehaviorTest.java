@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -25,12 +24,11 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.v3.AuditingServiceBehavior;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Map;
 
@@ -44,16 +42,14 @@ import static org.mockito.Mockito.verify;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
+@ActiveProfiles("test")
 class ActivationHistoryServiceBehaviorTest {
 
-    @Spy
-    private ObjectMapper objectMapper = new ObjectMapper();
-
-    @Mock
+    @MockitoBean
     private AuditingServiceBehavior audit;
 
-    @InjectMocks
+    @Autowired
     private ActivationHistoryServiceBehavior tested;
 
     @Test

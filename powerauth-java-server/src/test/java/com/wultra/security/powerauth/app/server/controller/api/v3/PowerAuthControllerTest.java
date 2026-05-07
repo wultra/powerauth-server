@@ -88,10 +88,13 @@ class PowerAuthControllerTest {
 
     @Autowired
     private PowerAuthControllerTestConfig config;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final KeyGenerator keyGenerator = new KeyGenerator();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll
     void initializeData() throws Exception {

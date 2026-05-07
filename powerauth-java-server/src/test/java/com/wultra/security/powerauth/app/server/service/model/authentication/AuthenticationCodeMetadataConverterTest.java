@@ -17,11 +17,15 @@
  */
 package com.wultra.security.powerauth.app.server.service.model.authentication;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PowerAuthAuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import com.wultra.security.powerauth.app.server.database.model.converter.AuthenticationCodeMetadataConverter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,31 +35,29 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Dusil
  */
-public class AuthenticationCodeMetadataConverterTest {
+@SpringBootTest
+@ActiveProfiles("test")
+class AuthenticationCodeMetadataConverterTest {
 
-    /**
-     * Converter object to be used for tests.
-     */
+    @Autowired
     private AuthenticationCodeMetadataConverter converter;
 
-    /**
-     * Initializes the AuthMetadataConverter object and any other necessary objects.
-     */
-    @BeforeEach
-    void setUp() {
-        converter = new AuthenticationCodeMetadataConverter();
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     /**
      * Tests the conversion of a PowerAuthAuthCodeMetadata object to its serialized JSON form.
      */
     @Test
-    void convertToDatabaseColumnTest() {
+    void convertToDatabaseColumnTest() throws Exception {
         PowerAuthAuthenticationCodeMetadata metadata = new PowerAuthAuthenticationCodeMetadata("POST", "123");
         String jsonStr = converter.convertToDatabaseColumn(metadata);
 
         assertNotNull(jsonStr);
-        assertEquals("{\"type\":\"POWERAUTH\",\"authDataMethod\":\"POST\",\"authDataUriId\":\"123\"}", jsonStr);
+        final JsonNode node = objectMapper.readTree(jsonStr);
+        assertEquals("POWERAUTH", node.get("type").asText());
+        assertEquals("POST", node.get("authDataMethod").asText());
+        assertEquals("123", node.get("authDataUriId").asText());
     }
 
     /**

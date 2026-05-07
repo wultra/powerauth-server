@@ -80,19 +80,20 @@ class ActivationServiceBehaviorTest {
     private final ActivationServiceBehavior activationServiceBehavior;
     private final ActivationStatusServiceBehavior activationStatusServiceBehavior;
     private final ActivationInitServiceBehavior activationInitServiceBehavior;
+    private final ObjectMapper objectMapper;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final String version = "3.2";
     private final String userId = UUID.randomUUID().toString();
 
     @Autowired
-    ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior) {
+    ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationDetailServiceBehavior applicationDetailServiceBehavior, ActivationServiceBehavior activationServiceBehavior, ActivationStatusServiceBehavior activationStatusServiceBehavior, ActivationInitServiceBehavior activationInitServiceBehavior, ObjectMapper objectMapper) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationDetailServiceBehavior = applicationDetailServiceBehavior;
         this.activationServiceBehavior = activationServiceBehavior;
         this.activationStatusServiceBehavior = activationStatusServiceBehavior;
         this.activationInitServiceBehavior = activationInitServiceBehavior;
+        this.objectMapper = objectMapper;
     }
 
     @Test

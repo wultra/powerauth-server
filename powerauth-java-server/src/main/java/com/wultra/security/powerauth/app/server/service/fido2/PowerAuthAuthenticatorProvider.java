@@ -82,8 +82,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final KeyPairGenerationService keyPairGenerationService;
 
     private final LocalizationProvider localizationProvider;
+    private final ObjectMapper objectMapper;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Override
