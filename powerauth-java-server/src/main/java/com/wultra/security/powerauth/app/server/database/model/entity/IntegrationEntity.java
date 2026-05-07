@@ -80,12 +80,12 @@ public class IntegrationEntity implements Serializable {
             return false;
         }
         final IntegrationEntity other = (IntegrationEntity) o;
-        return Objects.equals(this.name, other.name);
+        return Objects.equals(this.id, other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(id);
     }
 
 }
