@@ -720,6 +720,85 @@ class OperationServiceBehaviorTest {
         assertEquals("Operation was not found.", exception.getMessage());
     }
 
+    /**
+     * Tests that the operation claim fails when the activation does not have the required activation flag.
+     */
+    @Test
+    void testOperationClaimFailMissingActivationFlag() throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList("PA_Tests"));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        operationCreateRequest.setActivationFlag("test-flag-missing");
+        operationCreateRequest.setActivationId(ACTIVATION_ID);
+        final String operationId = operationService.createOperation(operationCreateRequest).getId();
+        final OperationClaimRequest claimRequest = new OperationClaimRequest();
+        claimRequest.setOperationId(operationId);
+        claimRequest.setUserId(USER_ID);
+        final Exception exception = assertThrows(GenericServiceException.class, () ->
+                operationService.operationClaim(claimRequest));
+        assertEquals("Operation was not found.", exception.getMessage());
+    }
+
+    /**
+     * Tests that the operation claim fails when the activation has the required activation flag but in another application.
+     */
+    @Test
+    void testOperationClaimFailActivationFlagPresentAnotherApp() throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        operationCreateRequest.setActivationFlag("test-flag1");
+        operationCreateRequest.setActivationId(ACTIVATION_ID);
+        final String operationId = operationService.createOperation(operationCreateRequest).getId();
+        final OperationClaimRequest claimRequest = new OperationClaimRequest();
+        claimRequest.setOperationId(operationId);
+        claimRequest.setUserId(USER_ID);
+        final Exception exception = assertThrows(GenericServiceException.class, () ->
+                operationService.operationClaim(claimRequest));
+        assertEquals("Operation was not found.", exception.getMessage());
+    }
+
+    /**
+     * Tests that the operation claim succeeds when the activation has the required activation flag.
+     */
+    @Test
+    void testOperationClaimWithMatchingActivationFlag() throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList("PA_Tests"));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        operationCreateRequest.setActivationFlag("test-flag1");
+        operationCreateRequest.setActivationId(ACTIVATION_ID);
+        final String operationId = operationService.createOperation(operationCreateRequest).getId();
+        final OperationClaimRequest claimRequest = new OperationClaimRequest();
+        claimRequest.setOperationId(operationId);
+        claimRequest.setUserId(USER_ID);
+        assertEquals(USER_ID, operationService.operationClaim(claimRequest).getUserId());
+    }
+
+    /**
+     * Tests that the operation claim succeeds when the operation has no flag set.
+     */
+    @Test
+    void testOperationClaimWithNoActivationFlag() throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        operationCreateRequest.setActivationId(ACTIVATION_ID);
+        final String operationId = operationService.createOperation(operationCreateRequest).getId();
+        final OperationClaimRequest claimRequest = new OperationClaimRequest();
+        claimRequest.setOperationId(operationId);
+        claimRequest.setUserId(USER_ID);
+        assertEquals(USER_ID, operationService.operationClaim(claimRequest).getUserId());
+    }
+
     @Test
     void testOperationApproveWithValidProximityOtp() throws Exception {
         final OperationDetailResponse operation = createOperation(true);

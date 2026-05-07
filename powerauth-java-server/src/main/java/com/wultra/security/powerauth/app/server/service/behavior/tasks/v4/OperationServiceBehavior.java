@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -998,6 +999,7 @@ public class OperationServiceBehavior {
                     && source.getTimestampExpires().after(currentTimestamp)) {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
+                checkOperationFlagMatch(source, userId);
                 if (expectedUserId == null) {
                     source.setUserId(userId);
                     logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
@@ -1009,6 +1011,29 @@ public class OperationServiceBehavior {
             }
         }
         return source;
+    }
+
+    /**
+     * If the operation requires a specific activation flag, verify that at least one of the user's
+     * active activations contains the required flag. This prevents claiming an operation by a device
+     * that would not be able to approve it later.
+     * @param operation Operation entity.
+     * @param userId User ID.
+     * @throws GenericServiceException In case no activation for given user ID has such activation flag.
+     */
+    private void checkOperationFlagMatch(OperationEntity operation, String userId) throws GenericServiceException {
+        final String expectedActivationFlag = operation.getActivationFlag();
+        if (expectedActivationFlag != null) {
+            final List<ActivationRecordEntity> matchingActivations = activationQueryService.findByUserIdAndActivationStatusIn(userId, Set.of(ActivationStatus.ACTIVE), Pageable.unpaged());
+            final boolean flagsMatched = matchingActivations.stream().anyMatch(
+                    activation -> activation.getFlags().contains(expectedActivationFlag)
+                            && operation.getApplications().contains(activation.getApplication()));
+            if (!flagsMatched) {
+                logger.warn("Operation ID: {}, requires activation flag: {}, however no activation for user ID: {} contains such flag.",
+                        operation.getId(), expectedActivationFlag, userId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+            }
+        }
     }
 
     private OperationEntity expireOperation(OperationEntity operationEntity, Date currentTimestamp) throws GenericServiceException {
