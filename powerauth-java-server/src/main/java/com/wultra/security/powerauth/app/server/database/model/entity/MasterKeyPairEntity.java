@@ -114,17 +114,18 @@ public class MasterKeyPairEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final MasterKeyPairEntity other = (MasterKeyPairEntity) o;
-            return Objects.equals(this.masterKeyPrivateBase64, other.masterKeyPrivateBase64)
-                    && Objects.equals(this.masterPrivateKeys, other.masterPrivateKeys)
-                    && Objects.equals(this.timestampCreated, other.timestampCreated)
-                    && Objects.equals(this.application, other.application);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final MasterKeyPairEntity other = (MasterKeyPairEntity) o;
+        return Objects.equals(this.masterKeyPrivateBase64, other.masterKeyPrivateBase64)
+                && Objects.equals(this.masterPrivateKeys, other.masterPrivateKeys)
+                && Objects.equals(this.timestampCreated, other.timestampCreated)
+                && Objects.equals(this.application, other.application);
     }
 
     @Override

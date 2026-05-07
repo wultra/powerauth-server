@@ -170,27 +170,28 @@ public class SignatureEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final SignatureEntity other = (SignatureEntity) o;
-            return Objects.equals(this.dataBase64, other.dataBase64)
-                    && Objects.equals(this.signatureType, other.signatureType)
-                    && Objects.equals(this.signature, other.signature)
-                    && Objects.equals(this.signatureMetadata, other.signatureMetadata)
-                    && Objects.equals(this.signatureDataBody, other.signatureDataBody)
-                    && Objects.equals(this.additionalInfo, other.additionalInfo)
-                    && Objects.equals(this.activation, other.activation)
-                    && Objects.equals(this.activationCounter, other.activationCounter)
-                    && Objects.equals(this.activationCtrDataBase64, other.activationCtrDataBase64)
-                    && Objects.equals(this.activationStatus, other.activationStatus)
-                    && Objects.equals(this.valid, other.valid)
-                    && Objects.equals(this.version, other.version)
-                    && Objects.equals(this.timestampCreated, other.timestampCreated)
-                    && Objects.equals(this.note, other.note);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final SignatureEntity other = (SignatureEntity) o;
+        return Objects.equals(this.dataBase64, other.dataBase64)
+                && Objects.equals(this.signatureType, other.signatureType)
+                && Objects.equals(this.signature, other.signature)
+                && Objects.equals(this.signatureMetadata, other.signatureMetadata)
+                && Objects.equals(this.signatureDataBody, other.signatureDataBody)
+                && Objects.equals(this.additionalInfo, other.additionalInfo)
+                && Objects.equals(this.activation, other.activation)
+                && Objects.equals(this.activationCounter, other.activationCounter)
+                && Objects.equals(this.activationCtrDataBase64, other.activationCtrDataBase64)
+                && Objects.equals(this.activationStatus, other.activationStatus)
+                && Objects.equals(this.valid, other.valid)
+                && Objects.equals(this.version, other.version)
+                && Objects.equals(this.timestampCreated, other.timestampCreated)
+                && Objects.equals(this.note, other.note);
     }
 
     @Override

@@ -72,14 +72,15 @@ public class IntegrationEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final IntegrationEntity other = (IntegrationEntity) o;
-            return Objects.equals(this.name, other.name);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final IntegrationEntity other = (IntegrationEntity) o;
+        return Objects.equals(this.name, other.name);
     }
 
     @Override

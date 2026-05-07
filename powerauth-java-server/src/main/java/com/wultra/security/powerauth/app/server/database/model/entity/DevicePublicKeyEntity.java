@@ -56,14 +56,15 @@ public class DevicePublicKeyEntity {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final DevicePublicKeyEntity other = (DevicePublicKeyEntity) o;
-            return Objects.equals(this.keyData, other.keyData);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final DevicePublicKeyEntity other = (DevicePublicKeyEntity) o;
+        return Objects.equals(this.keyData, other.keyData);
     }
 
 }

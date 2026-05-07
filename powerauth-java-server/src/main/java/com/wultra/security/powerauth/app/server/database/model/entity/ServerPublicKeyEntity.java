@@ -56,14 +56,15 @@ public class ServerPublicKeyEntity {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final ServerPublicKeyEntity other = (ServerPublicKeyEntity) o;
-            return Objects.equals(this.keyData, other.keyData);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ServerPublicKeyEntity other = (ServerPublicKeyEntity) o;
+        return Objects.equals(this.keyData, other.keyData);
     }
 
 }

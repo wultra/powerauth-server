@@ -186,24 +186,25 @@ public class OperationEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final OperationEntity other = (OperationEntity) o;
-            return id.equals(other.id) // ID is generated on application level
-                    && userId.equals(other.userId)
-                    && applications.equals(other.applications)
-                    && activationFlag.equals(other.activationFlag)
-                    && operationType.equals(other.operationType)
-                    && templateName.equals(other.templateName)
-                    && data.equals(other.data)
-                    && Objects.equals(parameters, other.parameters)
-                    && Objects.equals(additionalData, other.additionalData)
-                    && Objects.equals(riskFlags, other.riskFlags)
-                    && Objects.equals(totpSeed, other.totpSeed);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final OperationEntity other = (OperationEntity) o;
+        return id.equals(other.id) // ID is generated on application level
+                && userId.equals(other.userId)
+                && applications.equals(other.applications)
+                && activationFlag.equals(other.activationFlag)
+                && operationType.equals(other.operationType)
+                && templateName.equals(other.templateName)
+                && data.equals(other.data)
+                && Objects.equals(parameters, other.parameters)
+                && Objects.equals(additionalData, other.additionalData)
+                && Objects.equals(riskFlags, other.riskFlags)
+                && Objects.equals(totpSeed, other.totpSeed);
     }
 
     @Override

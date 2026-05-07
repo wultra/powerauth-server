@@ -98,15 +98,16 @@ public class ActivationHistoryEntity implements Serializable {
     public boolean equals(final Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final ActivationHistoryEntity other = (ActivationHistoryEntity) o;
-            return Objects.equals(getActivation(), other.getActivation())
-                    && Objects.equals(getTimestampCreated(), other.getTimestampCreated());
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ActivationHistoryEntity other = (ActivationHistoryEntity) o;
+        return Objects.equals(getActivation(), other.getActivation())
+                && Objects.equals(getTimestampCreated(), other.getTimestampCreated());
     }
 
     @Override

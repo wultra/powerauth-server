@@ -104,17 +104,18 @@ public class TemporaryKeyEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final TemporaryKeyEntity other = (TemporaryKeyEntity) o;
-            return Objects.equals(id, other.id)
-                    && Objects.equals(appKey, other.appKey)
-                    && Objects.equals(activationId, other.activationId)
-                    && Objects.equals(publicKeyBase64, other.publicKeyBase64);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final TemporaryKeyEntity other = (TemporaryKeyEntity) o;
+        return Objects.equals(id, other.id)
+                && Objects.equals(appKey, other.appKey)
+                && Objects.equals(activationId, other.activationId)
+                && Objects.equals(publicKeyBase64, other.publicKeyBase64);
     }
 
     @Override

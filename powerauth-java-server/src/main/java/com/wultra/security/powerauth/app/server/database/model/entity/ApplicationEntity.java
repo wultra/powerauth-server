@@ -101,16 +101,17 @@ public class ApplicationEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final ApplicationEntity other = (ApplicationEntity) o;
-            return Objects.equals(id, other.id) &&
-                    Objects.equals(roles, other.roles) &&
-                    Objects.equals(versions, other.versions);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ApplicationEntity other = (ApplicationEntity) o;
+        return Objects.equals(id, other.id) &&
+                Objects.equals(roles, other.roles) &&
+                Objects.equals(versions, other.versions);
     }
 
     @Override

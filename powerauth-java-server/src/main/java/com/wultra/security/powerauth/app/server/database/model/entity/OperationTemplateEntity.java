@@ -104,21 +104,22 @@ public class OperationTemplateEntity implements Serializable {
     @Override public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final OperationTemplateEntity other = (OperationTemplateEntity) o;
-            return templateName.equals(other.templateName)
-                    && operationType.equals(other.operationType)
-                    && Objects.equals(dataTemplate, other.dataTemplate)
-                    && Arrays.equals(signatureType, other.signatureType)
-                    && Objects.equals(maxFailureCount, other.maxFailureCount)
-                    && Objects.equals(expiration, other.expiration)
-                    && Objects.equals(riskFlags, other.riskFlags)
-                    && Objects.equals(proximityCheckEnabled, other.proximityCheckEnabled);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final OperationTemplateEntity other = (OperationTemplateEntity) o;
+        return templateName.equals(other.templateName)
+                && operationType.equals(other.operationType)
+                && Objects.equals(dataTemplate, other.dataTemplate)
+                && Arrays.equals(signatureType, other.signatureType)
+                && Objects.equals(maxFailureCount, other.maxFailureCount)
+                && Objects.equals(expiration, other.expiration)
+                && Objects.equals(riskFlags, other.riskFlags)
+                && Objects.equals(proximityCheckEnabled, other.proximityCheckEnabled);
     }
 
     @Override public int hashCode() {

@@ -374,14 +374,15 @@ public class ActivationRecordEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final ActivationRecordEntity other = (ActivationRecordEntity) o;
-            return Objects.equals(this.activationCode, other.activationCode);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ActivationRecordEntity other = (ActivationRecordEntity) o;
+        return Objects.equals(this.activationCode, other.activationCode);
     }
 
     @Override

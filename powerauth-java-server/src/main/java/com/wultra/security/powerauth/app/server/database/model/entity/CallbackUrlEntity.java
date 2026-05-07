@@ -42,7 +42,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_callback")
-@Getter @Setter
+@Getter
+@Setter
 @SQLRestriction("enabled = true")
 public class CallbackUrlEntity implements Serializable {
 
@@ -144,17 +145,18 @@ public class CallbackUrlEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final CallbackUrlEntity other = (CallbackUrlEntity) o;
-            return application.equals(other.application)
-                    && name.equals(other.getName())
-                    && type == other.type
-                    && callbackUrl.equals(other.callbackUrl);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final CallbackUrlEntity other = (CallbackUrlEntity) o;
+        return application.equals(other.application)
+                && name.equals(other.getName())
+                && type == other.type
+                && callbackUrl.equals(other.callbackUrl);
     }
 
     @Override

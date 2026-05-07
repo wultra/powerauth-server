@@ -76,18 +76,19 @@ public class TokenEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final TokenEntity other = (TokenEntity) o;
-            return Objects.equals(tokenId, other.tokenId) &&
-                    tokenSecret.equals(other.tokenSecret) &&
-                    Objects.equals(activation, other.activation) &&
-                    signatureTypeCreated.equals(other.signatureTypeCreated) &&
-                    timestampCreated.equals(other.timestampCreated);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final TokenEntity other = (TokenEntity) o;
+        return Objects.equals(tokenId, other.tokenId) &&
+                tokenSecret.equals(other.tokenSecret) &&
+                Objects.equals(activation, other.activation) &&
+                signatureTypeCreated.equals(other.signatureTypeCreated) &&
+                timestampCreated.equals(other.timestampCreated);
     }
 
     @Override

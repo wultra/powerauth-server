@@ -34,7 +34,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_version")
-@Getter @Setter
+@Getter
+@Setter
 public class ApplicationVersionEntity implements Serializable {
 
     @Serial
@@ -84,18 +85,19 @@ public class ApplicationVersionEntity implements Serializable {
     public boolean equals(Object o) {
         if (null == o) {
             return false;
-        } else if (this == o) {
-            return true;
-        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
-            return false;
-        } else {
-            final ApplicationVersionEntity other = (ApplicationVersionEntity) o;
-            return Objects.equals(application, other.application) &&
-                    Objects.equals(id, other.id) &&
-                    Objects.equals(applicationKey, other.applicationKey) &&
-                    Objects.equals(applicationSecret, other.applicationSecret) &&
-                    Objects.equals(supported, other.supported);
         }
+        if (this == o) {
+            return true;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ApplicationVersionEntity other = (ApplicationVersionEntity) o;
+        return Objects.equals(application, other.application) &&
+                Objects.equals(id, other.id) &&
+                Objects.equals(applicationKey, other.applicationKey) &&
+                Objects.equals(applicationSecret, other.applicationSecret) &&
+                Objects.equals(supported, other.supported);
     }
 
     @Override
