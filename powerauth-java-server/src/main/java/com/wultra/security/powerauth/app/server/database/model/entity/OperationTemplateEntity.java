@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -101,16 +102,24 @@ public class OperationTemplateEntity implements Serializable {
     private boolean proximityCheckEnabled;
 
     @Override public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof final OperationTemplateEntity that)) return false;
-        return templateName.equals(that.templateName)
-                && operationType.equals(that.operationType)
-                && Objects.equals(dataTemplate, that.dataTemplate)
-                && Arrays.equals(signatureType, that.signatureType)
-                && Objects.equals(maxFailureCount, that.maxFailureCount)
-                && Objects.equals(expiration, that.expiration)
-                && Objects.equals(riskFlags, that.riskFlags)
-                && Objects.equals(proximityCheckEnabled, that.proximityCheckEnabled);
+        if (this == o) {
+            return true;
+        }
+        if (null == o) {
+            return false;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final OperationTemplateEntity other = (OperationTemplateEntity) o;
+        return templateName.equals(other.templateName)
+                && operationType.equals(other.operationType)
+                && Objects.equals(dataTemplate, other.dataTemplate)
+                && Arrays.equals(signatureType, other.signatureType)
+                && Objects.equals(maxFailureCount, other.maxFailureCount)
+                && Objects.equals(expiration, other.expiration)
+                && Objects.equals(riskFlags, other.riskFlags)
+                && Objects.equals(proximityCheckEnabled, other.proximityCheckEnabled);
     }
 
     @Override public int hashCode() {

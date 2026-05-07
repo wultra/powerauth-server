@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.database.model.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -73,14 +74,21 @@ public class TokenEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TokenEntity that = (TokenEntity) o;
-        return Objects.equals(tokenId, that.tokenId) &&
-                tokenSecret.equals(that.tokenSecret) &&
-                Objects.equals(activation, that.activation) &&
-                signatureTypeCreated.equals(that.signatureTypeCreated) &&
-                timestampCreated.equals(that.timestampCreated);
+        if (this == o) {
+            return true;
+        }
+        if (null == o) {
+            return false;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final TokenEntity other = (TokenEntity) o;
+        return Objects.equals(tokenId, other.tokenId) &&
+                tokenSecret.equals(other.tokenSecret) &&
+                Objects.equals(activation, other.activation) &&
+                signatureTypeCreated.equals(other.signatureTypeCreated) &&
+                timestampCreated.equals(other.timestampCreated);
     }
 
     @Override

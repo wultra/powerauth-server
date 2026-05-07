@@ -26,6 +26,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -41,7 +42,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_callback")
-@Getter @Setter
+@Getter
+@Setter
 @SQLRestriction("enabled = true")
 public class CallbackUrlEntity implements Serializable {
 
@@ -141,9 +143,20 @@ public class CallbackUrlEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof final CallbackUrlEntity that)) return false;
-        return application.equals(that.application) && name.equals(that.getName()) && type == that.type && callbackUrl.equals(that.callbackUrl);
+        if (this == o) {
+            return true;
+        }
+        if (null == o) {
+            return false;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final CallbackUrlEntity other = (CallbackUrlEntity) o;
+        return application.equals(other.application)
+                && name.equals(other.getName())
+                && type == other.type
+                && callbackUrl.equals(other.callbackUrl);
     }
 
     @Override

@@ -85,11 +85,17 @@ public class CallbackUrlEventEntity implements Serializable {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
-
-        final CallbackUrlEventEntity that = (CallbackUrlEventEntity) o;
-        return idempotencyKey.equals(that.idempotencyKey);
+        if (this == o) {
+            return true;
+        }
+        if (null == o) {
+            return false;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final CallbackUrlEventEntity other = (CallbackUrlEventEntity) o;
+        return idempotencyKey.equals(other.idempotencyKey);
     }
 
     @Override

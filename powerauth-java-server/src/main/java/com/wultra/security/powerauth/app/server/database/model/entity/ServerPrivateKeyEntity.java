@@ -66,14 +66,17 @@ public class ServerPrivateKeyEntity implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null || !this.getClass().equals(ProxyUtils.getUserClass(obj))) {
+        if (null == o) {
             return false;
         }
-        final ServerPrivateKeyEntity other = (ServerPrivateKeyEntity) obj;
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ServerPrivateKeyEntity other = (ServerPrivateKeyEntity) o;
         return Objects.equals(this.keyData, other.keyData);
     }
 

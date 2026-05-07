@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.database.model.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,7 +34,8 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_version")
-@Getter @Setter
+@Getter
+@Setter
 public class ApplicationVersionEntity implements Serializable {
 
     @Serial
@@ -81,14 +83,21 @@ public class ApplicationVersionEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApplicationVersionEntity that = (ApplicationVersionEntity) o;
-        return Objects.equals(application, that.application) &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(applicationKey, that.applicationKey) &&
-                Objects.equals(applicationSecret, that.applicationSecret) &&
-                Objects.equals(supported, that.supported);
+        if (this == o) {
+            return true;
+        }
+        if (null == o) {
+            return false;
+        }
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        }
+        final ApplicationVersionEntity other = (ApplicationVersionEntity) o;
+        return Objects.equals(application, other.application) &&
+                Objects.equals(id, other.id) &&
+                Objects.equals(applicationKey, other.applicationKey) &&
+                Objects.equals(applicationSecret, other.applicationSecret) &&
+                Objects.equals(supported, other.supported);
     }
 
     @Override

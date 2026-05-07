@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -110,27 +111,21 @@ public class MasterKeyPairEntity implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (this == o) {
             return true;
         }
-        if (obj == null) {
+        if (null == o) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
             return false;
         }
-        final MasterKeyPairEntity other = (MasterKeyPairEntity) obj;
-        if (!Objects.equals(this.masterKeyPrivateBase64, other.masterKeyPrivateBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.masterPrivateKeys, other.masterPrivateKeys)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
-            return false;
-        }
-        return Objects.equals(this.application, other.application);
+        final MasterKeyPairEntity other = (MasterKeyPairEntity) o;
+        return Objects.equals(this.masterKeyPrivateBase64, other.masterKeyPrivateBase64)
+                && Objects.equals(this.masterPrivateKeys, other.masterPrivateKeys)
+                && Objects.equals(this.timestampCreated, other.timestampCreated)
+                && Objects.equals(this.application, other.application);
     }
 
     @Override
