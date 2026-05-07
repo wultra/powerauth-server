@@ -188,7 +188,7 @@ public class OperationEntity implements Serializable {
             return false;
         } else if (this == o) {
             return true;
-        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+        } else if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
             return false;
         } else {
             final OperationEntity other = (OperationEntity) o;
