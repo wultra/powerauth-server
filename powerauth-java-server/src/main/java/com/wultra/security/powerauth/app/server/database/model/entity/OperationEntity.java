@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -183,19 +184,26 @@ public class OperationEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof final OperationEntity that)) return false;
-        return id.equals(that.id) // ID is generated on application level
-                && userId.equals(that.userId)
-                && applications.equals(that.applications)
-                && activationFlag.equals(that.activationFlag)
-                && operationType.equals(that.operationType)
-                && templateName.equals(that.templateName)
-                && data.equals(that.data)
-                && Objects.equals(parameters, that.parameters)
-                && Objects.equals(additionalData, that.additionalData)
-                && Objects.equals(riskFlags, that.riskFlags)
-                && Objects.equals(totpSeed, that.totpSeed);
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final OperationEntity other = (OperationEntity) o;
+            return id.equals(other.id) // ID is generated on application level
+                    && userId.equals(other.userId)
+                    && applications.equals(other.applications)
+                    && activationFlag.equals(other.activationFlag)
+                    && operationType.equals(other.operationType)
+                    && templateName.equals(other.templateName)
+                    && data.equals(other.data)
+                    && Objects.equals(parameters, other.parameters)
+                    && Objects.equals(additionalData, other.additionalData)
+                    && Objects.equals(riskFlags, other.riskFlags)
+                    && Objects.equals(totpSeed, other.totpSeed);
+        }
     }
 
     @Override

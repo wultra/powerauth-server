@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Encry
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -101,13 +102,19 @@ public class TemporaryKeyEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TemporaryKeyEntity that = (TemporaryKeyEntity) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(appKey, that.appKey)
-                && Objects.equals(activationId, that.activationId)
-                && Objects.equals(publicKeyBase64, that.publicKeyBase64);
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final TemporaryKeyEntity other = (TemporaryKeyEntity) o;
+            return Objects.equals(id, other.id)
+                    && Objects.equals(appKey, other.appKey)
+                    && Objects.equals(activationId, other.activationId)
+                    && Objects.equals(publicKeyBase64, other.publicKeyBase64);
+        }
     }
 
     @Override

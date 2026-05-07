@@ -53,15 +53,17 @@ public class ServerPublicKeyEntity {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || !this.getClass().equals(ProxyUtils.getUserClass(obj))) {
+    public boolean equals(Object o) {
+        if (null == o) {
             return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final ServerPublicKeyEntity other = (ServerPublicKeyEntity) o;
+            return Objects.equals(this.keyData, other.keyData);
         }
-        final ServerPublicKeyEntity other = (ServerPublicKeyEntity) obj;
-        return Objects.equals(this.keyData, other.keyData);
     }
 
 }

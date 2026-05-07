@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -166,57 +167,30 @@ public class SignatureEntity implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (null == o) {
+            return false;
+        } else if (this == o) {
             return true;
-        }
-        if (obj == null) {
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
             return false;
+        } else {
+            final SignatureEntity other = (SignatureEntity) o;
+            return Objects.equals(this.dataBase64, other.dataBase64)
+                    && Objects.equals(this.signatureType, other.signatureType)
+                    && Objects.equals(this.signature, other.signature)
+                    && Objects.equals(this.signatureMetadata, other.signatureMetadata)
+                    && Objects.equals(this.signatureDataBody, other.signatureDataBody)
+                    && Objects.equals(this.additionalInfo, other.additionalInfo)
+                    && Objects.equals(this.activation, other.activation)
+                    && Objects.equals(this.activationCounter, other.activationCounter)
+                    && Objects.equals(this.activationCtrDataBase64, other.activationCtrDataBase64)
+                    && Objects.equals(this.activationStatus, other.activationStatus)
+                    && Objects.equals(this.valid, other.valid)
+                    && Objects.equals(this.version, other.version)
+                    && Objects.equals(this.timestampCreated, other.timestampCreated)
+                    && Objects.equals(this.note, other.note);
         }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final SignatureEntity other = (SignatureEntity) obj;
-        if (!Objects.equals(this.dataBase64, other.dataBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.signatureType, other.signatureType)) {
-            return false;
-        }
-        if (!Objects.equals(this.signature, other.signature)) {
-            return false;
-        }
-        if (!Objects.equals(this.signatureMetadata, other.signatureMetadata)) {
-            return false;
-        }
-        if (!Objects.equals(this.signatureDataBody, other.signatureDataBody)) {
-            return false;
-        }
-        if (!Objects.equals(this.additionalInfo, other.additionalInfo)) {
-            return false;
-        }
-        if (!Objects.equals(this.activation, other.activation)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationCounter, other.activationCounter)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationCtrDataBase64, other.activationCtrDataBase64)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationStatus, other.activationStatus)) {
-            return false;
-        }
-        if (!Objects.equals(this.valid, other.valid)) {
-            return false;
-        }
-        if (!Objects.equals(this.version, other.version)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
-            return false;
-        }
-        return Objects.equals(this.note, other.note);
     }
 
     @Override

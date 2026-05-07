@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Uniqu
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -53,10 +54,16 @@ public class UniqueValueEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UniqueValueEntity that = (UniqueValueEntity) o;
-        return uniqueValue.equals(that.uniqueValue);
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final UniqueValueEntity other = (UniqueValueEntity) o;
+            return uniqueValue.equals(other.uniqueValue);
+        }
     }
 
     @Override

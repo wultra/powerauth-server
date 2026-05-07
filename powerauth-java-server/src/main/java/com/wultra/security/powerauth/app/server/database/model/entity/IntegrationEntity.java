@@ -23,9 +23,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Class representing an integration - essentially an application that is allowed to communicate
@@ -65,5 +67,24 @@ public class IntegrationEntity implements Serializable {
      */
     @Column(name = "client_secret", nullable = false, updatable = false, length = 37)
     private String clientSecret;
+
+    @Override
+    public boolean equals(Object o) {
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final IntegrationEntity other = (IntegrationEntity) o;
+            return Objects.equals(this.name, other.name);
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
 
 }

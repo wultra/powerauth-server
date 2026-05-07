@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.database.model.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -81,14 +82,20 @@ public class ApplicationVersionEntity implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApplicationVersionEntity that = (ApplicationVersionEntity) o;
-        return Objects.equals(application, that.application) &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(applicationKey, that.applicationKey) &&
-                Objects.equals(applicationSecret, that.applicationSecret) &&
-                Objects.equals(supported, that.supported);
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final ApplicationVersionEntity other = (ApplicationVersionEntity) o;
+            return Objects.equals(application, other.application) &&
+                    Objects.equals(id, other.id) &&
+                    Objects.equals(applicationKey, other.applicationKey) &&
+                    Objects.equals(applicationSecret, other.applicationSecret) &&
+                    Objects.equals(supported, other.supported);
+        }
     }
 
     @Override
