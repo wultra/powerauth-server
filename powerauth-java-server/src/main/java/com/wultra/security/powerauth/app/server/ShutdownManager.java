@@ -20,6 +20,7 @@
 package com.wultra.security.powerauth.app.server;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import lombok.AllArgsConstructor;
@@ -35,8 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Shutdown manager for cleanup of resources during application exit.
- * Ensures proper shutdown of OpenTelemetry and Prometheus components
- * and removal of BouncyCastle provider.
+ * Ensures proper shutdown Prometheus component and removal of BouncyCastle provider.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -45,10 +45,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ShutdownManager {
 
-    private static final long TIMEOUT_SHUTDOWN_SECONDS = 10;
-
-    private final SdkTracerProvider sdkTracerProvider;
-    private final SdkLoggerProvider sdkLoggerProvider;
     private final MeterRegistry meterRegistry;
 
     /**
@@ -60,14 +56,6 @@ public class ShutdownManager {
         if (Security.getProvider("BC") != null) {
             Security.removeProvider("BC");
             logger.info("BouncyCastle provider removed during shutdown.");
-        }
-
-        if (sdkTracerProvider != null) {
-            sdkTracerProvider.shutdown().join(TIMEOUT_SHUTDOWN_SECONDS, TimeUnit.SECONDS);
-        }
-
-        if (sdkLoggerProvider != null) {
-            sdkLoggerProvider.shutdown().join(TIMEOUT_SHUTDOWN_SECONDS, TimeUnit.SECONDS);
         }
 
         if (meterRegistry != null) {

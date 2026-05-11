@@ -17,26 +17,26 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for {@link ActivationRepository}.
  *
  * @author Vit Kotacka, vit.kotacka@wultra.com
  */
-@DataJpaTest
+@SpringBootTest
 @ActiveProfiles("test")
-@Import(ObjectMapper.class)
 @Sql
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class ActivationRepositoryTest {
 
     private static final String APP_ID = "test-app-activation";
@@ -57,7 +57,6 @@ class ActivationRepositoryTest {
     @Autowired
     private ActivationRepository activationRepository;
 
-    @Test
     void getActivationCountByActivationCode_shouldReturnOne_whenCodeExists() {
         assertEquals(1L, activationRepository.getActivationCountByActivationCode(APP_ID, EXISTING_CODE));
     }

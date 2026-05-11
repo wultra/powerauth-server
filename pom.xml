@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -83,7 +83,7 @@
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.3.2</spring-cloud-vault.version>
+        <spring-cloud-vault.version>5.0.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>2.2.0-SNAPSHOT</powerauth-java-crypto.version>
@@ -92,7 +92,7 @@
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi-starter-webmvc-ui.version>2.8.17</springdoc-openapi-starter-webmvc-ui.version>
+        <springdoc-openapi-starter-webmvc-ui.version>3.0.3</springdoc-openapi-starter-webmvc-ui.version>
         <swagger-annotations-jakarta.version>2.2.49</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->

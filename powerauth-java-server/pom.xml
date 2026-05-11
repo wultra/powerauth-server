@@ -200,6 +200,10 @@
             <version>${webauthn4j.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webtestclient</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.wultra.security</groupId>

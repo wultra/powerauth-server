@@ -17,17 +17,17 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -39,10 +39,11 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@DataJpaTest
-@Import(ObjectMapper.class)
+@SpringBootTest
 @ActiveProfiles("test")
 @Sql
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class OperationTemplateRepositoryTest {
 
     @Autowired
@@ -63,7 +64,7 @@ class OperationTemplateRepositoryTest {
         assertEquals(templateName, entity.get().getTemplateName());
 
         final OperationTemplateEntity newEntity = createOperationTemplateEntity(templateName);
-        assertThrows(DuplicateKeyException.class, () -> repository.save(newEntity));
+        assertThrows(DataIntegrityViolationException.class, () -> repository.save(newEntity));
 
         newEntity.setTemplateName("login_v2");
         final OperationTemplateEntity newlySaved = repository.save(newEntity);
