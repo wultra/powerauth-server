@@ -19,8 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.databind.SerializerProvider;
-import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;

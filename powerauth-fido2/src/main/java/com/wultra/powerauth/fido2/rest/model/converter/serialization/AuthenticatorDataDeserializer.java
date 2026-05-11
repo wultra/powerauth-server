@@ -18,8 +18,6 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
@@ -30,12 +28,13 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.dataformat.cbor.CBORFactory;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Map;
@@ -48,10 +47,7 @@ import java.util.Map;
 @Slf4j
 public class AuthenticatorDataDeserializer extends StdDeserializer<AuthenticatorData> {
 
-    @Serial
-    private static final long serialVersionUID = -7644582864083436208L;
-
-    private static final CBORMapper CBOR_MAPPER = new CBORMapper();
+    private static final ObjectMapper CBOR_MAPPER = new ObjectMapper(new CBORFactory());
 
     /**
      * No-arg deserializer constructor.
@@ -149,7 +145,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 final Map<String, Object> credentialPublicKeyMap;
                 try {
                     credentialPublicKeyMap = CBOR_MAPPER.readValue(credentialPublicKey, new TypeReference<>() {});
-                } catch (IOException e) {
+                } catch (JacksonException e) {
                     throw DatabindException.from(jsonParser, "Unable to deserialize credentialPublicKey.", e);
                 }
                 if (credentialPublicKeyMap == null) {

@@ -19,7 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.databind.SerializerProvider;
 import tools.jackson.core.JsonGenerator;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
