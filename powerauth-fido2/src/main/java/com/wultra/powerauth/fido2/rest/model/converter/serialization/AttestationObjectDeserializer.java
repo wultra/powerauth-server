@@ -18,10 +18,11 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.cbor.CBORFactory;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -35,7 +36,7 @@ import java.util.Base64;
 @Slf4j
 public final class AttestationObjectDeserializer {
 
-    private static final CBORMapper CBOR_MAPPER = new CBORMapper();
+    private static final ObjectMapper CBOR_MAPPER = new ObjectMapper(new CBORFactory());
 
     private AttestationObjectDeserializer() {
         throw new IllegalStateException("Should not be instantiated");
@@ -51,15 +52,10 @@ public final class AttestationObjectDeserializer {
     public static AttestationObject deserialize(final String source) throws Fido2DeserializationException {
         Assert.notNull(source, "Source must not be null");
 
-        try {
-            final byte[] decodedAttestationObject = Base64.getDecoder().decode(source);
-            final AttestationObject attestationObject = CBOR_MAPPER.readValue(decodedAttestationObject, AttestationObject.class);
-            attestationObject.setEncoded(source);
-            return attestationObject;
-        } catch (IOException e) {
-            logger.debug(e.getMessage(), e);
-            throw new Fido2DeserializationException(e.getMessage(), e);
-        }
+        final byte[] decodedAttestationObject = Base64.getDecoder().decode(source);
+        final AttestationObject attestationObject = CBOR_MAPPER.readValue(decodedAttestationObject, AttestationObject.class);
+        attestationObject.setEncoded(source);
+        return attestationObject;
     }
 
 }

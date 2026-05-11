@@ -19,8 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -50,6 +48,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -93,7 +93,7 @@ public class ActivationProcessServiceBehavior {
             com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request layer2Request;
             try {
                 layer2Request = objectMapper.readValue(activationData, com.wultra.security.powerauth.app.server.service.model.request.v3.ActivationLayer2Request.class);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activation.getActivationId());
                 // Activation failed due to invalid ECIES request, rollback transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
@@ -165,7 +165,7 @@ public class ActivationProcessServiceBehavior {
 
             // Encrypt response data
             return (EciesEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
-        } catch (EncryptorException | JsonProcessingException ex) {
+        } catch (EncryptorException | JacksonException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback transaction to avoid data inconsistency because of cryptography errors
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.DECRYPTION_FAILED);

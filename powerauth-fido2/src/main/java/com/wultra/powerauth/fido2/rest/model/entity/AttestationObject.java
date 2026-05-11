@@ -19,10 +19,10 @@
 package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AttestationStatementDeserializer;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AuthenticatorDataDeserializer;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Attestation object.

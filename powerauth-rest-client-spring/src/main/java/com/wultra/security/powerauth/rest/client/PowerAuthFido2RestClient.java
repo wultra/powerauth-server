@@ -18,9 +18,7 @@
  */
 package com.wultra.security.powerauth.rest.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
@@ -38,8 +36,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -57,7 +57,9 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     private static final MultiValueMap<String, String> EMPTY_MULTI_MAP = new LinkedMultiValueMap<>();
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper = JsonMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
 
     /**
      * PowerAuth REST client constructor.
@@ -143,17 +145,12 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      */
     private void handleBadRequestError(RestClientException ex) throws PowerAuthFido2Exception {
         // Try to parse exception into PowerAuthError model class
-        try {
-            final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>(){};
-            final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
-            if (error == null || error.getResponseObject() == null) {
-                throw new PowerAuthFido2Exception("Invalid response object");
-            }
-            throw new PowerAuthFido2Exception(error.getResponseObject().getMessage(), ex, error.getResponseObject());
-        } catch (IOException ex2) {
-            // Parsing failed, return a regular error
-            throw new PowerAuthFido2Exception(ex.getMessage(), ex);
+        final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>() {};
+        final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
+        if (error == null || error.getResponseObject() == null) {
+            throw new PowerAuthFido2Exception("Invalid response object");
         }
+        throw new PowerAuthFido2Exception(error.getResponseObject().getMessage(), ex, error.getResponseObject());
     }
 
     @Override

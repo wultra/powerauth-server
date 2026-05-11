@@ -18,8 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -60,6 +58,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -125,7 +125,7 @@ public class VaultUnlockServiceBehavior {
         } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (GenericServiceException ex) {
@@ -206,7 +206,7 @@ public class VaultUnlockServiceBehavior {
     private VaultUnlockRequestPayload parseRequestPayload(byte[] data, String activationId) throws GenericServiceException {
         try {
             return objectMapper.readValue(data, VaultUnlockRequestPayload.class);
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Invalid vault unlock request, activation ID: {}", activationId, ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -266,10 +266,10 @@ public class VaultUnlockServiceBehavior {
      * @param encryptor           Server encryptor.
      * @param authenticationValid Whether authentication was valid.
      * @return Vault unlock response.
-     * @throws JsonProcessingException Thrown in case serialization fails.
-     * @throws EncryptorException      Thrown in case encryption fails.
+     * @throws JacksonException   Thrown in case serialization fails.
+     * @throws EncryptorException Thrown in case encryption fails.
      */
-    private VaultUnlockResponse buildVaultUnlockResponse(VaultUnlockResponsePayload responsePayload, ServerEncryptor<EncryptedRequest, EncryptedResponse> encryptor, boolean authenticationValid) throws JsonProcessingException, EncryptorException {
+    private VaultUnlockResponse buildVaultUnlockResponse(VaultUnlockResponsePayload responsePayload, ServerEncryptor<EncryptedRequest, EncryptedResponse> encryptor, boolean authenticationValid) throws JacksonException, EncryptorException {
         final byte[] responsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
         final AeadEncryptedResponse encryptedResponse = (AeadEncryptedResponse) encryptor.encryptResponse(responsePayloadBytes);
         final VaultUnlockResponse response = new VaultUnlockResponse();

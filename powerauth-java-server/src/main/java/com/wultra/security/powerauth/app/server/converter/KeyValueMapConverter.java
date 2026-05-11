@@ -17,12 +17,12 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class KeyValueMapConverter {
         }
         try {
             return objectMapper.writeValueAsString(keyValueMap);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.error("Unable to serialize JSON payload.", ex);
             return null;
         }
@@ -75,7 +75,7 @@ public class KeyValueMapConverter {
         }
         try {
             return objectMapper.readValue(s, new TypeReference<>(){});
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             logger.error("Unable to parse JSON payload.", ex);
             return new ArrayList<>();
         }

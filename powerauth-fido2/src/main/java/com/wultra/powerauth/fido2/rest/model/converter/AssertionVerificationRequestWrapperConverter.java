@@ -46,7 +46,7 @@ public class AssertionVerificationRequestWrapperConverter {
         Assert.notNull(source, "Source must not be null");
 
         final CollectedClientData clientDataJSON = CollectedClientDataDeserializer.deserialize(source.getResponse().getClientDataJSON());
-        final AuthenticatorData authenticatorData = AuthenticatorDataDeserializer.deserialize(source.getResponse().getAuthenticatorData());
+        final AuthenticatorData authenticatorData = AuthenticatorDataDeserializer.deserialize(null, source.getResponse().getAuthenticatorData());
 
         return AssertionVerificationRequestWrapper.builder()
                 .assertionVerificationRequest(source)

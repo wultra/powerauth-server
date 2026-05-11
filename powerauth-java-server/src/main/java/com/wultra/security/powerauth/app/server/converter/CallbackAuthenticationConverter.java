@@ -17,13 +17,13 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -52,7 +52,7 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
     public String convertToDatabaseColumn(final CallbackUrlAuthentication authentication) {
         try {
             return objectMapper.writeValueAsString(Objects.requireNonNullElse(authentication, new CallbackUrlAuthentication()));
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.error("Unable to serialize JSON payload", ex);
             return null;
         }
@@ -65,7 +65,7 @@ public class CallbackAuthenticationConverter implements AttributeConverter<Callb
         }
         try {
             return objectMapper.readValue(authentication, CallbackUrlAuthentication.class);
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             logger.error("Unable to parse JSON payload", ex);
             return new CallbackUrlAuthentication();
         }

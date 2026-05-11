@@ -18,15 +18,15 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.type.TypeReference;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationStatement;
 import com.wultra.powerauth.fido2.rest.model.entity.X509Cert;
 import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -42,14 +42,11 @@ import java.util.Map;
 @Slf4j
 public class AttestationStatementDeserializer extends StdDeserializer<AttestationStatement> {
 
-    @Serial
-    private static final long serialVersionUID = -3598363993363470844L;
-
     /**
      * No-arg deserializer constructor.
      */
     public AttestationStatementDeserializer() {
-        this(null);
+        this(AttestationStatement.class);
     }
 
     /**
@@ -65,11 +62,10 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
      * @param jsonParser JSON parser.
      * @param deserializationContext Deserialization context.
      * @return Deserialized FIDO2 attestation statement.
-     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     @Override
     @SuppressWarnings("unchecked")
-    public AttestationStatement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
+    public AttestationStatement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
         try {
             final Map<String, Object> map = jsonParser.readValueAs(new TypeReference<>() {});
             if (map == null) {
@@ -114,7 +110,7 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
             return result;
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
-            throw new Fido2DeserializationException(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 }

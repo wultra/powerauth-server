@@ -18,13 +18,13 @@
 
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +58,7 @@ public class ListToJsonConverter implements AttributeConverter<List<Object>, Str
         }
         try {
             return objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Conversion failed for attribute list, error: {}", ex.getMessage(), ex);
             return EMPTY_LIST;
         }
@@ -71,7 +71,7 @@ public class ListToJsonConverter implements AttributeConverter<List<Object>, Str
         }
         try {
             return objectMapper.readValue(dbValue, new TypeReference<>() {});
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Conversion failed for attribute list, error: {}", ex.getMessage(), ex);
             return Collections.emptyList();
         }

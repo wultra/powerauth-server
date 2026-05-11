@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -39,6 +37,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Date;
 import java.util.List;
@@ -189,7 +189,7 @@ public class ActivationHistoryServiceBehavior {
             try {
                 final Object additionalData = objectMapper.readValue(activation.getAdditionalData(), Object.class);
                 auditDetailBuilder.param("additionalData", additionalData);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 logger.error("Unable to deserialize additionalData: {}, activationId: {}", activation.getAdditionalData(), activation.getActivationId(), e);
             }
         }

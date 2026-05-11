@@ -18,7 +18,8 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
@@ -247,7 +248,7 @@ public class UpgradeServiceBehavior {
     private SharedSecretRequestPayload parseRequestPayload(byte[] data, String activationId) throws GenericServiceException {
         try {
             return objectMapper.readValue(data, SharedSecretRequestPayload.class);
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Invalid start upgrade request, activation ID: {}", activationId, ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -264,7 +265,7 @@ public class UpgradeServiceBehavior {
     private byte[] generatedResponsePayload(UpgradeStartResponsePayload responsePayload, String activationId) throws GenericServiceException {
         try {
             return objectMapper.writeValueAsBytes(responsePayload);
-        } catch (IOException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Invalid start upgrade response, activation ID: {}", activationId, ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }

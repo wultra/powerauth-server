@@ -19,10 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Data;
+import tools.jackson.core.JsonParser;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
@@ -32,11 +30,16 @@ import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ValueDeserializer;
 
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * JSON deserializer for private keys.
@@ -44,39 +47,39 @@ import java.util.Iterator;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Slf4j
-public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyRegistry> {
+public class PrivateKeyRegistryDeserializer extends ValueDeserializer<PrivateKeyRegistry> {
 
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
     @Override
-    public PrivateKeyRegistry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        final JsonNode root = jsonParser.getCodec().readTree(jsonParser);
+    public PrivateKeyRegistry deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        final JsonNode root = jsonParser.readValueAsTree();
         if (root == null) {
-            throw new IOException("Invalid JSON for private key registry");
+            throw DatabindException.from(jsonParser, "Invalid JSON for private key registry");
         }
 
         final PrivateKeyRegistry keyRegistry = new PrivateKeyRegistry();
 
         final JsonNode privateKeysNode = root.get("privateKeys");
         if (privateKeysNode == null) {
-            throw new IOException("Invalid JSON for private key registry");
+            throw DatabindException.from(jsonParser, "Invalid JSON for private key registry");
         }
-        final Iterator<String> keyTypeNames = privateKeysNode.fieldNames();
-        while (keyTypeNames.hasNext()) {
-            final String keyTypeName = keyTypeNames.next();
+
+        for (Map.Entry<String, JsonNode> entry : privateKeysNode.properties()) {
+            final String keyTypeName = entry.getKey();
             final KeyType keyType = KeyType.valueOf(keyTypeName);
-            final byte[] encodedKey = privateKeysNode.get(keyTypeName).binaryValue();
+            final byte[] encodedKey = entry.getValue().binaryValue();
             if (encodedKey == null) {
-                throw new IOException("Missing key " + keyTypeName + " in private key registry");
+                throw DatabindException.from(jsonParser, "Missing key " + keyTypeName + " in private key registry");
             }
-            final PrivateKey key = deserializePrivateKey(keyType, encodedKey);
+            final PrivateKey key = deserializePrivateKey(jsonParser, keyType, encodedKey);
             keyRegistry.storePrivateKey(keyType, key);
         }
         return keyRegistry;
     }
 
-    private PrivateKey deserializePrivateKey(KeyType keyType, byte[] encodedKey) throws IOException {
+    private PrivateKey deserializePrivateKey(JsonParser jsonParser, KeyType keyType, byte[] encodedKey) {
         try {
             return switch (keyType) {
                 case ECDSA_P256 -> KEY_CONVERTOR_EC.convertBytesToPrivateKey(EcCurve.P256, encodedKey);
@@ -85,8 +88,9 @@ public class PrivateKeyRegistryDeserializer extends JsonDeserializer<PrivateKeyR
             };
         } catch (CryptoProviderException | InvalidKeySpecException | GenericCryptoException e) {
             logger.debug("Key conversion failed: {}", e.getMessage(), e);
-            throw new IOException("Key conversion error", e);
+            throw DatabindException.from(jsonParser, "Key conversion error", e);
         }
+
     }
 
 }

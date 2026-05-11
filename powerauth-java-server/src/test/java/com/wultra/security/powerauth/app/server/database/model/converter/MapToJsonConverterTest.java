@@ -17,14 +17,14 @@
  */
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.http.common.headers.UserAgent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,7 +115,7 @@ class MapToJsonConverterTest {
      * contains the expected values.
      */
     @Test
-    void testConvertToEntityAttribute() throws JsonProcessingException {
+    void testConvertToEntityAttribute() throws JacksonException {
         final String jsonString = "{\"key1\":\"value1\",\"key2\":42}";
         final Map<String, Object> resultMap = converter.convertToEntityAttribute(jsonString);
 
