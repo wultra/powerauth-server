@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.SignatureE
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationData;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
@@ -74,7 +75,7 @@ class AuditingServiceBehaviorTest {
     private AuditingServiceBehavior tested;
 
     @Test
-    void testLogSignatureAuditRecord() {
+    void testLogSignatureAuditRecord() throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activation = AuditingServiceBehavior.ActivationRecordDto.builder()
                 .activationId("act123")
                 .applicationId("app456")

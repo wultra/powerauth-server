@@ -39,6 +39,11 @@ public enum AuditType {
     AUTHENTICATION("authentication"),
 
     /**
+     * Audit type for asymmetric signature verification (ECDSA, ML-DSA).
+     */
+    ASYMMETRIC_SIGNATURE("asymmetric-signature"),
+
+    /**
      * Audit type for operations.
      */
     OPERATION("operation"),
