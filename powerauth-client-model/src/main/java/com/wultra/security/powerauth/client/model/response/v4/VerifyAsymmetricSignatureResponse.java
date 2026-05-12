@@ -23,6 +23,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Model class representing response with asymmetric signature verification results (V4).
@@ -31,6 +32,7 @@ import lombok.ToString;
  */
 @Builder
 @Getter @ToString @EqualsAndHashCode
+@Jacksonized
 public class VerifyAsymmetricSignatureResponse {
 
     private final boolean signatureValid;

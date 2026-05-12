@@ -19,10 +19,8 @@
 
 package com.wultra.security.powerauth.client.model.response.v3;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Model class representing response with ECDSA signature verification results (V3).
@@ -31,6 +29,7 @@ import lombok.ToString;
  */
 @Builder
 @Getter @ToString @EqualsAndHashCode
+@Jacksonized
 public class VerifyECDSASignatureResponse {
 
     private final boolean signatureValid;

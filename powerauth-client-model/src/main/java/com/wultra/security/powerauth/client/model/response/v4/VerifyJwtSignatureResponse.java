@@ -19,10 +19,8 @@
 
 package com.wultra.security.powerauth.client.model.response.v4;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Model class representing response with JWT signature verification results (V4).
@@ -31,6 +29,7 @@ import lombok.ToString;
  */
 @Builder
 @Getter @ToString @EqualsAndHashCode
+@Jacksonized
 public class VerifyJwtSignatureResponse {
 
     private final boolean signatureValid;
