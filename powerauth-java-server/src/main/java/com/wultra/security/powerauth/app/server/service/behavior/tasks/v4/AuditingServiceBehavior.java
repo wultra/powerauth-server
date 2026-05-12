@@ -193,7 +193,7 @@ public class AuditingServiceBehavior {
         try {
             signatureAuditRecord.setSignatureFormat(PowerAuthAuthenticationCodeFormat.getFormatForVersion(authenticationData.getAuthenticationVersion()).toString());
         } catch (GenericCryptoException e) {
-            logger.error("Unsupported version", e);
+            logger.error("Unsupported protocol version", e);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         signatureAuditRecord.setValid(valid);
