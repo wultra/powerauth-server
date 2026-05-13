@@ -21,6 +21,7 @@ package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.cbor.CBORMapper;
@@ -57,7 +58,7 @@ public final class AttestationObjectDeserializer {
             final AttestationObject attestationObject = CBOR_MAPPER.readValue(decodedAttestationObject, AttestationObject.class);
             attestationObject.setEncoded(source);
             return attestationObject;
-        } catch (DatabindException e) {
+        } catch (JacksonException e) {
             logger.debug(e.getMessage(), e);
             throw new Fido2DeserializationException(e.getMessage(), e);
         }

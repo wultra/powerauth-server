@@ -18,6 +18,7 @@
  */
 package com.wultra.security.powerauth.rest.client.v3;
 
+import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
@@ -164,7 +165,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
                 throw new PowerAuthClientException("Invalid response object");
             }
             throw new PowerAuthClientException(error.getResponseObject().getMessage(), ex, error.getResponseObject());
-        } catch (DatabindException ex2) {
+        } catch (JacksonException ex2) {
             // Parsing failed, return a regular error
             logger.warn("Invalid response object, error: {}", ex2.getMessage());
             throw new PowerAuthClientException(ex.getMessage(), ex);
