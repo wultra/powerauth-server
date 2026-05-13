@@ -57,6 +57,7 @@ class ActivationRepositoryTest {
     @Autowired
     private ActivationRepository activationRepository;
 
+    @Test
     void getActivationCountByActivationCode_shouldReturnOne_whenCodeExists() {
         assertEquals(1L, activationRepository.getActivationCountByActivationCode(APP_ID, EXISTING_CODE));
     }
