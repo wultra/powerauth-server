@@ -57,6 +57,9 @@ class ListToJsonConverterTest {
     void testToString() {
         final String result = tested.convertToDatabaseColumn(List.of(Map.of("name", "a"), "b"));
 
-        assertEquals("[{\"name\":\"a\"},\"b\"]", result);
+        assertEquals("""
+[ {
+  "name" : "a"
+}, "b" ]""", result);
     }
 }

@@ -28,15 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -277,16 +275,14 @@ public class PowerAuthServiceConfiguration {
     private Duration temporaryKeyValidity;
 
     /**
-     * Prepare and configure object mapper.
-     * @return Object mapper.
+     * Customize the auto-configured {@code jacksonJsonMapper} so that JSON output
+     * is pretty-printed.
+     *
+     * @return Customizer for the Spring Boot auto-configured JSON mapper.
      */
     @Bean
-    public ObjectMapper objectMapper() {
-        return JsonMapper.builder()
-                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .build();
+    public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
+        return builder -> builder.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     /**

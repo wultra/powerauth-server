@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -155,12 +156,19 @@ public class PowerAuthRestClient implements PowerAuthClient {
      * @throws PowerAuthClientException PowerAuth client exception.
      */
     private void handleBadRequestError(RestClientException ex) throws PowerAuthClientException {
-        final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>() {};
-        final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
-        if (error == null || error.getResponseObject() == null) {
-            throw new PowerAuthClientException("Invalid response object");
-        }
+        // Try to parse exception into PowerAuthError model class
+        try {
+            final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>(){};
+            final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
+            if (error == null || error.getResponseObject() == null) {
+                throw new PowerAuthClientException("Invalid response object");
+            }
             throw new PowerAuthClientException(error.getResponseObject().getMessage(), ex, error.getResponseObject());
+        } catch (DatabindException ex2) {
+            // Parsing failed, return a regular error
+            logger.warn("Invalid response object, error: {}", ex2.getMessage());
+            throw new PowerAuthClientException(ex.getMessage(), ex);
+        }
     }
 
     @Override
