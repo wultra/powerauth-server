@@ -24,7 +24,6 @@ import org.springframework.util.Assert;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.cbor.CBORFactory;
 
-import java.io.IOException;
 import java.util.Base64;
 
 /**
