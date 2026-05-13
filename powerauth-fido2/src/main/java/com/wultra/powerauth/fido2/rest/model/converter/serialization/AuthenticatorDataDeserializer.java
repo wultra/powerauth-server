@@ -54,7 +54,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      */
     @SuppressWarnings("unused")
     public AuthenticatorDataDeserializer() {
-        this(byte[].class);
+        this(AuthenticatorData.class);
     }
 
     /**
