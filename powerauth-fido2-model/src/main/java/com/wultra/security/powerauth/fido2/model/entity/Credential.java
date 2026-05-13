@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.fido2.model.entity;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Collections;
 import java.util.List;
