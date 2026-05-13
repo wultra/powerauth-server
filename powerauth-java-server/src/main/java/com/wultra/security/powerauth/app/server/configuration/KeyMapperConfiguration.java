@@ -52,7 +52,6 @@ public class KeyMapperConfiguration {
 
     @Bean(name = "publicKeyObjectMapper")
     public ObjectMapper publickeyObjectMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(PublicKey.class, new PublicKeySerializer());
         module.addDeserializer(PublicKeyRegistry.class, new PublicKeyRegistryDeserializer());
