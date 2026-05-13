@@ -42,8 +42,9 @@ import java.util.Map;
 public class AttestationStatementDeserializer extends StdDeserializer<AttestationStatement> {
 
     /**
-     * No-arg deserializer constructor.
+     * No-arg deserializer constructor, used by Jackson via {@code @JsonDeserialize}.
      */
+    @SuppressWarnings("unused")
     public AttestationStatementDeserializer() {
         this(AttestationStatement.class);
     }

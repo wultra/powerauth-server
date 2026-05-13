@@ -50,8 +50,9 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
     private static final ObjectMapper CBOR_MAPPER = new ObjectMapper(new CBORFactory());
 
     /**
-     * No-arg deserializer constructor.
+     * No-arg deserializer constructor, used by Jackson via {@code @JsonDeserialize}.
      */
+    @SuppressWarnings("unused")
     public AuthenticatorDataDeserializer() {
         this(byte[].class);
     }
@@ -86,7 +87,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      *
      * @param authData base64 encoded authenticator data.
      * @return authenticator data
-     * @throws Fido2DeserializationException
+     * @throws Fido2DeserializationException Thrown in case deserialization fails.
      */
     public static AuthenticatorData deserialize(final JsonParser jsonParser, final String authData) throws Fido2DeserializationException {
         return deserialize(jsonParser, Base64.getDecoder().decode(authData));
