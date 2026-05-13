@@ -20,9 +20,6 @@
 package com.wultra.security.powerauth.app.server;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.logs.SdkLoggerProvider;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.ContextClosedEvent;
@@ -32,7 +29,6 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.security.Security;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Shutdown manager for cleanup of resources during application exit.
