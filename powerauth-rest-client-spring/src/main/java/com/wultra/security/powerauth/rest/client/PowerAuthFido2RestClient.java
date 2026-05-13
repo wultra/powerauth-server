@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -145,12 +146,18 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      */
     private void handleBadRequestError(RestClientException ex) throws PowerAuthFido2Exception {
         // Try to parse exception into PowerAuthError model class
-        final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>() {};
-        final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
-        if (error == null || error.getResponseObject() == null) {
-            throw new PowerAuthFido2Exception("Invalid response object");
+        try {
+            final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>(){};
+            final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
+            if (error == null || error.getResponseObject() == null) {
+                throw new PowerAuthFido2Exception("Invalid response object");
+            }
+            throw new PowerAuthFido2Exception(error.getResponseObject().getMessage(), ex, error.getResponseObject());
+        } catch (DatabindException ex2) {
+            // Parsing failed, return a regular error
+            logger.warn("Invalid response object, error: {}", ex2.getMessage());
+            throw new PowerAuthFido2Exception(ex.getMessage(), ex);
         }
-        throw new PowerAuthFido2Exception(error.getResponseObject().getMessage(), ex, error.getResponseObject());
     }
 
     @Override
