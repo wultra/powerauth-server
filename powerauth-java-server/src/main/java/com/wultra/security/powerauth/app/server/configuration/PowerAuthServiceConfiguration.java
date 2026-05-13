@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.SerializationFeature;
 
 import java.time.Duration;
@@ -275,14 +276,15 @@ public class PowerAuthServiceConfiguration {
     private Duration temporaryKeyValidity;
 
     /**
-     * Customize the auto-configured {@code jacksonJsonMapper} so that JSON output
-     * is pretty-printed.
-     *
-     * @return Customizer for the Spring Boot auto-configured JSON mapper.
+     * Customize the Spring Boot auto-configured {@code jacksonJsonMapper}.
+     * @return Customizer applied to the auto-configured JSON mapper.
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
-        return builder -> builder.enable(SerializationFeature.INDENT_OUTPUT);
+        return builder -> builder
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     /**
