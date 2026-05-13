@@ -79,7 +79,11 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
             throw DatabindException.from(jsonParser, "JSON binary value deserialized into null.");
         }
 
-        return deserialize(jsonParser, authData);
+        try {
+            return deserialize(authData);
+        } catch (Fido2DeserializationException e) {
+            throw DatabindException.from(jsonParser, e.getMessage(), e);
+        }
     }
 
     /**
@@ -89,11 +93,11 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      * @return authenticator data
      * @throws Fido2DeserializationException Thrown in case deserialization fails.
      */
-    public static AuthenticatorData deserialize(final JsonParser jsonParser, final String authData) throws Fido2DeserializationException {
-        return deserialize(jsonParser, Base64.getDecoder().decode(authData));
+    public static AuthenticatorData deserialize(final String authData) throws Fido2DeserializationException {
+        return deserialize(Base64.getDecoder().decode(authData));
     }
 
-    private static AuthenticatorData deserialize(final JsonParser jsonParser, final byte[] authData) throws JacksonException {
+    private static AuthenticatorData deserialize(final byte[] authData) throws Fido2DeserializationException {
             final AuthenticatorData result = new AuthenticatorData();
             result.setEncoded(authData);
 
@@ -106,14 +110,14 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
             final byte flagByte = authData[32];
             final Flags flags = result.getFlags();
 
-            flags.setUserPresent(isFlagOn(jsonParser, flagByte, 0));
-            flags.setReservedBit2(isFlagOn(jsonParser, flagByte, 1));
-            flags.setUserVerified(isFlagOn(jsonParser, flagByte, 2));
-            flags.setBackupEligible(isFlagOn(jsonParser, flagByte, 3));
-            flags.setBackupState(isFlagOn(jsonParser, flagByte, 4));
-            flags.setReservedBit6(isFlagOn(jsonParser, flagByte, 5));
-            flags.setAttestedCredentialsIncluded(isFlagOn(jsonParser, flagByte, 6));
-            flags.setExtensionDataIncluded(isFlagOn(jsonParser, flagByte, 7));
+            flags.setUserPresent(isFlagOn(flagByte, 0));
+            flags.setReservedBit2(isFlagOn(flagByte, 1));
+            flags.setUserVerified(isFlagOn(flagByte, 2));
+            flags.setBackupEligible(isFlagOn(flagByte, 3));
+            flags.setBackupState(isFlagOn(flagByte, 4));
+            flags.setReservedBit6(isFlagOn(flagByte, 5));
+            flags.setAttestedCredentialsIncluded(isFlagOn(flagByte, 6));
+            flags.setExtensionDataIncluded(isFlagOn(flagByte, 7));
 
             // Get Signature Counter
             final byte[] signCountBytes = new byte[4];
@@ -147,10 +151,10 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 try {
                     credentialPublicKeyMap = CBOR_MAPPER.readValue(credentialPublicKey, new TypeReference<>() {});
                 } catch (JacksonException e) {
-                    throw DatabindException.from(jsonParser, "Unable to deserialize credentialPublicKey.", e);
+                    throw new Fido2DeserializationException("Unable to deserialize credentialPublicKey.", e);
                 }
                 if (credentialPublicKeyMap == null) {
-                    throw DatabindException.from(jsonParser, "JSON credentialPublicKey deserialized into null.");
+                    throw new Fido2DeserializationException("JSON credentialPublicKey deserialized into null.");
                 }
 
                 final PublicKeyObject publicKeyObject = new PublicKeyObject();
@@ -158,19 +162,19 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 if (algorithm != null && -7 == algorithm) {
                     publicKeyObject.setAlgorithm(SignatureAlgorithm.ES256);
                 } else {
-                    throw DatabindException.from(jsonParser, "Unsupported algorithm: " + algorithm);
+                    throw new Fido2DeserializationException("Unsupported algorithm: " + algorithm);
                 }
                 final Integer curveType = (Integer) credentialPublicKeyMap.get("-1");
                 if (curveType != null && 1 == curveType) {
                     publicKeyObject.setCurveType(CurveType.P256);
                 } else {
-                    throw DatabindException.from(jsonParser, "Unsupported curve type: " + curveType);
+                    throw new Fido2DeserializationException("Unsupported curve type: " + curveType);
                 }
                 final Integer keyType = (Integer) credentialPublicKeyMap.get("1");
                 if (keyType != null && 2 == keyType) {
                     publicKeyObject.setKeyType(ECKeyType.UNCOMPRESSED);
                 } else {
-                    throw DatabindException.from(jsonParser, "Unsupported key type: " + keyType);
+                    throw new Fido2DeserializationException("Unsupported key type: " + keyType);
                 }
 
                 final byte[] xBytes = (byte[]) credentialPublicKeyMap.get("-2");
@@ -185,9 +189,9 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
             return result;
     }
 
-    private static boolean isFlagOn(JsonParser jsonParser, byte flags, int position) throws JacksonException {
+    private static boolean isFlagOn(byte flags, int position) throws Fido2DeserializationException {
         if (position < 0 || position > 7) {
-            throw DatabindException.from(jsonParser, "Invalid position for flag: " + position);
+            throw new Fido2DeserializationException("Invalid position for flag: " + position);
         }
         return ((flags >> position) & 1) == 1;
     }

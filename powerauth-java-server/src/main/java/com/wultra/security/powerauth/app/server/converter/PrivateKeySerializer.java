@@ -26,7 +26,6 @@ import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.util.Base64;
 

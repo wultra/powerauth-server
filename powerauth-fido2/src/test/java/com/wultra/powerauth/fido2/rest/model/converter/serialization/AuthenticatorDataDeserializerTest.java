@@ -36,7 +36,7 @@ class AuthenticatorDataDeserializerTest {
 
     @Test
     void testDeserialize() throws Exception{
-        final AuthenticatorData result = AuthenticatorDataDeserializer.deserialize(null, "ANexYfkh9tDjBkTaAF/dyyouYB0YesVvYolcxTs9fxAFAAAAAg==");
+        final AuthenticatorData result = AuthenticatorDataDeserializer.deserialize("ANexYfkh9tDjBkTaAF/dyyouYB0YesVvYolcxTs9fxAFAAAAAg==");
 
         assertTrue(result.getFlags().isUserPresent());
         assertFalse(result.getFlags().isReservedBit2());
@@ -56,7 +56,7 @@ class AuthenticatorDataDeserializerTest {
 
     @Test
     void testDeserialize_credentials() throws Exception{
-        final AuthenticatorData result = AuthenticatorDataDeserializer.deserialize(null, "SZYN5YgOjGh0NBcPZHZgW4/krrmihjLHmVzzuoMdl2NdAAAAALraVWanqkAfvZZFYZpVEg0AENntBM0k3kUGHZJgXctZB2mlAQIDJiABIVggUnRRgaXiOSdKFnu6u04mUQNMDyuHWDODUdIcrt4Ca9wiWCBEq2quWbx976dPV7Ajt8yR5+4h1tnfT8X5ey7PT0utKA==");
+        final AuthenticatorData result = AuthenticatorDataDeserializer.deserialize("SZYN5YgOjGh0NBcPZHZgW4/krrmihjLHmVzzuoMdl2NdAAAAALraVWanqkAfvZZFYZpVEg0AENntBM0k3kUGHZJgXctZB2mlAQIDJiABIVggUnRRgaXiOSdKFnu6u04mUQNMDyuHWDODUdIcrt4Ca9wiWCBEq2quWbx976dPV7Ajt8yR5+4h1tnfT8X5ey7PT0utKA==");
 
         assertTrue(result.getFlags().isUserPresent());
         assertFalse(result.getFlags().isReservedBit2());

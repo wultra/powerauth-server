@@ -23,8 +23,6 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.databind.exc.InvalidFormatException;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.util.Base64;
 
 /**
@@ -46,7 +44,7 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
 
     @Override
     public String deserialize(final JsonParser parser, final DeserializationContext context) {
-        final String value = parser.getText();
+        final String value = parser.getString();
         if (value == null) {
             return null;
         }

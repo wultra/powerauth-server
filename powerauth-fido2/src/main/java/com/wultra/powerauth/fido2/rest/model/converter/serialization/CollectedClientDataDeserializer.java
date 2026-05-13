@@ -21,6 +21,7 @@ package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -50,14 +51,20 @@ public final class CollectedClientDataDeserializer {
      *
      * @param source base64 encoded string
      * @return collectClientData or {@code null}
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
-    public static CollectedClientData deserialize(final String source) {
+    public static CollectedClientData deserialize(final String source) throws Fido2DeserializationException {
         Assert.notNull(source, "Source must not be null");
 
-        final byte[] decodedClientDataJSON = Base64.getDecoder().decode(source);
-        final CollectedClientData collectedClientData = OBJECT_MAPPER.readValue(decodedClientDataJSON, CollectedClientData.class);
-        collectedClientData.setEncoded(new String(decodedClientDataJSON, StandardCharsets.UTF_8));
-        return collectedClientData;
+        try {
+            final byte[] decodedClientDataJSON = Base64.getDecoder().decode(source);
+            final CollectedClientData collectedClientData = OBJECT_MAPPER.readValue(decodedClientDataJSON, CollectedClientData.class);
+            collectedClientData.setEncoded(new String(decodedClientDataJSON, StandardCharsets.UTF_8));
+            return collectedClientData;
+        } catch (JacksonException e) {
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
+        }
     }
 
 }

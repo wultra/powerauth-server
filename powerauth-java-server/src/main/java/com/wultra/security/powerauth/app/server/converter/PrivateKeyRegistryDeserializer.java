@@ -19,7 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import lombok.Data;
 import tools.jackson.core.JsonParser;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
@@ -35,10 +34,8 @@ import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ValueDeserializer;
 
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Iterator;
 import java.util.Map;
 
 /**

@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public class MasterPrivateKeysConverter {
             final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
             final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, masterPrivateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Decryption failed", e);
             throw new GenericServiceException(ServiceError.DECRYPTION_FAILED, e.getMessage());
         }
@@ -113,7 +112,7 @@ public class MasterPrivateKeysConverter {
         return objectMapper.writeValueAsBytes(source);
     }
 
-    private PrivateKeyRegistry deserialize(final byte[] source) throws IOException {
+    private PrivateKeyRegistry deserialize(final byte[] source) throws JacksonException {
         return objectMapper.readValue(source, PrivateKeyRegistry.class);
     }
 
