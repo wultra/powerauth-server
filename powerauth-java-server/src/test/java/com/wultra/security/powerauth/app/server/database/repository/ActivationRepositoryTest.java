@@ -17,13 +17,16 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,11 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author Vit Kotacka, vit.kotacka@wultra.com
  */
-@SpringBootTest
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Sql
+@Import({JsonMapper.class, ConcurrentMapCacheManager.class})
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@Sql
 class ActivationRepositoryTest {
 
     private static final String APP_ID = "test-app-activation";

@@ -17,17 +17,20 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -39,11 +42,12 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@SpringBootTest
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({JsonMapper.class, ConcurrentMapCacheManager.class})
 @ActiveProfiles("test")
 @Sql
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class OperationTemplateRepositoryTest {
 
     @Autowired

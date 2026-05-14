@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -49,7 +48,6 @@ class ApplicationConfigServiceTest {
     @Nested
     @Sql("ApplicationConfigServiceTest.sql")
     @Transactional
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     class Encrypted {
 
         @Autowired
@@ -87,7 +85,6 @@ class ApplicationConfigServiceTest {
     @TestPropertySource(properties = "powerauth.server.db.master.encryption.key=")
     @Sql("ApplicationConfigServiceTest.sql")
     @Transactional
-    @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
     class Plain {
 
         @Autowired

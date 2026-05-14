@@ -17,18 +17,21 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Transactional;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,11 +45,12 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-@SpringBootTest
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
-@Sql
+@Import({JsonMapper.class, ConcurrentMapCacheManager.class})
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@Sql
 class OperationRepositoryTest {
 
     private static final String USER_ID = "testUser";
