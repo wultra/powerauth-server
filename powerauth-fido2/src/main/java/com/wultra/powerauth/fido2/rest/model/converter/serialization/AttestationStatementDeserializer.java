@@ -84,7 +84,7 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
             result.setAttestationType(AttestationType.NONE);
             return result;
         }
-        Object x5cObj = map.get("x5c");
+        final Object x5cObj = map.get("x5c");
         if (x5cObj == null) {
             result.setAttestationType(AttestationType.SELF);
             return result;
