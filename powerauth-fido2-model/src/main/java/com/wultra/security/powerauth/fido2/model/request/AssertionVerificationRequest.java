@@ -20,12 +20,12 @@ package com.wultra.security.powerauth.fido2.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.security.powerauth.fido2.model.converter.serialization.Base64UrlToBase64Deserializer;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -19,15 +19,15 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.EllipticCurve;
@@ -38,12 +38,12 @@ import java.util.Base64;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class PublicKeySerializer extends JsonSerializer<PublicKey> {
+public class PublicKeySerializer extends ValueSerializer<PublicKey> {
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     @Override
-    public void serialize(PublicKey publicKey, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(PublicKey publicKey, JsonGenerator gen, SerializationContext ctx) {
         try {
             if (publicKey == null) {
                 throw new IllegalArgumentException("Missing public key to serialize");
@@ -61,7 +61,7 @@ public class PublicKeySerializer extends JsonSerializer<PublicKey> {
                             gen.writeString(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPublicKeyToBytes(EcCurve.P384, publicKey)));
                             break;
                         }
-                        default: throw new IOException("Invalid EC curve during public key conversion");
+                        default: throw DatabindException.from(gen, "Invalid EC curve during public key conversion");
                     }
                     break;
                 }
@@ -70,10 +70,10 @@ public class PublicKeySerializer extends JsonSerializer<PublicKey> {
                     break;
                 }
                 default:
-                    throw new IOException("Unsupported algorithm: " + publicKey.getAlgorithm());
+                    throw DatabindException.from(gen, "Unsupported algorithm: " + publicKey.getAlgorithm());
             }
         } catch (CryptoProviderException | GenericCryptoException e) {
-            throw new IOException("Public key conversion failed", e);
+            throw DatabindException.from(gen, "Public key conversion failed", e);
         }
     }
 

@@ -18,8 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -27,8 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Base64;
 
 /**
@@ -56,7 +55,7 @@ public class PublicKeysConverter {
         try {
             final byte[] data = fromBase64(serverPublicKeysBase64);
             return deserialize(data);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Deserialization failed", e);
             throw new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, e.getMessage());
         }
@@ -71,7 +70,7 @@ public class PublicKeysConverter {
     public String toDBValue(final PublicKeyRegistry publicKeys) throws GenericServiceException {
         try {
             return toBase64(serialize(publicKeys));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Serialization failed", e);
             throw new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, e.getMessage());
         }
@@ -81,9 +80,9 @@ public class PublicKeysConverter {
      * Serialize public key registry to bytes.
      * @param source Public key registry.
      * @return Byte array with serialized JSON.
-     * @throws JsonProcessingException In case conversion fails.
+     * @throws JacksonException In case conversion fails.
      */
-    byte[] serialize(final PublicKeyRegistry source) throws JsonProcessingException {
+    byte[] serialize(final PublicKeyRegistry source) throws JacksonException {
         return objectMapper.writeValueAsBytes(source);
     }
 
@@ -91,9 +90,9 @@ public class PublicKeysConverter {
      * Deserialize public key registry from bytes.
      * @param source Byte array with JSON representation.
      * @return Public key registry.
-     * @throws IOException In case conversion fails.
+     * @throws JacksonException In case conversion fails.
      */
-    public PublicKeyRegistry deserialize(final byte[] source) throws IOException {
+    public PublicKeyRegistry deserialize(final byte[] source) throws JacksonException {
         return objectMapper.readValue(source, PublicKeyRegistry.class);
     }
 

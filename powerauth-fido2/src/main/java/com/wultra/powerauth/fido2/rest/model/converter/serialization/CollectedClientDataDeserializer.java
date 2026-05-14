@@ -18,13 +18,13 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -37,8 +37,7 @@ import java.util.Base64;
 @Slf4j
 public final class CollectedClientDataDeserializer {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private CollectedClientDataDeserializer() {
         throw new IllegalStateException("Should not be instantiated");
@@ -49,7 +48,7 @@ public final class CollectedClientDataDeserializer {
      *
      * @param source base64 encoded string
      * @return collectClientData or {@code null}
-     * @throws Fido2DeserializationException
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     public static CollectedClientData deserialize(final String source) throws Fido2DeserializationException {
         Assert.notNull(source, "Source must not be null");
@@ -59,7 +58,7 @@ public final class CollectedClientDataDeserializer {
             final CollectedClientData collectedClientData = OBJECT_MAPPER.readValue(decodedClientDataJSON, CollectedClientData.class);
             collectedClientData.setEncoded(new String(decodedClientDataJSON, StandardCharsets.UTF_8));
             return collectedClientData;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.debug(e.getMessage(), e);
             throw new Fido2DeserializationException(e.getMessage(), e);
         }

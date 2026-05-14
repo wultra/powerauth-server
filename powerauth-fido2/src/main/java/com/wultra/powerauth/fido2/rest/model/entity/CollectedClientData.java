@@ -19,11 +19,11 @@
 package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64UrlToStringDeserializer;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Collected client data.

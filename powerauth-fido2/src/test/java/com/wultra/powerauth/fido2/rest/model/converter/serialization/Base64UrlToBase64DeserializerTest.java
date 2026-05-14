@@ -17,13 +17,14 @@
  */
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.wultra.security.powerauth.fido2.model.converter.serialization.Base64UrlToBase64Deserializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,9 +41,10 @@ class Base64UrlToBase64DeserializerTest {
     @BeforeAll
     static void setUp() {
         final SimpleModule module = new SimpleModule();
-        module.addDeserializer(String.class, new Base64UrlToBase64Deserializer());
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(module);
+        module.addDeserializer(String.class, new Base64UrlToBase64Deserializer(String.class));
+        objectMapper = JsonMapper.builder()
+                .addModule(module)
+                .build();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -73,6 +75,6 @@ class Base64UrlToBase64DeserializerTest {
             "invalidCharInBase64UrlNotRequiringPadding, -_!-"
     })
     void testDeserialize_invalidInput_throwsException(final String name, final String input) {
-        assertThrows(JsonMappingException.class, () -> objectMapper.readValue("\"%s\"".formatted(input), String.class));
+        assertThrows(DatabindException.class, () -> objectMapper.readValue("\"%s\"".formatted(input), String.class));
     }
 }

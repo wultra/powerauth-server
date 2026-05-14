@@ -18,8 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -54,8 +52,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -158,7 +157,7 @@ public class VaultUnlockServiceBehavior {
             VaultUnlockRequestPayload vaultUnlockRequest;
             try {
                 vaultUnlockRequest = objectMapper.readValue(decryptionResult.getDecryptedData(), VaultUnlockRequestPayload.class);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
                 // Return response with invalid signature flag when request format is not valid
                 final VaultUnlockResponse response = new VaultUnlockResponse();
@@ -221,7 +220,7 @@ public class VaultUnlockServiceBehavior {
             // The only possible error could occur while generating ECIES response after signature validation,
             // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, serialization errors can only occur before writing to database.
             // The only possible error could occur while generating ECIES response after signature validation,

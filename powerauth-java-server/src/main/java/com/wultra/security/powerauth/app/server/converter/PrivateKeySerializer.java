@@ -19,13 +19,13 @@
 
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JsonGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.util.Base64;
 
@@ -34,12 +34,12 @@ import java.util.Base64;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class PrivateKeySerializer extends JsonSerializer<PrivateKey> {
+public class PrivateKeySerializer extends ValueSerializer<PrivateKey> {
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
 
     @Override
-    public void serialize(PrivateKey privateKey, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+    public void serialize(PrivateKey privateKey, JsonGenerator gen, SerializationContext ctx) {
         if (privateKey == null) {
             throw new IllegalArgumentException("Missing private key to serialize");
         }
@@ -48,7 +48,7 @@ public class PrivateKeySerializer extends JsonSerializer<PrivateKey> {
                 try {
                     gen.writeString(Base64.getEncoder().encodeToString(KEY_CONVERTOR.convertPrivateKeyToBytes(privateKey)));
                 } catch (GenericCryptoException e) {
-                    throw new IOException("Private key conversion failed", e);
+                    throw DatabindException.from(gen, "Private key conversion failed", e);
                 }
                 break;
             }
@@ -57,7 +57,7 @@ public class PrivateKeySerializer extends JsonSerializer<PrivateKey> {
                 break;
             }
             default:
-                throw new IOException("Unsupported algorithm: " + privateKey.getAlgorithm());
+                throw DatabindException.from(gen, "Unsupported algorithm: " + privateKey.getAlgorithm());
         }
     }
 

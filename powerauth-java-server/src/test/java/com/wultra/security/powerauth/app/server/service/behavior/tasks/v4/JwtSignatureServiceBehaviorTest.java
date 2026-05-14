@@ -19,8 +19,8 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;

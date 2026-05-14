@@ -18,8 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.converter.AuthenticationCodeTypeConverter;
@@ -59,6 +57,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Base64;
 import java.util.Calendar;
@@ -318,7 +318,7 @@ public class TokenServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, serialization error can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);

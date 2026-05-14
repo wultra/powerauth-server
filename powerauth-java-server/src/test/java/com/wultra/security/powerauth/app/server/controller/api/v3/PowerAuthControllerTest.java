@@ -18,7 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;

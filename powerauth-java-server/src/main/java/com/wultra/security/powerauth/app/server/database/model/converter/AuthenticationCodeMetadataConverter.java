@@ -18,9 +18,6 @@
 
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.AuthenticationCodeMetadata;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
@@ -28,6 +25,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * A JPA attribute converter for converting AuthenticationMetadata objects to and from JSON representations.
@@ -56,7 +56,7 @@ public class AuthenticationCodeMetadataConverter implements AttributeConverter<A
         }
         try {
             return objectMapper.writeValueAsString(attribute);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("JSON writing error", ex);
             return "{}";
         }
@@ -76,7 +76,7 @@ public class AuthenticationCodeMetadataConverter implements AttributeConverter<A
         try {
             return objectMapper.readValue(s, new TypeReference<>() {
             });
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Conversion failed for AuthenticationMetadata, error: {}", ex.getMessage(), ex);
             return null;
         }

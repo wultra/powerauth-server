@@ -18,13 +18,11 @@
 
 package com.wultra.security.powerauth.fido2.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.exc.InvalidFormatException;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.util.Base64;
 
 /**
@@ -36,11 +34,8 @@ import java.util.Base64;
  */
 public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
 
-    @Serial
-    private static final long serialVersionUID = 4871203406847302591L;
-
     public Base64UrlToBase64Deserializer() {
-        this(null);
+        this(String.class);
     }
 
     public Base64UrlToBase64Deserializer(final Class<?> valueClass) {
@@ -48,8 +43,8 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
     }
 
     @Override
-    public String deserialize(final JsonParser parser, final DeserializationContext context) throws IOException {
-        final String value = parser.getText();
+    public String deserialize(final JsonParser parser, final DeserializationContext context) {
+        final String value = parser.getString();
         if (value == null) {
             return null;
         }
@@ -57,7 +52,7 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
         if (value.length() % 4 == 1) {
             throw InvalidFormatException.from(
                     parser,
-                    "Invalid value for path '%s': length mod 4 == 1 is not a valid Base64 remainder".formatted(parser.getParsingContext().pathAsPointer()),
+                    "Invalid value for path '%s': length mod 4 == 1 is not a valid Base64 remainder".formatted(parser.streamReadContext().pathAsPointer()),
                     value,
                     String.class
             );
@@ -88,7 +83,7 @@ public class Base64UrlToBase64Deserializer extends StdDeserializer<String> {
         } catch (final Exception e) {
             throw InvalidFormatException.from(
                     parser,
-                    "Invalid value for path '%s': %s".formatted(parser.getParsingContext().pathAsPointer(), e.getMessage()),
+                    "Invalid value for path '%s': %s".formatted(parser.streamReadContext().pathAsPointer(), e.getMessage()),
                     value,
                     String.class
             );

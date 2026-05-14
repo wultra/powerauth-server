@@ -19,8 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.wultra.security.powerauth.app.server.converter.PrivateKeyRegistryDeserializer;
 import com.wultra.security.powerauth.app.server.converter.PrivateKeySerializer;
 import com.wultra.security.powerauth.app.server.converter.PublicKeyRegistryDeserializer;
@@ -29,6 +27,9 @@ import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistr
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -43,21 +44,18 @@ public class KeyMapperConfiguration {
 
     @Bean(name = "privateKeyObjectMapper")
     public ObjectMapper privateKeyObjectMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(PrivateKey.class, new PrivateKeySerializer());
         module.addDeserializer(PrivateKeyRegistry.class, new PrivateKeyRegistryDeserializer());
-        objectMapper.registerModule(module);
-        return objectMapper;
+        return JsonMapper.builder().addModule(module).build();
     }
 
     @Bean(name = "publicKeyObjectMapper")
     public ObjectMapper publickeyObjectMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(PublicKey.class, new PublicKeySerializer());
         module.addDeserializer(PublicKeyRegistry.class, new PublicKeyRegistryDeserializer());
-        objectMapper.registerModule(module);
-        return objectMapper;
+        return JsonMapper.builder().addModule(module).build();
     }
+
 }

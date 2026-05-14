@@ -18,13 +18,11 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.core.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.deser.std.StdDeserializer;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -36,14 +34,11 @@ import java.util.Base64;
 @Slf4j
 public class Base64UrlToStringDeserializer extends StdDeserializer<String> {
 
-    @Serial
-    private static final long serialVersionUID = 2540966716709142276L;
-
     /**
      * No-arg deserializer constructor.
      */
     public Base64UrlToStringDeserializer() {
-        this(null);
+        this(String.class);
     }
 
     /**
@@ -59,15 +54,10 @@ public class Base64UrlToStringDeserializer extends StdDeserializer<String> {
      * @param jsonParser JSON parser.
      * @param deserializationContext Deserialization context.
      * @return Deserialized string.
-     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
-        try {
-            return new String(Base64.getUrlDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
-        }  catch (IOException e) {
-            logger.debug(e.getMessage(), e);
-            throw new Fido2DeserializationException(e.getMessage(), e);
-        }
+    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        return new String(Base64.getUrlDecoder().decode(jsonParser.getString()), StandardCharsets.UTF_8);
     }
+
 }

@@ -18,7 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;

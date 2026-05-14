@@ -19,8 +19,6 @@
 
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationTransferType;
@@ -50,8 +48,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Base64;
 
 /**
@@ -82,7 +81,7 @@ public class ActivationProcessServiceBehavior {
             ActivationLayer2Request layer2Request;
             try {
                 layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activation.getActivationId());
                 // Activation failed due to invalid request, rollback transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -165,7 +164,7 @@ public class ActivationProcessServiceBehavior {
 
             // Encrypt response data
             return (AeadEncryptedResponse) decryptionResult.getServerEncryptor().encryptResponse(responseData);
-        } catch (EncryptorException | JsonProcessingException ex) {
+        } catch (EncryptorException | JacksonException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback transaction to avoid data inconsistency because of cryptography errors
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.DECRYPTION_FAILED);

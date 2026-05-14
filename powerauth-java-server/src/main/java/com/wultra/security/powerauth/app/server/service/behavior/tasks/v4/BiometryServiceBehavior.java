@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmValidationService;
