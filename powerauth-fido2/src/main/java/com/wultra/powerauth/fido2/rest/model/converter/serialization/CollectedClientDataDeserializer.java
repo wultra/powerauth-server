@@ -22,7 +22,6 @@ import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -38,9 +37,7 @@ import java.util.Base64;
 @Slf4j
 public final class CollectedClientDataDeserializer {
 
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private CollectedClientDataDeserializer() {
         throw new IllegalStateException("Should not be instantiated");
