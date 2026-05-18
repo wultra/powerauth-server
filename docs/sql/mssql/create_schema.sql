@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 3/30/26, 10:02
+-- Ran at: 5/18/26, 1:18 PM
 -- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -114,7 +114,7 @@ GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::12::Lubos Racansky
 -- Create a new table pa_activation
-CREATE TABLE pa_activation (activation_id varchar(37) NOT NULL, application_id int NOT NULL, user_id varchar(255) NOT NULL, activation_name varchar(255), activation_code varchar(255), activation_status int NOT NULL, activation_otp varchar(255), activation_otp_validation int CONSTRAINT DF_pa_activation_activation_otp_validation DEFAULT 0 NOT NULL, blocked_reason varchar(255), counter int NOT NULL, ctr_data varchar(255), device_public_key_base64 varchar(255), extras varchar(255), platform varchar(255), device_info varchar(255), flags varchar(255), failed_attempts int NOT NULL, max_failed_attempts int CONSTRAINT DF_pa_activation_max_failed_attempts DEFAULT 5 NOT NULL, server_private_key_base64 varchar(255) NOT NULL, server_private_key_encryption int CONSTRAINT DF_pa_activation_server_private_key_encryption DEFAULT 0 NOT NULL, server_public_key_base64 varchar(255) NOT NULL, timestamp_activation_expire datetime2(6) NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_used datetime2(6) NOT NULL, timestamp_last_change datetime2(6), master_keypair_id int, version int CONSTRAINT DF_pa_activation_version DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_activation (activation_id varchar(37) NOT NULL, application_id int NOT NULL, user_id varchar(255) NOT NULL, activation_name varchar(255), activation_code varchar(255), activation_status int NOT NULL, activation_otp varchar(255), activation_otp_validation int CONSTRAINT DF_pa_activation_activation_otp_validation DEFAULT 0 NOT NULL, blocked_reason varchar(255), counter int NOT NULL, ctr_data varchar(255), device_public_key_base64 varchar(255), extras varchar(255), platform varchar(255), device_info varchar(255), flags varchar(255), failed_attempts int NOT NULL, max_failed_attempts int CONSTRAINT DF_pa_activation_max_failed_attempts DEFAULT 5 NOT NULL, server_private_key_base64 varchar(255) NOT NULL, server_private_key_encryption int CONSTRAINT DF_pa_activation_server_private_key_encryption DEFAULT 0 NOT NULL, server_public_key_base64 varchar(255) NOT NULL, timestamp_activation_expire datetime2(6) NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_used datetime2(6) NOT NULL, timestamp_last_change datetime2(6), master_keypair_id int, version int CONSTRAINT DF_pa_activation_version DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id));
 GO
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::13::Lubos Racansky
@@ -689,14 +689,34 @@ ALTER TABLE pa_activation ADD activation_fingerprint varchar(255);
 GO
 
 -- Changeset powerauth-java-server/2.0.x/20251215-add-tag-2.0.0.xml::1::Lubos Racansky
--- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::1::Vit Kotacka
--- Drop non-unique index on pa_activation(activation_code) before replacing with unique constraint
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-fix-nulls.xml::1::Vit Kotacka
+-- Retrofit NULL activation_code values with unique LEGACY- prefixed placeholders
+--             before adding the NOT NULL constraint. Skipped automatically (MARK_RAN) if no
+--             NULL values are present, which is the expected case for all non-legacy databases.
+--             Rollback is not supported — original NULL values cannot be restored.
+UPDATE pa_activation
+SET activation_code = 'LEGACY-' + LOWER(CONVERT(varchar(36), NEWID()))
+WHERE activation_code IS NULL;
+GO
+
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
+-- MSSQL only: drop non-unique index pa_activation_code before ALTER COLUMN. MSSQL blocks ALTER COLUMN when a dependent index exists (error 5074); PostgreSQL and Oracle do not have this restriction.
 DROP INDEX pa_activation_code ON pa_activation;
 GO
 
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::1::Vit Kotacka
+-- Add NOT NULL constraint on pa_activation(activation_code) to align the DB schema with the JPA entity definition. Applied before the unique constraint to fail fast if NULL values exist, avoiding an expensive index build on dirty data.
+ALTER TABLE pa_activation ALTER COLUMN activation_code varchar(255) NOT NULL;
+GO
+
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::2::Vit Kotacka
--- Add unique constraint on (application_id, activation_code) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check
-ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (application_id, activation_code);
+-- Add unique constraint on (activation_code, application_id) to enforce activation code uniqueness at DB level, replacing the application-level SELECT COUNT uniqueness check. activation_code is NOT NULL (see changeset id=1), so multiple NULLs bypassing the unique constraint is not a concern.
+ALTER TABLE pa_activation ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (activation_code, application_id);
+GO
+
+-- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::3::Vit Kotacka
+-- Safety-net drop of non-unique index pa_activation_code. Normally already dropped by id=0; this changeset is a no-op (MARK_RAN) on fresh installs but ensures correctness on environments that ran id=1..3 before id=0 was introduced.
+DROP INDEX pa_activation_code ON pa_activation;
 GO
 
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::1::Pavel Sindelar
@@ -707,5 +727,21 @@ GO
 -- Changeset powerauth-java-server/2.1.x/20260327-audit-subject-id.xml::2::Pavel Sindelar
 -- Create a new index on audit_log(subject_id)
 CREATE NONCLUSTERED INDEX audit_log_subject_id_idx ON audit_log(subject_id);
+GO
+
+-- Changeset powerauth-java-server/2.1.x/20260416-add-tag-2.1.0.xml::1::Pavel Sindelar
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::1::Roman Strobl
+-- Add signature_algorithm column to pa_signature_audit table to store signature algorithm
+ALTER TABLE pa_signature_audit ADD signature_algorithm varchar(32);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::2::Roman Strobl
+-- Add signature_format column to pa_signature_audit table to store the asymmetric signature format (DER/JOSE)
+ALTER TABLE pa_signature_audit ADD signature_format varchar(32);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::3::Roman Strobl
+-- Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures
+ALTER TABLE pa_signature_audit ALTER COLUMN signature varchar (max);
 GO
 
