@@ -60,6 +60,7 @@ class ApplicationConfigServiceTest {
         private EntityManager entityManager;
 
         @Test
+        @Transactional
         void testCreate() throws Exception {
             final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 21L);
             final ApplicationConfigService.ApplicationConfig source
@@ -96,6 +97,7 @@ class ApplicationConfigServiceTest {
         private EntityManager entityManager;
 
         @Test
+        @Transactional
         void testCreate() throws Exception {
             final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 21L);
             final ApplicationConfigService.ApplicationConfig source

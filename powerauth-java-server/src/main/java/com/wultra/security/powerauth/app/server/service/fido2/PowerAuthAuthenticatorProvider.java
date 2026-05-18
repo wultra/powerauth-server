@@ -18,9 +18,6 @@
 
 package com.wultra.security.powerauth.app.server.service.fido2;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
@@ -56,6 +53,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
@@ -300,7 +300,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw new Fido2AuthenticationFailedException("Invalid cryptography provider");
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new Fido2AuthenticationFailedException("Unable to serialize extras");
         } catch (GenericServiceException e) {
             throw new Fido2AuthenticationFailedException("Generic service exception");
@@ -337,10 +337,9 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         authenticatorDetail.setCredentialId(activation.getExternalId());
         try {
             if (activation.getExtras() != null) {
-                authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String, Object>>() {
-                }));
+                authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String, Object>>() {}));
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.warn(e.getMessage(), e);
             return Optional.empty();
         }

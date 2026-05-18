@@ -68,6 +68,10 @@
             <groupId>com.wultra.security</groupId>
             <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
+        <dependency>
+            <groupId>tools.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
+        </dependency>
 
         <!-- Job Scheduling -->
         <dependency>

@@ -18,10 +18,6 @@
 
 package com.wultra.security.powerauth.app.server.configuration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
@@ -32,11 +28,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import tools.jackson.databind.SerializationFeature;
 
 import java.time.Duration;
 import java.util.Base64;
@@ -277,18 +275,12 @@ public class PowerAuthServiceConfiguration {
     private Duration temporaryKeyValidity;
 
     /**
-     * Prepare and configure object mapper.
-     * @return Object mapper.
+     * Customize the Spring Boot auto-configured {@code jacksonJsonMapper}.
+     * @return Customizer applied to the auto-configured JSON mapper.
      */
     @Bean
-    public ObjectMapper objectMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.registerModule(new JavaTimeModule());
-        return objectMapper;
+    public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
+        return builder -> builder.enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     /**

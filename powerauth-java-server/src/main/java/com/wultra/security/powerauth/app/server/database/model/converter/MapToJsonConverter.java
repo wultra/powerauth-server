@@ -18,13 +18,13 @@
 
 package com.wultra.security.powerauth.app.server.database.model.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +59,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, Object
         }
         try {
             return objectMapper.writeValueAsString(parameters);
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Conversion failed for operation parameters, error: {}", ex.getMessage(), ex);
             return EMPTY_PARAMS;
         }
@@ -72,7 +72,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, Object
         }
         try {
             return objectMapper.readValue(s, new TypeReference<>(){});
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             logger.warn("Conversion failed for operation parameters, error: {}", ex.getMessage(), ex);
             return new HashMap<>();
         }

@@ -18,11 +18,6 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
@@ -31,9 +26,15 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.dataformat.cbor.CBORMapper;
 
-import java.io.IOException;
-import java.io.Serial;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Map;
@@ -46,16 +47,14 @@ import java.util.Map;
 @Slf4j
 public class AuthenticatorDataDeserializer extends StdDeserializer<AuthenticatorData> {
 
-    @Serial
-    private static final long serialVersionUID = -7644582864083436208L;
-
-    private static final CBORMapper CBOR_MAPPER = new CBORMapper();
+    private static final ObjectMapper CBOR_MAPPER = CBORMapper.builder().build();
 
     /**
-     * No-arg deserializer constructor.
+     * No-arg deserializer constructor, used by Jackson via {@code @JsonDeserialize}.
      */
+    @SuppressWarnings("unused")
     public AuthenticatorDataDeserializer() {
-        this(null);
+        this(AuthenticatorData.class);
     }
 
     /**
@@ -71,24 +70,20 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      * @param jsonParser JSON parser.
      * @param deserializationContext Deserialization context.
      * @return Deserialized FIDO2 authenticator data.
-     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     @Override
-    public AuthenticatorData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
-        final byte[] authData;
-
-        try {
-            authData = jsonParser.getBinaryValue();
-        } catch (IOException e) {
-            logger.debug(e.getMessage(), e);
-            throw new Fido2DeserializationException(e.getMessage(), e);
-        }
+    public AuthenticatorData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+        final byte[] authData = jsonParser.getBinaryValue();
 
         if (authData == null) {
-            throw new Fido2DeserializationException("JSON binary value deserialized into null.");
+            throw DatabindException.from(jsonParser, "JSON binary value deserialized into null.");
         }
 
-        return deserialize(authData);
+        try {
+            return deserialize(authData);
+        } catch (Fido2DeserializationException e) {
+            throw DatabindException.from(jsonParser, e.getMessage(), e);
+        }
     }
 
     /**
@@ -96,7 +91,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      *
      * @param authData base64 encoded authenticator data.
      * @return authenticator data
-     * @throws Fido2DeserializationException
+     * @throws Fido2DeserializationException Thrown in case deserialization fails.
      */
     public static AuthenticatorData deserialize(final String authData) throws Fido2DeserializationException {
         return deserialize(Base64.getDecoder().decode(authData));
@@ -155,7 +150,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 final Map<String, Object> credentialPublicKeyMap;
                 try {
                     credentialPublicKeyMap = CBOR_MAPPER.readValue(credentialPublicKey, new TypeReference<>() {});
-                } catch (IOException e) {
+                } catch (JacksonException e) {
                     throw new Fido2DeserializationException("Unable to deserialize credentialPublicKey.", e);
                 }
                 if (credentialPublicKeyMap == null) {

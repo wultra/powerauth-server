@@ -18,8 +18,6 @@
  */
 package com.wultra.security.powerauth.app.server.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.PrivateKeysRecord;
 import com.wultra.security.powerauth.app.server.service.encryption.DatabaseEncryptionService;
@@ -32,8 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
@@ -68,7 +67,7 @@ public class MasterPrivateKeysConverter {
             final EncryptionKeySupplier encryptionKeySupplier = encryptionKeySupplier(applicationId);
             final byte[] decrypted = encryptionService.decrypt(encryptedData, encryptionKeySupplier, masterPrivateKeys.encryptionAlgorithm());
             return deserialize(decrypted);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Decryption failed", e);
             throw new GenericServiceException(ServiceError.DECRYPTION_FAILED, e.getMessage());
         }
@@ -87,7 +86,7 @@ public class MasterPrivateKeysConverter {
     public PrivateKeysRecord toDBValue(final PrivateKeyRegistry masterPrivateKeys, final String applicationId) throws GenericServiceException {
         try {
             return toDBValue(serialize(masterPrivateKeys), applicationId);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Encryption failed", e);
             throw new GenericServiceException(ServiceError.ENCRYPTION_FAILED, e.getMessage());
         }
@@ -109,11 +108,11 @@ public class MasterPrivateKeysConverter {
         return new PrivateKeysRecord(encrypted.encryptionAlgorithm(), toBase64(encrypted.encryptedData()));
     }
 
-    byte[] serialize(final PrivateKeyRegistry source) throws JsonProcessingException {
+    byte[] serialize(final PrivateKeyRegistry source) throws JacksonException {
         return objectMapper.writeValueAsBytes(source);
     }
 
-    private PrivateKeyRegistry deserialize(final byte[] source) throws IOException {
+    private PrivateKeyRegistry deserialize(final byte[] source) throws JacksonException {
         return objectMapper.readValue(source, PrivateKeyRegistry.class);
     }
 

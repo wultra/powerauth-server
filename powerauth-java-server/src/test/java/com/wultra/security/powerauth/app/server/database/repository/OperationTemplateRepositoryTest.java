@@ -17,14 +17,17 @@
  */
 package com.wultra.security.powerauth.app.server.database.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import tools.jackson.databind.json.JsonMapper;
+import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -40,9 +43,11 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @DataJpaTest
-@Import(ObjectMapper.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({JsonMapper.class, ConcurrentMapCacheManager.class})
 @ActiveProfiles("test")
 @Sql
+@Transactional
 class OperationTemplateRepositoryTest {
 
     @Autowired
@@ -63,7 +68,7 @@ class OperationTemplateRepositoryTest {
         assertEquals(templateName, entity.get().getTemplateName());
 
         final OperationTemplateEntity newEntity = createOperationTemplateEntity(templateName);
-        assertThrows(DuplicateKeyException.class, () -> repository.save(newEntity));
+        assertThrows(DataIntegrityViolationException.class, () -> repository.save(newEntity));
 
         newEntity.setTemplateName("login_v2");
         final OperationTemplateEntity newlySaved = repository.save(newEntity);
