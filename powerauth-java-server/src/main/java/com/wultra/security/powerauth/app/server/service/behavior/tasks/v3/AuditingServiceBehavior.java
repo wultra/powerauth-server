@@ -249,7 +249,7 @@ public class AuditingServiceBehavior {
                                                   boolean valid, String note, Date currentTimestamp) {
         // Audit the asymmetric signature into the database
         final SignatureEntity signatureAuditRecord = new SignatureEntity();
-        signatureAuditRecord.setActivation(activationRepository.getReferenceById(activation.getActivationId()));
+        signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
