@@ -93,7 +93,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi-starter-webmvc-ui.version>3.0.3</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.49</swagger-annotations-jakarta.version>
+        <swagger-annotations-jakarta.version>2.2.50</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
         <shedlock.version>7.7.0</shedlock.version>
@@ -255,6 +255,19 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
