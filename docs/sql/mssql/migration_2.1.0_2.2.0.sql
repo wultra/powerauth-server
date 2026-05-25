@@ -18,6 +18,6 @@ ALTER TABLE pa_signature_audit ADD signature_format varchar(32);
 GO
 
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::3::Roman Strobl
--- Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures
-ALTER TABLE pa_signature_audit ALTER COLUMN signature varchar (max);
+-- Change data type of signature column in pa_signature_audit table from varchar(255) to varchar(8000) to support longer asymmetric signatures
+ALTER TABLE pa_signature_audit ALTER COLUMN signature varchar(8000);
 GO

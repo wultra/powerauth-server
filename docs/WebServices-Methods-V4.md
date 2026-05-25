@@ -1395,6 +1395,8 @@ REST endpoint: `POST /rest/v4/audit/list`
 | `String`           | `dataBase64`        | A base64 encoded data sent with the signature                  |
 | `String`           | `signatureVersion`  | Requested signature version                                    |
 | `String`           | `signatureType`     | Requested signature type                                       |
+| `String`           | `signatureAlgorithm`| Algorithm used for the signature (symmetric: `PowerAuth-V3`, or `PowerAuth-V4`; asymmetric: `ECDSA_P256`, `ECDSA_P384`, `MLDSA_65`, or `MLDSA_87`) |
+| `String`           | `signatureFormat`   | Format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`) |
 | `String`           | `signature`         | Submitted value of a signature                                 |
 | `String`           | `note`              | Extra info about the result of the signature verification      |
 | `boolean`          | `valid`             | Flag indicating if the provided signature was valid            |

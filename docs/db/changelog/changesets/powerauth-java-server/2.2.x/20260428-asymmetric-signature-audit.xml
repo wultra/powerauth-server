@@ -28,7 +28,7 @@
                 <columnExists tableName="pa_signature_audit" columnName="signature_algorithm"/>
             </not>
         </preConditions>
-        <comment>Add signature_algorithm column to pa_signature_audit table to store signature algorithm</comment>
+        <comment>Add signature_algorithm column to pa_signature_audit table to store the signature algorithm</comment>
         <addColumn tableName="pa_signature_audit">
             <column name="signature_algorithm" type="varchar(32)"/>
         </addColumn>
@@ -47,8 +47,8 @@
     </changeSet>
 
     <changeSet id="3" logicalFilePath="powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml" author="Roman Strobl">
-        <comment>Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures</comment>
-        <modifyDataType tableName="pa_signature_audit" columnName="signature" newDataType="text"/>
+        <comment>Change data type of signature column in pa_signature_audit table from varchar(255) to varchar(8000) to support longer asymmetric signatures</comment>
+        <modifyDataType tableName="pa_signature_audit" columnName="signature" newDataType="varchar(8000)"/>
     </changeSet>
 
 </databaseChangeLog>
