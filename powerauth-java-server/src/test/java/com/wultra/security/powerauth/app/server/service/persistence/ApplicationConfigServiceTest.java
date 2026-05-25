@@ -62,7 +62,7 @@ class ApplicationConfigServiceTest {
         @Test
         @Transactional
         void testCreate() throws Exception {
-            final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 521L);
+            final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 21L);
             final ApplicationConfigService.ApplicationConfig source
                     = new ApplicationConfigService.ApplicationConfig(null, application, "oauth2_providers", List.of("client_secret"));
 
@@ -99,7 +99,7 @@ class ApplicationConfigServiceTest {
         @Test
         @Transactional
         void testCreate() throws Exception {
-            final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 521L);
+            final ApplicationEntity application = entityManager.find(ApplicationEntity.class, 21L);
             final ApplicationConfigService.ApplicationConfig source
                     = new ApplicationConfigService.ApplicationConfig(null, application, "oauth2_providers", List.of("client_secret"));
 
