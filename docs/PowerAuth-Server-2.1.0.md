@@ -52,6 +52,8 @@ The changes are applied in the following order:
 > ⚠️ **PostgreSQL / Oracle: maintenance window recommended.**
 > Step 4 (index build) locks the table and can take several minutes on large deployments (see performance data below).
 > Plan a maintenance window before upgrading the application.
+>
+> Alternatively, on PostgreSQL you can create the unique index **without locking** using `CONCURRENTLY` before the migration runs (see manual steps below). Liquibase will then skip the index build in step 4.
 
 > ⚠️ **Legacy databases with NULL `activation_code` values.**
 > Step 1 will UPDATE any rows with NULL `activation_code`.
@@ -83,6 +85,42 @@ Index build time measured on a 10M-row table:
 | PostgreSQL 18 | ~19 s |
 | Azure SQL Edge 2.0 | ~22 s |
 | MS SQL Server 2022 | ~89 s |
+
+#### Manual Index Creation (Zero-Downtime Option)
+
+To avoid table locking during the migration, you can create the unique index manually **before** running the Liquibase migration. Liquibase will detect the index already exists and skip the index build in step 4.
+
+> ℹ️ Run these statements **before** starting the application upgrade. Ensure step 1 (NULL backfill) has been completed first if your database may contain NULL `activation_code` values.
+
+_PostgreSQL — non-blocking (`CONCURRENTLY`):_
+```sql
+CREATE UNIQUE INDEX CONCURRENTLY pa_activation_code_application_uk
+    ON pa_activation (activation_code, application_id);
+ALTER TABLE pa_activation
+    ADD CONSTRAINT pa_activation_code_application_uk UNIQUE
+    USING INDEX pa_activation_code_application_uk;
+```
+> Note: `CREATE INDEX CONCURRENTLY` cannot run inside a transaction and may take longer than a standard index build, but does not lock the table.
+
+_Oracle — online index build:_
+```sql
+CREATE UNIQUE INDEX pa_activation_code_application_uk
+    ON pa_activation (activation_code, application_id) ONLINE;
+ALTER TABLE pa_activation
+    ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (activation_code, application_id)
+    USING INDEX pa_activation_code_application_uk;
+```
+
+_MSSQL — online index build:_
+```sql
+-- Step 2 (drop old index) must be done first — see migration step 2 above.
+CREATE UNIQUE INDEX pa_activation_code_application_uk
+    ON pa_activation (activation_code, application_id)
+    WITH (ONLINE = ON);
+ALTER TABLE pa_activation
+    ADD CONSTRAINT pa_activation_code_application_uk UNIQUE (activation_code, application_id);
+```
+> Note: `WITH (ONLINE = ON)` requires Enterprise or Developer edition of SQL Server.
 
 ### `audit_log` Table
 
