@@ -231,8 +231,9 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
      * @param activation Activation used for signature verification.
      * @param signatureData Data related to the signature.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInvalidSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, Date currentTimestamp) {
+    private void handleInvalidSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, Date currentTimestamp) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners

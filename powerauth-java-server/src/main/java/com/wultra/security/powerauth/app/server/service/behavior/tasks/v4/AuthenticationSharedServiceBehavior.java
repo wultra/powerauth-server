@@ -111,8 +111,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Online authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidApplicationVersion(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInvalidApplicationVersion(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleInvalidApplicationVersionImpl(activation, authenticationRequest.getAuthenticationData(), authenticationRequest.getAuthenticationCodeType(), currentTimestamp);
     }
 
@@ -122,8 +123,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param onlineAuthenticationRequest Online authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleValidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OnlineAuthenticationRequest onlineAuthenticationRequest, Date currentTimestamp) {
+    public void handleValidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OnlineAuthenticationRequest onlineAuthenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleValidAuthenticationImpl(activation, verificationResponse, onlineAuthenticationRequest.getAuthenticationData(), currentTimestamp);
     }
 
@@ -133,8 +135,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param offlineAuthenticationRequest Offline authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleValidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OfflineAuthenticationRequest offlineAuthenticationRequest, Date currentTimestamp) {
+    public void handleValidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OfflineAuthenticationRequest offlineAuthenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleValidAuthenticationImpl(activation, verificationResponse, offlineAuthenticationRequest.getAuthenticationData(), currentTimestamp);
     }
 
@@ -144,8 +147,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param authenticationRequest Online authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInvalidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleInvalidAuthenticationImpl(activation, verificationResponse, authenticationRequest.getAuthenticationData(), authenticationRequest.getAuthenticationCodeType(), currentTimestamp, false);
     }
 
@@ -155,8 +159,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param authenticationRequest Offline authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInvalidAuthentication(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         final AuthenticationCodeType authenticationCodeTypeType = authenticationRequest.getAuthenticationCodeTypes().iterator().next();
         final boolean biometryAllowedInOfflineMode = authenticationRequest.getAuthenticationCodeTypes().size() > 1 && authenticationRequest.getAuthenticationCodeTypes().contains(AuthenticationCodeType.POSSESSION_BIOMETRY);
         handleInvalidAuthenticationImpl(activation, verificationResponse, authenticationRequest.getAuthenticationData(), authenticationCodeTypeType, currentTimestamp, biometryAllowedInOfflineMode);
@@ -167,8 +172,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Online authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInactiveActivationAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleInactiveActivationAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationRequest.getAuthenticationCodeType(), currentTimestamp);
     }
 
@@ -177,8 +183,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Online authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationWithMismatchAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInactiveActivationWithMismatchAuthentication(ActivationRecordEntity activation, OnlineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         handleInactiveActivationWithMismatchAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationRequest.getAuthenticationCodeType(), currentTimestamp);
     }
 
@@ -187,8 +194,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Offline authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInactiveActivationAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         final AuthenticationCodeType authenticationCodeType = authenticationRequest.getAuthenticationCodeTypes().iterator().next();
         handleInactiveActivationAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationCodeType, currentTimestamp);
     }
@@ -198,8 +206,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param activation Activation used for authentication verification.
      * @param authenticationRequest Offline authentication verification request.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationWithMismatchAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) {
+    public void handleInactiveActivationWithMismatchAuthentication(ActivationRecordEntity activation, OfflineAuthenticationRequest authenticationRequest, Date currentTimestamp) throws GenericServiceException {
         final AuthenticationCodeType authenticationType = authenticationRequest.getAuthenticationCodeTypes().iterator().next();
         handleInactiveActivationWithMismatchAuthenticationImpl(activation, authenticationRequest.getAuthenticationData(), authenticationType, currentTimestamp);
     }
@@ -328,8 +337,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param authenticationData Data related to the authentication.
      * @param authenticationCodeType Authentication code type used for authentication verification.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInvalidApplicationVersionImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) {
+    private void handleInvalidApplicationVersionImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -379,8 +389,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param authenticationData Data related to the authentication.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleValidAuthenticationImpl(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, AuthenticationData authenticationData, Date currentTimestamp) {
+    private void handleValidAuthenticationImpl(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, AuthenticationData authenticationData, Date currentTimestamp) throws GenericServiceException {
         // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
@@ -411,9 +422,10 @@ public class AuthenticationSharedServiceBehavior {
      * @param verificationResponse Authentication verification response.
      * @param authenticationData Data related to the authentication.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
     private void handleInvalidAuthenticationImpl(ActivationRecordEntity activation, AuthenticationResponse verificationResponse, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType,
-                                                 Date currentTimestamp, boolean biometryAllowedInOfflineMode) {
+                                                 Date currentTimestamp, boolean biometryAllowedInOfflineMode) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -472,8 +484,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param authenticationData Data related to the authentication.
      * @param authenticationCodeType Used authentication code type.
      * @param currentTimestamp Authentication verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInactiveActivationAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) {
+    private void handleInactiveActivationAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) throws GenericServiceException {
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
@@ -492,8 +505,9 @@ public class AuthenticationSharedServiceBehavior {
      * @param authenticationData Data related to the authentication code.
      * @param authenticationCodeType Used authentication code type.
      * @param currentTimestamp Authentication code verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInactiveActivationWithMismatchAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) {
+    private void handleInactiveActivationWithMismatchAuthenticationImpl(ActivationRecordEntity activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, Date currentTimestamp) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // Update the last used date

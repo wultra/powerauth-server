@@ -47,11 +47,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -76,6 +80,9 @@ class AsymmetricSignatureBehaviorTest {
 
     @Mock
     private CryptographyService cryptographyService;
+
+    @Mock
+    private AuditingServiceBehavior auditingServiceBehavior;
 
     @InjectMocks
     private AsymmetricSignatureServiceBehavior tested;
@@ -178,6 +185,38 @@ class AsymmetricSignatureBehaviorTest {
 
         VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
         assertTrue(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV4L3), eq(encodedData), eq(base64Signature),
+                eq("ECDSA_P384"), eq("DER"), eq(true),
+                eq("asymmetric_signature_ok"), any(Date.class));
+    }
+
+    @Test
+    void verifySignatureInvalid_Ecdsa_AuditedAsFailure() throws Exception {
+        String encodedData = "RGF0YVRvU2lnbg==";
+        String base64Signature = "MGUCMHSj/atLUNwJrM0q8+PTtvNPpftHSGX3ErcyCwqfqZ0Ia627POEla+gaAcALqdLGjAIxAMa19AkR63k4HItcvqDcOuhgKv+E5PFcWXF1dkpgNq7jjvBMM3G1jYt7dG+DsVF71Q==";
+
+        byte[] derSignature = Base64.getDecoder().decode(base64Signature);
+        byte[] dataBytes = Base64.getDecoder().decode(encodedData);
+
+        VerifyAsymmetricSignatureRequest request = new VerifyAsymmetricSignatureRequest();
+        request.setActivationId("78f184f2-c434-474f-971e-9c2d255faf8c");
+        request.setData(encodedData);
+        request.setSignature(base64Signature);
+        request.setSignatureFormat(AsymmetricSignatureFormat.DER);
+        request.setSignatureType(AsymmetricSignatureType.ECDSA);
+
+        when(activationQueryService.findActivationWithoutLock(request.getActivationId())).thenReturn(Optional.of(activationV4L3));
+        when(cryptographyServiceFactory.getService(any())).thenReturn(cryptographyService);
+        when(cryptographyService.verifySignatureForActivation(eq(KeyType.ECDSA_P384), eq(dataBytes), eq(derSignature), eq(activationV4L3)))
+                .thenReturn(false);
+
+        VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
+        assertFalse(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV4L3), eq(encodedData), eq(base64Signature),
+                eq("ECDSA_P384"), eq("DER"), eq(false),
+                eq("asymmetric_signature_does_not_match"), any(Date.class));
     }
 
     @Test
@@ -202,6 +241,10 @@ class AsymmetricSignatureBehaviorTest {
 
         VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
         assertTrue(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV3), eq(encodedData), eq(base64Signature),
+                eq("ECDSA_P256"), eq("DER"), eq(true),
+                eq("asymmetric_signature_ok"), any(Date.class));
     }
 
     @Test
@@ -226,6 +269,10 @@ class AsymmetricSignatureBehaviorTest {
 
         VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
         assertTrue(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV4L3), eq(encodedData), eq(Base64.getEncoder().encodeToString(mldsaSignature)),
+                eq("MLDSA_65"), eq("DER"), eq(true),
+                eq("asymmetric_signature_ok"), any(Date.class));
     }
 
     @Test
@@ -250,6 +297,10 @@ class AsymmetricSignatureBehaviorTest {
 
         VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
         assertTrue(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV4L5), eq(encodedData), eq(Base64.getEncoder().encodeToString(mldsaSignature)),
+                eq("MLDSA_87"), eq("DER"), eq(true),
+                eq("asymmetric_signature_ok"), any(Date.class));
     }
 
     @Test
@@ -280,6 +331,28 @@ class AsymmetricSignatureBehaviorTest {
 
         VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
         assertFalse(response.isSignatureValid());
+        // No audit record is created when activation does not exist - there is no activation to associate the audit with.
+        verify(auditingServiceBehavior, never()).logAsymmetricSignatureAuditRecord(
+                any(), anyString(), anyString(), anyString(), anyString(), eq(false), anyString(), any(Date.class));
+    }
+
+    @Test
+    void verifySignature_invalidBase64_AuditedAsFormatInvalid() throws Exception {
+        VerifyAsymmetricSignatureRequest request = new VerifyAsymmetricSignatureRequest();
+        request.setActivationId("78f184f2-c434-474f-971e-9c2d255faf8c");
+        request.setData("@@@not-base64@@@");
+        request.setSignature("####not-base64####");
+        request.setSignatureFormat(AsymmetricSignatureFormat.DER);
+        request.setSignatureType(AsymmetricSignatureType.ECDSA);
+
+        when(activationQueryService.findActivationWithoutLock(request.getActivationId())).thenReturn(Optional.of(activationV4L3));
+
+        VerifyAsymmetricSignatureResponse response = tested.verifySignature(request);
+        assertFalse(response.isSignatureValid());
+        verify(auditingServiceBehavior).logAsymmetricSignatureAuditRecord(
+                eq(activationV4L3), eq("@@@not-base64@@@"), eq("####not-base64####"),
+                eq("ECDSA_P384"), eq("DER"), eq(false),
+                eq("asymmetric_signature_format_invalid"), any(Date.class));
     }
 
 }

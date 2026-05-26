@@ -112,8 +112,9 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidApplicationVersion(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInvalidApplicationVersion(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleInvalidApplicationVersionImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureType(), currentTimestamp);
     }
 
@@ -123,8 +124,9 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param onlineSignatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleValidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OnlineSignatureRequest onlineSignatureRequest, Date currentTimestamp) {
+    public void handleValidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OnlineSignatureRequest onlineSignatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleValidSignatureImpl(activation, verificationResponse, onlineSignatureRequest.getSignatureData(), currentTimestamp);
     }
 
@@ -134,8 +136,9 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param offlineSignatureRequest Offline signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleValidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest offlineSignatureRequest, Date currentTimestamp) {
+    public void handleValidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest offlineSignatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleValidSignatureImpl(activation, verificationResponse, offlineSignatureRequest.getSignatureData(), currentTimestamp);
     }
 
@@ -145,8 +148,9 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param signatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OnlineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleInvalidSignatureImpl(activation, verificationResponse, signatureRequest.getSignatureData(), signatureRequest.getSignatureType(), currentTimestamp, false);
     }
 
@@ -156,8 +160,9 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param signatureRequest Offline signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         final boolean biometryAllowedInOfflineMode = signatureRequest.getSignatureTypes().size() > 1 && signatureRequest.getSignatureTypes().contains(SignatureType.POSSESSION_BIOMETRY);
         handleInvalidSignatureImpl(activation, verificationResponse, signatureRequest.getSignatureData(), signatureType, currentTimestamp, biometryAllowedInOfflineMode);
@@ -168,8 +173,9 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationSignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInactiveActivationSignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleInactiveActivationSignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureType(), currentTimestamp);
     }
 
@@ -178,8 +184,9 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         handleInactiveActivationWithMismatchSignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureType(), currentTimestamp);
     }
 
@@ -188,8 +195,9 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureRequest Offline signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInactiveActivationSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         handleInactiveActivationSignatureImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
     }
@@ -199,8 +207,9 @@ public class SignatureSharedServiceBehavior {
      * @param activation Activation used for signature verification.
      * @param signatureRequest Offline signature verification request.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
+    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) throws GenericServiceException {
         final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         handleInactiveActivationWithMismatchSignatureImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
     }
@@ -288,8 +297,9 @@ public class SignatureSharedServiceBehavior {
      * @param signatureData Data related to the signature.
      * @param signatureType Signature type used for signature verification.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInvalidApplicationVersionImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
+    private void handleInvalidApplicationVersionImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -339,8 +349,9 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param signatureData Data related to the signature.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleValidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, Date currentTimestamp) {
+    private void handleValidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, Date currentTimestamp) throws GenericServiceException {
         // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
@@ -373,9 +384,10 @@ public class SignatureSharedServiceBehavior {
      * @param verificationResponse Signature verification response.
      * @param signatureData Data related to the signature.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
     private void handleInvalidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, SignatureType signatureType,
-                                            Date currentTimestamp, boolean biometryAllowedInOfflineMode) {
+                                            Date currentTimestamp, boolean biometryAllowedInOfflineMode) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // By default do not notify listeners
@@ -434,8 +446,9 @@ public class SignatureSharedServiceBehavior {
      * @param signatureData Data related to the signature.
      * @param signatureType Used signature type.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInactiveActivationSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
+    private void handleInactiveActivationSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) throws GenericServiceException {
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
@@ -454,8 +467,9 @@ public class SignatureSharedServiceBehavior {
      * @param signatureData Data related to the signature.
      * @param signatureType Used signature type.
      * @param currentTimestamp Signature verification timestamp.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    private void handleInactiveActivationWithMismatchSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
+    private void handleInactiveActivationWithMismatchSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) throws GenericServiceException {
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         // Update the last used date

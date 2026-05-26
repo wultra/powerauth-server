@@ -18,6 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -61,7 +62,7 @@ class SignatureSharedServiceBehaviorTest {
     private EntityManager entityManager;
 
     @Test
-    void testHandleValidSignature() {
+    void testHandleValidSignature() throws GenericServiceException {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
         final SignatureResponse signatureResponse = new SignatureResponse(true, 1L, new byte[]{'x'}, 3, SignatureType.POSSESSION_KNOWLEDGE);
 
@@ -80,7 +81,7 @@ class SignatureSharedServiceBehaviorTest {
     }
 
     @Test
-    void testHandleInactiveActivationWithMismatchSignature() {
+    void testHandleInactiveActivationWithMismatchSignature() throws GenericServiceException {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
 
         assertEquals(ActivationStatus.ACTIVE, activation.getActivationStatus());
@@ -94,7 +95,7 @@ class SignatureSharedServiceBehaviorTest {
     }
 
     @Test
-    void testHandleInvalidApplicationVersion() {
+    void testHandleInvalidApplicationVersion() throws GenericServiceException {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
 
         assertEquals(ActivationStatus.ACTIVE, activation.getActivationStatus());
@@ -108,7 +109,7 @@ class SignatureSharedServiceBehaviorTest {
     }
 
     @Test
-    void testHandleInvalidSignature() {
+    void testHandleInvalidSignature() throws GenericServiceException {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
         final SignatureResponse signatureResponse = new SignatureResponse(true, 1L, new byte[]{'x'}, 3, SignatureType.POSSESSION_KNOWLEDGE);
 

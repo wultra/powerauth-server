@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.app.server.database.model.enumeration.Activ
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.AuditType;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.model.authentication.v4.AuthenticationData;
@@ -37,6 +38,8 @@ import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
 import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthAuthenticationCodeFormat;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -59,6 +62,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AuditingServiceBehavior {
 
+    private static final String POWERAUTH_ALGORITHM_V4 = "PowerAuth-V4";
+    private static final String ASYMMETRIC_SIGNATURE_TYPE = "ASYMMETRIC";
+
     private final SignatureAuditRepository signatureAuditRepository;
 
     private final ActivationRepository activationRepository;
@@ -70,6 +76,7 @@ public class AuditingServiceBehavior {
 
     // Generic auditing capability
     private final Audit audit;
+    private final LocalizationProvider localizationProvider;
 
     /**
      * Log information with specified level, message, audit details, and message args.
@@ -132,6 +139,8 @@ public class AuditingServiceBehavior {
                     item.setSignatureVersion(signatureEntity.getSignatureVersion());
                     item.setSignature(signatureEntity.getSignature());
                     item.setSignatureType(signatureEntity.getSignatureType());
+                    item.setSignatureAlgorithm(signatureEntity.getSignatureAlgorithm());
+                    item.setSignatureFormat(signatureEntity.getSignatureFormat());
                     item.setValid(signatureEntity.getValid());
                     item.setVersion(signatureEntity.getVersion());
                     item.setTimestampCreated(signatureEntity.getTimestampCreated());
@@ -162,9 +171,7 @@ public class AuditingServiceBehavior {
      * @param note             Record additional info (for example, reason for signature validation failure).
      * @param currentTimestamp Record timestamp.
      */
-    public void logAuthenticationAuditRecord(ActivationRecordDto activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, boolean valid, Integer version, String note, Date currentTimestamp) {
-        // TODO - update model classes and DB table for auditing for v4
-
+    public void logAuthenticationAuditRecord(ActivationRecordDto activation, AuthenticationData authenticationData, AuthenticationCodeType authenticationCodeType, boolean valid, Integer version, String note, Date currentTimestamp) throws GenericServiceException {
         final String additionalInfo = keyValueMapConverter.toString(authenticationData.getAdditionalInfo());
         final String data = Base64.getEncoder().encodeToString(authenticationData.getData());
 
@@ -181,7 +188,14 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setSignatureMetadata(authMetadata);
         signatureAuditRecord.setSignatureDataBody(authenticationData.getRequestBody());
         signatureAuditRecord.setSignatureType(authenticationCodeType.name());
+        signatureAuditRecord.setSignatureAlgorithm(POWERAUTH_ALGORITHM_V4);
         signatureAuditRecord.setSignatureVersion(authenticationData.getAuthenticationVersion());
+        try {
+            signatureAuditRecord.setSignatureFormat(PowerAuthAuthenticationCodeFormat.getFormatForVersion(authenticationData.getAuthenticationVersion()).toString());
+        } catch (GenericCryptoException e) {
+            logger.error("Unsupported protocol version", e);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         signatureAuditRecord.setValid(valid);
         signatureAuditRecord.setVersion(version);
         signatureAuditRecord.setNote(note);
@@ -211,6 +225,67 @@ public class AuditingServiceBehavior {
                 .subjectId(activation.getUserId())
                 .build();
         audit.log("Authentication validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
+                (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
+                activation.getActivationId(),
+                activation.getUserId()
+        );
+    }
+
+    /**
+     * Log a record for an asymmetric signature verification (ECDSA, ML-DSA) in the signature audit log.
+     * <p>
+     * Asymmetric signatures do not advance the activation counter. The {@code signature_format} column is populated
+     * with the format used during verification (e.g. {@code DER}, {@code JOSE}).
+     *
+     * @param activation        Activation associated with the signature verification.
+     * @param dataBase64        Base64-encoded data over which the signature was verified.
+     * @param signatureBase64   Base64-encoded signature value as provided by the caller (in the original format).
+     * @param signatureAlgorithm Signature algorithm used for verification (e.g. {@code ECDSA_P384} or {@code MLDSA_65}).
+     * @param signatureFormat   Signature format used for verification (e.g. {@code DER}, {@code JOSE}).
+     * @param valid             Flag indicating whether the signature was valid.
+     * @param note              Additional information (for example, reason for verification failure).
+     * @param currentTimestamp  Verification timestamp.
+     */
+    public void logAsymmetricSignatureAuditRecord(ActivationRecordEntity activation, String dataBase64, String signatureBase64,
+                                                  String signatureAlgorithm, String signatureFormat,
+                                                  boolean valid, String note, Date currentTimestamp) {
+        // Audit the asymmetric signature into the database
+        final SignatureEntity signatureAuditRecord = new SignatureEntity();
+        signatureAuditRecord.setActivation(activation);
+        signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
+        signatureAuditRecord.setActivationCounter(activation.getCounter());
+        signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
+        signatureAuditRecord.setDataBase64(dataBase64);
+        signatureAuditRecord.setSignature(signatureBase64);
+        signatureAuditRecord.setSignatureType(ASYMMETRIC_SIGNATURE_TYPE);
+        signatureAuditRecord.setSignatureAlgorithm(signatureAlgorithm);
+        signatureAuditRecord.setSignatureFormat(signatureFormat);
+        signatureAuditRecord.setSignatureVersion(activation.getVersion().toString());
+        signatureAuditRecord.setValid(valid);
+        signatureAuditRecord.setVersion(activation.getVersion());
+        signatureAuditRecord.setNote(note);
+        signatureAuditRecord.setTimestampCreated(currentTimestamp);
+        signatureAuditRepository.save(signatureAuditRecord);
+
+        // Store additional audit log
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .param("activationId", activation.getActivationId())
+                .param("applicationId", activation.getApplication().getId())
+                .param("userId", activation.getUserId())
+                .param("valid", valid)
+                .param("activationStatus", activation.getActivationStatus())
+                .param("data", dataBase64)
+                .param("signature", signatureBase64)
+                .param("signatureType", ASYMMETRIC_SIGNATURE_TYPE)
+                .param("signatureAlgorithm", signatureAlgorithm)
+                .param("signatureFormat", signatureFormat)
+                .param("activationVersion", activation.getVersion())
+                .param("note", note)
+                .param("timestamp", currentTimestamp)
+                .type(AuditType.ASYMMETRIC_SIGNATURE.getCode())
+                .subjectId(activation.getUserId())
+                .build();
+        audit.log("Asymmetric signature verification completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
                 activation.getActivationId(),
                 activation.getUserId()
