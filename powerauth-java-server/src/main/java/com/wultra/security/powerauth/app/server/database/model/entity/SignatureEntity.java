@@ -123,6 +123,18 @@ public class SignatureEntity implements Serializable {
     private String signatureDataBody;
 
     /**
+     * Signature algorithm (e.g. PowerAuth-V3, PowerAuth-V4, ECDSA, ML-DSA-67).
+     */
+    @Column(name = "signature_algorithm", updatable = false)
+    private String signatureAlgorithm;
+
+    /**
+     * Signature format. Stored for asymmetric signature audit records (e.g. DER, JOSE).
+     */
+    @Column(name = "signature_format", updatable = false)
+    private String signatureFormat;
+
+    /**
      * Signature audit record note.
      */
     @Column(name = "note", updatable = false)

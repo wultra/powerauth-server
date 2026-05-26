@@ -43,6 +43,7 @@ import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonali
 import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthenticationResponse;
 import com.wultra.security.powerauth.crypto.lib.config.DecimalAuthenticationCodeConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -402,7 +403,7 @@ public class OfflineAuthenticationServiceBehavior {
         if (request.getExpectedComponentLength() != null) {
             powerAuthConfiguration.setLength(request.getExpectedComponentLength());
         }
-        final AuthenticationData authenticationData = new AuthenticationData(data, request.getAuthenticationCode(), powerAuthConfiguration, null, request.getAdditionalInfo());
+        final AuthenticationData authenticationData = new AuthenticationData(data, request.getAuthenticationCode(), powerAuthConfiguration, ProtocolVersion.V40.getVersion(), request.getAdditionalInfo());
         return new OfflineAuthenticationRequest(authenticationData, request.getAuthenticationCodeTypes());
     }
 

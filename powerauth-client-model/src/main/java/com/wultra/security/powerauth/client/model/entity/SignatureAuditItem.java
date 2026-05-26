@@ -44,6 +44,8 @@ public class SignatureAuditItem {
     private String dataBase64;
     private String signatureVersion;
     private String signatureType;
+    private String signatureAlgorithm;
+    private String signatureFormat;
     private String signature;
     private String note;
     private boolean valid;

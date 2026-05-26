@@ -44,6 +44,7 @@ import com.wultra.security.powerauth.client.model.response.v3.CreateNonPersonali
 import com.wultra.security.powerauth.client.model.response.v3.CreatePersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyOfflineSignatureResponse;
 import com.wultra.security.powerauth.crypto.lib.config.DecimalAuthenticationCodeConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -396,7 +397,7 @@ public class OfflineSignatureServiceBehavior {
         if (request.getExpectedComponentLength() != null) {
             powerAuthConfiguration.setLength(request.getExpectedComponentLength());
         }
-        final SignatureData signatureData = new SignatureData(data, request.getSignature(), powerAuthConfiguration, null, request.getAdditionalInfo(), null);
+        final SignatureData signatureData = new SignatureData(data, request.getSignature(), powerAuthConfiguration, ProtocolVersion.V33.getVersion(), request.getAdditionalInfo(), null);
         return new OfflineSignatureRequest(signatureData, request.getSignatureTypes());
     }
 

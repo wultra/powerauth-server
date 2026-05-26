@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -60,6 +61,7 @@ public class AsymmetricSignatureServiceBehavior {
     private final ActivationContextValidator activationValidator;
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final ProtocolVersionValidationService protocolVersionValidationService;
+    private final AuditingServiceBehavior auditingServiceBehavior;
 
     /**
      * Sign data with ECDSA signature for given data using public key associated with given activation ID.
@@ -121,6 +123,8 @@ public class AsymmetricSignatureServiceBehavior {
             final String data = request.getData();
             final String signature  = request.getSignature();
             final ECDSASignatureFormat signatureFormat = request.getSignatureFormat();
+            final String signatureFormatName = signatureFormat != null ? signatureFormat.name() : null;
+            final String keyType = KeyType.ECDSA_P256.name();
 
             final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
             if (activationOptional.isEmpty()) {
@@ -132,14 +136,31 @@ public class AsymmetricSignatureServiceBehavior {
             final ActivationRecordEntity activation = activationOptional.get();
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            final byte[] dataBytes = Base64.getDecoder().decode(data);
-            final byte[] signatureBytes = Base64.getDecoder().decode(signature);
-            final byte[] signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
+            final Date currentTimestamp = new Date();
+            final byte[] dataBytes;
+            final byte[] signatureBytes;
+            final byte[] signatureBytesDER;
+            try {
+                dataBytes = Base64.getDecoder().decode(data);
+                signatureBytes = Base64.getDecoder().decode(signature);
+                signatureBytesDER = signatureDER(signatureFormat, signatureBytes);
+            } catch (IllegalArgumentException | JOSEException ex) {
+                logger.warn("Asymmetric signature payload could not be decoded, activation ID: {}", activationId, ex);
+                auditingServiceBehavior.logAsymmetricSignatureAuditRecord(activation, data, signature, keyType, signatureFormatName,
+                        false, "asymmetric_signature_format_invalid", currentTimestamp);
+                return VerifyECDSASignatureResponse.builder()
+                        .signatureValid(false)
+                        .build();
+            }
 
-            final boolean matches = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
+            final boolean signatureValid = cryptographyServiceFactory.getService(SharedSecretAlgorithm.EC_P256).verifySignatureForActivation(KeyType.ECDSA_P256, dataBytes, signatureBytesDER, activation);
+
+            // Create the asymmetric signature audit log record (success or failure)
+            auditingServiceBehavior.logAsymmetricSignatureAuditRecord(activation, data, signature, keyType, signatureFormatName,
+                    signatureValid, signatureValid ? "asymmetric_signature_ok" : "asymmetric_signature_does_not_match", currentTimestamp);
 
             return VerifyECDSASignatureResponse.builder()
-                    .signatureValid(matches)
+                    .signatureValid(signatureValid)
                     .build();
         } catch (GenericServiceException ex) {
             // already logged
