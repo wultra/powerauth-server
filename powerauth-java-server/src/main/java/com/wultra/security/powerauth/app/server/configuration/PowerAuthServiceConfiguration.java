@@ -138,7 +138,7 @@ public class PowerAuthServiceConfiguration {
      * to ACTIVE state. Disabling this flag does not affect the lifting of temporary blocks that were
      * already set in the database.
      */
-    @Value("${powerauth.service.crypto.temporaryBlock.enabled:false}")
+    @Value("${powerauth.service.crypto.temporaryActivationBlock.enabled:false}")
     private boolean temporaryBlockEnabled;
 
     /**
@@ -146,7 +146,7 @@ public class PowerAuthServiceConfiguration {
      * this many milliseconds; each consecutive block is prolonged by the configured multiplier.
      * Default is 300 000 ms (5 minutes).
      */
-    @Value("${powerauth.service.crypto.temporaryBlock.periodInMilliseconds:300000}")
+    @Value("${powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds:300000}")
     @Min(0)
     private long temporaryBlockPeriodInMilliseconds;
 
@@ -155,7 +155,7 @@ public class PowerAuthServiceConfiguration {
      * of 2 the n-th consecutive temporary block lasts {@code periodInMilliseconds * 2^(n-1)} milliseconds.
      * Must be at least 1.
      */
-    @Value("${powerauth.service.crypto.temporaryBlock.multiplier:2}")
+    @Value("${powerauth.service.crypto.temporaryActivationBlock.multiplier:2}")
     @Min(1)
     private int temporaryBlockMultiplier;
 

@@ -26,9 +26,9 @@ A new feature automatically expires the activation block after a configurable pe
 After the temporary block period expires, the activation is returned to the `ACTIVE` state and one last authentication attempt is made available (`failed_attempts` is decremented by 1). If this last attempt fails, the activation is blocked again with a longer period; on successful authenticaftion, the failed attempts counter and the temporary block counter are both reset.
 
 The feature is disabled by default. The default configuration is with a 5-minute initial block period and a doubling multiplier for consecutive blocks. See [Configuration-Properties.md](Configuration-Properties.md) for the new properties:
-- `powerauth.service.crypto.temporaryBlock.enabled` (default `false`)
-- `powerauth.service.crypto.temporaryBlock.periodInMilliseconds` (default `300000`)
-- `powerauth.service.crypto.temporaryBlock.multiplier` (default `2`)
+- `powerauth.service.crypto.temporaryActivationBlock.enabled` (default `false`)
+- `powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds` (default `300000`)
+- `powerauth.service.crypto.temporaryActivationBlock.multiplier` (default `2`)
 - `powerauth.service.scheduled.job.expireTemporaryActivationBlocks` (default `5000`)
 
 ## REST API Changes
