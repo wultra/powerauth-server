@@ -29,7 +29,7 @@ The feature is disabled by default. The default configuration is with a 5-minute
 - `powerauth.service.crypto.temporaryBlock.enabled` (default `false`)
 - `powerauth.service.crypto.temporaryBlock.periodInMilliseconds` (default `300000`)
 - `powerauth.service.crypto.temporaryBlock.multiplier` (default `2`)
-- `powerauth.service.scheduled.job.expireTemporaryBlocks` (default `5000`)
+- `powerauth.service.scheduled.job.expireTemporaryActivationBlocks` (default `5000`)
 
 ## REST API Changes
 
