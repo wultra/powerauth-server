@@ -23,7 +23,7 @@ Existing rows are migrated with `temporary_block_count = 0` and `timestamp_block
 
 A new feature automatically expires the activation block after a configurable period when the block was caused by reaching the maximum number of failed authentication attempts. The feature applies to activations using cryptography protocol v4. Activations using older protocol versions continue to be blocked permanently.
 
-After the temporary block period expires, the activation is returned to the `ACTIVE` state and one last authentication attempt is made available (`failed_attempts` is decremented by 1). If this last attempt fails, the activation is blocked again with a longer period; on successful authenticaftion, the failed attempts counter and the temporary block counter are both reset.
+After the temporary block period expires, the activation is returned to the `ACTIVE` state and one last authentication attempt is made available (`failed_attempts` is decremented by 1). If this last attempt fails, the activation is blocked again with a longer period; on successful authentication, the failed attempts counter and the temporary block counter are both reset.
 
 The feature is disabled by default. The default configuration is with a 5-minute initial block period and a doubling multiplier for consecutive blocks. See [Configuration-Properties.md](Configuration-Properties.md) for the new properties:
 - `powerauth.service.crypto.temporaryActivationBlock.enabled` (default `false`)
