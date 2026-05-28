@@ -126,6 +126,11 @@ public class ActivationServiceBehavior {
                     // Expire temporary block before reading status
                     temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
+                    // Skip activation in case it's status changed and it is not present in the request
+                    if (!activationStatuses.contains(activation.getActivationStatus())) {
+                        continue;
+                    }
+
                     if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                         continue;
                     }
@@ -245,9 +250,6 @@ public class ActivationServiceBehavior {
             }
 
             for (ActivationRecordEntity activation : filteredActivationList) {
-                // Expire temporary block before reading status
-                temporaryBlockService.expireTemporaryBlockIfRequired(activation, new Date());
-
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
                 activationServiceItem.setActivationId(activation.getActivationId());
