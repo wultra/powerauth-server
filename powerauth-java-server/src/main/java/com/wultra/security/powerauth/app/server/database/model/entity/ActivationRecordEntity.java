@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlg
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
@@ -225,6 +226,23 @@ public class ActivationRecordEntity implements Serializable {
      */
     @Column(name = "blocked_reason")
     private String blockedReason;
+
+    /**
+     * Timestamp until which the activation is temporarily blocked because of too many failed attempts.
+     * After this timestamp the activation is automatically returned to ACTIVE state on next access
+     * or by the scheduled job. Null when no temporary block is in effect.
+     */
+    @Column(name = "timestamp_block_expire")
+    private Date timestampBlockExpire;
+
+    /**
+     * Counter of consecutive temporary blocks. Used as exponent for the temporary block period multiplier:
+     * the n-th consecutive block lasts {@code periodInMilliseconds * multiplier^(n-1)} milliseconds.
+     * Reset to zero on a successful authentication.
+     */
+    @Column(name = "temporary_block_count", nullable = false)
+    @ColumnDefault("0")
+    private Long temporaryBlockCount = 0L;
 
     /**
      * Mode of server private key encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.

@@ -592,3 +592,11 @@ ALTER TABLE pa_signature_audit ADD signature_format VARCHAR(32);
 -- Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures
 ALTER TABLE pa_signature_audit ALTER COLUMN signature TYPE TEXT USING (signature::TEXT);
 
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::1::Roman Strobl
+-- Add timestamp_block_expire column to pa_activation table to support automatic temporary unblocking of activations
+ALTER TABLE pa_activation ADD timestamp_block_expire TIMESTAMP(6) WITHOUT TIME ZONE;
+
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::2::Roman Strobl
+-- Add temporary_block_count column to pa_activation table to extend the block period for consecutive blocks
+ALTER TABLE pa_activation ADD temporary_block_count BIGINT DEFAULT 0 NOT NULL;
+

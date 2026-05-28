@@ -256,8 +256,13 @@ public final class ServiceError {
      */
     public static final String CRYPTOGRAPHY_PROTOCOL_VERSION_NOT_SUPPORTED = "ERR0047";
 
+    /**
+     * Server is configured incorrectly.
+     */
+    public static final String CONFIGURATION_ERROR = "ERR0048";
+
     public static List<String> allCodes() {
-        final List<String> list = new ArrayList<>(45);
+        final List<String> list = new ArrayList<>(46);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -301,6 +306,7 @@ public final class ServiceError {
         list.add(MISSING_TEMPORARY_KEY);
         list.add(CRYPTOGRAPHY_ALGORITHM_NOT_SUPPORTED);
         list.add(CRYPTOGRAPHY_PROTOCOL_VERSION_NOT_SUPPORTED);
+        list.add(CONFIGURATION_ERROR);
         return list;
     }
 

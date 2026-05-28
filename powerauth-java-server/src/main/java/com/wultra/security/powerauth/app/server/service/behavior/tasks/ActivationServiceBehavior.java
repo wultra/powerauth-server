@@ -82,6 +82,7 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
     private final ActivationRepository activationRepository;
+    private final TemporaryBlockService temporaryBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -122,6 +123,9 @@ public class ActivationServiceBehavior {
 
                     activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
+                    // Expire temporary block before reading status
+                    temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+
                     if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                         continue;
                     }
@@ -141,6 +145,7 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
                     activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
                     activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
+                    activationServiceItem.setTimestampBlockExpire(activation.getTimestampBlockExpire());
                     activationServiceItem.setUserId(activation.getUserId());
                     activationServiceItem.setApplicationId(activation.getApplication().getId());
                     // Unknown version is converted to 0 in service
@@ -240,6 +245,9 @@ public class ActivationServiceBehavior {
             }
 
             for (ActivationRecordEntity activation : filteredActivationList) {
+                // Expire temporary block before reading status
+                temporaryBlockService.expireTemporaryBlockIfRequired(activation, new Date());
+
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
                 activationServiceItem.setActivationId(activation.getActivationId());
@@ -255,6 +263,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
                 activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
                 activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
+                activationServiceItem.setTimestampBlockExpire(activation.getTimestampBlockExpire());
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 // Unknown version is converted to 0 in service
@@ -710,7 +719,10 @@ public class ActivationServiceBehavior {
                 // Update and store new activation
                 activation.setActivationStatus(ActivationStatus.ACTIVE);
                 activation.setBlockedReason(null);
+                // Clear the temporary block expiration
+                activation.setTimestampBlockExpire(null);
                 activation.setFailedAttempts(0L);
+                activation.setTemporaryBlockCount(0L);
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
                 callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
             } else if (activation.getActivationStatus() != ActivationStatus.ACTIVE) {
@@ -747,7 +759,7 @@ public class ActivationServiceBehavior {
         final Date timestamp = new Date();
         final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
 
-        return deactivatePendingAndConvert(timestamp, activationsList);
+        return updateActivationStatusAndConvert(timestamp, activationsList);
     }
 
     /**
@@ -762,16 +774,19 @@ public class ActivationServiceBehavior {
         final Date timestamp = new Date();
         final List<ActivationRecordEntity> activationsList = activationQueryService.findByUserIdAndExternalId(userId, externalId);
 
-        return deactivatePendingAndConvert(timestamp, activationsList);
+        return updateActivationStatusAndConvert(timestamp, activationsList);
     }
 
-    private List<Activation> deactivatePendingAndConvert(final Date timestamp, final List<ActivationRecordEntity> activationsList) throws GenericServiceException {
+    private List<Activation> updateActivationStatusAndConvert(final Date timestamp, final List<ActivationRecordEntity> activationsList) throws GenericServiceException {
         final List<Activation> result = new ArrayList<>();
 
         if (activationsList != null) {
             for (final ActivationRecordEntity activation : activationsList) {
 
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
+
+                // Expire temporary block before reading status
+                temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -788,6 +803,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
                 activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
                 activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
+                activationServiceItem.setTimestampBlockExpire(activation.getTimestampBlockExpire());
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 // Unknown version is converted to 0 in service
@@ -816,6 +832,20 @@ public class ActivationServiceBehavior {
                     logger.error("Activation expiration failed, activation ID: {}", activation.getActivationId());
                 }
             });
+        }
+    }
+
+    /**
+     * Remove the temporary block on all activations whose block period has already expired. Activations are
+     * automatically returned to {@link ActivationStatus#ACTIVE} state, consecutive blocks lead to longer block periods,
+     * and registered callback listeners are notified for each affected activation. Intended to be invoked from a scheduled task.
+     */
+    @Transactional
+    public void expireTemporaryActivationBlocks() {
+        final Date currentTimestamp = new Date();
+        logger.debug("Running scheduled task for expiration of temporary activation blocks");
+        try (final Stream<ActivationRecordEntity> expiredBlocks = activationQueryService.findActivationsWithExpiredTemporaryBlock()) {
+            expiredBlocks.forEach(activation -> temporaryBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp));
         }
     }
 

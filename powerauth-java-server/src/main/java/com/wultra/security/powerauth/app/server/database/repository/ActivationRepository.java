@@ -140,6 +140,19 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 
     /**
+     * Fetch all activations that are temporarily blocked because of reaching the maximum number of failed
+     * authentication attempts and whose temporary block period has already expired according to the provided
+     * current timestamp and they can be unblocked.
+     *
+     * @param blockedStatus    Activation status indicating a blocked activation ({@link ActivationStatus#BLOCKED}).
+     * @param blockedReason    Blocked reason that is applicable for a temporary block ({@code MAX_FAILED_ATTEMPTS}).
+     * @param currentTimestamp Current timestamp.
+     * @return Stream of activations whose temporary block has expired.
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus = :blockedStatus AND a.blockedReason = :blockedReason AND a.timestampBlockExpire IS NOT NULL AND a.timestampBlockExpire <= :currentTimestamp")
+    Stream<ActivationRecordEntity> findActivationsWithExpiredTemporaryBlock(ActivationStatus blockedStatus, String blockedReason, Date currentTimestamp);
+
+    /**
      * Find all activations for given user ID
      *
      * @param applicationId Application ID.

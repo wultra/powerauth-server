@@ -99,6 +99,14 @@ public interface ActivationQueryService {
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 
     /**
+     * Fetch all activations that are temporarily blocked because of reaching the maximum number of failed
+     * authentication attempts and whose temporary block period has already expired, so they can be unblocked.
+     *
+     * @return Stream of activations whose temporary block has expired.
+     */
+    Stream<ActivationRecordEntity> findActivationsWithExpiredTemporaryBlock();
+
+    /**
      * Find all activations for given user ID
      *
      * @param applicationId Application ID.

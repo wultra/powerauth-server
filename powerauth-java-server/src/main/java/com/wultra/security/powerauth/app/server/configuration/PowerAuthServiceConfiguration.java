@@ -133,6 +133,33 @@ public class PowerAuthServiceConfiguration {
     private long authenticationCodeMaxFailedAttempts;
 
     /**
+     * Whether the temporary activation block feature is enabled. When enabled, the activation that reaches
+     * the maximum number of failed attempts is blocked only for a limited time and automatically returned
+     * to ACTIVE state. Disabling this flag does not affect the lifting of temporary blocks that were
+     * already set in the database.
+     */
+    @Value("${powerauth.service.crypto.temporaryBlock.enabled:false}")
+    private boolean temporaryBlockEnabled;
+
+    /**
+     * Base period (in milliseconds) for the temporary activation block. The first temporary block lasts
+     * this many milliseconds; each consecutive block is prolonged by the configured multiplier.
+     * Default is 300 000 ms (5 minutes).
+     */
+    @Value("${powerauth.service.crypto.temporaryBlock.periodInMilliseconds:300000}")
+    @Min(0)
+    private long temporaryBlockPeriodInMilliseconds;
+
+    /**
+     * Multiplier used to extend the temporary block period for consecutive blocks. With the default value
+     * of 2 the n-th consecutive temporary block lasts {@code periodInMilliseconds * 2^(n-1)} milliseconds.
+     * Must be at least 1.
+     */
+    @Value("${powerauth.service.crypto.temporaryBlock.multiplier:2}")
+    @Min(1)
+    private int temporaryBlockMultiplier;
+
+    /**
      * When validating the authentication code, how many iterations ahead to look in case authentication code verification fails for the first
      * counter value. The maximum supported value is 64.
      */

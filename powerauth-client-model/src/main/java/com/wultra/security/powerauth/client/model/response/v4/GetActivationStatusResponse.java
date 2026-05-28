@@ -57,6 +57,8 @@ public class GetActivationStatusResponse {
     private Date timestampCreated;
     private Date timestampLastUsed;
     private Date timestampLastChange;
+    @Schema(description = "Timestamp after which a temporary activation block is expired. Null when no temporary block is in effect.")
+    private Date timestampBlockExpire;
     @ToString.Exclude
     private String statusBlob;
     @ToString.Exclude

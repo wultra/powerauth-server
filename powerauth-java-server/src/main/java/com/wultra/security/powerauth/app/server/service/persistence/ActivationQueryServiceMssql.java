@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.app.server.service.persistence;
 
 import com.wultra.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
+import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.mssql.ActivationRepositoryMssql;
@@ -111,6 +112,16 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     public Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp) {
         try {
             return activationRepository.findAbandonedActivations(states, startingTimestamp, currentTimestamp);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public Stream<ActivationRecordEntity> findActivationsWithExpiredTemporaryBlock() {
+        try {
+            return activationRepository.findActivationsWithExpiredTemporaryBlock(ActivationStatus.BLOCKED, AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS, new Date());
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Stream.empty();

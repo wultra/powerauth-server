@@ -85,6 +85,11 @@ public class AdditionalInformation {
          */
         public static final String ACTIVATION_NAME_UPDATED = "ACTIVATION_NAME_UPDATED";
 
+        /**
+         * Logged when a temporary block expired and the activation was returned to ACTIVE state.
+         */
+        public static final String TEMPORARY_BLOCK_EXPIRED = "TEMPORARY_BLOCK_EXPIRED";
+
     }
 
     private AdditionalInformation() {
