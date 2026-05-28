@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -88,8 +89,8 @@ public class TemporaryBlockService {
         activation.setTemporaryBlockCount(nextBlockCount);
         final long periodMs = computeBlockPeriodMillis(nextBlockCount);
         final long currentMs = currentTimestamp.getTime();
-        if (periodMs > Long.MAX_VALUE - currentMs) {
-            activation.setTimestampBlockExpire(new Date(Long.MAX_VALUE));
+        if (periodMs > LocalDate.MAX.toEpochDay() - currentMs) {
+            activation.setTimestampBlockExpire(new Date(LocalDate.MAX.toEpochDay()));
         } else {
             activation.setTimestampBlockExpire(new Date(currentMs + periodMs));
         }
