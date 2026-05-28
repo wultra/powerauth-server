@@ -147,7 +147,7 @@ public class PowerAuthServiceConfiguration {
      * Default is 300 000 ms (5 minutes).
      */
     @Value("${powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds:300000}")
-    @Min(0)
+    @Min(1)
     private long temporaryBlockPeriodInMilliseconds;
 
     /**
