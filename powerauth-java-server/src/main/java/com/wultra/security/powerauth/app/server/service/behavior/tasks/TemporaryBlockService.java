@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
@@ -44,6 +45,8 @@ import java.util.Date;
 @Slf4j
 @RequiredArgsConstructor
 public class TemporaryBlockService {
+
+    private static final long MAX_DATE_MILLISECONDS = 253_370_764_800_000L;
 
     /**
      * Minimal cryptography protocol version for which the temporary activation block feature applies.
@@ -89,8 +92,8 @@ public class TemporaryBlockService {
         activation.setTemporaryBlockCount(nextBlockCount);
         final long periodMs = computeBlockPeriodMillis(nextBlockCount);
         final long currentMs = currentTimestamp.getTime();
-        if (periodMs > LocalDate.MAX.toEpochDay() - currentMs) {
-            activation.setTimestampBlockExpire(new Date(LocalDate.MAX.toEpochDay()));
+        if (periodMs > MAX_DATE_MILLISECONDS - currentMs) {
+            activation.setTimestampBlockExpire(new Date(MAX_DATE_MILLISECONDS));
         } else {
             activation.setTimestampBlockExpire(new Date(currentMs + periodMs));
         }
