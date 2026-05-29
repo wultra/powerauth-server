@@ -106,7 +106,7 @@ public class SignatureEntity implements Serializable {
     /**
      * Signature.
      */
-    @Column(name = "signature", nullable = false, updatable = false)
+    @Column(name = "signature", nullable = false, updatable = false, length = 8000)
     private String signature;
 
     /**
