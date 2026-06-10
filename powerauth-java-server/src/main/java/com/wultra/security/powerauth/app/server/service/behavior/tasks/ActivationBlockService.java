@@ -209,7 +209,7 @@ public class ActivationBlockService {
         // Compute blockPeriodBase * multiplier^(blockCount-1)
         long period = blockPeriodBase;
         for (long i = 1; i < blockCount; i++) {
-            if (period > MAX_DATE_MILLISECONDS) {
+            if (period > MAX_DATE_MILLISECONDS / multiplier) {
                 // Do not allow longer block period than the value MAX_DATE_MILLISECONDS
                 period = MAX_DATE_MILLISECONDS;
                 break;
