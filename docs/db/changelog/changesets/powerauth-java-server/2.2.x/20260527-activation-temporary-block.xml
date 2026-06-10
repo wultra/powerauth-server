@@ -28,9 +28,9 @@
                 <columnExists tableName="pa_activation" columnName="timestamp_block_expire"/>
             </not>
         </preConditions>
-        <comment>Add timestamp_block_expire column to pa_activation table to allow automatic unblocking of activations after a temporary time period</comment>
+        <comment>Add timestamp_block_expire column to pa_activation table to support automatic temporary unblocking of activations</comment>
         <addColumn tableName="pa_activation">
-            <column name="timestamp_block_expire" type="datetime"/>
+            <column name="timestamp_block_expire" type="timestamp(6)"/>
         </addColumn>
     </changeSet>
 
@@ -46,6 +46,27 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="pa_activation_block_expire_idx"/>
+            </not>
+        </preConditions>
+        <comment>Create a partial index on pa_activation(timestamp_block_expire) to support the scheduled expiration of temporary activation blocks (on Oracle a plain single-column index achieves the same effect, since all-null keys are not indexed)</comment>
+        <sql dbms="postgresql" splitStatements="false">
+            CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire) WHERE timestamp_block_expire IS NOT NULL
+        </sql>
+        <sql dbms="oracle" splitStatements="false">
+            CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire)
+        </sql>
+        <sql dbms="mssql" splitStatements="false">
+            CREATE NONCLUSTERED INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire) WHERE timestamp_block_expire IS NOT NULL
+        </sql>
+        <rollback>
+            <dropIndex tableName="pa_activation" indexName="pa_activation_block_expire_idx"/>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

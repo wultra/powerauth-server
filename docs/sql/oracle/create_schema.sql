@@ -600,3 +600,7 @@ ALTER TABLE pa_activation ADD timestamp_block_expire TIMESTAMP(6);
 -- Add temporary_block_count column to pa_activation table to extend the block period for consecutive blocks
 ALTER TABLE pa_activation ADD temporary_block_count NUMBER(38, 0) DEFAULT 0 NOT NULL;
 
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::3::Roman Strobl
+-- Create a partial index on pa_activation(timestamp_block_expire) to support the scheduled expiration of temporary activation blocks (on Oracle a plain single-column index achieves the same effect, since all-null keys are not indexed)
+CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire);
+

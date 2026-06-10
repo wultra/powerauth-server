@@ -19,6 +19,8 @@ The database table `pa_activation` has been extended with new columns to support
 
 Existing rows are migrated with `temporary_block_count = 0` and `timestamp_block_expire = NULL`. Existing permanently blocked activations remain blocked until they are unblocked manually; only newly triggered `MAX_FAILED_ATTEMPTS` blocks are temporary.
 
+A new index `pa_activation_block_expire_idx` on `pa_activation(timestamp_block_expire)` is added to support the scheduled expiration of temporary activation blocks. It is created as a partial/filtered index (`WHERE timestamp_block_expire IS NOT NULL` on PostgreSQL and SQL Server) so that only currently temporarily-blocked activations are indexed, keeping the index small and the scheduled sweep efficient. On Oracle a plain single-column index is used, since Oracle does not index all-null keys and therefore achieves the same effect.
+
 ## Temporary Activation Block Feature
 
 A new feature automatically unblocks the activation after a configurable period when the block was caused by reaching the maximum number of failed authentication attempts. The feature applies to activations using cryptography protocol v4. Activations using older protocol versions continue to be blocked permanently.
