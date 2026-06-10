@@ -210,6 +210,7 @@ public class ActivationBlockService {
             if (period > Long.MAX_VALUE / multiplier) {
                 // Overflow protection, use maximum long value
                 period = Long.MAX_VALUE;
+                break;
             } else {
                 period *= multiplier;
             }
