@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryBlockService;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.AsymmetricSignatureService;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -84,7 +84,7 @@ public class ActivationStatusServiceBehavior {
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final AlgorithmQueryService algorithmQueryService;
     private final AsymmetricSignatureService asymmetricSignatureService;
-    private final TemporaryBlockService temporaryBlockService;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -122,7 +122,7 @@ public class ActivationStatusServiceBehavior {
             activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
             // Expire temporary block before reading status (so the status blob reflects the new ACTIVE state)
-            temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+            activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
             final ApplicationEntity application = activation.getApplication();
 

@@ -82,7 +82,7 @@ public class ActivationServiceBehavior {
 
     private final ActivationQueryService activationQueryService;
     private final ActivationRepository activationRepository;
-    private final TemporaryBlockService temporaryBlockService;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -124,7 +124,7 @@ public class ActivationServiceBehavior {
                     activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                     // Expire temporary block before reading status
-                    temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+                    activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
                     // Skip activation in case it's status changed and it is not present in the request
                     if (!activationStatuses.contains(activation.getActivationStatus())) {
@@ -788,7 +788,7 @@ public class ActivationServiceBehavior {
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 // Expire temporary block before reading status
-                temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+                activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -847,7 +847,7 @@ public class ActivationServiceBehavior {
         final Date currentTimestamp = new Date();
         logger.debug("Running scheduled task for expiration of temporary activation blocks");
         try (final Stream<ActivationRecordEntity> expiredBlocks = activationQueryService.findActivationsWithExpiredTemporaryBlock()) {
-            expiredBlocks.forEach(activation -> temporaryBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp));
+            expiredBlocks.forEach(activation -> activationBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp));
         }
     }
 

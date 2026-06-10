@@ -67,7 +67,7 @@ public class ActivationStatusServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationQueryService activationQueryService;
     private final CryptographyServiceFactory cryptographyServiceFactory;
-    private final TemporaryBlockService temporaryBlockService;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -107,7 +107,7 @@ public class ActivationStatusServiceBehavior {
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
                 // Expire temporary block before reading status (so the status blob reflects the new ACTIVE state)
-                temporaryBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+                activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
                 final ApplicationEntity application = activation.getApplication();
                 final String applicationId = application.getId();

@@ -18,7 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryBlockService;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -64,7 +64,7 @@ public class OnlineAuthenticationServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final ApplicationVersionRepository applicationVersionRepository;
-    private final TemporaryBlockService temporaryBlockService;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -156,7 +156,7 @@ public class OnlineAuthenticationServiceBehavior {
         final ActivationRecordEntity activation = activationOptional.get();
 
         // Expire temporary block before any further evaluation - effect of unblocking is immediate when the activation is used
-        temporaryBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp);
+        activationBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp);
 
         final Long applicationId = activation.getApplication().getRid();
 

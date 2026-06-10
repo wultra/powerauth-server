@@ -33,8 +33,8 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 /**
- * Service implementing the temporary activation block feature. Encapsulates all logic related
- * to setting, lifting and resetting the time-bound block applied after the maximum number of
+ * Service implementing the activation block feature. Encapsulates all logic related
+ * to blocking and optionally resetting the time-bound block applied after the maximum number of
  * failed authentication attempts is reached.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -42,7 +42,7 @@ import java.util.Date;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TemporaryBlockService {
+public class ActivationBlockService {
 
     private static final long MAX_DATE_MILLISECONDS = 253_370_764_800_000L;
 

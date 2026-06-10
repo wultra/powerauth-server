@@ -18,7 +18,7 @@
  */
 package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.TemporaryBlockService;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
@@ -90,7 +90,7 @@ public class OfflineAuthenticationServiceBehavior {
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final ApplicationRepository applicationRepository;
     private final SharedSecretService sharedSecretService;
-    private final TemporaryBlockService temporaryBlockService;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -315,7 +315,7 @@ public class OfflineAuthenticationServiceBehavior {
         final ActivationRecordEntity activation = activationOptional.get();
 
         // Expire temporary block before any further evaluation - effect of unblocking is immediate when the activation is used
-        temporaryBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp);
+        activationBlockService.expireTemporaryBlockIfRequired(activation, currentTimestamp);
 
         // If case of proximity check enabled, there are more authentication requests to validate
         final List<OfflineAuthenticationRequest> offlineAuthenticationRequests = createOfflineAuthenticationRequests(request);
