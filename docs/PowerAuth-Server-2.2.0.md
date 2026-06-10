@@ -21,7 +21,7 @@ Existing rows are migrated with `temporary_block_count = 0` and `timestamp_block
 
 ## Temporary Activation Block Feature
 
-A new feature automatically expires the activation block after a configurable period when the block was caused by reaching the maximum number of failed authentication attempts. The feature applies to activations using cryptography protocol v4. Activations using older protocol versions continue to be blocked permanently.
+A new feature automatically unblocks the activation after a configurable period when the block was caused by reaching the maximum number of failed authentication attempts. The feature applies to activations using cryptography protocol v4. Activations using older protocol versions continue to be blocked permanently.
 
 After the temporary block period expires, the activation is returned to the `ACTIVE` state and one last authentication attempt is made available (`failed_attempts` is decremented by 1). If this last attempt fails, the activation is blocked again with a longer period; on successful authentication, the failed attempts counter and the temporary block counter are both reset.
 
