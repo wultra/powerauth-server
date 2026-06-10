@@ -207,9 +207,9 @@ public class ActivationBlockService {
         // Compute blockPeriodBase * multiplier^(blockCount-1)
         long period = blockPeriodBase;
         for (long i = 1; i < blockCount; i++) {
-            if (period > Long.MAX_VALUE / multiplier) {
-                // Overflow protection, use maximum long value
-                period = Long.MAX_VALUE;
+            if (period > MAX_DATE_MILLISECONDS) {
+                // Do not allow longer block period than the value MAX_DATE_MILLISECONDS
+                period = MAX_DATE_MILLISECONDS;
                 break;
             } else {
                 period *= multiplier;
