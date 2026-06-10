@@ -230,7 +230,8 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Timestamp until which the activation is temporarily blocked because of too many failed attempts.
      * After this timestamp the activation is automatically returned to ACTIVE state on next access
-     * or by the scheduled job. Null when no temporary block is in effect.
+     * or by the scheduled job. Only applicable for cryptography protocol v4.
+     * Null when no temporary block is in effect.
      */
     @Column(name = "timestamp_block_expire")
     private Date timestampBlockExpire;

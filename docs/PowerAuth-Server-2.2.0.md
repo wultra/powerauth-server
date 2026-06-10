@@ -42,5 +42,5 @@ The `SignatureAuditResponse.Item` object has been extended with new fields for a
 ### Activation Status / Activation Detail Response
 
 The activation status responses have been extended with a new field:
-- `timestampBlockExpire` (`Date`) - timestamp after which a temporary activation block is expired (null when no temporary block is in effect)
+- `timestampBlockExpire` (`Date`) - a timestamp after which the temporary activation block is expired (applies only to activations using cryptography protocol v4, null when no temporary block is in effect)
 
