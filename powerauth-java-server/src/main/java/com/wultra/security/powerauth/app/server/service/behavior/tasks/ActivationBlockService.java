@@ -200,9 +200,9 @@ public class ActivationBlockService {
     private long computeBlockPeriodMillis(final long blockCount) throws GenericServiceException {
         final long blockPeriodBase = powerAuthServiceConfiguration.getTemporaryBlockPeriodInMilliseconds();
         final int multiplier = powerAuthServiceConfiguration.getTemporaryBlockMultiplier();
-        if (blockPeriodBase <= 0 || multiplier <= 0 || blockCount <= 0) {
-            logger.error("Incorrect server configuration, temporary block period: {}, multiplier: {}, block count: {}", blockPeriodBase, multiplier, blockCount);
-            throw localizationProvider.buildExceptionForCode(ServiceError.CONFIGURATION_ERROR);
+        if (blockCount <= 0) {
+            logger.error("Incorrect block count: {}", blockCount);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
         // Compute blockPeriodBase * multiplier^(blockCount-1)
         long period = blockPeriodBase;
