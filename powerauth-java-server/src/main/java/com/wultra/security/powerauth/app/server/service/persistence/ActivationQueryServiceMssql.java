@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.mssql.ActivationRepositoryMssql;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -42,10 +43,12 @@ import java.util.stream.Stream;
 public class ActivationQueryServiceMssql implements ActivationQueryService {
 
     private final ActivationRepositoryMssql activationRepository;
+    private final EntityManager entityManager;
 
     @Autowired
-    public ActivationQueryServiceMssql(ActivationRepositoryMssql activationRepository) {
+    public ActivationQueryServiceMssql(ActivationRepositoryMssql activationRepository, EntityManager entityManager) {
         this.activationRepository = activationRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -56,6 +59,13 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
             logger.error("Activation query failed", ex);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<ActivationRecordEntity> findActivationForUpdateRefreshed(String activationId) {
+        final Optional<ActivationRecordEntity> activation = findActivationForUpdate(activationId);
+        activation.ifPresent(entityManager::refresh);
+        return activation;
     }
 
     @Override

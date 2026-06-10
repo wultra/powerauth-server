@@ -39,6 +39,14 @@ public interface ActivationQueryService {
     Optional<ActivationRecordEntity> findActivationForUpdate(String activationId);
 
     /**
+     * Find an activation, lock it for an update and refresh its state from the database.
+     *
+     * @param activationId Activation ID.
+     * @return Locked and refreshed activation, if present.
+     */
+    Optional<ActivationRecordEntity> findActivationForUpdateRefreshed(String activationId);
+
+    /**
      * Find the first activation with given activation ID.
      * The activation record is not locked in DB.
      *

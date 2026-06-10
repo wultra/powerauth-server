@@ -129,15 +129,17 @@ public class ActivationBlockService {
         if (!isTemporaryBlockExpired(activationToCheck, currentTimestamp)) {
             return;
         }
-        // Obtain activation with a row lock
+        // Obtain the activation with a row lock and refresh its state from the database. The entity was loaded
+        // earlier in this same transaction, so a locking query alone would return the cached instance with
+        // stale in-memory state.
         final ActivationRecordEntity activation = activationQueryService
-                .findActivationForUpdate(activationToCheck.getActivationId())
+                .findActivationForUpdateRefreshed(activationToCheck.getActivationId())
                 .orElse(null);
         if (activation == null) {
             logger.warn("Activation was removed while expiring temporary block, activation ID: {}", activationToCheck.getActivationId());
             return;
         }
-        // Re-check the locked activation to avoid race conditions
+        // Re-check the locked and refreshed activation to avoid race conditions
         if (!isTemporaryBlockExpired(activation, currentTimestamp)) {
             return;
         }

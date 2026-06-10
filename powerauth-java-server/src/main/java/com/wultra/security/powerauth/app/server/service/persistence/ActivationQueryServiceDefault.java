@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.database.model.AdditionalInforma
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +45,12 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
     private static final Logger logger = LoggerFactory.getLogger(ActivationQueryServiceDefault.class);
 
     private final ActivationRepository activationRepository;
+    private final EntityManager entityManager;
 
     @Autowired
-    public ActivationQueryServiceDefault(ActivationRepository activationRepository) {
+    public ActivationQueryServiceDefault(ActivationRepository activationRepository, EntityManager entityManager) {
         this.activationRepository = activationRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -58,6 +61,13 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
             logger.error("Activation query failed", ex);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<ActivationRecordEntity> findActivationForUpdateRefreshed(String activationId) {
+        final Optional<ActivationRecordEntity> activation = findActivationForUpdate(activationId);
+        activation.ifPresent(entityManager::refresh);
+        return activation;
     }
 
     @Override
