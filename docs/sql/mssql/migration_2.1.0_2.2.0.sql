@@ -21,3 +21,19 @@ GO
 -- Change data type of signature column in pa_signature_audit table from varchar(255) to varchar(8000) to support longer asymmetric signatures
 ALTER TABLE pa_signature_audit ALTER COLUMN signature varchar(8000);
 GO
+
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::1::Roman Strobl
+-- Add timestamp_block_expire column to pa_activation table to support automatic temporary unblocking of activations
+ALTER TABLE pa_activation ADD timestamp_block_expire datetime2(6);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::2::Roman Strobl
+-- Add temporary_block_count column to pa_activation table to extend the block period for consecutive blocks
+ALTER TABLE pa_activation ADD temporary_block_count bigint CONSTRAINT DF_pa_activation_temporary_block_count DEFAULT 0 NOT NULL;
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::3::Roman Strobl
+-- Create a partial index on pa_activation(timestamp_block_expire) to support the scheduled expiration of temporary activation blocks (on Oracle a plain single-column index achieves the same effect, since all-null keys are not indexed)
+CREATE NONCLUSTERED INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire) WHERE timestamp_block_expire IS NOT NULL;
+GO
+

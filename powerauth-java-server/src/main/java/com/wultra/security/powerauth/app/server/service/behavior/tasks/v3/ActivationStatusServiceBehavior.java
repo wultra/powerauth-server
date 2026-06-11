@@ -67,6 +67,7 @@ public class ActivationStatusServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationQueryService activationQueryService;
     private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -105,6 +106,9 @@ public class ActivationStatusServiceBehavior {
                 // Deactivate old pending activations first
                 activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
 
+                // Expire temporary block before reading status (so the status blob reflects the new ACTIVE state)
+                activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
+
                 final ApplicationEntity application = activation.getApplication();
                 final String applicationId = application.getId();
 
@@ -140,6 +144,7 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampCreated(activation.getTimestampCreated());
                     response.setTimestampLastUsed(activation.getTimestampLastUsed());
                     response.setTimestampLastChange(activation.getTimestampLastChange());
+                    response.setTimestampBlockExpire(activation.getTimestampBlockExpire());
                     response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                     response.setActivationCode(activation.getActivationCode());
@@ -239,6 +244,7 @@ public class ActivationStatusServiceBehavior {
                     response.setTimestampCreated(activation.getTimestampCreated());
                     response.setTimestampLastUsed(activation.getTimestampLastUsed());
                     response.setTimestampLastChange(activation.getTimestampLastChange());
+                    response.setTimestampBlockExpire(activation.getTimestampBlockExpire());
                     response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(encryptedStatusBlob));
                     response.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
                     response.setActivationCode(null);

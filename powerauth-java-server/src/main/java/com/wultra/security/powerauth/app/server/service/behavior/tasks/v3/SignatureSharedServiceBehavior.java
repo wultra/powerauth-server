@@ -22,10 +22,10 @@ import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import com.wultra.security.powerauth.app.server.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -73,6 +73,7 @@ public class SignatureSharedServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationContextValidator activationValidator;
     private final ActivationRepository activationRepository;
+    private final ActivationBlockService activationBlockService;
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerAuthentication powerAuthServerAuthentication = new PowerAuthServerAuthentication();
@@ -313,8 +314,7 @@ public class SignatureSharedServiceBehavior {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
             final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
-                activation.setActivationStatus(ActivationStatus.BLOCKED);
-                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                activationBlockService.blockActivation(activation, currentTimestamp);
                 logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -368,6 +368,9 @@ public class SignatureSharedServiceBehavior {
             activation.setFailedAttempts(0L);
         }
 
+        // Reset temporary block counter and expire timestamp on successful authentication, if required
+        activationBlockService.resetTemporaryBlockState(activation);
+
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
@@ -414,8 +417,7 @@ public class SignatureSharedServiceBehavior {
 
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
-            activation.setActivationStatus(ActivationStatus.BLOCKED);
-            activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            activationBlockService.blockActivation(activation, currentTimestamp);
             logger.info("action: handleInvalidSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -476,8 +478,7 @@ public class SignatureSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Enforce the blocked status on activation
-        activation.setActivationStatus(ActivationStatus.BLOCKED);
-        activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        activationBlockService.blockActivation(activation, currentTimestamp);
         logger.info("action: handleInactiveActivationWithMismatchSignature, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
 
         // Save the activation and log change

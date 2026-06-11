@@ -11,6 +11,28 @@ The database table `pa_signature_audit` has been extended with new columns used 
 - column `signature_format` with type `varchar(32)` - format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`)
 - column `signature` type was changed to `VARCHAR(8000)` to accommodate larger PQC signatures
 
+### Table `pa_activation`
+
+The database table `pa_activation` has been extended with new columns to support the temporary activation block feature:
+- column `timestamp_block_expire` with type `DATETIME` (nullable) - timestamp after which a temporary activation block is expired
+- column `temporary_block_count` with type `BIGINT` (NOT NULL, DEFAULT 0) - counter of consecutive temporary blocks, used as exponent for the block-period multiplier
+
+Existing rows are migrated with `temporary_block_count = 0` and `timestamp_block_expire = NULL`. Existing permanently blocked activations remain blocked until they are unblocked manually; only newly triggered `MAX_FAILED_ATTEMPTS` blocks are temporary.
+
+A new index `pa_activation_block_expire_idx` on `pa_activation(timestamp_block_expire)` is added to support the scheduled expiration of temporary activation blocks. It is created as a partial/filtered index (`WHERE timestamp_block_expire IS NOT NULL` on PostgreSQL and SQL Server) so that only currently temporarily-blocked activations are indexed, keeping the index small and the scheduled sweep efficient. On Oracle a plain single-column index is used, since Oracle does not index all-null keys and therefore achieves the same effect.
+
+## Temporary Activation Block Feature
+
+A new feature automatically unblocks the activation after a configurable period when the block was caused by reaching the maximum number of failed authentication attempts. The feature applies to activations using cryptography protocol v4. Activations using older protocol versions continue to be blocked permanently.
+
+After the temporary block period expires, the activation is returned to the `ACTIVE` state and one last authentication attempt is made available (`failed_attempts` is decremented by 1). If this last attempt fails, the activation is blocked again with a longer period; on successful authentication, the failed attempts counter and the temporary block counter are both reset.
+
+The feature is disabled by default. The default configuration is with a 5-minute initial block period and a doubling multiplier for consecutive blocks. See [Configuration-Properties.md](Configuration-Properties.md) for the new properties:
+- `powerauth.service.crypto.temporaryActivationBlock.enabled` (default `false`)
+- `powerauth.service.crypto.temporaryActivationBlock.periodInMilliseconds` (default `300000`)
+- `powerauth.service.crypto.temporaryActivationBlock.multiplier` (default `2`)
+- `powerauth.service.scheduled.job.expireTemporaryActivationBlocks` (default `5000`)
+
 ## REST API Changes
 
 ### Signature Audit Response
@@ -19,15 +41,17 @@ The `SignatureAuditResponse.Item` object has been extended with new fields for a
 - `signatureAlgorithm` (`String`) - algorithm used for the signature
 - `signatureFormat` (`String`) - format of the signature
 
+### Activation Status / Activation Detail Response
+
+The activation status responses have been extended with a new field:
+- `timestampBlockExpire` (`Date`) - a timestamp after which the temporary activation block is expired (applies only to activations using cryptography protocol v4, null when no temporary block is in effect)
 
 ## Dependency Updates
-
 
 ### Docker Base Image Upgrade
 
 The Docker base image has been upgraded from `ibm-semeru-runtimes:open-21.0.9_10-jre-noble` (OpenJDK 21) to `ibm-semeru-runtimes:open-jdk-25.0.3.0-jre-noble` (OpenJDK 25).
 No action is required.
-
 
 ### Spring Boot 4 and Jackson 3
 

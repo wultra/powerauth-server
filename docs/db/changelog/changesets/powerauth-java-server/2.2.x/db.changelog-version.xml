@@ -4,5 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <include file="20260428-asymmetric-signature-audit.xml" relativeToChangelogFile="true" />
+    <include file="20260527-activation-temporary-block.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

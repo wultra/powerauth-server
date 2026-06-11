@@ -21,10 +21,10 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -72,6 +72,7 @@ public class AuthenticationSharedServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationContextValidator activationValidator;
     private final ActivationRepository activationRepository;
+    private final ActivationBlockService activationBlockService;
 
     private final AuthenticationKeyFactory authenticationKeyFactory = new AuthenticationKeyFactory();
     private final CryptographyServiceFactory cryptographyServiceFactory;
@@ -353,8 +354,7 @@ public class AuthenticationSharedServiceBehavior {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
             final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
-                activation.setActivationStatus(ActivationStatus.BLOCKED);
-                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                activationBlockService.blockActivation(activation, currentTimestamp);
                 logger.info("action: handleInvalidApplicationVersion, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -406,6 +406,9 @@ public class AuthenticationSharedServiceBehavior {
             activation.setFailedAttempts(0L);
         }
 
+        // Reset temporary block counter and expire timestamp on successful authentication, if required
+        activationBlockService.resetTemporaryBlockState(activation);
+
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
@@ -452,8 +455,7 @@ public class AuthenticationSharedServiceBehavior {
 
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
-            activation.setActivationStatus(ActivationStatus.BLOCKED);
-            activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            activationBlockService.blockActivation(activation, currentTimestamp);
             logger.info("action: handleInvalidAuthentication, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -514,8 +516,7 @@ public class AuthenticationSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Enforce the blocked status on activation
-        activation.setActivationStatus(ActivationStatus.BLOCKED);
-        activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        activationBlockService.blockActivation(activation, currentTimestamp);
         logger.info("action: handleInactiveActivationWithMismatchAuthentication, state: blocked, activationId: {}, blockedReason: {}", activation.getActivationId(), activation.getBlockedReason());
 
         // Save the activation and log change

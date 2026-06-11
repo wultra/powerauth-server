@@ -29,9 +29,9 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Applicatio
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationRemoveServiceBehavior;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationBlockService;
 import com.wultra.security.powerauth.app.server.service.crypto.AlgorithmQueryService;
 import com.wultra.security.powerauth.app.server.service.crypto.AsymmetricSignatureService;
-import com.wultra.security.powerauth.app.server.service.crypto.CryptographyServiceFactory;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -84,7 +84,7 @@ public class ActivationStatusServiceBehavior {
     private final ActivationSharedSecretConverter activationSharedSecretConverter;
     private final AlgorithmQueryService algorithmQueryService;
     private final AsymmetricSignatureService asymmetricSignatureService;
-    private final CryptographyServiceFactory cryptographyServiceFactory;
+    private final ActivationBlockService activationBlockService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -120,6 +120,9 @@ public class ActivationStatusServiceBehavior {
             final ActivationRecordEntity activation = activationOptional.get();
             // Deactivate old pending activations first
             activationRemoveServiceBehavior.deactivatePendingActivation(timestamp, activation, false);
+
+            // Expire temporary block before reading status (so the status blob reflects the new ACTIVE state)
+            activationBlockService.expireTemporaryBlockIfRequired(activation, timestamp);
 
             final ApplicationEntity application = activation.getApplication();
 
@@ -173,6 +176,7 @@ public class ActivationStatusServiceBehavior {
         response.setTimestampCreated(activation.getTimestampCreated());
         response.setTimestampLastUsed(activation.getTimestampLastUsed());
         response.setTimestampLastChange(activation.getTimestampLastChange());
+        response.setTimestampBlockExpire(activation.getTimestampBlockExpire());
         response.setPlatform(activation.getPlatform());
         response.setProtocol(convertProtocol(activation.getProtocol()));
         response.setExternalId(activation.getExternalId());

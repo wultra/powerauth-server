@@ -59,6 +59,9 @@ public class Activation {
     private String devicePublicKeyBase64;
     private long version;
 
+    @Schema(description = "Timestamp after which a temporary activation block is expired. Applies only to activations using cryptography protocol v4. Null when no temporary block is in effect.")
+    private Date timestampBlockExpire;
+
     @Schema(description = "The activation's custom attributes set through a private API in a free JSON structure.", example = "{\"jti\":\"unique_value\"}")
     @JsonRawValue
     private Object additionalData;

@@ -81,6 +81,16 @@ public class CleaningTask {
         activationServiceBehavior.expireActivations();
     }
 
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.expireTemporaryActivationBlocks:5000}")
+    @SchedulerLock(
+            name = "expireTemporaryActivationBlocksTask",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.expireTemporaryActivationBlocks:5000} * 0.8)}")
+    public void expireTemporaryActivationBlocks() {
+        LockAssert.assertLocked();
+        logger.debug("Calling scheduled expiration of temporary activation blocks");
+        activationServiceBehavior.expireTemporaryActivationBlocks();
+    }
+
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.temporaryKeyCleanup:5000}")
     @SchedulerLock(
             name = "expireTemporaryKeys",

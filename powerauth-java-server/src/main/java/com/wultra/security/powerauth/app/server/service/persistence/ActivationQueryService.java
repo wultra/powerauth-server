@@ -39,6 +39,14 @@ public interface ActivationQueryService {
     Optional<ActivationRecordEntity> findActivationForUpdate(String activationId);
 
     /**
+     * Find an activation, lock it for an update and refresh its state from the database.
+     *
+     * @param activationId Activation ID.
+     * @return Locked and refreshed activation, if present.
+     */
+    Optional<ActivationRecordEntity> findActivationForUpdateRefreshed(String activationId);
+
+    /**
      * Find the first activation with given activation ID.
      * The activation record is not locked in DB.
      *
@@ -97,6 +105,14 @@ public interface ActivationQueryService {
      * @return Stream of activations.
      */
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
+
+    /**
+     * Fetch all activations that are temporarily blocked because of reaching the maximum number of failed
+     * authentication attempts and whose temporary block period has already expired, so they can be unblocked.
+     *
+     * @return Stream of activations whose temporary block has expired.
+     */
+    Stream<ActivationRecordEntity> findActivationsWithExpiredTemporaryBlock();
 
     /**
      * Find all activations for given user ID

@@ -18,9 +18,11 @@
 package com.wultra.security.powerauth.app.server.service.persistence;
 
 import com.wultra.security.powerauth.app.server.configuration.conditions.IsNotMssqlCondition;
+import com.wultra.security.powerauth.app.server.database.model.AdditionalInformation;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +45,12 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
     private static final Logger logger = LoggerFactory.getLogger(ActivationQueryServiceDefault.class);
 
     private final ActivationRepository activationRepository;
+    private final EntityManager entityManager;
 
     @Autowired
-    public ActivationQueryServiceDefault(ActivationRepository activationRepository) {
+    public ActivationQueryServiceDefault(ActivationRepository activationRepository, EntityManager entityManager) {
         this.activationRepository = activationRepository;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -57,6 +61,13 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
             logger.error("Activation query failed", ex);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Optional<ActivationRecordEntity> findActivationForUpdateRefreshed(String activationId) {
+        final Optional<ActivationRecordEntity> activation = findActivationForUpdate(activationId);
+        activation.ifPresent(entityManager::refresh);
+        return activation;
     }
 
     @Override
@@ -113,6 +124,16 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
     public Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp) {
         try {
             return activationRepository.findAbandonedActivations(states, startingTimestamp, currentTimestamp);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public Stream<ActivationRecordEntity> findActivationsWithExpiredTemporaryBlock() {
+        try {
+            return activationRepository.findActivationsWithExpiredTemporaryBlock(ActivationStatus.BLOCKED, AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS, new Date());
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Stream.empty();
