@@ -156,7 +156,6 @@ class ConfigStoreItemLifecycleTest {
 
         // Device 1 sees: the APPLICATION item, the shared app-level ACTIVATION item, and ONLY its own per-device value.
         final Map<String, ConfigStoreItem> device1 = resolveActivationScope(ACTIVATION_ID);
-        System.out.println(device1);
         assertEquals(3, device1.size());
         assertEquals("https://app.example.com", device1.get("app_base_url").getValue());
         assertEquals(ConfigScope.APPLICATION, device1.get("app_base_url").getScope());
