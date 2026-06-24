@@ -159,7 +159,7 @@ public class ConfigStoreService {
         entity.setTimestampLastUpdated(isNew ? null : new Date());
 
         final EncryptionKeySupplier keySupplier = encryptionKeySupplier(entity);
-        final EncryptableString encrypted = encryptionService.encrypt(source.configData, keySupplier, encryptionService.getDefaultEncryptionAlgorithm());
+        final EncryptableString encrypted = encryptionService.encrypt(source.configData(), keySupplier, encryptionService.getDefaultEncryptionAlgorithm());
         entity.setConfigData(encrypted.encryptedData());
         entity.setEncryptionAlgorithm(encrypted.encryptionAlgorithm());
         return entity;
