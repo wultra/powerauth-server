@@ -85,10 +85,10 @@ The activation status responses have been extended with a new field:
 New v4 endpoints have been added for the secure configuration store (see
 [Web Services - Methods (V4)](./WebServices-Methods-V4.md) for full request/response details):
 
-- `POST /rest/v4/config/create` - create or update a single configuration item (management API)
-- `POST /rest/v4/config/list` - list configuration items (management API)
-- `POST /rest/v4/config/remove` - remove a single configuration item (management API)
-- `POST /rest/v4/config/fetch` - fetch the scope-resolved configuration visible to an SDK caller
+- `POST /rest/v4/config-store/create` - create or update a single configuration item (management API)
+- `POST /rest/v4/config-store/list` - list configuration items (management API)
+- `POST /rest/v4/config-store/remove` - remove a single configuration item (management API)
+- `POST /rest/v4/config-store/fetch` - fetch the scope-resolved configuration visible to an SDK caller
   (server-to-server read API consumed by the enrollment server)
 
 ## Dependency Updates
