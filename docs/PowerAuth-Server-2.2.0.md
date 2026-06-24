@@ -47,8 +47,8 @@ Two scopes are supported:
 The configuration is stored in the new dedicated `pa_config_store` table (see below), 
 and the `config_data` value is encrypted at rest using the configured 
 per-record encryption algorithm. Entries are managed through the management API
-(`/rest/v4/config/create`, `/rest/v4/config/list`, `/rest/v4/config/remove`). 
-The SDK-facing delivery is read through `/rest/v4/config/fetch` (a server-to-server read API); 
+(`/rest/v4/config-store/create`, `/rest/v4/config-store/list`, `/rest/v4/config-store/remove`). 
+The SDK-facing delivery is read through `/rest/v4/config-store/fetch` (a server-to-server read API); 
 the SDK E2EE is terminated at the enrollment server, which calls this endpoint 
 and encrypts the response to the SDK. See [Web Services - Methods (V4)](./WebServices-Methods-V4.md) 
 for the request/response details.

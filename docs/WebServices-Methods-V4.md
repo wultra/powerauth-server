@@ -471,7 +471,7 @@ be `ACTIVATION`. When `activationId` is absent, the item targets the application
 
 #### Request
 
-REST endpoint: `POST /rest/v4/config/create`
+REST endpoint: `POST /rest/v4/config-store/create`
 
 `CreateConfigItemRequest`
 
@@ -503,7 +503,7 @@ application-level items, optionally filtered by `scope`.
 
 #### Request
 
-REST endpoint: `POST /rest/v4/config/list`
+REST endpoint: `POST /rest/v4/config-store/list`
 
 `GetConfigItemsRequest`
 
@@ -535,7 +535,7 @@ or from a document that does not exist, is a no-op.
 
 #### Request
 
-REST endpoint: `POST /rest/v4/config/remove`
+REST endpoint: `POST /rest/v4/config-store/remove`
 
 `RemoveConfigItemRequest`
 
@@ -567,7 +567,7 @@ Each returned item is tagged with the scope it was delivered under.
 
 #### Request
 
-REST endpoint: `POST /rest/v4/config/fetch`
+REST endpoint: `POST /rest/v4/config-store/fetch`
 
 `FetchConfigRequest`
 
