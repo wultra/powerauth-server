@@ -93,7 +93,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi-starter-webmvc-ui.version>3.0.3</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.50</swagger-annotations-jakarta.version>
+        <swagger-annotations-jakarta.version>2.2.51</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
         <shedlock.version>7.7.0</shedlock.version>
@@ -104,7 +104,7 @@
         <equalsverifier.version>4.5</equalsverifier.version>
         <zxing.version>3.5.4</zxing.version>
         <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
-        <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
+        <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.31.6.RELEASE</webauthn4j.version>
