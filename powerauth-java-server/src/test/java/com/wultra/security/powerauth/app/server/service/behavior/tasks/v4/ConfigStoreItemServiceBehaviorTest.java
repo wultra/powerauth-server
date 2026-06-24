@@ -455,6 +455,19 @@ class ConfigStoreItemServiceBehaviorTest {
     }
 
     @Test
+    void testGet_perDevice_conflictingScope_throws() {
+        when(localizationProvider.buildExceptionForCode(anyString()))
+                .thenReturn(new GenericServiceException(ServiceError.INVALID_REQUEST, "Invalid request"));
+
+        final GetConfigItemsRequest request = new GetConfigItemsRequest();
+        request.setApplicationId(APP_ID);
+        request.setActivationId(ACTIVATION_ID);
+        request.setScope(CLIENT_APPLICATION); // conflicting; a per-device listing must be ACTIVATION scope
+
+        assertThrows(GenericServiceException.class, () -> tested.getConfigItems(request));
+    }
+
+    @Test
     void testGet_perDevice_activationFromOtherApplication_throws() {
         final ActivationRecordEntity activation = activation(ACTIVATION_ID, "other-app");
         when(activationQueryService.findActivationWithoutLock(ACTIVATION_ID)).thenReturn(Optional.of(activation));

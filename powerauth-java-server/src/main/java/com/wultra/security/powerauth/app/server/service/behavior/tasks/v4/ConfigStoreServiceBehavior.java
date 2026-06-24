@@ -138,6 +138,10 @@ public class ConfigStoreServiceBehavior {
             response.setActivationId(activationId);
 
             if (StringUtils.hasText(activationId)) {
+                if (request.getScope() != null && toDbScope(request.getScope()) != ConfigScope.ACTIVATION) {
+                    logger.warn("Per-device configuration listing must use ACTIVATION scope, requested: {}", request.getScope());
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                }
                 findActivation(applicationId, activationId);
                 configStoreService.findByActivationId(activationId)
                         .ifPresent(store -> response.getConfigs().addAll(toItems(store)));
