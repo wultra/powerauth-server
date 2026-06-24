@@ -604,3 +604,23 @@ ALTER TABLE pa_activation ADD temporary_block_count NUMBER(38, 0) DEFAULT 0 NOT 
 -- Create a partial index on pa_activation(timestamp_block_expire) to support the scheduled expiration of temporary activation blocks (on Oracle a plain single-column index achieves the same effect, since all-null keys are not indexed)
 CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire);
 
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::1::Roman Strobl
+-- Create a new table pa_config_store
+CREATE TABLE pa_config_store (id NUMBER(38, 0) NOT NULL, application_id INTEGER NOT NULL, activation_id VARCHAR2(37), scope VARCHAR2(32) NOT NULL, config_data CLOB, encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_updated TIMESTAMP(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::2::Roman Strobl
+-- Create a new sequence pa_config_store_seq
+CREATE SEQUENCE pa_config_store_seq START WITH 1 INCREMENT BY 1 CACHE 20;
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::3::Roman Strobl
+-- Create a new index on pa_config_store(application_id)
+CREATE INDEX pa_config_store_app_idx ON pa_config_store(application_id);
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::4::Roman Strobl
+-- Create a new index on pa_config_store(activation_id)
+CREATE INDEX pa_config_store_activation_idx ON pa_config_store(activation_id);
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::5::Roman Strobl
+-- Create a unique index on pa_config_store(application_id, activation_id, scope).
+CREATE UNIQUE INDEX pa_config_store_unique_idx ON pa_config_store(application_id, activation_id, scope);

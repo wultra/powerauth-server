@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.persistence.ConfigStoreService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class ActivationRemoveServiceBehavior {
     private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final CallbackUrlBehavior callbackUrlBehavior;
+    private final ConfigStoreService configStoreService;
 
     /**
      * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
@@ -74,6 +76,7 @@ public class ActivationRemoveServiceBehavior {
     public void removeActivation(final ActivationRecordEntity activation, final String externalUserId) {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        configStoreService.deleteByActivationId(activation.getActivationId());
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
     }
 

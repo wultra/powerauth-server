@@ -1981,6 +1981,80 @@ public interface PowerAuthClient {
     GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException;
 
     /**
+     * Create or update a single configuration item.
+     * @param request Create configuration request.
+     * @return Create configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    CreateConfigItemResponse createConfigItem(CreateConfigItemRequest request) throws PowerAuthClientException;
+
+    /**
+     * Create or update a single configuration item.
+     * @param request Create configuration request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Create configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    CreateConfigItemResponse createConfigItem(CreateConfigItemRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * List configuration items.
+     * @param request Get configuration request.
+     * @return Get configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    GetConfigItemsResponse getConfigItems(GetConfigItemsRequest request) throws PowerAuthClientException;
+
+    /**
+     * List configuration items.
+     * @param request Get configuration request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Get configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    GetConfigItemsResponse getConfigItems(GetConfigItemsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Remove a single configuration item.
+     * @param request Remove configuration request.
+     * @return Simple response object.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeConfigItem(RemoveConfigItemRequest request) throws PowerAuthClientException;
+
+    /**
+     * Remove a single configuration item.
+     * @param request Remove configuration request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Simple response object.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeConfigItem(RemoveConfigItemRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Fetch the configuration items visible to an SDK caller, with eligibility and cross-scope
+     * precedence applied server-side. Consumed by the enrollment server (the E2EE terminator).
+     * @param request Fetch configuration request.
+     * @return Fetch configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    FetchConfigResponse fetchConfig(FetchConfigRequest request) throws PowerAuthClientException;
+
+    /**
+     * Fetch the configuration items visible to an SDK caller, with eligibility and cross-scope
+     * precedence applied server-side. Consumed by the enrollment server (the E2EE terminator).
+     * @param request Fetch configuration request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Fetch configuration store response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    FetchConfigResponse fetchConfig(FetchConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
      * Fetch a new temporary public key.
      * @param request Requested public key parameters.
      * @param queryParams Query params.

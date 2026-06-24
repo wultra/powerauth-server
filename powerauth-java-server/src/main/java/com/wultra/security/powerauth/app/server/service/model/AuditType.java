@@ -51,7 +51,12 @@ public enum AuditType {
     /**
      * Audit type for activations.
      */
-    ACTIVATION("activation");
+    ACTIVATION("activation"),
+
+    /**
+     * Audit type for configuration store management.
+     */
+    CONFIGURATION("configuration");
 
     /**
      * The code associated with each audit type.

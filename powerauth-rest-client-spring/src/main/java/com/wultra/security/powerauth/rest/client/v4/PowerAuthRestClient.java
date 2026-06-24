@@ -45,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -1334,6 +1333,46 @@ public class PowerAuthRestClient implements PowerAuthClient {
         final GetApplicationConfigRequest request = new GetApplicationConfigRequest();
         request.setApplicationId(applicationId);
         return getApplicationConfig(request);
+    }
+
+    @Override
+    public CreateConfigItemResponse createConfigItem(CreateConfigItemRequest request) throws PowerAuthClientException {
+        return createConfigItem(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateConfigItemResponse createConfigItem(CreateConfigItemRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/config-store/create", request, queryParams, httpHeaders, CreateConfigItemResponse.class);
+    }
+
+    @Override
+    public GetConfigItemsResponse getConfigItems(GetConfigItemsRequest request) throws PowerAuthClientException {
+        return getConfigItems(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetConfigItemsResponse getConfigItems(GetConfigItemsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/config-store/list", request, queryParams, httpHeaders, GetConfigItemsResponse.class);
+    }
+
+    @Override
+    public Response removeConfigItem(RemoveConfigItemRequest request) throws PowerAuthClientException {
+        return removeConfigItem(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public Response removeConfigItem(RemoveConfigItemRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/config-store/remove", request, queryParams, httpHeaders, Response.class);
+    }
+
+    @Override
+    public FetchConfigResponse fetchConfig(FetchConfigRequest request) throws PowerAuthClientException {
+        return fetchConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public FetchConfigResponse fetchConfig(FetchConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV4RestApi("/config-store/fetch", request, queryParams, httpHeaders, FetchConfigResponse.class);
     }
 
     @Override

@@ -33,6 +33,40 @@ The feature is disabled by default. The default configuration is with a 5-minute
 - `powerauth.service.crypto.temporaryActivationBlock.multiplier` (default `2`)
 - `powerauth.service.scheduled.job.expireTemporaryActivationBlocks` (default `5000`)
 
+## Configuration Store Feature
+
+A new secure configuration store allows publishing of scoped key–value configuration that the mobile
+SDK can read using end-to-end encryption. It addresses values that would otherwise be hardcoded in the mobile
+app and enables per-device secure storage.
+
+Two scopes are supported:
+
+- `APPLICATION` — configuration visible to all users of the application.
+- `ACTIVATION` — configuration visible only in the context of the activation.
+
+The configuration is stored in the new dedicated `pa_config_store` table (see below), 
+and the `config_data` value is encrypted at rest using the configured 
+per-record encryption algorithm. Entries are managed through the management API
+(`/rest/v4/config/create`, `/rest/v4/config/list`, `/rest/v4/config/remove`). 
+The SDK-facing delivery is read through `/rest/v4/config/fetch` (a server-to-server read API); 
+the SDK E2EE is terminated at the enrollment server, which calls this endpoint 
+and encrypts the response to the SDK. See [Web Services - Methods (V4)](./WebServices-Methods-V4.md) 
+for the request/response details.
+
+### Table `pa_config_store`
+
+A new database table `pa_config_store` has been added to store the secure configuration store. The store holds
+scoped key-value configuration as a JSON document, either at the application level (when `activation_id` is `NULL`)
+or per-activation. Columns:
+- `id` (`BIGINT`) - primary key, populated from the `pa_config_store_seq` sequence
+- `application_id` (`INTEGER`) - foreign key to `pa_application(id)`
+- `activation_id` (`VARCHAR(37)`) - optional foreign key to `pa_activation(activation_id)`; `NULL` for application-level records
+- `scope` (`VARCHAR(32)`) - configuration scope (`APPLICATION` or `ACTIVATION`)
+- `config_data` (`TEXT`/`CLOB`) - configuration stored as a JSON document
+- `encryption_mode` (`VARCHAR(255)`) - at-rest encryption mode, defaults to `NO_ENCRYPTION`
+- `timestamp_created` (`TIMESTAMP`) - record creation timestamp
+- `timestamp_last_updated` (`TIMESTAMP`) - record last update timestamp
+
 ## REST API Changes
 
 ### Signature Audit Response
@@ -45,6 +79,17 @@ The `SignatureAuditResponse.Item` object has been extended with new fields for a
 
 The activation status responses have been extended with a new field:
 - `timestampBlockExpire` (`Date`) - a timestamp after which the temporary activation block is expired (applies only to activations using cryptography protocol v4, null when no temporary block is in effect)
+
+### Configuration Store
+
+New v4 endpoints have been added for the secure configuration store (see
+[Web Services - Methods (V4)](./WebServices-Methods-V4.md) for full request/response details):
+
+- `POST /rest/v4/config/create` - create or update a single configuration item (management API)
+- `POST /rest/v4/config/list` - list configuration items (management API)
+- `POST /rest/v4/config/remove` - remove a single configuration item (management API)
+- `POST /rest/v4/config/fetch` - fetch the scope-resolved configuration visible to an SDK caller
+  (server-to-server read API consumed by the enrollment server)
 
 ## Dependency Updates
 

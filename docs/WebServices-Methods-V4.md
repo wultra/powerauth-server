@@ -22,6 +22,11 @@ The following `v4` methods are published using the service:
   - [getApplicationConfig](#method-getapplicationconfig)
   - [createApplicationConfig](#method-createapplicationconfig)
   - [removeApplicationConfig](#method-removeapplicationconfig)
+- Configuration Store
+  - [createConfigItem](#method-createconfigitem)
+  - [listConfigItems](#method-listconfigitems)
+  - [removeConfigItem](#method-removeconfigitem)
+  - [fetchConfigItems](#method-fetchconfigitems)
 - Activation Management
   - [getActivationListForUser](#method-getactivationlistforuser)
   - [initActivation](#method-initactivation)
@@ -441,6 +446,145 @@ REST endpoint: `POST /rest/v4/application/config/remove`
 #### Response
 
 _empty response_
+
+## Configuration Store
+
+Methods for managing and delivering the secure configuration store — a scoped key–value store that the
+mobile SDK can read using end-to-end encryption.
+
+Configuration values are stored in the dedicated `pa_config_store` table, with the `config_data` value **encrypted at rest**.
+
+Two scopes are supported (`ConfigScope`):
+
+- `APPLICATION` — configuration visible to any client of an application (replaces values otherwise
+  hardcoded in the mobile app).
+- `ACTIVATION` — configuration visible only in the context of an activation (per-device secure storage).
+
+A configuration document holds multiple key–value entries; a value may be a String or a nested object.
+
+### Method 'createConfigItem'
+
+Create or update a single configuration item (upsert of one key into the target value).
+
+When `activationId` is present, the item targets that activation's per-device value and the `scope` must
+be `ACTIVATION`. When `activationId` is absent, the item targets the application-level `(applicationId, scope)` value.
+
+#### Request
+
+REST endpoint: `POST /rest/v4/config/create`
+
+`CreateConfigItemRequest`
+
+| Type          | Name            | Description                                                                              |
+|---------------|-----------------|------------------------------------------------------------------------------------------|
+| `String`      | `applicationId` | An identifier of an application                                                          |
+| `String`      | `activationId`  | Optional; when present targets the activation's per-device document (`ACTIVATION` scope) |
+| `ConfigScope` | `scope`         | `APPLICATION` or `ACTIVATION`; required, and must be `ACTIVATION` for per-device writes  |
+| `String`      | `key`           | Configuration key; must match `^[a-zA-Z0-9_.-]{1,255}$`                                  |
+| `Object`      | `value`         | Configuration value, a String value or a nested object (valid JSON)                      |
+
+#### Response
+
+`CreateConfigItemResponse`
+
+| Type     | Name            | Description                      |
+|----------|-----------------|----------------------------------|
+| `String` | `applicationId` | An identifier of an application  |
+| `String` | `activationId`  | The activation ID, if per-device |
+| `String` | `scope`         | The resolved scope               |
+| `String` | `key`           | Configuration key                |
+
+### Method 'listConfigItems'
+
+List the stored configuration items for management purposes.
+
+When `activationId` is present, lists that activation's per-device items. When absent, lists the
+application-level items, optionally filtered by `scope`.
+
+#### Request
+
+REST endpoint: `POST /rest/v4/config/list`
+
+`GetConfigItemsRequest`
+
+| Type          | Name            | Description                                                                       |
+|---------------|-----------------|-----------------------------------------------------------------------------------|
+| `String`      | `applicationId` | An identifier of an application                                                   |
+| `String`      | `activationId`  | Optional; when present lists the activation's per-device document                 |
+| `ConfigScope` | `scope`         | Optional scope filter (`APPLICATION` or `ACTIVATION`) for application-level items |
+
+#### Response
+
+`GetConfigItemsResponse`
+
+| Type                    | Name            | Description                      |
+|-------------------------|-----------------|----------------------------------|
+| `String`                | `applicationId` | An identifier of an application  |
+| `String`                | `activationId`  | The activation ID, if per-device |
+| `List<ConfigStoreItem>` | `configs`       | The configuration items          |
+
+The `ConfigStoreItem` record contains:
+  - `String key` — configuration key name
+  - `Object value` — configuration value (String value or nested object)
+  - `ConfigScope scope` — the scope of the item (`APPLICATION` or `ACTIVATION`)
+
+### Method 'removeConfigItem'
+
+Remove a single configuration item from the target document. Removing a key that does not exist,
+or from a document that does not exist, is a no-op.
+
+#### Request
+
+REST endpoint: `POST /rest/v4/config/remove`
+
+`RemoveConfigItemRequest`
+
+| Type          | Name            | Description                                                                               |
+|---------------|-----------------|-------------------------------------------------------------------------------------------|
+| `String`      | `applicationId` | An identifier of an application                                                           |
+| `String`      | `activationId`  | Optional; when present targets the activation's per-device document                       |
+| `ConfigScope` | `scope`         | `APPLICATION` or `ACTIVATION`; required, and must be `ACTIVATION` for per-device removals |
+| `String`      | `key`           | Configuration key to remove                                                               |
+
+#### Response
+
+_empty response_
+
+### Method 'fetchConfigItems'
+
+Fetch the configuration items visible to an SDK caller. This is the **server-to-server read API** consumed
+by the enrollment server (the E2EE terminator); eligibility and cross-scope precedence are applied
+server-side. An empty configuration is a normal result (an empty list, never an error).
+
+- When `activationId` is **absent**, the **application** scope is fetched: only the application-level
+  `APPLICATION` section is returned, so it is safe for pre-activation callers.
+- When `activationId` is **present**, the **activation** scope is fetched: the application-level
+  `APPLICATION` and `ACTIVATION` sections plus the activation's per-device document, merged with cross-scope
+  precedence (**device > application-level `ACTIVATION` > application-level `APPLICATION`**). The activation
+  must exist, belong to the application, and be in the `ACTIVE` state.
+
+Each returned item is tagged with the scope it was delivered under.
+
+#### Request
+
+REST endpoint: `POST /rest/v4/config/fetch`
+
+`FetchConfigRequest`
+
+| Type     | Name            | Description                                                                              |
+|----------|-----------------|------------------------------------------------------------------------------------------|
+| `String` | `applicationId` | An identifier of an application                                                          |
+| `String` | `activationId`  | Optional; when present the activation scope is fetched (requires an `ACTIVE` activation) |
+
+#### Response
+
+`FetchConfigResponse`
+
+| Type                    | Name            | Description                                                        |
+|-------------------------|-----------------|--------------------------------------------------------------------|
+| `String`                | `applicationId` | An identifier of an application                                    |
+| `String`                | `activationId`  | The activation ID, if the activation scope was fetched             |
+| `List<ConfigStoreItem>` | `configs`       | The scope-resolved configuration items, each tagged with its scope |
 
 ## Activation management
 
