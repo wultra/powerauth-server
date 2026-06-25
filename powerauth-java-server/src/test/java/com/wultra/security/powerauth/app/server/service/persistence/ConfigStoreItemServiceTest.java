@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Sql("ConfigStoreServiceTest.sql")
+@Sql("ConfigStoreItemServiceTest.sql")
 @Transactional
 class ConfigStoreItemServiceTest {
 
