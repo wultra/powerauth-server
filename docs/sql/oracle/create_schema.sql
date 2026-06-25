@@ -607,7 +607,7 @@ CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_exp
 
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::1::Roman Strobl
 -- Create a new table pa_config_store
-CREATE TABLE pa_config_store (id NUMBER(38, 0) NOT NULL, application_id INTEGER NOT NULL, activation_id VARCHAR2(37), scope VARCHAR2(32) NOT NULL, config_data CLOB, encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_updated TIMESTAMP(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+CREATE TABLE pa_config_store (id NUMBER(38, 0) NOT NULL, application_id INTEGER NOT NULL, activation_id VARCHAR2(37), config_scope VARCHAR2(32) NOT NULL, config_data CLOB, encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_updated TIMESTAMP(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
 
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::2::Roman Strobl
 -- Create a new sequence pa_config_store_seq
@@ -622,5 +622,5 @@ CREATE INDEX pa_config_store_application_id_idx ON pa_config_store(application_i
 CREATE INDEX pa_config_store_activation_id_idx ON pa_config_store(activation_id);
 
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::5::Roman Strobl
--- Create a unique index on pa_config_store(application_id, activation_id, scope).
-CREATE UNIQUE INDEX pa_config_store_application_id_activation_id_scope_idx ON pa_config_store(application_id, activation_id, scope);
+-- Create a unique index on pa_config_store(application_id, activation_id, config_scope).
+CREATE UNIQUE INDEX pa_config_store_application_id_activation_id_config_scope_idx ON pa_config_store(application_id, activation_id, config_scope);

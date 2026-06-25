@@ -60,7 +60,7 @@ public class ConfigStoreEntity implements Serializable {
     private ActivationRecordEntity activation;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "scope", nullable = false)
+    @Column(name = "config_scope", nullable = false)
     private ConfigScope scope;
 
     @Column(name = "config_data", columnDefinition = "CLOB")

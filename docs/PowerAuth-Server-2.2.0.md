@@ -61,7 +61,7 @@ or per-activation. Columns:
 - `id` (`BIGINT`) - primary key, populated from the `pa_config_store_seq` sequence
 - `application_id` (`INTEGER`) - foreign key to `pa_application(id)`
 - `activation_id` (`VARCHAR(37)`) - optional foreign key to `pa_activation(activation_id)`; `NULL` for application-level records
-- `scope` (`VARCHAR(32)`) - configuration scope (`APPLICATION` or `ACTIVATION`)
+- `config_scope` (`VARCHAR(32)`) - configuration scope (`APPLICATION` or `ACTIVATION`)
 - `config_data` (`TEXT`/`CLOB`) - configuration stored as a JSON document
 - `encryption_mode` (`VARCHAR(255)`) - at-rest encryption mode, defaults to `NO_ENCRYPTION`
 - `timestamp_created` (`TIMESTAMP`) - record creation timestamp

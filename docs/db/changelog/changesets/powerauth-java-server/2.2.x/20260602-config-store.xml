@@ -39,7 +39,7 @@
             <column name="activation_id" type="varchar(37)">
                 <constraints nullable="true" foreignKeyName="pa_config_store_activation_id_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id" />
             </column>
-            <column name="scope" type="varchar(32)">
+            <column name="config_scope" type="varchar(32)">
                 <constraints nullable="false"/>
             </column>
             <column name="config_data" type="clob"/>
@@ -90,14 +90,14 @@
     <changeSet id="5" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_scope_idx" />
+                <indexExists tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_config_scope_idx" />
             </not>
         </preConditions>
-        <comment>Create a unique index on pa_config_store(application_id, activation_id, scope).</comment>
-        <createIndex tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_scope_idx" unique="true">
+        <comment>Create a unique index on pa_config_store(application_id, activation_id, config_scope).</comment>
+        <createIndex tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_config_scope_idx" unique="true">
             <column name="application_id" />
             <column name="activation_id" />
-            <column name="scope" />
+            <column name="config_scope" />
         </createIndex>
     </changeSet>
 
