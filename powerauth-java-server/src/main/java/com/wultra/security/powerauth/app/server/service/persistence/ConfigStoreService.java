@@ -140,8 +140,7 @@ public class ConfigStoreService {
     private List<ConfigStoreItem> decryptAll(final List<ConfigStoreEntity> entities) {
         return entities.stream()
                 .map(this::convert)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(Optional::stream)
                 .toList();
     }
 
