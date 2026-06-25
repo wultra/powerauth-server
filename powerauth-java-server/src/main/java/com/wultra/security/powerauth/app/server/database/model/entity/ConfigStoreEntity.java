@@ -46,7 +46,7 @@ public class ConfigStoreEntity implements Serializable {
     private static final long serialVersionUID = 8312842631321330043L;
 
     @Id
-    @SequenceGenerator(name = "pa_config_store", sequenceName = "pa_config_store_seq", allocationSize = 1)
+    @SequenceGenerator(name = "pa_config_store", sequenceName = "pa_config_store_seq", allocationSize = 50)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_config_store")
     @Column(name = "id")
     private Long rid;
