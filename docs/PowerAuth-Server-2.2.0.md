@@ -55,17 +55,7 @@ for the request/response details.
 
 ### Table `pa_config_store`
 
-A new database table `pa_config_store` has been added to store the secure configuration store. The store holds
-scoped key-value configuration as a JSON document, either at the application level (when `activation_id` is `NULL`)
-or per-activation. Columns:
-- `id` (`BIGINT`) - primary key, populated from the `pa_config_store_seq` sequence
-- `application_id` (`INTEGER`) - foreign key to `pa_application(id)`
-- `activation_id` (`VARCHAR(37)`) - optional foreign key to `pa_activation(activation_id)`; `NULL` for application-level records
-- `config_scope` (`VARCHAR(32)`) - configuration scope (`APPLICATION` or `ACTIVATION`)
-- `config_data` (`TEXT`/`CLOB`) - configuration stored as a JSON document
-- `encryption_mode` (`VARCHAR(255)`) - at-rest encryption mode, defaults to `NO_ENCRYPTION`
-- `timestamp_created` (`TIMESTAMP`) - record creation timestamp
-- `timestamp_last_updated` (`TIMESTAMP`) - record last update timestamp
+A new database table `pa_config_store` has been added to store the secure configuration values. The configuration store holds scoped key-value configuration as a JSON document, either at the application level or per-activation.
 
 ## REST API Changes
 
