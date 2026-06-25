@@ -56,16 +56,16 @@ public class ConfigStoreController {
     /**
      * Create or update a single configuration item.
      *
-     * @param request Create configuration item request.
+     * @param requestObject Create configuration item request.
      * @return Create configuration item response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/create")
-    public ObjectResponse<CreateConfigItemResponse> createConfigItem(@Valid @RequestBody ObjectRequest<CreateConfigItemRequest> request) throws Exception {
-        final CreateConfigItemRequest req = request.getRequestObject();
-        logger.info("action: createConfigItem, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: createConfigItem, state: initiated, request: {}", request);
-        final ObjectResponse<CreateConfigItemResponse> response = new ObjectResponse<>(service.createConfigItem(req));
+    public ObjectResponse<CreateConfigItemResponse> createConfigItem(@Valid @RequestBody ObjectRequest<CreateConfigItemRequest> requestObject) throws Exception {
+        final CreateConfigItemRequest request = requestObject.getRequestObject();
+        logger.info("action: createConfigItem, state: initiated, applicationId: {}", request.getApplicationId());
+        logger.debug("action: createConfigItem, state: initiated, request: {}", requestObject);
+        final ObjectResponse<CreateConfigItemResponse> response = new ObjectResponse<>(service.createConfigItem(request));
         logger.info("action: createConfigItem, state: succeeded");
         logger.debug("action: createConfigItem, state: succeeded, response: {}", response);
         return response;
@@ -74,16 +74,16 @@ public class ConfigStoreController {
     /**
      * List configuration items.
      *
-     * @param request List configuration items request.
+     * @param requestObject List configuration items request.
      * @return List configuration items response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/list")
-    public ObjectResponse<GetConfigItemsResponse> listConfigItems(@Valid @RequestBody ObjectRequest<GetConfigItemsRequest> request) throws Exception {
-        final GetConfigItemsRequest req = request.getRequestObject();
-        logger.info("action: listConfigItems, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: listConfigItems, state: initiated, request: {}", request);
-        final ObjectResponse<GetConfigItemsResponse> response = new ObjectResponse<>(service.getConfigItems(req));
+    public ObjectResponse<GetConfigItemsResponse> listConfigItems(@Valid @RequestBody ObjectRequest<GetConfigItemsRequest> requestObject) throws Exception {
+        final GetConfigItemsRequest request = requestObject.getRequestObject();
+        logger.info("action: listConfigItems, state: initiated, applicationId: {}", request.getApplicationId());
+        logger.debug("action: listConfigItems, state: initiated, request: {}", requestObject);
+        final ObjectResponse<GetConfigItemsResponse> response = new ObjectResponse<>(service.getConfigItems(request));
         logger.info("action: listConfigItems, state: succeeded");
         logger.debug("action: listConfigItems, state: succeeded, response: {}", response);
         return response;
@@ -92,16 +92,16 @@ public class ConfigStoreController {
     /**
      * Remove a single configuration item.
      *
-     * @param request Remove configuration item request.
+     * @param requestObject Remove configuration item request.
      * @return Simple response object.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/remove")
-    public Response removeConfigItem(@Valid @RequestBody ObjectRequest<RemoveConfigItemRequest> request) throws Exception {
-        final RemoveConfigItemRequest req = request.getRequestObject();
-        logger.info("action: removeConfigItem, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: removeConfigItem, state: initiated, request: {}", request);
-        service.removeConfigItem(req);
+    public Response removeConfigItem(@Valid @RequestBody ObjectRequest<RemoveConfigItemRequest> requestObject) throws Exception {
+        final RemoveConfigItemRequest request = requestObject.getRequestObject();
+        logger.info("action: removeConfigItem, state: initiated, applicationId: {}", request.getApplicationId());
+        logger.debug("action: removeConfigItem, state: initiated, request: {}", requestObject);
+        service.removeConfigItem(request);
         final Response response = new Response();
         logger.info("action: removeConfigItem, state: succeeded");
         logger.debug("action: removeConfigItem, state: succeeded, response: {}", response);
@@ -113,16 +113,16 @@ public class ConfigStoreController {
      * <p>
      * This endpoint is consumed by the restful-integration, which terminates the end-to-end encryption tunnel.
      *
-     * @param request Fetch configuration request.
+     * @param requestObject Fetch configuration request.
      * @return Fetch configuration response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/fetch")
-    public ObjectResponse<FetchConfigResponse> fetchConfigItems(@Valid @RequestBody ObjectRequest<FetchConfigRequest> request) throws Exception {
-        final FetchConfigRequest req = request.getRequestObject();
-        logger.info("action: fetchConfigItems, state: initiated, applicationId: {}", req.getApplicationId());
-        logger.debug("action: fetchConfigItems, state: initiated, request: {}", request);
-        final ObjectResponse<FetchConfigResponse> response = new ObjectResponse<>(service.fetchConfig(req));
+    public ObjectResponse<FetchConfigResponse> fetchConfigItems(@Valid @RequestBody ObjectRequest<FetchConfigRequest> requestObject) throws Exception {
+        final FetchConfigRequest request = requestObject.getRequestObject();
+        logger.info("action: fetchConfigItems, state: initiated, applicationId: {}", request.getApplicationId());
+        logger.debug("action: fetchConfigItems, state: initiated, request: {}", requestObject);
+        final ObjectResponse<FetchConfigResponse> response = new ObjectResponse<>(service.fetchConfig(request));
         logger.info("action: fetchConfigItems, state: succeeded");
         logger.debug("action: fetchConfigItems, state: succeeded, response: {}", response);
         return response;
