@@ -377,6 +377,7 @@ public class ConfigStoreServiceBehavior {
     private void audit(final ConfigStoreItem target, final String key, final String message) {
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AuditType.CONFIGURATION.getCode())
+                .subjectId(target.activation() != null ? target.activation().getUserId() : null)
                 .param("applicationId", target.application().getId())
                 .param("activationId", target.activation() != null ? target.activation().getActivationId() : null)
                 .param("scope", target.scope().name())
