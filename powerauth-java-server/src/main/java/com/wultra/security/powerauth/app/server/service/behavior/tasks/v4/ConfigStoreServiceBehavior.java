@@ -102,9 +102,7 @@ public class ConfigStoreServiceBehavior {
             document.set(key, objectMapper.valueToTree(request.getValue()));
             final String merged = serializeDocument(document);
 
-            configStoreService.createOrUpdate(new ConfigStoreItem(
-                    target.id(), target.application(), target.activation(), target.scope(),
-                    merged, target.timestampCreated(), target.timestampLastUpdated()));
+            configStoreService.createOrUpdate(target.toBuilder().configData(merged).build());
 
             audit(target, key, "Created or updated configuration item");
 
@@ -187,9 +185,7 @@ public class ConfigStoreServiceBehavior {
                 return;
             }
             final String merged = serializeDocument(document);
-            configStoreService.createOrUpdate(new ConfigStoreItem(
-                    target.id(), target.application(), target.activation(), target.scope(),
-                    merged, target.timestampCreated(), target.timestampLastUpdated()));
+            configStoreService.createOrUpdate(target.toBuilder().configData(merged).build());
 
             audit(target, key, "Removed configuration item");
         } catch (RuntimeException ex) {
@@ -250,14 +246,23 @@ public class ConfigStoreServiceBehavior {
             }
             final ActivationRecordEntity activation = findActivation(applicationId, activationId);
             return configStoreService.findByActivationId(activationId)
-                    .orElseGet(() -> new ConfigStoreItem(null, activation.getApplication(), activation, ConfigScope.ACTIVATION, "{}", null, null));
+                    .orElseGet(() -> ConfigStoreItem.builder()
+                            .application(activation.getApplication())
+                            .activation(activation)
+                            .scope(ConfigScope.ACTIVATION)
+                            .configData("{}")
+                            .build());
         } else {
             final ApplicationEntity application = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.info("Application not found, application ID: {}", applicationId);
                 return localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             });
             return configStoreService.findApplicationLevel(applicationId, requestedScope)
-                    .orElseGet(() -> new ConfigStoreItem(null, application, null, requestedScope, "{}", null, null));
+                    .orElseGet(() -> ConfigStoreItem.builder()
+                            .application(application)
+                            .scope(requestedScope)
+                            .configData("{}")
+                            .build());
         }
     }
 

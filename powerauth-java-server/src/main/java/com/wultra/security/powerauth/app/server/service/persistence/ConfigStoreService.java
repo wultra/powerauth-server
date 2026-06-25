@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.server.service.encryption.EncryptableSt
 import com.wultra.security.powerauth.app.server.service.encryption.EncryptionKeySupplier;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -173,14 +174,15 @@ public class ConfigStoreService {
         try {
             final EncryptionKeySupplier keySupplier = encryptionKeySupplier(source);
             final String configData = encryptionService.decrypt(source.getConfigData(), keySupplier, source.getEncryptionAlgorithm());
-            return Optional.of(new ConfigStoreItem(
-                    source.getRid(),
-                    source.getApplication(),
-                    source.getActivation(),
-                    source.getScope(),
-                    configData,
-                    source.getTimestampCreated(),
-                    source.getTimestampLastUpdated()));
+            return Optional.of(ConfigStoreItem.builder()
+                    .id(source.getRid())
+                    .application(source.getApplication())
+                    .activation(source.getActivation())
+                    .scope(source.getScope())
+                    .configData(configData)
+                    .timestampCreated(source.getTimestampCreated())
+                    .timestampLastUpdated(source.getTimestampLastUpdated())
+                    .build());
         } catch (GenericServiceException e) {
             logger.error("Error while decrypting config store record ID: {}", source.getRid(), e);
             return Optional.empty();
@@ -219,6 +221,7 @@ public class ConfigStoreService {
      * @param timestampCreated Record creation timestamp.
      * @param timestampLastUpdated Record last-update timestamp.
      */
+    @Builder(toBuilder = true)
     public record ConfigStoreItem(
             Long id,
             ApplicationEntity application,
@@ -226,5 +229,7 @@ public class ConfigStoreService {
             ConfigScope scope,
             String configData,
             Date timestampCreated,
-            Date timestampLastUpdated) {}
+            Date timestampLastUpdated) {
+    }
+
 }
