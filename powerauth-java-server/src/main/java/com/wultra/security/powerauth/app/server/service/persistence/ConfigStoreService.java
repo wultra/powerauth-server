@@ -150,7 +150,7 @@ public class ConfigStoreService {
      */
     private ConfigStoreEntity convert(final ConfigStoreItem source) throws GenericServiceException {
         final ConfigStoreEntity entity = new ConfigStoreEntity();
-        entity.setRid(source.id());
+        entity.setId(source.id());
         entity.setApplication(source.application());
         entity.setActivation(source.activation());
         entity.setScope(source.scope());
@@ -175,7 +175,7 @@ public class ConfigStoreService {
             final EncryptionKeySupplier keySupplier = encryptionKeySupplier(source);
             final String configData = encryptionService.decrypt(source.getConfigData(), keySupplier, source.getEncryptionAlgorithm());
             return Optional.of(ConfigStoreItem.builder()
-                    .id(source.getRid())
+                    .id(source.getId())
                     .application(source.getApplication())
                     .activation(source.getActivation())
                     .scope(source.getScope())
@@ -184,7 +184,7 @@ public class ConfigStoreService {
                     .timestampLastUpdated(source.getTimestampLastUpdated())
                     .build());
         } catch (GenericServiceException e) {
-            logger.error("Error while decrypting config store record ID: {}", source.getRid(), e);
+            logger.error("Error while decrypting config store record ID: {}", source.getId(), e);
             return Optional.empty();
         }
     }

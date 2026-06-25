@@ -49,7 +49,7 @@ public class ConfigStoreEntity implements Serializable {
     @SequenceGenerator(name = "pa_config_store", sequenceName = "pa_config_store_seq", allocationSize = 50)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_config_store")
     @Column(name = "id")
-    private Long rid;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
@@ -101,7 +101,7 @@ public class ConfigStoreEntity implements Serializable {
     @Override
     public String toString() {
         return "ConfigStoreEntity{" +
-                "rid=" + rid +
+                "id=" + id +
                 ", appId='" + application.getId() + "'" +
                 ", activationId='" + (activation != null ? activation.getActivationId() : null) + "'" +
                 ", scope=" + scope +

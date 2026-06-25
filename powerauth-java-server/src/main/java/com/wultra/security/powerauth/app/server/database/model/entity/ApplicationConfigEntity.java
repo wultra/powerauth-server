@@ -45,7 +45,7 @@ public class ApplicationConfigEntity implements Serializable {
     @SequenceGenerator(name = "pa_application_config", sequenceName = "pa_app_conf_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_config")
     @Column(name = "id")
-    private Long rid;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
@@ -86,7 +86,7 @@ public class ApplicationConfigEntity implements Serializable {
     @Override
     public String toString() {
         return "ApplicationConfigEntity{" +
-                "rid=" + rid +
+                "id=" + id +
                 ", appId='" + application.getId() + '\'' +
                 ", key=" + key +
                 ", values=" + values +
