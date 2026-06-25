@@ -491,7 +491,7 @@ REST endpoint: `POST /rest/v4/config-store/create`
 |----------|-----------------|----------------------------------|
 | `String` | `applicationId` | An identifier of an application  |
 | `String` | `activationId`  | The activation ID, if per-device |
-| `String` | `scope`         | The resolved scope               |
+| `ConfigScope` | `scope`         | The resolved scope               |
 | `String` | `key`           | Configuration key                |
 
 ### Method 'listConfigItems'
