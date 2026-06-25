@@ -57,15 +57,14 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void createConfigItem_shouldReturnWrappedResponse_whenServiceSucceeds() throws Exception {
-        final CreateConfigItemRequest req = new CreateConfigItemRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<CreateConfigItemRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final CreateConfigItemRequest request = new CreateConfigItemRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<CreateConfigItemRequest> requestObject = new ObjectRequest<>(request);
 
         final CreateConfigItemResponse serviceResponse = new CreateConfigItemResponse();
-        when(service.createConfigItem(req)).thenReturn(serviceResponse);
+        when(service.createConfigItem(request)).thenReturn(serviceResponse);
 
-        final ObjectResponse<CreateConfigItemResponse> response = configStoreController.createConfigItem(request);
+        final ObjectResponse<CreateConfigItemResponse> response = configStoreController.createConfigItem(requestObject);
 
         assertNotNull(response);
         assertSame(serviceResponse, response.getResponseObject());
@@ -73,14 +72,13 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void createConfigItem_shouldPropagateException_whenServiceFails() throws Exception {
-        final CreateConfigItemRequest req = new CreateConfigItemRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<CreateConfigItemRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final CreateConfigItemRequest request = new CreateConfigItemRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<CreateConfigItemRequest> requestObject = new ObjectRequest<>(request);
 
-        when(service.createConfigItem(req)).thenThrow(new RuntimeException("failure"));
+        when(service.createConfigItem(request)).thenThrow(new RuntimeException("failure"));
 
-        assertThrows(RuntimeException.class, () -> configStoreController.createConfigItem(request));
+        assertThrows(RuntimeException.class, () -> configStoreController.createConfigItem(requestObject));
     }
 
     @Test
@@ -92,15 +90,14 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void listConfigItems_shouldReturnWrappedResponse_whenServiceSucceeds() throws Exception {
-        final GetConfigItemsRequest req = new GetConfigItemsRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<GetConfigItemsRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final GetConfigItemsRequest request = new GetConfigItemsRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<GetConfigItemsRequest> requestObject = new ObjectRequest<>(request);
 
         final GetConfigItemsResponse serviceResponse = new GetConfigItemsResponse();
-        when(service.getConfigItems(req)).thenReturn(serviceResponse);
+        when(service.getConfigItems(request)).thenReturn(serviceResponse);
 
-        final ObjectResponse<GetConfigItemsResponse> response = configStoreController.listConfigItems(request);
+        final ObjectResponse<GetConfigItemsResponse> response = configStoreController.listConfigItems(requestObject);
 
         assertNotNull(response);
         assertSame(serviceResponse, response.getResponseObject());
@@ -108,41 +105,38 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void listConfigItems_shouldPropagateException_whenServiceFails() throws Exception {
-        final GetConfigItemsRequest req = new GetConfigItemsRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<GetConfigItemsRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final GetConfigItemsRequest request = new GetConfigItemsRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<GetConfigItemsRequest> requestObject = new ObjectRequest<>(request);
 
-        when(service.getConfigItems(req)).thenThrow(new RuntimeException("failure"));
+        when(service.getConfigItems(request)).thenThrow(new RuntimeException("failure"));
 
-        assertThrows(RuntimeException.class, () -> configStoreController.listConfigItems(request));
+        assertThrows(RuntimeException.class, () -> configStoreController.listConfigItems(requestObject));
     }
 
     @Test
     void removeConfigItem_shouldReturnResponseAndDelegate_whenServiceSucceeds() throws Exception {
-        final RemoveConfigItemRequest req = new RemoveConfigItemRequest();
-        req.setApplicationId("app-1");
-        req.setKey("base_url");
-        final ObjectRequest<RemoveConfigItemRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final RemoveConfigItemRequest request = new RemoveConfigItemRequest();
+        request.setApplicationId("app-1");
+        request.setKey("base_url");
+        final ObjectRequest<RemoveConfigItemRequest> requestObject = new ObjectRequest<>(request);
 
-        final Response response = configStoreController.removeConfigItem(request);
+        final Response response = configStoreController.removeConfigItem(requestObject);
 
         assertNotNull(response);
-        verify(service).removeConfigItem(req);
+        verify(service).removeConfigItem(request);
     }
 
     @Test
     void removeConfigItem_shouldPropagateException_whenServiceFails() throws Exception {
-        final RemoveConfigItemRequest req = new RemoveConfigItemRequest();
-        req.setApplicationId("app-1");
-        req.setKey("base_url");
-        final ObjectRequest<RemoveConfigItemRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final RemoveConfigItemRequest request = new RemoveConfigItemRequest();
+        request.setApplicationId("app-1");
+        request.setKey("base_url");
+        final ObjectRequest<RemoveConfigItemRequest> requestObject = new ObjectRequest<>(request);
 
-        doThrow(new RuntimeException("failure")).when(service).removeConfigItem(req);
+        doThrow(new RuntimeException("failure")).when(service).removeConfigItem(request);
 
-        assertThrows(RuntimeException.class, () -> configStoreController.removeConfigItem(request));
+        assertThrows(RuntimeException.class, () -> configStoreController.removeConfigItem(requestObject));
     }
 
 
@@ -155,15 +149,14 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void fetchConfigItems_shouldReturnWrappedResponse_whenServiceSucceeds() throws Exception {
-        final FetchConfigRequest req = new FetchConfigRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<FetchConfigRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final FetchConfigRequest request = new FetchConfigRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<FetchConfigRequest> requestObject = new ObjectRequest<>(request);
 
         final FetchConfigResponse serviceResponse = new FetchConfigResponse();
-        when(service.fetchConfig(req)).thenReturn(serviceResponse);
+        when(service.fetchConfig(request)).thenReturn(serviceResponse);
 
-        final ObjectResponse<FetchConfigResponse> response = configStoreController.fetchConfigItems(request);
+        final ObjectResponse<FetchConfigResponse> response = configStoreController.fetchConfigItems(requestObject);
 
         assertNotNull(response);
         assertSame(serviceResponse, response.getResponseObject());
@@ -171,13 +164,12 @@ class ConfigStoreItemControllerTest {
 
     @Test
     void fetchConfigItems_shouldPropagateException_whenServiceFails() throws Exception {
-        final FetchConfigRequest req = new FetchConfigRequest();
-        req.setApplicationId("app-1");
-        final ObjectRequest<FetchConfigRequest> request = new ObjectRequest<>();
-        request.setRequestObject(req);
+        final FetchConfigRequest request = new FetchConfigRequest();
+        request.setApplicationId("app-1");
+        final ObjectRequest<FetchConfigRequest> requestObject = new ObjectRequest<>(request);
 
-        when(service.fetchConfig(req)).thenThrow(new RuntimeException("failure"));
+        when(service.fetchConfig(request)).thenThrow(new RuntimeException("failure"));
 
-        assertThrows(RuntimeException.class, () -> configStoreController.fetchConfigItems(request));
+        assertThrows(RuntimeException.class, () -> configStoreController.fetchConfigItems(requestObject));
     }
 }
