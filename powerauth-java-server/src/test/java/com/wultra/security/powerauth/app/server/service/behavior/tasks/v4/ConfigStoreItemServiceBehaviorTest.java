@@ -149,8 +149,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testRemove_existingKey_savesDocumentWithoutKey() throws Exception {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
-        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(
-                Optional.of(new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"a\":1,\"b\":2}", null, null)));
+        final ConfigStoreItem config = configItem(application, null, ConfigScope.APPLICATION, "{\"a\":1,\"b\":2}");
+        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(Optional.of(config));
 
         final RemoveConfigItemRequest request = new RemoveConfigItemRequest();
         request.setApplicationId(APP_ID);
@@ -168,7 +168,7 @@ class ConfigStoreItemServiceBehaviorTest {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
         when(configStoreService.findAllForApplication(APP_ID)).thenReturn(java.util.List.of(
-                new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"base_url\":\"https://example.com\"}", null, null)));
+                configItem(application, null, ConfigScope.APPLICATION, "{\"base_url\":\"https://example.com\"}")));
 
         final GetConfigItemsRequest request = new GetConfigItemsRequest();
         request.setApplicationId(APP_ID);
@@ -225,8 +225,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testCreate_applicationLevel_upsertPreservesOtherKeys() throws Exception {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
-        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(
-                Optional.of(new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"a\":1}", null, null)));
+        final ConfigStoreItem config = configItem(application, null, ConfigScope.APPLICATION, "{\"a\":1}");
+        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(Optional.of(config));
 
         final CreateConfigItemRequest request = new CreateConfigItemRequest();
         request.setApplicationId(APP_ID);
@@ -360,8 +360,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testRemove_keyNotPresent_isNoOp() throws Exception {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
-        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(
-                Optional.of(new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"a\":1}", null, null)));
+        final ConfigStoreItem config = configItem(application, null, ConfigScope.APPLICATION, "{\"a\":1}");
+        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.APPLICATION)).thenReturn(Optional.of(config));
 
         final RemoveConfigItemRequest request = new RemoveConfigItemRequest();
         request.setApplicationId(APP_ID);
@@ -407,8 +407,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testGet_perDevice_listsActivationItemsTaggedWithScope() throws Exception {
         final ActivationRecordEntity activation = activation(ACTIVATION_ID, APP_ID);
         when(activationQueryService.findActivationWithoutLock(ACTIVATION_ID)).thenReturn(Optional.of(activation));
-        when(configStoreService.findByActivationId(ACTIVATION_ID)).thenReturn(
-                Optional.of(new ConfigStoreItem(1L, activation.getApplication(), activation, ConfigScope.ACTIVATION, "{\"token\":\"v\"}", null, null)));
+        final ConfigStoreItem config = configItem(activation.getApplication(), activation, ConfigScope.ACTIVATION, "{\"token\":\"v\"}");
+        when(configStoreService.findByActivationId(ACTIVATION_ID)).thenReturn(Optional.of(config));
 
         final GetConfigItemsRequest request = new GetConfigItemsRequest();
         request.setApplicationId(APP_ID);
@@ -452,8 +452,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testGet_applicationLevel_withScopeFilter_usesScopedLookup() throws Exception {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
-        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.ACTIVATION)).thenReturn(
-                Optional.of(new ConfigStoreItem(1L, application, null, ConfigScope.ACTIVATION, "{\"k\":\"v\"}", null, null)));
+        final ConfigStoreItem config = configItem(application, null, ConfigScope.ACTIVATION, "{\"k\":\"v\"}");
+        when(configStoreService.findApplicationLevel(APP_ID, ConfigScope.ACTIVATION)).thenReturn(Optional.of(config));
 
         final GetConfigItemsRequest request = new GetConfigItemsRequest();
         request.setApplicationId(APP_ID);
@@ -495,8 +495,8 @@ class ConfigStoreItemServiceBehaviorTest {
     void testFetch_applicationScope_returnsApplicationItems() throws Exception {
         final ApplicationEntity application = application(APP_ID);
         when(applicationRepository.findById(APP_ID)).thenReturn(Optional.of(application));
-        when(configStoreService.findVisibleForApplication(APP_ID)).thenReturn(List.of(
-                new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"base_url\":\"https://example.com\"}", null, null)));
+        final ConfigStoreItem config = configItem(application, null, ConfigScope.APPLICATION, "{\"base_url\":\"https://example.com\"}");
+        when(configStoreService.findVisibleForApplication(APP_ID)).thenReturn(List.of(config));
 
         final FetchConfigRequest request = new FetchConfigRequest();
         request.setApplicationId(APP_ID);
@@ -540,9 +540,9 @@ class ConfigStoreItemServiceBehaviorTest {
         final ApplicationEntity application = activation.getApplication();
         when(activationQueryService.findActivationWithoutLock(ACTIVATION_ID)).thenReturn(Optional.of(activation));
         when(configStoreService.findVisibleForActivation(APP_ID, ACTIVATION_ID)).thenReturn(List.of(
-                new ConfigStoreItem(1L, application, null, ConfigScope.APPLICATION, "{\"a\":\"app\",\"shared\":\"app\"}", null, null),
-                new ConfigStoreItem(2L, application, null, ConfigScope.ACTIVATION, "{\"b\":\"appAct\",\"shared\":\"appAct\"}", null, null),
-                new ConfigStoreItem(3L, application, activation, ConfigScope.ACTIVATION, "{\"c\":\"dev\",\"shared\":\"dev\"}", null, null)));
+                configItem(application, null, ConfigScope.APPLICATION, "{\"a\":\"app\",\"shared\":\"app\"}"),
+                configItem(application, null, ConfigScope.ACTIVATION, "{\"b\":\"appAct\",\"shared\":\"appAct\"}"),
+                configItem(application, activation, ConfigScope.ACTIVATION, "{\"c\":\"dev\",\"shared\":\"dev\"}")));
 
         final FetchConfigRequest request = new FetchConfigRequest();
         request.setApplicationId(APP_ID);
@@ -624,6 +624,11 @@ class ConfigStoreItemServiceBehaviorTest {
         final ApplicationEntity application = new ApplicationEntity();
         application.setId(id);
         return application;
+    }
+
+    private static ConfigStoreItem configItem(final ApplicationEntity application, final ActivationRecordEntity activation,
+                                              final ConfigScope scope, final String data) {
+        return new ConfigStoreItem(1L, application, activation, scope, data, null, null);
     }
 }
 
