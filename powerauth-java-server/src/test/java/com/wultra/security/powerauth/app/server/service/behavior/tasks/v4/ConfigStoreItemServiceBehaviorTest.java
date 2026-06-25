@@ -37,12 +37,13 @@ import com.wultra.security.powerauth.client.model.request.v4.RemoveConfigItemReq
 import com.wultra.security.powerauth.client.model.response.v4.CreateConfigItemResponse;
 import com.wultra.security.powerauth.client.model.response.v4.FetchConfigResponse;
 import com.wultra.security.powerauth.client.model.response.v4.GetConfigItemsResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -95,15 +96,11 @@ class ConfigStoreItemServiceBehaviorTest {
     @Captor
     private ArgumentCaptor<ConfigStoreItem> configStoreCaptor;
 
+    @Spy
     private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
+    @InjectMocks
     private ConfigStoreServiceBehavior tested;
-
-    @BeforeEach
-    void setUp() {
-        tested = new ConfigStoreServiceBehavior(localizationProvider, configStoreService, applicationRepository,
-                activationQueryService, objectMapper, audit);
-    }
 
     @Test
     void testCreate_applicationLevel_mergesKeyAndAudits() throws Exception {
