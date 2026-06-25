@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ConfigScope;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
@@ -44,6 +45,7 @@ public class RemoveConfigItemRequest {
 
     @Schema(description = "Configuration key")
     @NotBlank(message = "The configuration key must not be empty when removing a configuration item")
+    @Pattern(regexp = "^[a-zA-Z0-9_.-]{1,255}$", message = "The configuration key has an invalid format")
     private String key;
 
 }

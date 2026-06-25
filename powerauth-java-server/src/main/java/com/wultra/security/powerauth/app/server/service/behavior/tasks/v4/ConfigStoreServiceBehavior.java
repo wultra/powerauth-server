@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Behavior class implementing management of the secure configuration store (key-level CRUD over the
@@ -68,12 +67,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @AllArgsConstructor
 public class ConfigStoreServiceBehavior {
-
-    /**
-     * The allowed configuration key format. Arbitrary keys are accepted, but the format is
-     * constrained to a safe character set and a bounded length.
-     */
-    private static final Pattern KEY_PATTERN = Pattern.compile("^[a-zA-Z0-9_.-]{1,255}$");
 
     private final LocalizationProvider localizationProvider;
     private final ConfigStoreService configStoreService;
@@ -95,7 +88,6 @@ public class ConfigStoreServiceBehavior {
             final String applicationId = request.getApplicationId();
             final String activationId = request.getActivationId();
             final String key = request.getKey();
-            validateConfigKey(key);
 
             final ConfigStoreItem target = findConfigItem(applicationId, activationId, toDbScope(request.getScope()));
             final ObjectNode document = parseDocument(target.configData());
@@ -174,7 +166,6 @@ public class ConfigStoreServiceBehavior {
             final String applicationId = request.getApplicationId();
             final String activationId = request.getActivationId();
             final String key = request.getKey();
-            validateConfigKey(key);
 
             final ConfigStoreItem target = findConfigItem(applicationId, activationId, toDbScope(request.getScope()));
             if (target.id() == null) {
@@ -290,13 +281,6 @@ public class ConfigStoreServiceBehavior {
         if (applicationRepository.findById(applicationId).isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-    }
-
-    private void validateConfigKey(final String key) throws GenericServiceException {
-        if (key == null || !KEY_PATTERN.matcher(key).matches()) {
-            logger.warn("Invalid configuration key format");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         }
     }
 

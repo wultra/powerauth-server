@@ -59,7 +59,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -128,21 +127,6 @@ class ConfigStoreItemServiceBehaviorTest {
         assertEquals(CLIENT_APPLICATION, response.getScope());
         assertEquals("base_url", response.getKey());
         verify(audit).log(any(AuditLevel.class), anyString(), any(AuditDetail.class), any());
-    }
-
-    @Test
-    void testCreate_invalidKey_throws() {
-        when(localizationProvider.buildExceptionForCode(anyString()))
-                .thenReturn(new GenericServiceException(ServiceError.INVALID_INPUT_FORMAT, "Invalid input format"));
-
-        final CreateConfigItemRequest request = new CreateConfigItemRequest();
-        request.setApplicationId(APP_ID);
-        request.setScope(com.wultra.security.powerauth.client.model.enumeration.ConfigScope.APPLICATION);
-        request.setKey("bad key!");
-        request.setValue("x");
-
-        assertThrows(GenericServiceException.class, () -> tested.createConfigItem(request));
-        verifyNoInteractions(configStoreService);
     }
 
     @Test
@@ -358,20 +342,6 @@ class ConfigStoreItemServiceBehaviorTest {
         tested.createConfigItem(request);
 
         verify(configStoreService).createOrUpdate(any());
-    }
-
-    @Test
-    void testRemove_invalidKey_throws() {
-        when(localizationProvider.buildExceptionForCode(anyString()))
-                .thenReturn(new GenericServiceException(ServiceError.INVALID_INPUT_FORMAT, "Invalid input format"));
-
-        final RemoveConfigItemRequest request = new RemoveConfigItemRequest();
-        request.setApplicationId(APP_ID);
-        request.setScope(CLIENT_APPLICATION);
-        request.setKey("bad key!");
-
-        assertThrows(GenericServiceException.class, () -> tested.removeConfigItem(request));
-        verifyNoInteractions(configStoreService);
     }
 
     @Test
