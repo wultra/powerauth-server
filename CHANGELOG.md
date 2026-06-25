@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Temporary block of activation [(#2390)](https://github.com/wultra/powerauth-server/issues/2390)
-- Secure configuration with per-application and per-activation scopes [#2391](https://github.com/wultra/powerauth-server/issues/2391)
+- Added secure configuration store with per-application and per-activation scopes [(#2391)](https://github.com/wultra/powerauth-server/issues/2391)
 
 ### Changed
 - Consolidated `CHANGELOG.md` to the strict Keep a Changelog 1.1.0 format and added Copilot changelog instructions [(#2398)](https://github.com/wultra/powerauth-server/issues/2398)
