@@ -66,13 +66,13 @@ class ConfigStoreItemLifecycleTest {
         createPerDevice("device_token", "tok-123");
 
         // 2) Pre-activation SDK read (application scope) sees only the APPLICATION section.
-        Map<String, ConfigStoreItem> appViewStep2 = resolveApplicationScope();
+        final Map<String, ConfigStoreItem> appViewStep2 = resolveApplicationScope();
         assertEquals(1, appViewStep2.size());
         assertEquals("https://app.example.com", appViewStep2.get("app_base_url").getValue());
         assertEquals(ConfigScope.APPLICATION, appViewStep2.get("app_base_url").getScope());
 
         // 3) Activated SDK read (activation scope) sees the whole entitled set, each tagged with its scope.
-        Map<String, ConfigStoreItem> actViewStep3 = resolveActivationScope();
+        final Map<String, ConfigStoreItem> actViewStep3 = resolveActivationScope();
         assertEquals(3, actViewStep3.size());
         assertEquals("https://app.example.com", actViewStep3.get("app_base_url").getValue());
         assertEquals(ConfigScope.APPLICATION, actViewStep3.get("app_base_url").getScope());
@@ -87,12 +87,12 @@ class ConfigStoreItemLifecycleTest {
         createPerDevice("device_token", "tok-456");
 
         // 5) Read again — both scopes reflect the updates; the upsert preserved untouched keys.
-        Map<String, ConfigStoreItem> appViewStep5 = resolveApplicationScope();
+        final Map<String, ConfigStoreItem> appViewStep5 = resolveApplicationScope();
         assertEquals(2, appViewStep5.size());
         assertEquals("https://app2.example.com", appViewStep5.get("app_base_url").getValue());
         assertEquals(30, appViewStep5.get("timeout").getValue());
 
-        Map<String, ConfigStoreItem> actViewStep5 = resolveActivationScope();
+        final Map<String, ConfigStoreItem> actViewStep5 = resolveActivationScope();
         assertEquals(4, actViewStep5.size());
         assertEquals("https://app2.example.com", actViewStep5.get("app_base_url").getValue());
         assertEquals("tok-456", actViewStep5.get("device_token").getValue());
@@ -104,12 +104,12 @@ class ConfigStoreItemLifecycleTest {
         removePerDevice(ACTIVATION_ID, "device_token");
 
         // 7) Read again — the removed keys are gone from both scopes.
-        Map<String, ConfigStoreItem> appViewStep7 = resolveApplicationScope();
+        final Map<String, ConfigStoreItem> appViewStep7 = resolveApplicationScope();
         assertEquals(1, appViewStep7.size());
         assertNull(appViewStep7.get("app_base_url"));
         assertEquals(30, appViewStep7.get("timeout").getValue());
 
-        Map<String, ConfigStoreItem> actViewStep7 = resolveActivationScope();
+        final Map<String, ConfigStoreItem> actViewStep7 = resolveActivationScope();
         assertEquals(2, actViewStep7.size());
         assertNull(actViewStep7.get("app_base_url"));
         assertNull(actViewStep7.get("device_token"));
