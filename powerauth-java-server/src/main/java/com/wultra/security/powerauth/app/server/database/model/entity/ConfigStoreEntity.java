@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2026 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,9 +14,11 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package com.wultra.security.powerauth.app.server.database.model.entity;
 
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ConfigScope;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,41 +27,54 @@ import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
 
 /**
- * Entity class representing an application configuration.
+ * Entity class representing a configuration store record. The configuration is stored as a JSON document
+ * to optimize the dominant bulk-read path.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Entity
 @Getter
 @Setter
-@Table(name = "pa_application_config")
-public class ApplicationConfigEntity implements Serializable {
+@Table(name = "pa_config_store")
+public class ConfigStoreEntity implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = -7670843254389928550L;
+    private static final long serialVersionUID = 8312842631321330043L;
 
     @Id
-    @SequenceGenerator(name = "pa_application_config", sequenceName = "pa_app_conf_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_config")
+    @SequenceGenerator(name = "pa_config_store", sequenceName = "pa_config_store_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_config_store")
     @Column(name = "id")
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
-    @Column(name = "config_key", nullable = false)
-    private String key;
+    @ManyToOne
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
+    private ActivationRecordEntity activation;
 
-    @Column(name = "config_values", columnDefinition = "CLOB")
-    private String values = "[]";
+    @Enumerated(EnumType.STRING)
+    @Column(name = "config_scope", nullable = false)
+    private ConfigScope scope;
+
+    @Column(name = "config_data", columnDefinition = "CLOB")
+    private String configData = "{}";
 
     @Enumerated(EnumType.STRING)
     @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
     private EncryptionAlgorithm encryptionAlgorithm;
+
+    @Column(name = "timestamp_created", nullable = false)
+    private Date timestampCreated = new Date();
+
+    @Column(name = "timestamp_last_updated")
+    private Date timestampLastUpdated;
 
     @Override
     public boolean equals(Object o) {
@@ -72,24 +87,24 @@ public class ApplicationConfigEntity implements Serializable {
         if (!ProxyUtils.getUserClass(this).equals(ProxyUtils.getUserClass(o))) {
             return false;
         }
-        final ApplicationConfigEntity other = (ApplicationConfigEntity) o;
+        final ConfigStoreEntity other = (ConfigStoreEntity) o;
         return Objects.equals(application, other.application) &&
-                Objects.equals(key, other.key) &&
-                Objects.equals(values, other.values);
+                Objects.equals(activation, other.activation) &&
+                scope == other.scope;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, key, values);
+        return Objects.hash(application, activation, scope);
     }
 
     @Override
     public String toString() {
-        return "ApplicationConfigEntity{" +
+        return "ConfigStoreEntity{" +
                 "id=" + id +
-                ", appId='" + application.getId() + '\'' +
-                ", key=" + key +
-                ", values=" + values +
+                ", appId='" + application.getId() + "'" +
+                ", activationId='" + (activation != null ? activation.getActivationId() : null) + "'" +
+                ", scope=" + scope +
                 ", encryptionMode=" + encryptionAlgorithm +
                 '}';
     }

@@ -37,3 +37,28 @@ GO
 CREATE NONCLUSTERED INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire) WHERE timestamp_block_expire IS NOT NULL;
 GO
 
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::1::Roman Strobl
+-- Create a new table pa_config_store
+CREATE TABLE pa_config_store (id bigint NOT NULL, application_id int NOT NULL, activation_id varchar(37), config_scope varchar(32) NOT NULL, config_data varchar (max), encryption_mode varchar(255) CONSTRAINT DF_pa_config_store_encryption_mode DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_updated datetime2(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::2::Roman Strobl
+-- Create a new sequence pa_config_store_seq
+CREATE SEQUENCE pa_config_store_seq START WITH 1 INCREMENT BY 50 CACHE 20;
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::3::Roman Strobl
+-- Create a new index on pa_config_store(application_id)
+CREATE NONCLUSTERED INDEX pa_config_store_application_id_idx ON pa_config_store(application_id);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::4::Roman Strobl
+-- Create a new index on pa_config_store(activation_id)
+CREATE NONCLUSTERED INDEX pa_config_store_activation_id_idx ON pa_config_store(activation_id);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::5::Roman Strobl
+-- Create a unique index on pa_config_store(application_id, activation_id, config_scope).
+CREATE UNIQUE NONCLUSTERED INDEX pa_config_store_application_id_activation_id_config_scope_idx ON pa_config_store(application_id, activation_id, config_scope);
+GO

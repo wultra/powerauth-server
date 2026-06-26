@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2026 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_config_store"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_config_store</comment>
+        <createTable tableName="pa_config_store">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="application_id" type="integer">
+                <constraints nullable="false" foreignKeyName="pa_config_store_application_id_fk" referencedTableName="pa_application" referencedColumnNames="id" />
+            </column>
+            <column name="activation_id" type="varchar(37)">
+                <constraints nullable="true" foreignKeyName="pa_config_store_activation_id_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id" />
+            </column>
+            <column name="config_scope" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="config_data" type="clob"/>
+            <column name="encryption_mode" type="varchar(255)" defaultValue="NO_ENCRYPTION">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_created" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_last_updated" type="timestamp"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_config_store_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_config_store_seq</comment>
+        <createSequence sequenceName="pa_config_store_seq" startValue="1" incrementBy="50" cacheSize="20"/>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_config_store" indexName="pa_config_store_application_id_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_config_store(application_id)</comment>
+        <createIndex tableName="pa_config_store" indexName="pa_config_store_application_id_idx">
+            <column name="application_id" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="4" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_config_store" indexName="pa_config_store_activation_id_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_config_store(activation_id)</comment>
+        <createIndex tableName="pa_config_store" indexName="pa_config_store_activation_id_idx">
+            <column name="activation_id" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="5" logicalFilePath="powerauth-java-server/2.2.x/20260602-config-store.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_config_scope_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a unique index on pa_config_store(application_id, activation_id, config_scope).</comment>
+        <createIndex tableName="pa_config_store" indexName="pa_config_store_application_id_activation_id_config_scope_idx" unique="true">
+            <column name="application_id" />
+            <column name="activation_id" />
+            <column name="config_scope" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
+

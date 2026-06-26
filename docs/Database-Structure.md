@@ -68,6 +68,27 @@ Stores configuration records for applications defined in the `pa_application` ta
 | encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption mode for stored values: `NO_ENCRYPTION` (plaintext), `AES_HMAC` (legacy), or `AEAD_KMAC` (current).                                                                                                                            |
 <!-- end -->
 
+<!-- begin database table pa_config_store -->
+### Configuration Store Table
+
+Stores the secure configuration store as a JSON document. A record is either application-level (when `activation_id` is `NULL`) or per-activation. The configuration is delivered to the mobile SDK over end-to-end encryption based on the configured scope.
+
+Uniqueness is enforced by a unique index on `(application_id, activation_id, config_scope)`, which constrains per-device records (`activation_id IS NOT NULL`) to at most one document per activation on every database.
+
+#### Columns
+
+| Name                   | Type         | Info                                       | Note                                                                                                           |
+|------------------------|--------------|--------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| id                     | BIGINT(20)   | primary key, autoincrement                 | Unique configuration store record identifier.                                                                  |
+| application_id         | BIGINT(20)   | NOT NULL, foreign key: pa\_application.id  | Related application ID.                                                                                        |
+| activation_id          | VARCHAR(37)  | foreign key: pa\_activation.activation\_id | Related activation ID. `NULL` for application-level records.                                                   |
+| config_scope           | VARCHAR(32)  | NOT NULL                                   | Configuration scope: `APPLICATION` or `ACTIVATION`.                                                            |
+| config_data            | TEXT         | -                                          | Configuration values serialized as a JSON document.                                                            |
+| encryption_mode        | varchar(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL           | Encryption mode for stored values: `NO_ENCRYPTION` (plaintext), `AES_HMAC` (legacy), or `AEAD_KMAC` (current). |
+| timestamp_created      | DATETIME     | NOT NULL                                   | Timestamp of the record creation.                                                                              |
+| timestamp_last_updated | DATETIME     | -                                          | Timestamp of the last record update.                                                                           |
+<!-- end -->
+
 <!-- begin database table pa_activation -->
 ### Activations Table
 

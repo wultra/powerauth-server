@@ -78,7 +78,7 @@ public class ApplicationConfigService {
 
     private ApplicationConfigEntity convert(final ApplicationConfig source) throws GenericServiceException {
         final ApplicationConfigEntity entity = new ApplicationConfigEntity();
-        entity.setRid(source.id());
+        entity.setId(source.id());
         entity.setApplication(source.application());
         entity.setKey(source.key());
 
@@ -95,9 +95,9 @@ public class ApplicationConfigService {
             final EncryptionKeySupplier keySupplier = encryptionKeySupplier(source);
             final String decrypted = encryptionService.decrypt(source.getValues(), keySupplier, source.getEncryptionAlgorithm());
             final List<Object> values = listToJsonConverter.convertToEntityAttribute(decrypted);
-            return new ApplicationConfig(source.getRid(), source.getApplication(), source.getKey(), values);
+            return new ApplicationConfig(source.getId(), source.getApplication(), source.getKey(), values);
         } catch (GenericServiceException e) {
-            logger.warn("Problem decrypting config ID: {}", source.getRid());
+            logger.warn("Problem decrypting config ID: {}", source.getId());
             return null;
         }
     }
