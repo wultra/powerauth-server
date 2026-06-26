@@ -487,12 +487,12 @@ REST endpoint: `POST /rest/v4/config-store/create`
 
 `CreateConfigItemResponse`
 
-| Type     | Name            | Description                      |
-|----------|-----------------|----------------------------------|
-| `String` | `applicationId` | An identifier of an application  |
-| `String` | `activationId`  | The activation ID, if per-device |
+| Type          | Name            | Description                      |
+|---------------|-----------------|----------------------------------|
+| `String`      | `applicationId` | An identifier of an application  |
+| `String`      | `activationId`  | The activation ID, if per-device |
 | `ConfigScope` | `scope`         | The resolved scope               |
-| `String` | `key`           | Configuration key                |
+| `String`      | `key`           | Configuration key                |
 
 ### Method 'listConfigItems'
 
