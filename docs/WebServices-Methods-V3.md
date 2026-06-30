@@ -38,6 +38,7 @@ The following `v3` methods are published using the service:
     - [updateStatusForActivations](#method-updatestatusforactivations)
 - Signature Verification
     - [verifySignature](#method-verifysignature)
+    - [signDataWithECDSA](#method-signdatawithecdsa)
     - [verifyECDSASignature](#method-verifyecdsasignature)
 - Offline Signatures
     - [createPersonalizedOfflineSignaturePayload](#method-createpersonalizedofflinesignaturepayload)
@@ -64,9 +65,6 @@ The following `v3` methods are published using the service:
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
     - [getEciesDecryptor](#method-geteciesdecryptor)
-- Activation Versioning
-    - [startUpgrade](#method-startupgrade)
-    - [commitUpgrade](#method-commitupgrade)
 - Activation Flags
     - [listActivationFlags](#method-listactivationflags)
     - [addActivationFlags](#method-addactivationflags)
@@ -86,7 +84,7 @@ The following `v3` methods are published using the service:
     - [findAllOperationsByExternalId](#method-findalloperationsbyexternalid)
     - [cancelOperation](#method-canceloperation)
     - [approveOperation](#method-approveoperation)
-    - [failApprovalOperation](#method-failapproveoperation)
+    - [failApprovalOperation](#method-failapprovaloperation)
     - [rejectOperation](#method-rejectoperation)
 - Operation Templates
     - [createOperationTemplate](#method-createoperationtemplate)
@@ -112,23 +110,21 @@ Get the server status information.
 
 REST endpoint: `POST /rest/v3/status`
 
-`GetSystemStatusRequest`
-
-- _no attributes_
+_Empty request body_
 
 #### Response
 
 `GetSystemStatusResponse`
 
-| Type       | Name                     | Description                                                                                                                                                               |
-|------------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`   | `status`                 | A constant value "OK".                                                                                                                                                    |
-| `String`   | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
-| `String`   | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
-| `String`   | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
-| `String`   | `version`                | Version of PowerAuth server.                                                                                                                                              |
-| `String`   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
-| `DateTime` | `timestamp`              | A current system timestamp.                                                                                                                                               |
+| Type     | Name                     | Description                                                                                                                                                               |
+|----------|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String` | `status`                 | A constant value "OK".                                                                                                                                                    |
+| `String` | `applicationName`        | A name of the application, the default value is `powerauth`. The value may be overriden by setting`powerauth.service.applicationName` property.                           |
+| `String` | `applicationDisplayName` | A human readable name of the application, default value is "PowerAuth Server". The value may be overriden by setting `powerauth.service.applicationDisplayName` property. |
+| `String` | `applicationEnvironment` | An identifier of the environment, by default, the value is empty. The value may be overriden by setting `powerauth.service.applicationEnvironment` property.              |
+| `String` | `version`                | Version of PowerAuth server.                                                                                                                                              |
+| `Date`   | `buildTime`              | Timestamp when the powerauth-server.war file was built.                                                                                                                   |
+| `Date`   | `timestamp`              | A current system timestamp.                                                                                                                                               |
 
 ### Method 'getErrorCodeList'
 
@@ -138,21 +134,17 @@ Get the list of all error codes that PowerAuth Server can return.
 
 REST endpoint: `POST /rest/v3/error/list`
 
-`GetErrorCodeListRequest`
-
-| Type     | Name       | Description          |
-|----------|------------|----------------------|
-| `String` | `language` | Language code (ISO). |
+_Empty request body_
 
 #### Response
 
 `GetErrorCodeListResponse`
 
-| Type      | Name     | Description             |
-|-----------|----------|-------------------------|
-| `Error[]` | `errors` | A collection of errors. |
+| Type              | Name     | Description             |
+|-------------------|----------|-------------------------|
+| `List<ErrorInfo>` | `errors` | A collection of errors. |
 
-`GetErrorCodeListResponse.Error`
+`ErrorInfo`
 
 | Type     | Name    | Description                             |
 |----------|---------|-----------------------------------------|
@@ -171,24 +163,22 @@ Get list of all applications that are present in this PowerAuth Server instance.
 
 REST endpoint: `POST /rest/v3/application/list`
 
-`GetApplicationListRequest`
-
-- _no attributes_
+_Empty request body_
 
 #### Response
 
 `GetApplicationListResponse`
 
-| Type            | Name           | Description                         |
-|-----------------|----------------|-------------------------------------|
-| `Application[]` | `applications` | A collection of application objects |
+| Type                | Name           | Description                         |
+|---------------------|----------------|-------------------------------------|
+| `List<Application>` | `applications` | A collection of application objects |
 
-`GetApplicationListRequest.Application`
+`Application`
 
-| Type       | Name               | Description                       |
-|------------|--------------------|-----------------------------------|
-| `String`   | `applicationId`    | Application ID                    |
-| `String[]` | `applicationRoles` | Roles assigned to the application |
+| Type           | Name               | Description                       |
+|----------------|--------------------|-----------------------------------|
+| `String`       | `applicationId`    | Application ID                    |
+| `List<String>` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'getApplicationDetail'
 
@@ -208,14 +198,14 @@ REST endpoint: `POST /rest/v3/application/detail`
 
 `GetApplicationDetailResponse`
 
-| Type        | Name               | Description                        |
-|-------------|--------------------|------------------------------------|
-| `String`    | `applicationId`    | An application ID                  |
-| `String[]`  | `applicationRoles` | Roles assigned to the application  |
-| `String`    | `masterPublicKey`  | Base64 encoded master public key   |
-| `Version[]` | `versions`         | Collection of application versions |
+| Type                       | Name               | Description                        |
+|----------------------------|--------------------|------------------------------------|
+| `String`                   | `applicationId`    | An application ID                  |
+| `String`                   | `masterPublicKey`  | Base64 encoded master public key   |
+| `List<String>`             | `applicationRoles` | Roles assigned to the application  |
+| `List<ApplicationVersion>` | `versions`         | Collection of application versions |
 
-`GetApplicationDetailResponse.Version`
+`ApplicationVersion`
 
 | Type      | Name                   | Description                                                                                                         |
 |-----------|------------------------|---------------------------------------------------------------------------------------------------------------------|
@@ -265,10 +255,11 @@ REST endpoint: `POST /rest/v3/application/create`
 
 `CreateApplicationResponse`
 
-| Type       | Name               | Description                       |
-|------------|--------------------|-----------------------------------|
-| `String`   | `applicationId`    | An identifier of an application   |
-| `String[]` | `applicationRoles` | Roles assigned to the application |
+| Type                       | Name               | Description                        |
+|----------------------------|--------------------|------------------------------------|
+| `String`                   | `applicationId`    | An identifier of an application    |
+| `List<String>`             | `applicationRoles` | Roles assigned to the application  |
+| `List<ApplicationVersion>` | `versions`         | Collection of application versions |
 
 ### Method 'createApplicationVersion'
 
@@ -289,12 +280,13 @@ REST endpoint: `POST /rest/v3/application/version/create`
 
 `CreateApplicationVersionResponse`
 
-| Type      | Name                   | Description                                                                     |
-|-----------|------------------------|---------------------------------------------------------------------------------|
-| `String`  | `applicationVersionId` | An identifier of an application version                                         |
-| `String`  | `applicationKey`       | A key (identifier) of an application, associated with given application version |
-| `String`  | `applicationSecret`    | An application secret associated with this version                              |
-| `boolean` | `supported`            | Flag indicating if this application is supported                                |
+| Type      | Name                     | Description                                                                     |
+|-----------|--------------------------|---------------------------------------------------------------------------------|
+| `String`  | `applicationVersionId`   | An identifier of an application version                                         |
+| `String`  | `applicationVersionName` | A name of the application version                                               |
+| `String`  | `applicationKey`         | A key (identifier) of an application, associated with given application version |
+| `String`  | `applicationSecret`      | An application secret associated with this version                              |
+| `boolean` | `supported`              | Flag indicating if this application is supported                                |
 
 ### Method 'unsupportApplicationVersion'
 
@@ -308,6 +300,7 @@ REST endpoint: `POST /rest/v3/application/version/unsupport`
 
 | Type     | Name                   | Description                             |
 |----------|------------------------|-----------------------------------------|
+| `String` | `applicationId`        | An identifier of an application         |
 | `String` | `applicationVersionId` | An identifier of an application version |
 
 #### Response
@@ -331,6 +324,7 @@ REST endpoint: `POST /rest/v3/application/version/support`
 
 | Type     | Name                   | Description                             |
 |----------|------------------------|-----------------------------------------|
+| `String` | `applicationId`        | An identifier of an application         |
 | `String` | `applicationVersionId` | An identifier of an application version |
 
 #### Response
@@ -452,18 +446,18 @@ REST endpoint: `POST /rest/v3/activation/init`
 
 | Type                      | Name                        | Description                                                                                                                         |
 |---------------------------|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `String`                  | `protocol`                  | Activation protocol. Allowed values: `powerauth`, `fido2`.                                                                          |
+| `ActivationProtocol`      | `protocol`                  | Activation protocol. Allowed values: `powerauth`, `fido2`.                                                                          |
 | `String`                  | `userId`                    | An identifier of a user.                                                                                                            |
 | `String`                  | `applicationId`             | An identifier of an application.                                                                                                    |
-| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore.                                                                    |
+| `Date`                    | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore.                                                                    |
 | `Long`                    | `maxFailureCount`           | How many failures are allowed for this activation.                                                                                  |
 | `ActivationOtpValidation` | `activationOtpValidation`   | *Deprecated* optional activation OTP validation mode.                                                                               |
 | `CommitPhase`             | `commitPhase`               | Optional parameter to specify when the activation should be committed. Allowed values: `ON_COMMIT` (default) and `ON_KEY_EXCHANGE`. |
 | `String`                  | `activationOtp`             | Optional activation OTP.                                                                                                            |
-| `String[]`                | `flags`                     | Optional list of activation flags.                                                                                                  |
-| `Object`                  | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure.                                              |
+| `List<String>`            | `flags`                     | Optional list of activation flags.                                                                                                  |
+| `Map<String, Object>`     | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure.                                              |
 | `String`                  | `parentActivationId`        | The parent activation ID. Mandatory when `transferType` is present.                                                                 |
-| `String`                  | `transferType`              | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.                                  |
+| `ActivationTransferType`  | `transferType`              | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.                                  |
 
 This section describes how to change the activation commit flow:
 - By default, the activation follows the state transition diagram described in [activation state documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation.md#activation-states). The activation gets committed by calling the [commit activation](#method-commitactivation) endpoint when it is in the `PENDING_COMMIT` state.
@@ -509,6 +503,7 @@ REST endpoint: `POST /rest/v3/activation/prepare`
 |----------|----------------------|-------------------------------------------------------------------------------------------|
 | `String` | `activationCode`     | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `applicationKey`     | A key (identifier) of an application, associated with given application version           |
+| `String` | `temporaryKeyId`     | Identifier of the temporary key for encryption                                            |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES                                           |
 | `String` | `encryptedData`      | Base64 encoded encrypted data for ECIES                                                   |
 | `String` | `mac`                | Base64 encoded mac of key and data for ECIES                                              |
@@ -528,13 +523,16 @@ ECIES request should contain following data (as JSON):
 
 `PrepareActivationResponse`
 
-| Type               | Name               | Description                                  |
-|--------------------|--------------------|----------------------------------------------|
-| `String`           | `activationId`     | A UUID4 identifier of an activation          |
-| `String`           | `userId`           | User ID                                      |
-| `String`           | `encryptedData`    | Base64 encoded encrypted data for ECIES      |
-| `String`           | `mac`              | Base64 encoded mac of key and data for ECIES |
-| `ActivationStatus` | `activationStatus` | An activation status                         |
+| Type               | Name               | Description                                      |
+|--------------------|--------------------|--------------------------------------------------|
+| `String`           | `activationId`     | A UUID4 identifier of an activation              |
+| `String`           | `userId`           | User ID                                          |
+| `String`           | `applicationId`    | An identifier of an application                  |
+| `String`           | `encryptedData`    | Base64 encoded encrypted data for ECIES          |
+| `String`           | `mac`              | Base64 encoded mac of key and data for ECIES     |
+| `String`           | `nonce`            | Base64 encoded nonce for IV derivation for ECIES |
+| `Long`             | `timestamp`        | Unix timestamp in milliseconds for ECIES         |
+| `ActivationStatus` | `activationStatus` | An activation status                             |
 
 ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
@@ -555,20 +553,21 @@ REST endpoint: `POST /rest/v3/activation/create`
 
 `CreateActivationRequest`
 
-| Type       | Name                        | Description                                                                           |
-|------------|-----------------------------|---------------------------------------------------------------------------------------|
-| `String`   | `userId`                    | User ID                                                                               |
-| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                       |
-| `Long`     | `maxFailureCount`           | How many failures are allowed for this activation                                     |
-| `String`   | `applicationKey`            | A key (identifier) of an application, associated with given application version       |
-| `String`   | `ephemeralPublicKey`        | A base64 encoded ephemeral public key for ECIES                                       |
-| `String`   | `encryptedData`             | Base64 encoded encrypted data for ECIES                                               |
-| `String`   | `mac`                       | Base64 encoded mac of key and data for ECIES                                          |
-| `String`   | `nonce`                     | Base64 encoded nonce for IV derivation for ECIES                                      |
-| `String`   | `activationOtp`             | Optional activation OTP                                                               |
-| `String`   | `protocolVersion`           | Cryptography protocol version                                                         |
-| `Long`     | `timestamp`                 | Unix timestamp in milliseconds for ECIES                                              |
-| `Object`   | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure |
+| Type                  | Name                        | Description                                                                           |
+|-----------------------|-----------------------------|---------------------------------------------------------------------------------------|
+| `String`              | `userId`                    | User ID                                                                               |
+| `Date`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore                       |
+| `Long`                | `maxFailureCount`           | How many failures are allowed for this activation                                     |
+| `String`              | `applicationKey`            | A key (identifier) of an application, associated with given application version       |
+| `String`              | `temporaryKeyId`            | Identifier of the temporary key for encryption                                        |
+| `String`              | `ephemeralPublicKey`        | A base64 encoded ephemeral public key for ECIES                                       |
+| `String`              | `encryptedData`             | Base64 encoded encrypted data for ECIES                                               |
+| `String`              | `mac`                       | Base64 encoded mac of key and data for ECIES                                          |
+| `String`              | `nonce`                     | Base64 encoded nonce for IV derivation for ECIES                                      |
+| `String`              | `activationOtp`             | Optional activation OTP                                                               |
+| `String`              | `protocolVersion`           | Cryptography protocol version                                                         |
+| `Long`                | `timestamp`                 | Unix timestamp in milliseconds for ECIES                                              |
+| `Map<String, Object>` | `additionalData`            | The activation's custom attributes set through a private API in a free JSON structure |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -581,11 +580,16 @@ ECIES request should contain following data (as JSON):
 
 `CreateActivationResponse`
 
-| Type     | Name            | Description                                  |
-|----------|-----------------|----------------------------------------------|
-| `String` | `activationId`  | A UUID4 identifier of an activation          |
-| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES      |
-| `String` | `mac`           | Base64 encoded mac of key and data for ECIES |
+| Type               | Name               | Description                                      |
+|--------------------|--------------------|--------------------------------------------------|
+| `String`           | `activationId`     | A UUID4 identifier of an activation              |
+| `String`           | `userId`           | User ID                                          |
+| `String`           | `applicationId`    | An identifier of an application                  |
+| `String`           | `encryptedData`    | Base64 encoded encrypted data for ECIES          |
+| `String`           | `mac`              | Base64 encoded mac of key and data for ECIES     |
+| `String`           | `nonce`            | Base64 encoded nonce for IV derivation for ECIES |
+| `Long`             | `timestamp`        | Unix timestamp in milliseconds for ECIES         |
+| `ActivationStatus` | `activationStatus` | An activation status                             |
 
 ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
@@ -635,8 +639,8 @@ REST endpoint: `POST /rest/v3/activation/name/update`
 | Type     | Name             | Description                                                                                       |
 |----------|------------------|---------------------------------------------------------------------------------------------------|
 | `String` | `activationId`   | An identifier of an activation.                                                                   |
-| `String` | `externalUserId` | User ID of user who changes the activation. Use null value if activation owner caused the change. |
 | `String` | `activationName` | A new value of activation name.                                                                   |
+| `String` | `externalUserId` | User ID of user who changes the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -687,9 +691,10 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusRequest`
 
-| Type     | Name           | Description                    |
-|----------|----------------|--------------------------------|
-| `String` | `activationId` | An identifier of an activation |
+| Type     | Name           | Description                                     |
+|----------|----------------|-------------------------------------------------|
+| `String` | `activationId` | An identifier of an activation                  |
+| `String` | `challenge`    | Challenge for activation status blob encryption |
 
 #### Response
 
@@ -704,28 +709,29 @@ REST endpoint: `POST /rest/v3/activation/status`
 | `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                                   |
 | `String`                  | `activationName`             | An activation name                                                                                           |
 | `String`                  | `userId`                     | An identifier of a user                                                                                      |
-| `String`                  | `protocol`                   | Activation protocol (`powerauth` or `fido2`)                                                                 |
-| `String`                  | `externalId`                 | External ID associated with activation                                                                       |
 | `String`                  | `extras`                     | Any custom attributes set through SDK                                                                        |
+| `ActivationProtocol`      | `protocol`                   | Activation protocol (`powerauth` or `fido2`)                                                                 |
+| `String`                  | `externalId`                 | External ID associated with activation                                                                       |
 | `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                              |
 | `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                                             |
+| `String`                  | `applicationId`              | An identifier of an application                                                                              |
 | `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                                                 |
 | `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                                                 |
-| `String[]`                | `activationFlags`            | Activation flags                                                                                             |
-| `String`                  | `applicationId`              | An identifier of an application                                                                              |
-| `String[]`                | `applicationRoles`           | Application roles                                                                                            |
-| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                                                  |
-| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                                                |
-| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                                                 |
-| `DateTime`                | `timestampBlockExpire`       | A timestamp after which a temporary activation block is expired, not applicable for cryptography protocol v3 |
+| `Date`                    | `timestampCreated`           | A timestamp when the activation was created                                                                  |
+| `Date`                    | `timestampLastUsed`          | A timestamp when the activation was last used                                                                |
+| `Date`                    | `timestampLastChange`        | A timestamp of last activation status change                                                                 |
+| `Date`                    | `timestampBlockExpire`       | A timestamp after which a temporary activation block is expired, not applicable for cryptography protocol v3 |
 | `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                                    |
+| `String`                  | `encryptedStatusBlobNonce`   | Nonce used for encryption of the status blob                                                                 |
 | `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character                    |
 | `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                                           |
 | `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification                        |
-| `Long`                    | `version`                    | Activation version                                                                                           |
+| `long`                    | `version`                    | Activation version                                                                                           |
+| `List<String>`            | `activationFlags`            | Activation flags                                                                                             |
+| `List<String>`            | `applicationRoles`           | Application roles                                                                                            |
 | `Object`                  | `additionalData`             | The activation's custom attributes set through a private API in a free JSON structure                        |
 | `String`                  | `parentActivationId`         | The parent activation ID. Mandatory when `transferType` is present.                                          |
-| `String`                  | `transferType`               | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.           |
+| `ActivationTransferType`  | `transferType`               | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.           |
 
 ### Method 'removeActivation'
 
@@ -761,52 +767,52 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
-| Type                 | Name                 | Description                                                                                                                                                                     |
-|----------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`             | `userId`             | An identifier of a user                                                                                                                                                         |
-| `String`             | `applicationId`      | An identifier of an application                                                                                                                                                 |
-| `ActivationStatus[]` | `activationStatuses` | Optional statuses according to which activations should be filtered. Return all activations if empty.                                                                           |
-| `Integer`            | `pageNumber`         | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
-| `Integer`            | `pageSize`           | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
-| `String[]`           | `protocols`          | Optional. Filter activations by activation protocol (`powerauth`, `fido2`).                                                                                                     |
+| Type                      | Name                 | Description                                                                                                                                                                     |
+|---------------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`                  | `userId`             | An identifier of a user                                                                                                                                                         |
+| `String`                  | `applicationId`      | An identifier of an application                                                                                                                                                 |
+| `Set<ActivationProtocol>` | `protocols`          | Optional. Filter activations by activation protocol (`powerauth`, `fido2`).                                                                                                     |
+| `Integer`                 | `pageNumber`         | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`                 | `pageSize`           | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| `Set<ActivationStatus>`   | `activationStatuses` | Optional statuses according to which activations should be filtered. Return all activations if empty.                                                                           |
 
 #### Response
 
 `GetActivationListForUserResponse`
 
-| Type           | Name          | Description                                                                              |
-|----------------|---------------|------------------------------------------------------------------------------------------|
-| `String`       | `userId`      | An identifier of a user                                                                  |
-| `Activation[]` | `activations` | A collection of activations for the given user ordered by `timestampCreated` descending. |
+| Type               | Name          | Description                                                                              |
+|--------------------|---------------|------------------------------------------------------------------------------------------|
+| `String`           | `userId`      | An identifier of a user                                                                  |
+| `List<Activation>` | `activations` | A collection of activations for the given user ordered by `timestampCreated` descending. |
 
-`GetActivationListForUserResponse.Activation`
+`Activation`
 
-| Type               | Name                    | Description                                                                                                                                                                        |
-|--------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`           | `activationId`          | An identifier of an activation                                                                                                                                                     |
-| `ActivationStatus` | `activationStatus`      | An activation status                                                                                                                                                               |
-| `String`           | `blockedReason`         | Reason why activation was blocked (default: NOT_SPECIFIED)                                                                                                                         |
-| `String`           | `activationName`        | An activation name                                                                                                                                                                 |
-| `String`           | `externalId`            | External ID associated with activation                                                                                                                                             |
-| `String`           | `protocol`              | Activation protocol (`powerauth`, `fido2`)                                                                                                                                         |
-| `String`           | `applicationName`       | Application name                                                                                                                                                                   |
-| `String`           | `extras`                | Any custom attributes set through SDK                                                                                                                                              |
-| `String`           | `platform`              | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                                                                                                    |
-| `String`           | `deviceInfo`            | Information about user device, e.g. `iPhone12,3`                                                                                                                                   |
-| `String[]`         | `activationFlags`       | Activation flags                                                                                                                                                                   |
-| `DateTime`         | `timestampCreated`      | A timestamp when the activation was created                                                                                                                                        |
-| `DateTime`         | `timestampLastUsed`     | A timestamp when the activation was last used                                                                                                                                      |
-| `DateTime`         | `timestampLastChange`   | A timestamp of last activation status change                                                                                                                                       |
-| `DateTime`         | `timestampBlockExpire`  | Timestamp after which a temporary activation block is automatically lifted (applies only to activations using cryptography protocol v4, null when no temporary block is in effect) |
-| `String`           | `userId`                | An identifier of a user                                                                                                                                                            |
-| `String`           | `applicationId`         | An identifier of an application                                                                                                                                                    |
-| `Long`             | `failedAttempts`        | Information about number of failed attempts.                                                                                                                                       |
-| `Long`             | `maxFailedAttempts`     | Information about maximum number of allowed failed attempts.                                                                                                                       |
-| `String`           | `devicePublicKeyBase64` | Base64 encoded device public key                                                                                                                                                   |
-| `Long`             | `version`               | Activation version                                                                                                                                                                 |
-| `Object`           | `additionalData`        | The activation's custom attributes set through a private API in a free JSON structure                                                                                              |
-| `String`           | `parentActivationId`    | The parent activation ID. Mandatory when `transferType` is present.                                                                                                                |
-| `String`           | `transferType`          | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.                                                                                 |
+| Type                     | Name                    | Description                                                                                                                                                                        |
+|--------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`                 | `activationId`          | An identifier of an activation                                                                                                                                                     |
+| `ActivationStatus`       | `activationStatus`      | An activation status                                                                                                                                                               |
+| `String`                 | `blockedReason`         | Reason why activation was blocked (default: NOT_SPECIFIED)                                                                                                                         |
+| `String`                 | `activationName`        | An activation name                                                                                                                                                                 |
+| `String`                 | `externalId`            | External ID associated with activation                                                                                                                                             |
+| `String`                 | `extras`                | Any custom attributes set through SDK                                                                                                                                              |
+| `ActivationProtocol`     | `protocol`              | Activation protocol (`powerauth`, `fido2`)                                                                                                                                         |
+| `String`                 | `platform`              | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                                                                                                    |
+| `String`                 | `deviceInfo`            | Information about user device, e.g. `iPhone12,3`                                                                                                                                   |
+| `List<String>`           | `activationFlags`       | Activation flags                                                                                                                                                                   |
+| `Date`                   | `timestampCreated`      | A timestamp when the activation was created                                                                                                                                        |
+| `Date`                   | `timestampLastUsed`     | A timestamp when the activation was last used                                                                                                                                      |
+| `Date`                   | `timestampLastChange`   | A timestamp of last activation status change                                                                                                                                       |
+| `String`                 | `userId`                | An identifier of a user                                                                                                                                                            |
+| `String`                 | `applicationId`         | An identifier of an application                                                                                                                                                    |
+| `String`                 | `applicationName`       | Application name                                                                                                                                                                   |
+| `long`                   | `failedAttempts`        | Information about number of failed attempts.                                                                                                                                       |
+| `long`                   | `maxFailedAttempts`     | Information about maximum number of allowed failed attempts.                                                                                                                       |
+| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key                                                                                                                                                   |
+| `long`                   | `version`               | Activation version                                                                                                                                                                 |
+| `Date`                   | `timestampBlockExpire`  | Timestamp after which a temporary activation block is automatically lifted (applies only to activations using cryptography protocol v4, null when no temporary block is in effect) |
+| `Object`                 | `additionalData`        | The activation's custom attributes set through a private API in a free JSON structure                                                                                              |
+| `String`                 | `parentActivationId`    | The parent activation ID. Mandatory when `transferType` is present.                                                                                                                |
+| `ActivationTransferType` | `transferType`          | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.                                                                                 |
 
 
 ### Method 'blockActivation'
@@ -869,41 +875,51 @@ REST endpoint: `POST /rest/v3/activation/lookup`
 
 `LookupActivationsRequest`
 
-| Type       | Name                      | Description                                                                                                                                                    |
-|------------|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`   | `userIds`                 | User IDs to use in query, at least one user ID needs to be specified                                                                                           |
-| `String[]` | `applicationIds`          | Application IDs to use in the query, do not specify value for all applications                                                                                 |
-| `String`   | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
-| `String`   | `timestampLastUsedAfter`  | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used     |
-| `String`   | `activationStatus`        | Filter activations by their status, do not specify value for any status                                                                                        |
-| `String[]` | `activationFlags`         | Filter activations by activation flags                                                                                                                         |
+| Type               | Name                      | Description                                                                                                                                                    |
+|--------------------|---------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `List<String>`     | `userIds`                 | User IDs to use in query, at least one user ID needs to be specified                                                                                           |
+| `List<String>`     | `applicationIds`          | Application IDs to use in the query, do not specify value for all applications                                                                                 |
+| `Date`             | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
+| `Date`             | `timestampLastUsedAfter`  | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used     |
+| `ActivationStatus` | `activationStatus`        | Filter activations by their status, do not specify value for any status                                                                                        |
+| `List<String>`     | `activationFlags`         | Filter activations by activation flags                                                                                                                         |
 
 #### Response
 
 `LookupActivationsResponse`
 
-| `Activation[]` | `activations` | A collection of activations for given query parameters |
+| Type               | Name          | Description                                            |
+|--------------------|---------------|--------------------------------------------------------|
+| `List<Activation>` | `activations` | A collection of activations for given query parameters |
 
-`LookupActivationsResponse.Activation`
+`Activation`
 
-| Type               | Name                   | Description                                                                                                  |
-|--------------------|------------------------|--------------------------------------------------------------------------------------------------------------|
-| `String`           | `activationId`         | An identifier of an activation                                                                               |
-| `ActivationStatus` | `activationStatus`     | An activation status                                                                                         |
-| `String`           | `blockedReason`        | Reason why activation was blocked (default: NOT_SPECIFIED)                                                   |
-| `String`           | `activationName`       | An activation name                                                                                           |
-| `String`           | `extras`               | Any custom attributes set through SDK                                                                        |
-| `String`           | `platform`             | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                              |
-| `String`           | `deviceInfo`           | Information about user device, e.g. `iPhone12,3`                                                             |
-| `String[]`         | `activationFlags`      | Activation flags                                                                                             |
-| `DateTime`         | `timestampCreated`     | A timestamp when the activation was created                                                                  |
-| `DateTime`         | `timestampLastUsed`    | A timestamp when the activation was last used                                                                |
-| `DateTime`         | `timestampLastChange`  | A timestamp of last activation status change                                                                 |
-| `DateTime`         | `timestampBlockExpire` | A timestamp after which a temporary activation block is expired, not applicable for cryptography protocol v3 |
-| `String`           | `userId`               | An identifier of a user                                                                                      |
-| `String`           | `applicationId`        | An identifier of an application                                                                              |
-| `Long`             | `version`              | Activation version                                                                                           |
-| `Object`           | `additionalData`       | The activation's custom attributes set through a private API in a free JSON structure                        |
+| Type                     | Name                    | Description                                                                                                  |
+|--------------------------|-------------------------|--------------------------------------------------------------------------------------------------------------|
+| `String`                 | `activationId`          | An identifier of an activation                                                                               |
+| `ActivationStatus`       | `activationStatus`      | An activation status                                                                                         |
+| `String`                 | `blockedReason`         | Reason why activation was blocked (default: NOT_SPECIFIED)                                                   |
+| `String`                 | `activationName`        | An activation name                                                                                           |
+| `String`                 | `externalId`            | External ID associated with activation                                                                       |
+| `String`                 | `extras`                | Any custom attributes set through SDK                                                                        |
+| `ActivationProtocol`     | `protocol`              | Activation protocol (`powerauth`, `fido2`)                                                                   |
+| `String`                 | `platform`              | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                                              |
+| `String`                 | `deviceInfo`            | Information about user device, e.g. `iPhone12,3`                                                             |
+| `List<String>`           | `activationFlags`       | Activation flags                                                                                             |
+| `Date`                   | `timestampCreated`      | A timestamp when the activation was created                                                                  |
+| `Date`                   | `timestampLastUsed`     | A timestamp when the activation was last used                                                                |
+| `Date`                   | `timestampLastChange`   | A timestamp of last activation status change                                                                 |
+| `String`                 | `userId`                | An identifier of a user                                                                                      |
+| `String`                 | `applicationId`         | An identifier of an application                                                                              |
+| `String`                 | `applicationName`       | Application name                                                                                             |
+| `long`                   | `failedAttempts`        | Information about number of failed attempts.                                                                 |
+| `long`                   | `maxFailedAttempts`     | Information about maximum number of allowed failed attempts.                                                 |
+| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key                                                                             |
+| `long`                   | `version`               | Activation version                                                                                           |
+| `Date`                   | `timestampBlockExpire`  | A timestamp after which a temporary activation block is expired, not applicable for cryptography protocol v3 |
+| `Object`                 | `additionalData`        | The activation's custom attributes set through a private API in a free JSON structure                        |
+| `String`                 | `parentActivationId`    | The parent activation ID. Mandatory when `transferType` is present.                                          |
+| `ActivationTransferType` | `transferType`          | The activation transfer type (`SPAWN`, or `MOVE`). Mandatory when `parentActivationId` is present.           |
 
 ### Method 'updateStatusForActivations'
 
@@ -917,7 +933,7 @@ REST endpoint: `POST /rest/v3/activation/status/update`
 
 | Type               | Name               | Description                                                 |
 |--------------------|--------------------|-------------------------------------------------------------|
-| `String[]`         | `activationIds`    | Identifiers of activations whose status needs to be updated |
+| `List<String>`     | `activationIds`    | Identifiers of activations whose status needs to be updated |
 | `ActivationStatus` | `activationStatus` | Activation status to use when updating the activations      |
 
 #### Response
@@ -950,7 +966,7 @@ REST endpoint: `POST /rest/v3/signature/verify`
 | `String`        | `signature`              | PowerAuth signature                                                             |
 | `SignatureType` | `signatureType`          | PowerAuth signature type                                                        |
 | `String`        | `signatureVersion`       | PowerAuth signature version                                                     |
-| `Long`          | `forcedSignatureVersion` | Forced signature version used during activation upgrade                         |
+| `Integer`       | `forcedSignatureVersion` | Forced signature version used during activation upgrade                         |
 
 #### Response
 
@@ -958,14 +974,39 @@ REST endpoint: `POST /rest/v3/signature/verify`
 
 | Type               | Name                | Description                                                                         |
 |--------------------|---------------------|-------------------------------------------------------------------------------------|
-| `Boolean`          | `signatureValid`    | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| `boolean`          | `signatureValid`    | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
 | `ActivationStatus` | `activationStatus`  | An activation status                                                                |
 | `String`           | `blockedReason`     | Reason why activation was blocked (default: NOT_SPECIFIED)                          |
 | `String`           | `activationId`      | An identifier of an activation                                                      |
 | `String`           | `userId`            | An identifier of a user                                                             |
 | `String`           | `applicationId`     | An identifier of the application                                                    |
 | `SignatureType`    | `signatureType`     | Type of the signature that was used for the computation of the signature.           |
-| `Integer`          | `remainingAttempts` | How many attempts are left for authentication using this activation                 |
+| `BigInteger`       | `remainingAttempts` | How many attempts are left for authentication using this activation                 |
+| `List<String>`     | `applicationRoles`  | Roles assigned to the application                                                   |
+| `List<String>`     | `activationFlags`   | Activation flags for the activation                                                 |
+
+### Method 'signDataWithECDSA'
+
+Calculate asymmetric ECDSA signature for given activation and data.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/signature/ecdsa/sign`
+
+`SignECDSARequest`
+
+| Type     | Name           | Description                    |
+|----------|----------------|--------------------------------|
+| `String` | `activationId` | An identifier of an activation |
+| `String` | `data`         | Base64 encoded data to sign    |
+
+#### Response
+
+`SignECDSAResponse`
+
+| Type     | Name        | Description                    |
+|----------|-------------|--------------------------------|
+| `String` | `signature` | Base64 encoded ECDSA signature |
 
 ### Method 'verifyECDSASignature'
 
@@ -990,7 +1031,7 @@ REST endpoint: `POST /rest/v3/signature/ecdsa/verify`
 
 | Type      | Name             | Description                                                                               |
 |-----------|------------------|-------------------------------------------------------------------------------------------|
-| `Boolean` | `signatureValid` | Indicates if the ECDSA signature was correctly validated or if it was invalid (incorrect) |
+| `boolean` | `signatureValid` | Indicates if the ECDSA signature was correctly validated or if it was invalid (incorrect) |
 
 ### Method 'createPersonalizedOfflineSignaturePayload'
 
@@ -1002,14 +1043,19 @@ REST endpoint: `POST /rest/v3/signature/offline/personalized/create`
 
 `CreatePersonalizedOfflineSignaturePayloadRequest`
 
-| Type      | Name                        | Description                                                                                                                                                                                   |
-|-----------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`  | `activationId`              | An identifier of an activation                                                                                                                                                                |
-| `String`  | `data`                      | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
-| `String`  | `nonce`                     | Optional nonce (16 bytes base64 encoded into 24 characters), otherwise it will be generated by PowerAuth server. Needed to be set when proximity check is enabled.                            |
-| `Object`  | `proximityCheck`            | Optional parameters for proximity TOTP.                                                                                                                                                       |
-| `String`  | `proximityCheck.seed`       | Seed for TOTP, base64 encoded.                                                                                                                                                                |
-| `Integer` | `proximityCheck.stepLength` | Length of the TOTP step in seconds.                                                                                                                                                           |
+| Type                   | Name             | Description                                                                                                                                                                                   |
+|------------------------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`               | `activationId`   | An identifier of an activation                                                                                                                                                                |
+| `String`               | `data`           | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
+| `String`               | `nonce`          | Optional nonce (16 bytes base64 encoded into 24 characters), otherwise it will be generated by PowerAuth server. Needed to be set when proximity check is enabled.                            |
+| `CreateProximityCheck` | `proximityCheck` | Optional parameters for proximity TOTP.                                                                                                                                                       |
+
+`CreateProximityCheck`
+
+| Type     | Name         | Description                         |
+|----------|--------------|-------------------------------------|
+| `String` | `seed`       | Seed for TOTP, base64 encoded.      |
+| `int`    | `stepLength` | Length of the TOTP step in seconds. |
 
 #### Response
 
@@ -1054,17 +1100,22 @@ REST endpoint: `POST /rest/v3/signature/offline/verify`
 
 `VerifyOfflineSignatureRequest`
 
-| Type         | Name                        | Description                                                                     |
-|--------------|-----------------------------|---------------------------------------------------------------------------------|
-| `String`     | `activationId`              | An identifier of an activation                                                  |
-| `String`     | `data`                      | Base64 encoded normalized data for the signature                                |
-| `String`     | `signature`                 | Actual signature value                                                          |
-| `BigInteger` | `componentLength`           | Authentication component length                                                 |
-| `boolean`    | `allowBiometry`             | Whether biometry is allowed in offline mode                                     |
-| `Object`     | `proximityCheck`            | Optional parameters for proximity TOTP.                                         |
-| `String`     | `proximityCheck.seed`       | Seed for TOTP, base64 encoded.                                                  |
-| `Integer`    | `proximityCheck.stepLength` | Length of the TOTP step in seconds.                                             |
-| `Integer`    | `proximityCheck.stepCount`  | Count how many backward steps should be validated. Zero means current one only. |
+| Type                   | Name              | Description                                      |
+|------------------------|-------------------|--------------------------------------------------|
+| `String`               | `activationId`    | An identifier of an activation                   |
+| `String`               | `data`            | Base64 encoded normalized data for the signature |
+| `String`               | `signature`       | Actual signature value                           |
+| `BigInteger`           | `componentLength` | Authentication component length                  |
+| `boolean`              | `allowBiometry`   | Whether biometry is allowed in offline mode      |
+| `VerifyProximityCheck` | `proximityCheck`  | Optional parameters for proximity TOTP.          |
+
+`VerifyProximityCheck`
+
+| Type     | Name         | Description                                                                     |
+|----------|--------------|---------------------------------------------------------------------------------|
+| `String` | `seed`       | Seed for TOTP, base64 encoded.                                                  |
+| `int`    | `stepLength` | Length of the TOTP step in seconds.                                             |
+| `int`    | `stepCount`  | Count how many backward steps should be validated. Zero means current one only. |
 
 #### Response
 
@@ -1079,9 +1130,9 @@ REST endpoint: `POST /rest/v3/signature/offline/verify`
 | `String`           | `userId`            | An identifier of a user                                                             |
 | `String`           | `applicationId`     | An identifier of the application                                                    |
 | `SignatureType`    | `signatureType`     | Type of the signature that was used for the computation of the signature.           |
-| `Integer`          | `remainingAttempts` | How many attempts are left for authentication using this activation                 |
-| `String[]`         | `applicationRoles`  | Roles assigned to the application                                                   |
-| `String[]`         | `activationFlags`   | Activation flags for the activation                                                 |
+| `BigInteger`       | `remainingAttempts` | How many attempts are left for authentication using this activation                 |
+| `List<String>`     | `applicationRoles`  | Roles assigned to the application                                                   |
+| `List<String>`     | `activationFlags`   | Activation flags for the activation                                                 |
 
 ## Token Based Authentication
 
@@ -1099,6 +1150,7 @@ REST endpoint: `POST /rest/v3/token/create`
 |-----------------|----------------------|---------------------------------------------------------------------------------|
 | `String`        | `activationId`       | An identifier of an activation.                                                 |
 | `String`        | `applicationKey`     | A key (identifier) of an application, associated with given application version |
+| `String`        | `temporaryKeyId`     | Identifier of the temporary key for encryption                                  |
 | `String`        | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES                                 |
 | `String`        | `encryptedData`      | Base64 encoded encrypted data for ECIES                                         |
 | `String`        | `mac`                | Base64 encoded mac of key and data for ECIES                                    |
@@ -1116,10 +1168,12 @@ ECIES request should contain following data (an empty JSON object):
 
 `CreateTokenResponse`
 
-| Type     | Name            | Description                                  |
-|----------|-----------------|----------------------------------------------|
-| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES      |
-| `String` | `mac`           | Base64 encoded mac of key and data for ECIES |
+| Type     | Name            | Description                                      |
+|----------|-----------------|--------------------------------------------------|
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES          |
+| `String` | `mac`           | Base64 encoded mac of key and data for ECIES     |
+| `String` | `nonce`         | Base64 encoded nonce for IV derivation for ECIES |
+| `Long`   | `timestamp`     | Unix timestamp in milliseconds for ECIES         |
 
 ECIES response contains following data (example):
 ```json
@@ -1145,22 +1199,23 @@ REST endpoint: `POST /rest/v3/token/validate`
 | `String` | `tokenDigest`     | Digest computed during the token based authentication. |
 | `String` | `nonce`           | Cryptographic nonce. Random 16B, Base64 encoded.       |
 | `String` | `protocolVersion` | Cryptography protocol version                          |
-| `Long`   | `timestamp`       | Token digest timestamp, Unix timestamp format.         |
+| `long`   | `timestamp`       | Token digest timestamp, Unix timestamp format.         |
 
 #### Response
 
 `ValidateTokenResponse`
 
-| Type               | Name               | Description                                                                |
-|--------------------|--------------------|----------------------------------------------------------------------------|
-| `boolean`          | `tokenValid`       | Information about the validation result - if true, token digest was valid. |
-| `String`           | `activationId`     | An identifier of an activation                                             |
-| `ActivationStatus` | `activationStatus` | An activation status at the moment of a token verification                 |
-| `String`           | `userId`           | An identifier of a user                                                    |
-| `String`           | `applicationId`    | An identifier of the application                                           |
-| `SignatureType`    | `signatureType`    | Type of the signature that was used for the computation of the signature.  |
-| `String[]`         | `applicationRoles` | Roles assigned to the application                                          |
-| `String[]`         | `activationFlags`  | Activation flags for the activation                                        |
+| Type               | Name               | Description                                                                              |
+|--------------------|--------------------|------------------------------------------------------------------------------------------|
+| `boolean`          | `tokenValid`       | Information about the validation result - if true, token digest was valid.               |
+| `String`           | `activationId`     | An identifier of an activation                                                           |
+| `ActivationStatus` | `activationStatus` | An activation status at the moment of a token verification                               |
+| `String`           | `blockedReason`    | Reason why activation was blocked in case activation is blocked (default: NOT_SPECIFIED) |
+| `String`           | `userId`           | An identifier of a user                                                                  |
+| `String`           | `applicationId`    | An identifier of the application                                                         |
+| `SignatureType`    | `signatureType`    | Type of the signature that was used for the computation of the signature.                |
+| `List<String>`     | `applicationRoles` | Roles assigned to the application                                                        |
+| `List<String>`     | `activationFlags`  | Activation flags for the activation                                                      |
 
 ### Method 'removeToken'
 
@@ -1206,6 +1261,8 @@ REST endpoint: `POST /rest/v3/vault/unlock`
 | `String`        | `signedData`         | Base64 encoded data for the signature                                           |
 | `String`        | `signature`          | PowerAuth signature                                                             |
 | `SignatureType` | `signatureType`      | PowerAuth signature type                                                        |
+| `String`        | `signatureVersion`   | PowerAuth signature version                                                     |
+| `String`        | `temporaryKeyId`     | Identifier of the temporary key for encryption                                  |
 | `String`        | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES                                 |
 | `String`        | `encryptedData`      | Base64 encoded encrypted data for ECIES                                         |
 | `String`        | `mac`                | Base64 encoded mac of key and data for ECIES                                    |
@@ -1236,6 +1293,8 @@ You can provide following reasons for a vault unlocking:
 | `String`  | `encryptedData`  | Base64 encoded encrypted data for ECIES                                             |
 | `String`  | `mac`            | Base64 encoded mac of key and data for ECIES                                        |
 | `boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| `String`  | `nonce`          | Base64 encoded nonce for IV derivation for ECIES                                    |
+| `Long`    | `timestamp`      | Unix timestamp in milliseconds for ECIES                                            |
 
 ECIES response contains following data (example):
 ```json
@@ -1259,43 +1318,43 @@ REST endpoint: `POST /rest/v3/signature/list`
 
 `SignatureAuditRequest`
 
-| Type       | Name            | Description                           |
-|------------|-----------------|---------------------------------------|
-| `String`   | `userId`        | An identifier of a user               |
-| `String`   | `applicationId` | An identifier of an application       |
-| `DateTime` | `timestampFrom` | Timestamp from which to fetch the log |
-| `DateTime` | `timestampTo`   | Timestamp to which to fetch the log   |
+| Type     | Name            | Description                           |
+|----------|-----------------|---------------------------------------|
+| `String` | `userId`        | An identifier of a user               |
+| `String` | `applicationId` | An identifier of an application       |
+| `Date`   | `timestampFrom` | Timestamp from which to fetch the log |
+| `Date`   | `timestampTo`   | Timestamp to which to fetch the log   |
 
 #### Response
 
 `SignatureAuditResponse`
 
-| Type     | Name    | Description                        |
-|----------|---------|------------------------------------|
-| `Item[]` | `items` | Collection of signature audit logs |
+| Type                       | Name    | Description                        |
+|----------------------------|---------|------------------------------------|
+| `List<SignatureAuditItem>` | `items` | Collection of signature audit logs |
 
-`SignatureAuditResponse.Item`
+`SignatureAuditItem`
 
-| Type               | Name                | Description                                                    |
-|--------------------|---------------------|----------------------------------------------------------------|
-| `Long`             | `id`                | Record ID                                                      |
-| `String`           | `userId`            | An identifier of a user                                        |
-| `String`           | `applicationId`     | An identifier of an application                                |
-| `String`           | `activationId`      | An identifier of an activation                                 |
-| `Long`             | `activationCounter` | A counter value at the moment of a signature verification      |
-| `String`           | `activationCtrData` | Base64 encoded hash based counter data                         |
-| `ActivationStatus` | `activationStatus`  | An activation status at the moment of a signature verification |
-| `KeyValueMap`      | `additionalInfo`    | Key-value map with additional information                      |
-| `String`           | `dataBase64`        | A base64 encoded data sent with the signature                  |
-| `String`           | `signatureVersion`  | Requested signature version                                    |
-| `String`           | `signatureType`     | Requested signature type                                       |
-| `String`           | `signatureAlgorithm`| Algorithm used for the signature (symmetric: `PowerAuth-V3`, or `PowerAuth-V4`; asymmetric: `ECDSA_P256`, `ECDSA_P384`, `MLDSA_65`, or `MLDSA_87`) |
-| `String`           | `signatureFormat`   | Format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`) |
-| `String`           | `signature`         | Submitted value of a signature                                 |
-| `String`           | `note`              | Extra info about the result of the signature verification      |
-| `boolean`          | `valid`             | Flag indicating if the provided signature was valid            |
-| `long`             | `version`           | Activation version                                             |
-| `DateTime`         | `timestampCreated`  | Timestamp when the record was created                          |
+| Type               | Name                 | Description                                                                                                                                        |
+|--------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `long`             | `id`                 | Record ID                                                                                                                                          |
+| `String`           | `userId`             | An identifier of a user                                                                                                                            |
+| `String`           | `applicationId`      | An identifier of an application                                                                                                                    |
+| `String`           | `activationId`       | An identifier of an activation                                                                                                                     |
+| `long`             | `activationCounter`  | A counter value at the moment of a signature verification                                                                                          |
+| `String`           | `activationCtrData`  | Base64 encoded hash based counter data                                                                                                             |
+| `ActivationStatus` | `activationStatus`   | An activation status at the moment of a signature verification                                                                                     |
+| `List<KeyValue>`   | `additionalInfo`     | Key-value map with additional information                                                                                                          |
+| `String`           | `dataBase64`         | A base64 encoded data sent with the signature                                                                                                      |
+| `String`           | `signatureVersion`   | Requested signature version                                                                                                                        |
+| `String`           | `signatureType`      | Requested signature type                                                                                                                           |
+| `String`           | `signatureAlgorithm` | Algorithm used for the signature (symmetric: `PowerAuth-V3`, or `PowerAuth-V4`; asymmetric: `ECDSA_P256`, `ECDSA_P384`, `MLDSA_65`, or `MLDSA_87`) |
+| `String`           | `signatureFormat`    | Format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`)                                                           |
+| `String`           | `signature`          | Submitted value of a signature                                                                                                                     |
+| `String`           | `note`               | Extra info about the result of the signature verification                                                                                          |
+| `boolean`          | `valid`              | Flag indicating if the provided signature was valid                                                                                                |
+| `long`             | `version`            | Activation version                                                                                                                                 |
+| `Date`             | `timestampCreated`   | Timestamp when the record was created                                                                                                              |
 
 ## Activation history
 
@@ -1311,32 +1370,32 @@ REST endpoint: `POST /rest/v3/activation/history`
 
 `ActivationHistoryRequest`
 
-| Type       | Name            | Description                               |
-|------------|-----------------|-------------------------------------------|
-| `String`   | `activationId`  | Activation ID                             |
-| `DateTime` | `timestampFrom` | Timestamp from which to fetch the changes |
-| `DateTime` | `timestampTo`   | Timestamp to which to fetch the changes   |
+| Type     | Name            | Description                               |
+|----------|-----------------|-------------------------------------------|
+| `String` | `activationId`  | Activation ID                             |
+| `Date`   | `timestampFrom` | Timestamp from which to fetch the changes |
+| `Date`   | `timestampTo`   | Timestamp to which to fetch the changes   |
 
 #### Response
 
 `ActivationHistoryResponse`
 
-| Type     | Name    | Description                          |
-|----------|---------|--------------------------------------|
-| `Item[]` | `items` | Collection of activation change logs |
+| Type                          | Name    | Description                          |
+|-------------------------------|---------|--------------------------------------|
+| `List<ActivationHistoryItem>` | `items` | Collection of activation change logs |
 
-`ActivationHistoryResponse.Item`
+`ActivationHistoryItem`
 
 | Type               | Name               | Description                                                                                            |
 |--------------------|--------------------|--------------------------------------------------------------------------------------------------------|
-| `Long`             | `id`               | Change ID                                                                                              |
+| `long`             | `id`               | Change ID                                                                                              |
 | `String`           | `activationId`     | An identifier of an activation                                                                         |
 | `ActivationStatus` | `activationStatus` | Activation status at this moment                                                                       |
 | `String`           | `eventReason`      | Reason why this activation history record was created (default: null)                                  |
 | `String`           | `externalUserId`   | User ID of user who modified the activation. Null value is used if activation owner caused the change. |
 | `String`           | `activationName`   | Activation name.                                                                                       |
-| `DateTime`         | `timestampCreated` | Timestamp when the record was created                                                                  |
-| `long`             | `version`          | Activation version                                                                                     |
+| `Date`             | `timestampCreated` | Timestamp when the record was created                                                                  |
+| `Long`             | `version`          | Activation version                                                                                     |
 
 ## Integration management
 
@@ -1375,19 +1434,18 @@ Get the list of all integrations that are configured on the server instance.
 
 REST endpoint: `POST /rest/v3/integration/list`
 
-`GetIntegrationListRequest`
-
-- _no attributes_
+_Empty request body_
 
 #### Response
 
 `GetIntegrationListResponse`
 
-| Type     | Name    | Description                        |
-|----------|---------|------------------------------------|
-| `Item[]` | `items` | Collection of integration records. |
+| Type                | Name               | Description                           |
+|---------------------|--------------------|---------------------------------------|
+| `boolean`           | `restrictedAccess` | Whether restricted access is enabled. |
+| `List<Integration>` | `items`            | Collection of integration records.    |
 
-`GetIntegrationListResponse.Item`
+`Integration`
 
 | Type     | Name           | Description                                            |
 |----------|----------------|--------------------------------------------------------|
@@ -1492,7 +1550,7 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
   },
-  "oauth2": {
+  "oAuth2": {
     "enabled": false,
     "clientId": "[OAuth2 client ID]",
     "clientSecret": "[OAuth2 client secret]",
@@ -1533,8 +1591,8 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 |-----------------------------|-------------------|----------------------------------------------------------------------------------------------------------------------------|
 | `String`                    | `id`              | Callback URL identifier (UUID4).                                                                                           |
 | `String`                    | `applicationId`   | Associated application ID.                                                                                                 |
-| `CallbackUrlType`           | `type`            | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`.                                      |
 | `String`                    | `name`            | Callback URL name, for visual identification.                                                                              |
+| `CallbackUrlType`           | `type`            | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`.                                      |
 | `String`                    | `callbackUrl`     | Callback URL that should be notified about activation status updates.                                                      |
 | `List<String>`              | `attributes`      | Attributes which should be sent with the callback. See possible attributes bellow.                                         |
 | `HttpAuthenticationPrivate` | `authentication`  | Callback HTTP request authentication configuration.                                                                        |
@@ -1593,7 +1651,7 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "username": "[HTTP basic authentication username]",
     "password": "[HTTP basic authentication password]"
   },
-  "oauth2": {
+  "oAuth2": {
     "enabled": false,
     "clientId": "[OAuth2 client ID]",
     "clientSecret": "[OAuth2 client secret]",
@@ -1643,9 +1701,9 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 
 | Type                | Name              | Description        |
 |---------------------|-------------------|--------------------|
-| `CallbackUrlList[]` | `callbackUrlList` | Callback URL list. |
+| `List<CallbackUrl>` | `callbackUrlList` | Callback URL list. |
 
-`GetCallbackUrlListResponse.CallbackUrlList`
+`CallbackUrl`
 
 | Type                       | Name              | Description                                                                                                                |
 |----------------------------|-------------------|----------------------------------------------------------------------------------------------------------------------------|
@@ -1699,6 +1757,7 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 |----------|----------------------|----------------------------------------------------------------------------------------------------------|
 | `String` | `activationId`       | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey`     | A key (identifier) of an application, associated with given application version                          |
+| `String` | `temporaryKeyId`     | Identifier of the temporary key for encryption                                                           |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES                                                          |
 | `String` | `nonce`              | Base64 encoded nonce for IV derivation for ECIES                                                         |
 | `String` | `protocolVersion`    | Cryptography protocol version                                                                            |
@@ -1712,63 +1771,6 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 |----------|---------------|-------------------------------------|
 | `String` | `secretKey`   | Base64 encoded secret key for ECIES |
 | `String` | `sharedInfo2` | The sharedInfo2 parameter for ECIES |
-
-## Activation versioning
-
-### Method 'startUpgrade'
-
-Upgrade activation to the most recent version supported by the server.
-
-Upgrade is performed between major activation versions, e.g. upgrade from version `2` to version `3`. 
-
-#### Request
-
-REST endpoint: `POST /rest/v3/upgrade/start`
-
-`StartUpgradeRequest`
-
-| Type     | Name                 | Description                                                                                              |
-|----------|----------------------|----------------------------------------------------------------------------------------------------------|
-| `String` | `activationId`       | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
-| `String` | `applicationKey`     | A key (identifier) of an application, associated with given application version                          |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES                                                          |
-| `String` | `encryptedData`      | Base64 encoded encrypted data for ECIES                                                                  |
-| `String` | `mac`                | Base64 encoded mac of key and data for ECIES                                                             |
-| `String` | `nonce`              | Base64 encoded nonce for IV derivation for ECIES                                                         |
-| `String` | `protocolVersion`    | Cryptography protocol version                                                                            |
-| `Long`   | `timestamp`          | Unix timestamp in milliseconds for ECIES                                                                 |
-
-#### Response
-
-`StartUpgradeResponse`
-
-| Type     | Name            | Description                                  |
-|----------|-----------------|----------------------------------------------|
-| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES      |
-| `String` | `mac`           | Base64 encoded mac of key and data for ECIES |
-
-### Method 'commitUpgrade'
-
-Commit activation upgrade.
-
-#### Request
-
-REST endpoint: `POST /rest/v3/upgrade/commit`
-
-`CommitUpgradeRequest`
-
-| Type     | Name             | Description                                                                                              |
-|----------|------------------|----------------------------------------------------------------------------------------------------------|
-| `String` | `activationId`   | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version                          |
-
-#### Response
-
-`CommitUpgradeResponse`
-
-| Type      | Name        | Description                                         |
-|-----------|-------------|-----------------------------------------------------|
-| `boolean` | `committed` | Flag specifying if activation upgrade was committed |
 
 ## Activation Flags
 
@@ -1790,10 +1792,10 @@ REST endpoint: `POST /rest/v3/activation/flags/list`
 
 `ListActivationFlagsResponse`
 
-| Type       | Name              | Description                            |
-|------------|-------------------|----------------------------------------|
-| `String`   | `activationId`    | The UUID4 identifier of the activation |
-| `String[]` | `activationFlags` | Activation flags for the activation    |
+| Type           | Name              | Description                            |
+|----------------|-------------------|----------------------------------------|
+| `String`       | `activationId`    | The UUID4 identifier of the activation |
+| `List<String>` | `activationFlags` | Activation flags for the activation    |
 
 ### Method `addActivationFlags`
 
@@ -1805,19 +1807,19 @@ REST endpoint: `POST /rest/v3/activation/flags/create`
 
 `AddActivationFlagsRequest`
 
-| Type       | Name              | Description                                    |
-|------------|-------------------|------------------------------------------------|
-| `String`   | `activationId`    | A UUID4 identifier of an activation            |
-| `String[]` | `activationFlags` | Activation flags to be added to the activation |
+| Type           | Name              | Description                                    |
+|----------------|-------------------|------------------------------------------------|
+| `String`       | `activationId`    | A UUID4 identifier of an activation            |
+| `List<String>` | `activationFlags` | Activation flags to be added to the activation |
 
 #### Response
 
 `AddActivationFlagsResponse`
 
-| Type       | Name              | Description                                            |
-|------------|-------------------|--------------------------------------------------------|
-| `String`   | `activationId`    | The UUID4 identifier of the activation                 |
-| `String[]` | `activationFlags` | Activation flags for the activation after the addition |
+| Type           | Name              | Description                                            |
+|----------------|-------------------|--------------------------------------------------------|
+| `String`       | `activationId`    | The UUID4 identifier of the activation                 |
+| `List<String>` | `activationFlags` | Activation flags for the activation after the addition |
 
 ### Method `updateActivationFlags`
 
@@ -1829,19 +1831,19 @@ REST endpoint: `POST /rest/v3/activation/flags/update`
 
 `UpdateActivationFlagsRequest`
 
-| Type       | Name              | Description                         |
-|------------|-------------------|-------------------------------------|
-| `String`   | `activationId`    | A UUID4 identifier of an activation |
-| `String[]` | `activationFlags` | Activation flags for the update     |
+| Type           | Name              | Description                         |
+|----------------|-------------------|-------------------------------------|
+| `String`       | `activationId`    | A UUID4 identifier of an activation |
+| `List<String>` | `activationFlags` | Activation flags for the update     |
 
 #### Response
 
 `UpdateActivationFlagsResponse`
 
-| Type       | Name              | Description                                          |
-|------------|-------------------|------------------------------------------------------|
-| `String`   | `activationId`    | The UUID4 identifier of the activation               |
-| `String[]` | `activationFlags` | Activation flags for the activation after the update |
+| Type           | Name              | Description                                          |
+|----------------|-------------------|------------------------------------------------------|
+| `String`       | `activationId`    | The UUID4 identifier of the activation               |
+| `List<String>` | `activationFlags` | Activation flags for the activation after the update |
 
 ### Method `removeActivationFlags`
 
@@ -1853,19 +1855,19 @@ REST endpoint: `POST /rest/v3/activation/flags/remove`
 
 `RemoveActivationFlagsRequest`
 
-| Type       | Name              | Description                                        |
-|------------|-------------------|----------------------------------------------------|
-| `String`   | `activationId`    | A UUID4 identifier of an activation                |
-| `String[]` | `activationFlags` | Activation flags to be removed from the activation |
+| Type           | Name              | Description                                        |
+|----------------|-------------------|----------------------------------------------------|
+| `String`       | `activationId`    | A UUID4 identifier of an activation                |
+| `List<String>` | `activationFlags` | Activation flags to be removed from the activation |
 
 #### Response
 
 `RemoveActivationFlagsResponse`
 
-| Type       | Name              | Description                                           |
-|------------|-------------------|-------------------------------------------------------|
-| `String`   | `activationId`    | The UUID4 identifier of the activation                |
-| `String[]` | `activationFlags` | Activation flags for the activation after the removal |
+| Type           | Name              | Description                                           |
+|----------------|-------------------|-------------------------------------------------------|
+| `String`       | `activationId`    | The UUID4 identifier of the activation                |
+| `List<String>` | `activationFlags` | Activation flags for the activation after the removal |
 
 ## Application Roles
 
@@ -1887,10 +1889,10 @@ REST endpoint: `POST /rest/v3/application/roles/list`
 
 `ListApplicationRolesResponse`
 
-| Type       | Name               | Description                                   |
-|------------|--------------------|-----------------------------------------------|
-| `String`   | `applicationId`    | The identifier of the application             |
-| `String[]` | `applicationRoles` | Application roles assigned to the application |
+| Type           | Name               | Description                                   |
+|----------------|--------------------|-----------------------------------------------|
+| `String`       | `applicationId`    | The identifier of the application             |
+| `List<String>` | `applicationRoles` | Application roles assigned to the application |
 
 ### Method `addApplicationRoles`
 
@@ -1902,19 +1904,19 @@ REST endpoint: `POST /rest/v3/application/roles/create`
 
 `AddApplicationRolesRequest`
 
-| Type       | Name               | Description                                      |
-|------------|--------------------|--------------------------------------------------|
-| `String`   | `applicationId`    | An identifier of an application                  |
-| `String[]` | `applicationRoles` | Application roles to be added to the application |
+| Type           | Name               | Description                                      |
+|----------------|--------------------|--------------------------------------------------|
+| `String`       | `applicationId`    | An identifier of an application                  |
+| `List<String>` | `applicationRoles` | Application roles to be added to the application |
 
 #### Response
 
 `AddApplicationRolesResponse`
 
-| Type       | Name               | Description                                                      |
-|------------|--------------------|------------------------------------------------------------------|
-| `String`   | `applicationId`    | The identifier of the application                                |
-| `String[]` | `applicationRoles` | Application roles assigned to the application after the addition |
+| Type           | Name               | Description                                                      |
+|----------------|--------------------|------------------------------------------------------------------|
+| `String`       | `applicationId`    | The identifier of the application                                |
+| `List<String>` | `applicationRoles` | Application roles assigned to the application after the addition |
 
 ### Method `updateApplicationRoles`
 
@@ -1926,19 +1928,19 @@ REST endpoint: `POST /rest/v3/application/roles/update`
 
 `UpdateApplicationRolesRequest`
 
-| Type       | Name               | Description                                         |
-|------------|--------------------|-----------------------------------------------------|
-| `String`   | `applicationId`    | An identifier of an application                     |
-| `String[]` | `applicationRoles` | Application roles to be assigned to the application |
+| Type           | Name               | Description                                         |
+|----------------|--------------------|-----------------------------------------------------|
+| `String`       | `applicationId`    | An identifier of an application                     |
+| `List<String>` | `applicationRoles` | Application roles to be assigned to the application |
 
 #### Response
 
 `UpdateApplicationRolesResponse`
 
-| Type       | Name               | Description                                                    |
-|------------|--------------------|----------------------------------------------------------------|
-| `String`   | `applicationId`    | The identifier of the application                              |
-| `String[]` | `applicationRoles` | Application roles assigned to the application after the update |
+| Type           | Name               | Description                                                    |
+|----------------|--------------------|----------------------------------------------------------------|
+| `String`       | `applicationId`    | The identifier of the application                              |
+| `List<String>` | `applicationRoles` | Application roles assigned to the application after the update |
 
 ### Method `removeApplicationRoles`
 
@@ -1950,19 +1952,19 @@ REST endpoint: `POST /rest/v3/application/roles/remove`
 
 `RemoveApplicationRolesRequest`
 
-| Type       | Name               | Description                                          |
-|------------|--------------------|------------------------------------------------------|
-| `String`   | `applicationId`    | An identifier of an application                      |
-| `String[]` | `applicationRoles` | Application roles to be removed from the application |
+| Type           | Name               | Description                                          |
+|----------------|--------------------|------------------------------------------------------|
+| `String`       | `applicationId`    | An identifier of an application                      |
+| `List<String>` | `applicationRoles` | Application roles to be removed from the application |
 
 #### Response
 
 `RemoveApplicationRolesResponse`
 
-| Type       | Name               | Description                                                     |
-|------------|--------------------|-----------------------------------------------------------------|
-| `String`   | `applicationId`    | An identifier of an application                                 |
-| `String[]` | `applicationRoles` | Application roles assigned to the application after the removal |
+| Type           | Name               | Description                                                     |
+|----------------|--------------------|-----------------------------------------------------------------|
+| `String`       | `applicationId`    | An identifier of an application                                 |
+| `List<String>` | `applicationRoles` | Application roles assigned to the application after the removal |
 
 ## Operations
 
@@ -1986,7 +1988,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 | `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                                              |
 | `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                                   |
 | `Map<String, Object>` | `additionalData`        | Operation context, such as the IP address of the caller                                                             |
-| `boolean`             | `proximityCheckEnabled` | Whether proximity check should be used, overrides configuration from operation template                             |
+| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used, overrides configuration from operation template                             |
 | `String`              | `activationId`          | Activation ID. It is possible to specify a single device (otherwise all user's activations are taken into account). |
 
 #### Response
@@ -2008,7 +2010,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2050,7 +2052,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2093,7 +2095,7 @@ REST endpoint: `POST /rest/v3/operation/claim`
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2112,13 +2114,13 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 `OperationListForUserRequest`
 
-| Type      | Name            | Description                                                                                                                                                                     |
-|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
-| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
-| `String`  | `activationId`  | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
-| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
-| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| Type           | Name           | Description                                                                                                                                                                     |
+|----------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`       | `userId`       | The identifier of the user                                                                                                                                                      |
+| `List<String>` | `applications` | Associated application identifiers                                                                                                                                              |
+| `Integer`      | `pageNumber`   | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`      | `pageSize`     | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| `String`       | `activationId` | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
 
 
 #### Response
@@ -2142,7 +2144,7 @@ A collection of records with the following structure:
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2161,13 +2163,13 @@ REST endpoint: `POST /rest/v3/operation/list`
 
 `OperationListForUserRequest`
 
-| Type      | Name            | Description                                                                                                                                                                     |
-|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
-| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
-| `String`  | `activationId`  | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
-| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
-| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| Type           | Name           | Description                                                                                                                                                                     |
+|----------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`       | `userId`       | The identifier of the user                                                                                                                                                      |
+| `List<String>` | `applications` | Associated application identifiers                                                                                                                                              |
+| `Integer`      | `pageNumber`   | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`      | `pageSize`     | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| `String`       | `activationId` | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
 
 
 #### Response
@@ -2191,7 +2193,7 @@ A collection of records with the following structure:
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2200,7 +2202,7 @@ A collection of records with the following structure:
 | `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
 | `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
-### Method 'findAllOperationsByExternalID'
+### Method 'findAllOperationsByExternalId'
 
 Get the list of operations by external ID.
 
@@ -2210,12 +2212,12 @@ REST endpoint: `POST /rest/v3/operation/list/external`
 
 `OperationExtIdRequest`
 
-| Type      | Name            | Description                                                                                                                                                                     |
-|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`  | `externalId`    | The external identifier of the operation                                                                                                                                        |
-| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
-| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
-| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| Type           | Name           | Description                                                                                                                                                                     |
+|----------------|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`       | `externalId`   | The external identifier of the operation                                                                                                                                        |
+| `List<String>` | `applications` | Associated application identifiers                                                                                                                                              |
+| `Integer`      | `pageNumber`   | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`      | `pageSize`     | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 
 #### Response
@@ -2239,7 +2241,7 @@ A collection of records with the following structure:
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2258,10 +2260,11 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 
 `OperationCancelRequest`
 
-| Type     | Name           | Description                                                                                                                      |
-|----------|----------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `String` | `operationId`  | The identifier of the operation                                                                                                  |
-| `String` | `statusReason` | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| Type                  | Name             | Description                                                                                                                      |
+|-----------------------|------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `String`              | `operationId`    | The identifier of the operation                                                                                                  |
+| `Map<String, Object>` | `additionalData` | Operation context, such as the IP address of the caller                                                                          |
+| `String`              | `statusReason`   | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
 
 #### Response
 
@@ -2282,7 +2285,7 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 | `OperationStatus`     | `status`             | Status of the operation                                                          |
 | `String`              | `statusReason`       | Optional details why the status has changed in machine-readable format           |
 | `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
-| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                               |
 | `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
 | `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
@@ -2308,30 +2311,7 @@ REST endpoint: `POST /rest/v3/operation/approve`
 | `String`              | `applicationId`  | The identifier of the application                                |
 | `String`              | `data`           | Operation data that the user attempts to approve                 |
 | `SignatureType`       | `signatureType`  | Signature type used when approving the operation                 |
-| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller          |
-
-#### Response
-
-`OperationUserActionResponse`
-
-| Type               | Name     | Description                   |
-|--------------------|----------|-------------------------------|
-| `UserActionResult` | `result` | The result of the user action |
-| `OperationDetailResponse` | `operation` | Operation detail              |
-
-### Method 'failApproveOperation'
-
-Fail approval of an operation to increment the failed attempt counter by one.
-
-#### Request
-
-REST endpoint: `POST /rest/v3/operation/approve/fail`
-
-`OperationFailApprovalRequest`
-
-| Type     | Name          | Description                     |
-|----------|---------------|---------------------------------|
-| `String` | `operationId` | The identifier of the operation |
+| `Map<String, Object>` | `additionalData` | Operation context, such as the IP address of the caller          |
 
 #### Response
 
@@ -2341,6 +2321,82 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 |---------------------------|-------------|-------------------------------|
 | `UserActionResult`        | `result`    | The result of the user action |
 | `OperationDetailResponse` | `operation` | Operation detail              |
+
+`OperationDetailResponse`
+
+| Type                  | Name                 | Description                                                                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                                                                       |
+| `List<String>`        | `applications`       | List of associated applications                                                                                                  |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system                                                           |
+| `String`              | `activationFlag`     | Activation flag associated with the operation                                                                                    |
+| `String`              | `operationType`      | Type of the operation created based on the template                                                                              |
+| `String`              | `templateName`       | Template name used when creating this operation                                                                                  |
+| `String`              | `data`               | Operation data                                                                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                                                                |
+| `Map<String, Object>` | `additionalData`     | Operation context, such as the IP address of the caller                                                                          |
+| `OperationStatus`     | `status`             | Status of the operation                                                                                                          |
+| `String`              | `statusReason`       | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| `List<SignatureType>` | `signatureType`      | Allowed signature types                                                                                                          |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                                                                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                                                                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                                                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expire / expired                                                                            |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status                                                             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.                                                           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                                                                         |
+
+### Method 'failApprovalOperation'
+
+Fail approval of an operation to increment the failed attempt counter by one.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/approve/fail`
+
+`OperationFailApprovalRequest`
+
+| Type                  | Name             | Description                                             |
+|-----------------------|------------------|---------------------------------------------------------|
+| `String`              | `operationId`    | The identifier of the operation                         |
+| `Map<String, Object>` | `additionalData` | Operation context, such as the IP address of the caller |
+
+#### Response
+
+`OperationUserActionResponse`
+
+| Type                      | Name        | Description                   |
+|---------------------------|-------------|-------------------------------|
+| `UserActionResult`        | `result`    | The result of the user action |
+| `OperationDetailResponse` | `operation` | Operation detail              |
+
+`OperationDetailResponse`
+
+| Type                  | Name                 | Description                                                                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                                                                       |
+| `List<String>`        | `applications`       | List of associated applications                                                                                                  |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system                                                           |
+| `String`              | `activationFlag`     | Activation flag associated with the operation                                                                                    |
+| `String`              | `operationType`      | Type of the operation created based on the template                                                                              |
+| `String`              | `templateName`       | Template name used when creating this operation                                                                                  |
+| `String`              | `data`               | Operation data                                                                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                                                                |
+| `Map<String, Object>` | `additionalData`     | Operation context, such as the IP address of the caller                                                                          |
+| `OperationStatus`     | `status`             | Status of the operation                                                                                                          |
+| `String`              | `statusReason`       | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| `List<SignatureType>` | `signatureType`      | Allowed signature types                                                                                                          |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                                                                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                                                                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                                                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expire / expired                                                                            |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status                                                             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.                                                           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                                                                         |
 
 ### Method 'rejectOperation'
 
@@ -2367,6 +2423,32 @@ REST endpoint: `POST /rest/v3/operation/reject`
 |---------------------------|-------------|-------------------------------|
 | `UserActionResult`        | `result`    | The result of the user action |
 | `OperationDetailResponse` | `operation` | Operation detail              |
+
+`OperationDetailResponse`
+
+| Type                  | Name                 | Description                                                                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                                                                       |
+| `List<String>`        | `applications`       | List of associated applications                                                                                                  |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system                                                           |
+| `String`              | `activationFlag`     | Activation flag associated with the operation                                                                                    |
+| `String`              | `operationType`      | Type of the operation created based on the template                                                                              |
+| `String`              | `templateName`       | Template name used when creating this operation                                                                                  |
+| `String`              | `data`               | Operation data                                                                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                                                                |
+| `Map<String, Object>` | `additionalData`     | Operation context, such as the IP address of the caller                                                                          |
+| `OperationStatus`     | `status`             | Status of the operation                                                                                                          |
+| `String`              | `statusReason`       | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| `List<SignatureType>` | `signatureType`      | Allowed signature types                                                                                                          |
+| `long`                | `failureCount`       | The current number of the failed approval attempts                                                                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                                                                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                                                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expire / expired                                                                            |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status                                                             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.                                                           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                                                                         |
 
 
 ## Operation Templates
@@ -2533,9 +2615,11 @@ REST endpoint: `POST /rest/v3/keystore/create`
 
 `TemporaryPublicKeyRequest`
 
-| Type                  | Name                      | Description                                                                  |
-|-----------------------|---------------------------|------------------------------------------------------------------------------|
-| `String`              | `jwt`                     | Signed JWT payload (HS256) with `TemporaryPublicKeyRequestClaims` structure. |
+| Type     | Name  | Description                                                                  |
+|----------|-------|------------------------------------------------------------------------------|
+| `String` | `jwt` | Signed JWT payload (HS256) with `TemporaryPublicKeyRequestClaims` structure. |
+
+The `jwt` field contains a signed JWT whose claims follow the `TemporaryPublicKeyRequestClaims` structure:
 
 `TemporaryPublicKeyRequestClaims`
 
@@ -2549,9 +2633,11 @@ REST endpoint: `POST /rest/v3/keystore/create`
 
 `TemporaryPublicKeyResponse`
 
-| Type                  | Name                      | Description                                                                   |
-|-----------------------|---------------------------|-------------------------------------------------------------------------------|
-| `String`              | `jwt`                     | Signed JWT payload (ES256) with `TemporaryPublicKeyResponseClaims` structure. |
+| Type     | Name  | Description                                                                   |
+|----------|-------|-------------------------------------------------------------------------------|
+| `String` | `jwt` | Signed JWT payload (ES256) with `TemporaryPublicKeyResponseClaims` structure. |
+
+The `jwt` field contains a signed JWT whose claims follow the `TemporaryPublicKeyResponseClaims` structure:
 
 `TemporaryPublicKeyResponseClaims`
 
@@ -2598,7 +2684,7 @@ Generate a telemetry report.
 
 #### Request
 
-REST endpoint: `POST /rest/v4/telemetry/report`
+REST endpoint: `POST /rest/v3/telemetry/report`
 
 `TelemetryReportRequest`
 
@@ -2641,6 +2727,22 @@ This chapter lists all enums used by PowerAuth Server services.
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
 
+- `ActivationProtocol` - Represents the activation protocol, one of the following values:
+    - POWERAUTH
+    - FIDO2
+
+- `ActivationTransferType` - Represents the activation transfer type:
+    - SPAWN - a new activation is spawned from a parent
+    - MOVE - the activation is moved from the parent to a new device
+
+- `ECDSASignatureFormat` - Represents the ECDSA signature format:
+    - DER - Distinguished Encoding Rules binary format
+    - JOSE - JSON Object Signing and Encryption compact format
+
+- `CallbackUrlType` - Represents the callback URL event type:
+    - ACTIVATION_STATUS_CHANGE
+    - OPERATION_STATUS_CHANGE
+
 - `OperationStatus` - Represents the possible operation status
     - PENDING
     - CANCELED
@@ -2658,9 +2760,84 @@ This chapter lists all enums used by PowerAuth Server services.
 
 ## Used complex types
 
-This chapter lists complex types used by PowerAuth Server services.
+This chapter lists complex types used by PowerAuth Server services. Complex types already documented inline in endpoint sections above are `ErrorInfo`, `Application`, `ApplicationVersion`, `Activation`, `SignatureAuditItem`, `ActivationHistoryItem`, `Integration`, and `CallbackUrl`.
 
-- `KeyValueMap` - Represents a map for storing key-value entries:
-    - entry - list of entries (0..n)
-        - key - String-based key
-        - value - String-based value
+- `KeyValue` - Represents a key-value entry:
+    - `key` (`String`) - String-based key
+    - `value` (`String`) - String-based value
+
+- `Duration` - Represents an ISO 8601 duration string (e.g. `PT10S` for 10 seconds, `P1D` for 1 day). Maps to `java.time.Duration`.
+
+- `ApplicationConfigurationItem` - Represents an application configuration entry:
+    - `key` (`String`) - Configuration key name
+    - `values` (`List<Object>`) - Configuration values
+
+- `CreateProximityCheck` - Represents optional proximity TOTP configuration for personalized offline signatures:
+    - `seed` (`String`) - Seed for TOTP, base64 encoded
+    - `stepLength` (`int`) - Length of the TOTP step in seconds
+
+- `VerifyProximityCheck` - Represents optional proximity TOTP configuration for offline signature verification:
+    - `seed` (`String`) - Seed for TOTP, base64 encoded
+    - `stepLength` (`int`) - Length of the TOTP step in seconds
+    - `stepCount` (`int`) - Number of backward steps that should be validated
+
+- `TemporaryPublicKeyRequestClaims` - Represents JWT claims for temporary key creation requests:
+    - `applicationKey` (`String`) - Application key
+    - `activationId` (`String`) - Activation ID
+    - `challenge` (`String`) - Random challenge
+
+- `TemporaryPublicKeyResponseClaims` - Represents JWT claims for temporary key creation responses:
+    - `applicationKey` (`String`) - Application key
+    - `activationId` (`String`) - Activation ID
+    - `challenge` (`String`) - Random challenge
+    - `keyId` (`String`) - Unique key pair ID
+    - `publicKey` (`String`) - Public key encoded in Base64
+    - `expiration` (`Date`    ) - Expiration timestamp
+
+- `HttpAuthenticationPrivate` - HTTP request authentication configuration for callback creation/update requests:
+    - `certificate` (`Certificate`)
+        - `enabled` (`boolean`)
+        - `useCustomKeyStore` (`boolean`)
+        - `keyStoreLocation` (`String`)
+        - `keyStoreContent` (`String`)
+        - `keyStorePassword` (`String`)
+        - `keyAlias` (`String`)
+        - `keyPassword` (`String`)
+        - `useCustomTrustStore` (`boolean`)
+        - `trustStoreLocation` (`String`)
+        - `trustStoreContent` (`String`)
+        - `trustStorePassword` (`String`)
+    - `httpBasic` (`HttpBasic`)
+        - `enabled` (`boolean`)
+        - `username` (`String`)
+        - `password` (`String`)
+    - `oAuth2` (`OAuth2`)
+        - `enabled` (`boolean`)
+        - `tokenUri` (`String`)
+        - `clientId` (`String`)
+        - `clientSecret` (`String`)
+        - `scope` (`String`)
+
+- `HttpAuthenticationPublic` - HTTP authentication configuration returned in callback listing responses:
+    - `certificate` (`Certificate`)
+        - `enabled` (`boolean`)
+        - `useCustomKeyStore` (`boolean`)
+        - `keyStoreLocation` (`String`)
+        - `keyStoreContentSet` (`boolean`)
+        - `keyStorePasswordSet` (`boolean`)
+        - `keyAlias` (`String`)
+        - `keyPasswordSet` (`boolean`)
+        - `useCustomTrustStore` (`boolean`)
+        - `trustStoreLocation` (`String`)
+        - `trustStoreContentSet` (`boolean`)
+        - `trustStorePasswordSet` (`boolean`)
+    - `httpBasic` (`HttpBasic`)
+        - `enabled` (`boolean`)
+        - `username` (`String`)
+        - `passwordSet` (`boolean`)
+    - `oAuth2` (`OAuth2`)
+        - `enabled` (`boolean`)
+        - `tokenUri` (`String`)
+        - `clientId` (`String`)
+        - `clientSecretSet` (`boolean`)
+        - `scope` (`String`)
