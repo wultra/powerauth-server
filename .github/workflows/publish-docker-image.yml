@@ -78,7 +78,7 @@ jobs:
         uses: wultra/wultra-infrastructure/.github/actions/resolve-docker-tags@develop
         id: resolve-docker-tags
         with:
-          app_to_build: 'powerauth-server'
+          app_to_build: 'server'
           app_version: ${{ steps.build-maven.outputs.app_version }}
 
       - name: Build and push Docker image
