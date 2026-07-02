@@ -12,6 +12,10 @@ on:
         type: environment
         default: docker-internal
         description: Select the environment
+      push_latest:
+        type: boolean
+        default: false
+        description: Also push 'latest' tag to distribution registry?
   pull_request:
     branches:
       - 'develop'
@@ -80,6 +84,7 @@ jobs:
         with:
           app_to_build: 'server'
           app_version: ${{ steps.build-maven.outputs.app_version }}
+          push_latest: ${{ inputs.push_latest }}
 
       - name: Build and push Docker image
         uses: wultra/wultra-infrastructure/.github/actions/build-and-push-docker@develop
