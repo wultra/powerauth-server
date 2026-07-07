@@ -136,7 +136,7 @@ public class AuditingServiceBehavior {
                     item.setActivationId(signatureEntity.getActivation().getActivationId());
                     item.setDataBase64(signatureEntity.getDataBase64());
                     item.setSignatureVersion(signatureEntity.getSignatureVersion());
-                    item.setSignature(signatureEntity.getSignature());
+                    item.setSignature(signatureEntity.getAuditedSignature());
                     item.setSignatureType(signatureEntity.getSignatureType());
                     item.setSignatureAlgorithm(signatureEntity.getSignatureAlgorithm());
                     item.setSignatureFormat(signatureEntity.getSignatureFormat());
@@ -185,7 +185,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
         signatureAuditRecord.setAdditionalInfo(additionalInfo);
         signatureAuditRecord.setDataBase64(data);
-        signatureAuditRecord.setSignature(signatureData.getSignature());
+        signatureAuditRecord.setAuthCode(signatureData.getSignature());
         signatureAuditRecord.setSignatureMetadata(authMetadata);
         signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
         signatureAuditRecord.setSignatureType(signatureType.name());
@@ -254,7 +254,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
         signatureAuditRecord.setDataBase64(dataBase64);
-        signatureAuditRecord.setSignature(signatureBase64);
+        signatureAuditRecord.setSignatureAsymmetric(signatureBase64);
         signatureAuditRecord.setSignatureType(ASYMMETRIC_SIGNATURE_TYPE);
         signatureAuditRecord.setSignatureAlgorithm(signatureAlgorithm);
         signatureAuditRecord.setSignatureFormat(signatureFormat);

@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 5/18/26, 1:17 PM
+-- Ran at: 07/07/2026, 21:11
 -- Against: null@offline:oracle
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -93,7 +93,7 @@ CREATE TABLE pa_master_keypair (id INTEGER NOT NULL, application_id INTEGER NOT 
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::12::Lubos Racansky
 -- Create a new table pa_activation
-CREATE TABLE pa_activation (activation_id VARCHAR2(37) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR2(255) NOT NULL, activation_name VARCHAR2(255), activation_code VARCHAR2(255), activation_status INTEGER NOT NULL, activation_otp VARCHAR2(255), activation_otp_validation INTEGER DEFAULT 0 NOT NULL, blocked_reason VARCHAR2(255), counter INTEGER NOT NULL, ctr_data VARCHAR2(255), device_public_key_base64 VARCHAR2(255), extras VARCHAR2(255), platform VARCHAR2(255), device_info VARCHAR2(255), flags VARCHAR2(255), failed_attempts INTEGER NOT NULL, max_failed_attempts INTEGER DEFAULT 5 NOT NULL, server_private_key_base64 VARCHAR2(255) NOT NULL, server_private_key_encryption INTEGER DEFAULT 0 NOT NULL, server_public_key_base64 VARCHAR2(255) NOT NULL, timestamp_activation_expire TIMESTAMP(6) NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_used TIMESTAMP(6) NOT NULL, timestamp_last_change TIMESTAMP(6), master_keypair_id INTEGER, version INTEGER DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_activation (activation_id VARCHAR2(37) NOT NULL, application_id INTEGER NOT NULL, user_id VARCHAR2(255) NOT NULL, activation_name VARCHAR2(255), activation_code VARCHAR2(255), activation_status INTEGER NOT NULL, activation_otp VARCHAR2(255), activation_otp_validation INTEGER DEFAULT 0 NOT NULL, blocked_reason VARCHAR2(255), counter INTEGER NOT NULL, ctr_data VARCHAR2(255), device_public_key_base64 VARCHAR2(255), extras VARCHAR2(255), platform VARCHAR2(255), device_info VARCHAR2(255), flags VARCHAR2(255), failed_attempts INTEGER NOT NULL, max_failed_attempts INTEGER DEFAULT 5 NOT NULL, server_private_key_base64 VARCHAR2(255) NOT NULL, server_private_key_encryption INTEGER DEFAULT 0 NOT NULL, server_public_key_base64 VARCHAR2(255) NOT NULL, timestamp_activation_expire TIMESTAMP(6) NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_used TIMESTAMP(6) NOT NULL, timestamp_last_change TIMESTAMP(6), master_keypair_id INTEGER, version INTEGER DEFAULT 2, CONSTRAINT PK_PA_ACTIVATION PRIMARY KEY (activation_id), CONSTRAINT activation_application_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair(id));
 
 -- Changeset powerauth-java-server/1.4.x/20230322-init-db.xml::13::Lubos Racansky
 -- Create a new table pa_application_version
@@ -552,8 +552,8 @@ ALTER TABLE pa_activation ADD activation_fingerprint VARCHAR2(255);
 --             NULL values are present, which is the expected case for all non-legacy databases.
 --             Rollback is not supported — original NULL values cannot be restored.
 UPDATE pa_activation
-SET activation_code = 'LEGACY-' || LOWER(RAWTOHEX(SYS_GUID()))
-WHERE activation_code IS NULL;
+            SET activation_code = 'LEGACY-' || LOWER(RAWTOHEX(SYS_GUID()))
+            WHERE activation_code IS NULL;
 
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
 -- MSSQL only: drop non-unique index pa_activation_code before ALTER COLUMN. MSSQL blocks ALTER COLUMN when a dependent index exists (error 5074); PostgreSQL and Oracle do not have this restriction.
@@ -581,7 +581,7 @@ CREATE INDEX audit_log_subject_id_idx ON audit_log(subject_id);
 
 -- Changeset powerauth-java-server/2.1.x/20260416-add-tag-2.1.0.xml::1::Pavel Sindelar
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::1::Roman Strobl
--- Add signature_algorithm column to pa_signature_audit table to store signature algorithm
+-- Add signature_algorithm column to pa_signature_audit table to store the signature algorithm
 ALTER TABLE pa_signature_audit ADD signature_algorithm VARCHAR2(32);
 
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::2::Roman Strobl
@@ -589,8 +589,16 @@ ALTER TABLE pa_signature_audit ADD signature_algorithm VARCHAR2(32);
 ALTER TABLE pa_signature_audit ADD signature_format VARCHAR2(32);
 
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::3::Roman Strobl
--- Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures
-ALTER TABLE pa_signature_audit MODIFY signature CLOB;
+-- Add signature_asymmetric CLOB column to pa_signature_audit table to store asymmetric signatures (ECDSA, ML-DSA)
+ALTER TABLE pa_signature_audit ADD signature_asymmetric CLOB;
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::4::Roman Strobl
+-- Rename signature column to auth_code in pa_signature_audit table to match the authentication code terminology
+ALTER TABLE pa_signature_audit RENAME COLUMN signature TO auth_code;
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::5::Roman Strobl
+-- Make auth_code column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave auth_code null
+ALTER TABLE pa_signature_audit MODIFY auth_code NULL;
 
 -- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::1::Roman Strobl
 -- Add timestamp_block_expire column to pa_activation table to support automatic temporary unblocking of activations
@@ -604,10 +612,9 @@ ALTER TABLE pa_activation ADD temporary_block_count NUMBER(38, 0) DEFAULT 0 NOT 
 -- Create a partial index on pa_activation(timestamp_block_expire) to support the scheduled expiration of temporary activation blocks (on Oracle a plain single-column index achieves the same effect, since all-null keys are not indexed)
 CREATE INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire);
 
-
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::1::Roman Strobl
 -- Create a new table pa_config_store
-CREATE TABLE pa_config_store (id NUMBER(38, 0) NOT NULL, application_id INTEGER NOT NULL, activation_id VARCHAR2(37), config_scope VARCHAR2(32) NOT NULL, config_data CLOB, encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created TIMESTAMP(6) NOT NULL, timestamp_last_updated TIMESTAMP(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+CREATE TABLE pa_config_store (id NUMBER(38, 0) NOT NULL, application_id INTEGER NOT NULL, activation_id VARCHAR2(37), config_scope VARCHAR2(32) NOT NULL, config_data CLOB, encryption_mode VARCHAR2(255) DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created TIMESTAMP NOT NULL, timestamp_last_updated TIMESTAMP, CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
 
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::2::Roman Strobl
 -- Create a new sequence pa_config_store_seq
@@ -624,3 +631,4 @@ CREATE INDEX pa_config_store_activation_id_idx ON pa_config_store(activation_id)
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::5::Roman Strobl
 -- Create a unique index on pa_config_store(application_id, activation_id, config_scope).
 CREATE UNIQUE INDEX pa_config_store_application_id_activation_id_config_scope_idx ON pa_config_store(application_id, activation_id, config_scope);
+

@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -122,6 +123,13 @@ class AuditingServiceBehaviorTest {
         assertEquals(authMetadata, params.get("authenticationMetadata"));
 
         assertEquals("user789", auditDetail.getSubjectId());
+
+        final ArgumentCaptor<SignatureEntity> entityCaptor = ArgumentCaptor.forClass(SignatureEntity.class);
+        verify(signatureAuditRepository).save(entityCaptor.capture());
+        final SignatureEntity saved = entityCaptor.getValue();
+        assertEquals("39319618-09892741", saved.getAuthCode());
+        assertNull(saved.getSignatureAsymmetric());
+        assertEquals("39319618-09892741", saved.getAuditedSignature());
     }
 
     /**
@@ -152,5 +160,74 @@ class AuditingServiceBehaviorTest {
                 .thenReturn(List.of(signatureEntity));
 
         assertEquals("POSSESSION_KNOWLEDGE_BIOMETRY", tested.getAuditLog(request).getItems().get(0).getSignatureType());
+    }
+
+    /**
+     * Test that an asymmetric signature audit record stores the signature in the {@code signatureAsymmetric}
+     * (CLOB) column and leaves the {@code authCode} column empty.
+     */
+    @Test
+    void testLogAsymmetricSignatureAuditRecord_storedInSignatureAsymmetric() {
+        final ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId("app456");
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setApplication(applicationEntity);
+        activation.setActivationId("act123");
+        activation.setUserId("user789");
+        activation.setActivationStatus(ActivationStatus.ACTIVE);
+        activation.setCounter(0L);
+        activation.setCtrDataBase64("Y3RyRGF0YQ==");
+        activation.setVersion(4);
+
+        final String signatureBase64 = Base64.getEncoder().encodeToString(new byte[3000]);
+
+        tested.logAsymmetricSignatureAuditRecord(activation, "ZGF0YQ==", signatureBase64,
+                "MLDSA_65", "DER", true, "asymmetric_signature_ok", new java.util.Date());
+
+        final ArgumentCaptor<SignatureEntity> entityCaptor = ArgumentCaptor.forClass(SignatureEntity.class);
+        verify(signatureAuditRepository).save(entityCaptor.capture());
+
+        final SignatureEntity saved = entityCaptor.getValue();
+        assertNull(saved.getAuthCode());
+        assertEquals(signatureBase64, saved.getSignatureAsymmetric());
+        assertEquals(signatureBase64, saved.getAuditedSignature());
+        assertEquals("ASYMMETRIC", saved.getSignatureType());
+        assertEquals("MLDSA_65", saved.getSignatureAlgorithm());
+        assertEquals("DER", saved.getSignatureFormat());
+    }
+
+    /**
+     * Test that the audit log API surfaces the asymmetric signature value for records that store it
+     * in the {@code signatureAsymmetric} column and leave {@code authCode} null.
+     */
+    @Test
+    void testGetAuditLog_surfacesAsymmetricSignature() throws Exception {
+        final SignatureAuditRequest request = new SignatureAuditRequest();
+        request.setUserId("user789");
+
+        final ActivationRecordEntity activationRecordEntity = new ActivationRecordEntity();
+        final ApplicationEntity applicationEntity = new ApplicationEntity();
+        applicationEntity.setId("app456");
+        activationRecordEntity.setApplication(applicationEntity);
+        activationRecordEntity.setActivationId("act123");
+        activationRecordEntity.setUserId("user789");
+
+        final String signatureBase64 = Base64.getEncoder().encodeToString(new byte[3000]);
+
+        final SignatureEntity signatureEntity = new SignatureEntity();
+        signatureEntity.setId(1L);
+        signatureEntity.setSignatureType("ASYMMETRIC");
+        signatureEntity.setSignatureAsymmetric(signatureBase64);
+        signatureEntity.setActivationCounter(0L);
+        signatureEntity.setActivationStatus(ActivationStatus.ACTIVE);
+        signatureEntity.setValid(true);
+        signatureEntity.setVersion(4);
+        signatureEntity.setActivation(activationRecordEntity);
+
+        when(signatureAuditRepository.findSignatureAuditRecordsForUser(any(), any(), any()))
+                .thenReturn(List.of(signatureEntity));
+
+        assertEquals(signatureBase64, tested.getAuditLog(request).getItems().get(0).getSignature());
     }
 }
