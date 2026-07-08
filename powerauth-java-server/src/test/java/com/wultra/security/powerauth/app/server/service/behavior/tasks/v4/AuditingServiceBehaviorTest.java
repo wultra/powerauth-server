@@ -127,7 +127,7 @@ class AuditingServiceBehaviorTest {
         final ArgumentCaptor<SignatureEntity> entityCaptor = ArgumentCaptor.forClass(SignatureEntity.class);
         verify(signatureAuditRepository).save(entityCaptor.capture());
         final SignatureEntity saved = entityCaptor.getValue();
-        assertEquals("39319618-09892741", saved.getAuthCode());
+        assertEquals("39319618-09892741", saved.getSignature());
         assertNull(saved.getSignatureAsymmetric());
         assertEquals("39319618-09892741", saved.getAuditedSignature());
     }
@@ -164,7 +164,7 @@ class AuditingServiceBehaviorTest {
 
     /**
      * Test that an asymmetric signature audit record stores the signature in the {@code signatureAsymmetric}
-     * (CLOB) column and leaves the {@code authCode} column empty.
+     * (CLOB) column and leaves the {@code signature} column empty.
      */
     @Test
     void testLogAsymmetricSignatureAuditRecord_storedInSignatureAsymmetric() {
@@ -189,7 +189,7 @@ class AuditingServiceBehaviorTest {
         verify(signatureAuditRepository).save(entityCaptor.capture());
 
         final SignatureEntity saved = entityCaptor.getValue();
-        assertNull(saved.getAuthCode());
+        assertNull(saved.getSignature());
         assertEquals(signatureBase64, saved.getSignatureAsymmetric());
         assertEquals(signatureBase64, saved.getAuditedSignature());
         assertEquals("ASYMMETRIC", saved.getSignatureType());
@@ -199,7 +199,7 @@ class AuditingServiceBehaviorTest {
 
     /**
      * Test that the audit log API surfaces the asymmetric signature value for records that store it
-     * in the {@code signatureAsymmetric} column and leave {@code authCode} null.
+     * in the {@code signatureAsymmetric} column and leave {@code signature} null.
      */
     @Test
     void testGetAuditLog_surfacesAsymmetricSignature() throws Exception {

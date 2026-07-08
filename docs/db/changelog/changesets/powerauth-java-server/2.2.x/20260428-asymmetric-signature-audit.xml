@@ -62,16 +62,8 @@
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="pa_signature_audit" columnName="signature"/>
         </preConditions>
-        <comment>Rename signature column to auth_code in pa_signature_audit table to match the authentication code terminology</comment>
-        <renameColumn tableName="pa_signature_audit" oldColumnName="signature" newColumnName="auth_code" columnDataType="varchar(255)"/>
-    </changeSet>
-
-    <changeSet id="5" logicalFilePath="powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml" author="Roman Strobl">
-        <preConditions onFail="MARK_RAN">
-            <columnExists tableName="pa_signature_audit" columnName="auth_code"/>
-        </preConditions>
-        <comment>Make auth_code column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave auth_code null</comment>
-        <dropNotNullConstraint tableName="pa_signature_audit" columnName="auth_code" columnDataType="varchar(255)"/>
+        <comment>Make signature column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave signature null</comment>
+        <dropNotNullConstraint tableName="pa_signature_audit" columnName="signature" columnDataType="varchar(255)"/>
     </changeSet>
 
 </databaseChangeLog>
