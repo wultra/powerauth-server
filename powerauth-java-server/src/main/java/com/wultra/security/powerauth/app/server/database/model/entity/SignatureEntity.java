@@ -104,10 +104,18 @@ public class SignatureEntity implements Serializable {
     private String signatureType;
 
     /**
-     * Signature.
+     * Authentication code. Populated for PowerAuth v3/v4 authentication-code records;
+     * null for asymmetric-signature records (which use {@link #signatureAsymmetric}).
      */
-    @Column(name = "signature", nullable = false, updatable = false, length = 8000)
-    private String signature;
+    @Column(name = "auth_code", updatable = false)
+    private String authCode;
+
+    /**
+     * Asymmetric signature (ECDSA, ML-DSA) stored as CLOB. Mutually exclusive with {@link #authCode}:
+     * authentication-code records populate {@code authCode}; asymmetric records populate {@code signatureAsymmetric}.
+     */
+    @Column(name = "signature_asymmetric", updatable = false, columnDefinition = "CLOB")
+    private String signatureAsymmetric;
 
     /**
      * Signature metadata associated with this signature.
@@ -158,6 +166,18 @@ public class SignatureEntity implements Serializable {
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
+    /**
+     * Return the audit value associated with this record: the authentication code for
+     * PowerAuth v3/v4 records, or the asymmetric signature (ECDSA, ML-DSA) for asymmetric records.
+     * These two are mutually exclusive.
+     *
+     * @return Authentication code if present, otherwise the asymmetric signature.
+     */
+    @Transient
+    public String getAuditedSignature() {
+        return authCode != null ? authCode : signatureAsymmetric;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -167,7 +187,8 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
         hash = 23 * hash + Objects.hashCode(this.dataBase64);
         hash = 23 * hash + Objects.hashCode(this.signatureType);
-        hash = 23 * hash + Objects.hashCode(this.signature);
+        hash = 23 * hash + Objects.hashCode(this.authCode);
+        hash = 23 * hash + Objects.hashCode(this.signatureAsymmetric);
         hash = 23 * hash + Objects.hashCode(this.signatureMetadata);
         hash = 23 * hash + Objects.hashCode(this.signatureDataBody);
         hash = 23 * hash + Objects.hashCode(this.additionalInfo);
@@ -192,7 +213,8 @@ public class SignatureEntity implements Serializable {
         final SignatureEntity other = (SignatureEntity) o;
         return Objects.equals(this.dataBase64, other.dataBase64)
                 && Objects.equals(this.signatureType, other.signatureType)
-                && Objects.equals(this.signature, other.signature)
+                && Objects.equals(this.authCode, other.authCode)
+                && Objects.equals(this.signatureAsymmetric, other.signatureAsymmetric)
                 && Objects.equals(this.signatureMetadata, other.signatureMetadata)
                 && Objects.equals(this.signatureDataBody, other.signatureDataBody)
                 && Objects.equals(this.additionalInfo, other.additionalInfo)
@@ -208,7 +230,7 @@ public class SignatureEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", authenticationCodeType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
+        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", authCodePresent=" + (authCode != null) + ", signatureAsymmetricLength=" + (signatureAsymmetric != null ? signatureAsymmetric.length() : 0) + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
     }
 
 }

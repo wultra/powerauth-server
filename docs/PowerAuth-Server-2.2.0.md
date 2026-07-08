@@ -9,7 +9,9 @@ For convenience, you can use Liquibase for the database migration.
 The database table `pa_signature_audit` has been extended with new columns used for asymmetric signatures:
 - column `signature_algorithm` with type `VARCHAR(32)` - algorithm used for the signature (symmetric: `PowerAuth-V3`, or `PowerAuth-V4`; asymmetric: `ECDSA_P256`, `ECDSA_P384`, `MLDSA_65`, or `MLDSA_87`)
 - column `signature_format` with type `varchar(32)` - format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`)
-- column `signature` type was changed to `VARCHAR(8000)` to accommodate larger PQC signatures
+- column `signature_asymmetric` with type `CLOB` - value of the asymmetric signature (ECDSA, ML-DSA); stored as `CLOB`
+
+The existing `signature` column has been renamed to `auth_code` and made nullable. It stores the authentication code for symmetric records (PowerAuth v3/v4); asymmetric-signature records leave it `NULL` and store their value in `signature_asymmetric` instead. Existing rows keep their value under the new `auth_code` name.
 
 ### Table `pa_activation`
 

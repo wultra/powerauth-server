@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml
--- Ran at: 5/18/26, 1:18 PM
+-- Ran at: 07/07/2026, 21:11
 -- Against: null@offline:mssql
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -695,8 +695,8 @@ GO
 --             NULL values are present, which is the expected case for all non-legacy databases.
 --             Rollback is not supported — original NULL values cannot be restored.
 UPDATE pa_activation
-SET activation_code = 'LEGACY-' + LOWER(CONVERT(varchar(36), NEWID()))
-WHERE activation_code IS NULL;
+            SET activation_code = 'LEGACY-' + LOWER(CONVERT(varchar(36), NEWID()))
+            WHERE activation_code IS NULL;
 GO
 
 -- Changeset powerauth-java-server/2.1.x/20260316-activation-code-unique.xml::0::Vit Kotacka
@@ -731,7 +731,7 @@ GO
 
 -- Changeset powerauth-java-server/2.1.x/20260416-add-tag-2.1.0.xml::1::Pavel Sindelar
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::1::Roman Strobl
--- Add signature_algorithm column to pa_signature_audit table to store signature algorithm
+-- Add signature_algorithm column to pa_signature_audit table to store the signature algorithm
 ALTER TABLE pa_signature_audit ADD signature_algorithm varchar(32);
 GO
 
@@ -741,8 +741,18 @@ ALTER TABLE pa_signature_audit ADD signature_format varchar(32);
 GO
 
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::3::Roman Strobl
--- Change data type of signature column in pa_signature_audit table from varchar(255) to text to support longer asymmetric signatures
-ALTER TABLE pa_signature_audit ALTER COLUMN signature varchar (max);
+-- Add signature_asymmetric CLOB column to pa_signature_audit table to store asymmetric signatures (ECDSA, ML-DSA)
+ALTER TABLE pa_signature_audit ADD signature_asymmetric varchar(MAX);
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::4::Roman Strobl
+-- Rename signature column to auth_code in pa_signature_audit table to match the authentication code terminology
+exec sp_rename 'pa_signature_audit.signature', 'auth_code', 'COLUMN';
+GO
+
+-- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::5::Roman Strobl
+-- Make auth_code column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave auth_code null
+ALTER TABLE pa_signature_audit ALTER COLUMN auth_code varchar(255) NULL;
 GO
 
 -- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::1::Roman Strobl
@@ -760,10 +770,9 @@ GO
 CREATE NONCLUSTERED INDEX pa_activation_block_expire_idx ON pa_activation(timestamp_block_expire) WHERE timestamp_block_expire IS NOT NULL;
 GO
 
-
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::1::Roman Strobl
 -- Create a new table pa_config_store
-CREATE TABLE pa_config_store (id bigint NOT NULL, application_id int NOT NULL, activation_id varchar(37), config_scope varchar(32) NOT NULL, config_data varchar (max), encryption_mode varchar(255) CONSTRAINT DF_pa_config_store_encryption_mode DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created datetime2(6) NOT NULL, timestamp_last_updated datetime2(6), CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id));
+CREATE TABLE pa_config_store (id bigint NOT NULL, application_id int NOT NULL, activation_id varchar(37), config_scope varchar(32) NOT NULL, config_data varchar(MAX), encryption_mode varchar(255) CONSTRAINT DF_pa_config_store_encryption_mode DEFAULT 'NO_ENCRYPTION' NOT NULL, timestamp_created datetime2 NOT NULL, timestamp_last_updated datetime2, CONSTRAINT PK_PA_CONFIG_STORE PRIMARY KEY (id), CONSTRAINT pa_config_store_activation_id_fk FOREIGN KEY (activation_id) REFERENCES pa_activation(activation_id), CONSTRAINT pa_config_store_application_id_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
 GO
 
 -- Changeset powerauth-java-server/2.2.x/20260602-config-store.xml::2::Roman Strobl
@@ -785,3 +794,4 @@ GO
 -- Create a unique index on pa_config_store(application_id, activation_id, config_scope).
 CREATE UNIQUE NONCLUSTERED INDEX pa_config_store_application_id_activation_id_config_scope_idx ON pa_config_store(application_id, activation_id, config_scope);
 GO
+

@@ -186,7 +186,8 @@ Stores the records with values used for attempts for the signature validation.
 | additional_info     | VARCHAR(255) | -                                          | Additional information related to the signature request in JSON format.   |
 | data_base64         | TEXT         | -                                          | Data passed as the base for the signature, encoded as Base64.             |
 | signature_type      | VARCHAR(255) | -                                          | Requested type of the signature.                                          |
-| signature           | VARCHAR(8000)| -                                          | Provided value of the signature.                                          |
+| auth_code           | VARCHAR(255) | -                                          | Provided value of the authentication code (symmetric records). Null for asymmetric-signature records. |
+| signature_asymmetric | TEXT        | -                                          | Provided value of the asymmetric signature (ECDSA, ML-DSA), stored as CLOB. Null for symmetric authentication-code records. |
 | signature_algorithm | VARCHAR(32)  | -                                          | Algorithm used for the signature (symmetric: `PowerAuth-V3`, or `PowerAuth-V4`; asymmetric: `ECDSA_P256`, `ECDSA_P384`, `MLDSA_65`, or `MLDSA_87`). |
 | signature_format    | VARCHAR(32)  | -                                          | Format of the signature (symmetric: `DECIMAL`, or `BASE64`; asymmetric: `DER` or `JOSE`). |
 | signature_metadata  | TEXT         | -                                          | JSON with signature metadata related to the signature calculation.        |
