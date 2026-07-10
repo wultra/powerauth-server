@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 class Fido2AuthenticatorServiceTest {
 
     private final static String WA1_AAGUID = "dca09ba7-4992-4be8-9283-ee98cd6fb529";
+    private final static String WA12_AAGUID = "99001b4d-4c81-4590-b115-ed23a6633af1";
 
     @Mock
     private Fido2AuthenticatorRepository fido2AuthenticatorRepository;
@@ -79,6 +80,19 @@ class Fido2AuthenticatorServiceTest {
         final Fido2Authenticator authenticator = tested.findByAaguid(aaguid);
         assertEquals(aaguid, authenticator.aaguid());
         assertEquals("Wultra Authenticator 1", authenticator.description());
+        assertEquals(SignatureType.POSSESSION_KNOWLEDGE, authenticator.signatureType());
+        assertEquals(List.of("usb"), authenticator.transports());
+    }
+
+    @Test
+    void testFindByAaguid_fromDefaultSet_wultra12() {
+        final UUID aaguid = UUID.fromString(WA12_AAGUID);
+        when(fido2AuthenticatorRepository.findById(aaguid.toString()))
+                .thenReturn(Optional.empty());
+
+        final Fido2Authenticator authenticator = tested.findByAaguid(aaguid);
+        assertEquals(aaguid, authenticator.aaguid());
+        assertEquals("Wultra Authenticator 1.2", authenticator.description());
         assertEquals(SignatureType.POSSESSION_KNOWLEDGE, authenticator.signatureType());
         assertEquals(List.of("usb"), authenticator.transports());
     }

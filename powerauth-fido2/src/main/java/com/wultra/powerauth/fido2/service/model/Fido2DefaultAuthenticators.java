@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
 public class Fido2DefaultAuthenticators {
 
     private static final Set<String> WULTRA_MODELS = Set.of(
-            "dca09ba7-4992-4be8-9283-ee98cd6fb529"
+            "dca09ba7-4992-4be8-9283-ee98cd6fb529",
+            "99001b4d-4c81-4590-b115-ed23a6633af1"
     );
 
     private static final Set<Fido2Authenticator> MODELS = Set.of(
@@ -163,6 +164,7 @@ public class Fido2DefaultAuthenticators {
 
             // Wultra
             Fido2Authenticator.create("dca09ba7-4992-4be8-9283-ee98cd6fb529", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE, List.of("usb")),
+            Fido2Authenticator.create("99001b4d-4c81-4590-b115-ed23a6633af1", "Wultra Authenticator 1.2", SignatureType.POSSESSION_KNOWLEDGE, List.of("usb")),
 
             // Yubico
             Fido2Authenticator.create("0bb43545-fd2c-4185-87dd-feb0b2916ace", "Security Key NFC by Yubico - Enterprise Edition"),
