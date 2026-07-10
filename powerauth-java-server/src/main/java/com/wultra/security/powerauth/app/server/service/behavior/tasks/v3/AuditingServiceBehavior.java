@@ -185,7 +185,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
         signatureAuditRecord.setAdditionalInfo(additionalInfo);
         signatureAuditRecord.setDataBase64(data);
-        signatureAuditRecord.setAuthCode(signatureData.getSignature());
+        signatureAuditRecord.setSignature(signatureData.getSignature());
         signatureAuditRecord.setSignatureMetadata(authMetadata);
         signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
         signatureAuditRecord.setSignatureType(signatureType.name());

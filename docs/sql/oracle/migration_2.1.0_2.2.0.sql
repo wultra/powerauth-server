@@ -2,7 +2,7 @@
 -- Update Database Script
 -- *********************************************************************
 -- Change Log: ./docs/db/changelog/changesets/powerauth-java-server/2.2.x/db.changelog-version.xml
--- Ran at: 07/07/2026, 21:11
+-- Ran at: 7/8/26, 11:27 PM
 -- Against: null@offline:oracle
 -- Liquibase version: 4.33.0
 -- *********************************************************************
@@ -20,12 +20,8 @@ ALTER TABLE pa_signature_audit ADD signature_format VARCHAR2(32);
 ALTER TABLE pa_signature_audit ADD signature_asymmetric CLOB;
 
 -- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::4::Roman Strobl
--- Rename signature column to auth_code in pa_signature_audit table to match the authentication code terminology
-ALTER TABLE pa_signature_audit RENAME COLUMN signature TO auth_code;
-
--- Changeset powerauth-java-server/2.2.x/20260428-asymmetric-signature-audit.xml::5::Roman Strobl
--- Make auth_code column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave auth_code null
-ALTER TABLE pa_signature_audit MODIFY auth_code NULL;
+-- Make signature column nullable in pa_signature_audit table because asymmetric audit records store their value in signature_asymmetric and leave signature null
+ALTER TABLE pa_signature_audit MODIFY signature NULL;
 
 -- Changeset powerauth-java-server/2.2.x/20260527-activation-temporary-block.xml::1::Roman Strobl
 -- Add timestamp_block_expire column to pa_activation table to support automatic temporary unblocking of activations
