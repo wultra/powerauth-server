@@ -6,5 +6,6 @@
     <include file="20260428-asymmetric-signature-audit.xml" relativeToChangelogFile="true" />
     <include file="20260527-activation-temporary-block.xml" relativeToChangelogFile="true" />
     <include file="20260602-config-store.xml" relativeToChangelogFile="true" />
+    <include file="20260717-add-tag-2.2.0.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
