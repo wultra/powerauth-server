@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.2.0] - 2026-07-17
+## [2.2.0] - 2026-07-20
 
 ### Added
 - Temporary block of activation [(#2390)](https://github.com/wultra/powerauth-server/issues/2390)
