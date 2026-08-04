@@ -37,6 +37,7 @@ import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListRes
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -205,6 +206,35 @@ class CallbackUrlBehaviorTest {
                 .createAndSaveEventForProcessing(disabledCallback, callbackData);
         verify(callbackUrlEventService, never())
                 .createAndSaveEventForProcessing(activationCallback, callbackData);
+    }
+
+    @Sql("CallbackUrlBehaviorTest.testNotifyCallbackListenersOnOperationChange.sql")
+    @Test
+    void testNotifyCallbackListenersOnOperationChange_withEpochMillisTimestamps() {
+        when(callbackUrlEventService.obtainMaxAttempts(any()))
+                .thenReturn(1);
+        when(callbackUrlEventService.failureThresholdReached(any()))
+                .thenReturn(false);
+
+        final OperationEntity operation = entityManager.find(OperationEntity.class, "07e927af-689a-43ac-bd21-291179801912");
+        final CallbackUrlEntity enabledCallback = entityManager.find(CallbackUrlEntity.class, "cba5f7aa-889e-4846-b97a-b6ba1bd51ad5");
+        enabledCallback.setAttributes(List.of("timestampCreated", "timestampExpires", "timestampFinalized"));
+
+        try (var mockedCallbackConvertor = mockStatic(CallbackUrlConvertor.class)) {
+            tested.notifyCallbackListenersOnOperationChange(operation);
+        }
+
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<Map<String, Object>> callbackDataCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(callbackUrlEventService).createAndSaveEventForProcessing(eq(enabledCallback), callbackDataCaptor.capture());
+
+        final Map<String, Object> callbackData = callbackDataCaptor.getValue();
+        assertInstanceOf(Long.class, callbackData.get("timestampCreated"));
+        assertInstanceOf(Long.class, callbackData.get("timestampExpires"));
+        assertEquals(operation.getTimestampCreated().getTime(), callbackData.get("timestampCreated"));
+        assertEquals(operation.getTimestampExpires().getTime(), callbackData.get("timestampExpires"));
+        assertTrue(callbackData.containsKey("timestampFinalized"));
+        assertNull(callbackData.get("timestampFinalized"));
     }
 
     @Sql

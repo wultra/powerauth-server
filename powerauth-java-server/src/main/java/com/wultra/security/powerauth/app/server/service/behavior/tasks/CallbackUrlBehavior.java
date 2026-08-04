@@ -460,18 +460,27 @@ public class CallbackUrlBehavior {
             callbackData.put("externalId", operation.getExternalId());
         }
         if (callbackUrlEntity.getAttributes().contains("timestampCreated")) {
-            callbackData.put("timestampCreated", operation.getTimestampCreated());
+            callbackData.put("timestampCreated", toEpochMillis(operation.getTimestampCreated()));
         }
         if (callbackUrlEntity.getAttributes().contains("timestampExpires")) {
-            callbackData.put("timestampExpires", operation.getTimestampExpires());
+            callbackData.put("timestampExpires", toEpochMillis(operation.getTimestampExpires()));
         }
         if (callbackUrlEntity.getAttributes().contains("timestampFinalized")) {
-            callbackData.put("timestampFinalized", operation.getTimestampFinalized());
+            callbackData.put("timestampFinalized", toEpochMillis(operation.getTimestampFinalized()));
         }
         return callbackData;
     }
 
     // Private methods
+
+    /**
+     * Convert timestamp to Unix epoch milliseconds to preserve the callback API contract.
+     * @param timestamp Timestamp to convert.
+     * @return Unix epoch milliseconds, or {@code null} when the timestamp is not available.
+     */
+    private static Long toEpochMillis(final Date timestamp) {
+        return timestamp != null ? timestamp.getTime() : null;
+    }
 
     /**
      * Notify callback URL.

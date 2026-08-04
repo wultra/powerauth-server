@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Restored Unix timestamp format in operation status callbacks [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)
+
 ## [2.2.0] - 2026-07-20
 
 ### Added
