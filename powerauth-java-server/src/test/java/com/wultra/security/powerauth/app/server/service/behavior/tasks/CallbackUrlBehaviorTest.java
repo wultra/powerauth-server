@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUr
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.OperationEntity;
 import com.wultra.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
-import com.wultra.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.task.CleaningTask;
@@ -189,11 +188,11 @@ class CallbackUrlBehaviorTest {
                 .thenReturn(1);
         when(callbackUrlEventService.failureThresholdReached(any()))
                 .thenReturn(false);
+        when(callbackUrlEventService.createAndSaveEventForProcessing(any(), any()))
+                .thenReturn(new CallbackUrlEventEntity());
 
         final OperationEntity operation = entityManager.find(OperationEntity.class, "07e927af-689a-43ac-bd21-291179801912");
-        try (var mockedCallbackConvertor = mockStatic(CallbackUrlConvertor.class)) {
-            tested.notifyCallbackListenersOnOperationChange(operation);
-        }
+        tested.notifyCallbackListenersOnOperationChange(operation);
 
         final CallbackUrlEntity enabledCallback = entityManager.find(CallbackUrlEntity.class, "cba5f7aa-889e-4846-b97a-b6ba1bd51ad5");
         final CallbackUrlEntity disabledCallback = entityManager.find(CallbackUrlEntity.class, "b5446f8f-a994-447e-b637-e7cd171a24b5");
@@ -215,14 +214,14 @@ class CallbackUrlBehaviorTest {
                 .thenReturn(1);
         when(callbackUrlEventService.failureThresholdReached(any()))
                 .thenReturn(false);
+        when(callbackUrlEventService.createAndSaveEventForProcessing(any(), any()))
+                .thenReturn(new CallbackUrlEventEntity());
 
         final OperationEntity operation = entityManager.find(OperationEntity.class, "07e927af-689a-43ac-bd21-291179801912");
         final CallbackUrlEntity enabledCallback = entityManager.find(CallbackUrlEntity.class, "cba5f7aa-889e-4846-b97a-b6ba1bd51ad5");
         enabledCallback.setAttributes(List.of("timestampCreated", "timestampExpires", "timestampFinalized"));
 
-        try (var mockedCallbackConvertor = mockStatic(CallbackUrlConvertor.class)) {
-            tested.notifyCallbackListenersOnOperationChange(operation);
-        }
+        tested.notifyCallbackListenersOnOperationChange(operation);
 
         @SuppressWarnings("unchecked")
         final ArgumentCaptor<Map<String, Object>> callbackDataCaptor = ArgumentCaptor.forClass(Map.class);
@@ -244,11 +243,11 @@ class CallbackUrlBehaviorTest {
                 .thenReturn(1);
         when(callbackUrlEventService.failureThresholdReached(any()))
                 .thenReturn(false);
+        when(callbackUrlEventService.createAndSaveEventForProcessing(any(), any()))
+                .thenReturn(new CallbackUrlEventEntity());
 
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
-        try (var mockedCallbackConvertor = mockStatic(CallbackUrlConvertor.class)) {
-            tested.notifyCallbackListenersOnActivationChange(activation);
-        }
+        tested.notifyCallbackListenersOnActivationChange(activation);
 
         final CallbackUrlEntity enabledCallback = entityManager.find(CallbackUrlEntity.class, "cba5f7aa-889e-4846-b97a-b6ba1bd51ad5");
         final CallbackUrlEntity disabledCallback = entityManager.find(CallbackUrlEntity.class, "b5446f8f-a994-447e-b637-e7cd171a24b5");
