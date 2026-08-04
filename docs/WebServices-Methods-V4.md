@@ -1769,6 +1769,14 @@ When creating a callback URL of type `OPERATION_STATUS_CHANGE`, following `attri
 - `timestampExpires`
 - `timestampFinalized`
 
+Timestamp attributes in an `OPERATION_STATUS_CHANGE` callback use the following JSON representation:
+
+| Attribute            | JSON type          | Description                                                                                                |
+|----------------------|--------------------|------------------------------------------------------------------------------------------------------------|
+| `timestampCreated`   | `number`           | Unix timestamp in milliseconds when the operation was created.                                             |
+| `timestampExpires`   | `number`           | Unix timestamp in milliseconds when the operation expires.                                                 |
+| `timestampFinalized` | `number` or `null` | Unix timestamp in milliseconds when the operation was finalized, or `null` when it has not been finalized. |
+
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
 {
