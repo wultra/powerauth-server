@@ -517,7 +517,7 @@ public class CallbackUrlBehavior {
 
     /**
      * Convert every {@link Date} value in the callback data to its epoch-millisecond representation, so that
-     * the callback timestamps are serialized as numeric Unix timestamps instead of ISO-8601 strings.
+     * the callback timestamps are serialized as JSON numbers (epoch milliseconds) instead of ISO-8601 strings.
      * <p>
      * PowerAuth callbacks are dispatched with a wultra-core {@code DefaultRestClient}, which historically
      * (Jackson 2) serialized {@link Date} values as numeric epoch timestamps. This conversion is applied to
