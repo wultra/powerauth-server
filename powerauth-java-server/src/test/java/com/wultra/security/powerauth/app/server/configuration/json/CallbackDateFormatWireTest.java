@@ -55,12 +55,15 @@ import static org.mockito.Mockito.when;
  * End-to-end wire test proving the actual callback serialization mechanism described in the issue #2436
  * analysis.
  * <p>
- * PowerAuth callbacks do not go through the application {@code ObjectMapper}. The callback body is an
- * in-memory {@code Map<String, Object>} holding raw {@link Date} values, POSTed by a wultra-core
- * {@link DefaultRestClient}. When that client is built without an explicit Jackson configuration or
- * modules (as the callback client is by default), it uses the Spring WebClient default JSON codec, whose
- * fresh Jackson 3 mapper emits the {@code Z} designator. Registering the {@link LegacyDateJacksonModule}
- * on the client restores the legacy {@code +00:00} form.
+ * PowerAuth dispatches a callback via two sub-paths. On the <em>instant</em> (first-attempt) dispatch the
+ * body is an in-memory {@code Map<String, Object>} holding raw {@link Date} values, POSTed by a wultra-core
+ * {@link DefaultRestClient}; this path does <em>not</em> go through the application {@code ObjectMapper}.
+ * When that client is built without an explicit Jackson configuration or modules (as the callback client is
+ * by default), it uses the Spring WebClient default JSON codec, whose fresh Jackson 3 mapper emits the
+ * {@code Z} designator. Registering the {@link LegacyDateJacksonModule} on the client restores the legacy
+ * {@code +00:00} form. On the <em>reload/retry</em> dispatch the map is materialized from the DB by
+ * {@code MapToJsonConverter} (which uses the application {@code ObjectMapper}), so its timestamps are already
+ * {@code String} values sent verbatim — see {@link #testReloadedStringTimestampIsSentVerbatim()}.
  * <p>
  * This test captures the raw HTTP body on a local reactor-netty server to assert the true wire format.
  *
