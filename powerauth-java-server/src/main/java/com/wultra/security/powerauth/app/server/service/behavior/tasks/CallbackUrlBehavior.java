@@ -486,6 +486,8 @@ public class CallbackUrlBehavior {
             return;
         }
 
+        convertDatesToEpochMillis(callbackData);
+
         if (callbackUrlEventService.failureThresholdReached(callbackUrlEntity)) {
             logger.warn("Callback URL has reached failure threshold, associated events are not dispatched: callbackUrlId={}", callbackUrlEntity.getId());
             callbackUrlEventService.createAndSaveFailedEvent(callbackUrlEntity, callbackData);
@@ -511,6 +513,39 @@ public class CallbackUrlBehavior {
             logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.entityId());
             callbackUrlEventQueueService.enqueueToDatabase(callbackUrlEvent);
         }
+    }
+
+    /**
+     * Convert every {@link Date} value in the callback data to its epoch-millisecond representation, so that
+     * the callback timestamps are serialized as numeric Unix timestamps instead of ISO-8601 strings.
+     * <p>
+     * PowerAuth callbacks are dispatched with a wultra-core {@code DefaultRestClient}, which historically
+     * (Jackson 2) serialized {@link Date} values as numeric epoch timestamps. This conversion is applied to
+     * the in-memory map <em>before</em> it is both stored to the database (via {@code MapToJsonConverter},
+     * which uses the application {@code ObjectMapper}) and dispatched. It therefore guarantees the numeric
+     * wire format on both callback dispatch sub-paths: the instant first-attempt dispatch and the
+     * reload/retry dispatch that re-serializes the value persisted in the database. Nested maps and
+     * collections are traversed so any {@link Date} is converted regardless of nesting.
+     *
+     * @param data Callback data to convert in place.
+     */
+    private static void convertDatesToEpochMillis(final Map<String, Object> data) {
+        for (final Map.Entry<String, Object> entry : data.entrySet()) {
+            entry.setValue(convertDateValue(entry.getValue()));
+        }
+    }
+
+    private static Object convertDateValue(final Object value) {
+        if (value instanceof Date date) {
+            return date.getTime();
+        } else if (value instanceof Map<?, ?> map) {
+            final Map<Object, Object> converted = new LinkedHashMap<>(map);
+            converted.replaceAll((k, v) -> convertDateValue(v));
+            return converted;
+        } else if (value instanceof Collection<?> collection) {
+            return collection.stream().map(CallbackUrlBehavior::convertDateValue).toList();
+        }
+        return value;
     }
 
     /**
