@@ -93,3 +93,7 @@ No action is required.
 ### Spring Boot 4 and Jackson 3
 
 PowerAuth Server has been migrated to Spring Boot 4 and Jackson 3.
+
+<!-- begin box warning -->
+**Known issue (fixed in 2.2.1):** As a side effect of the Jackson 3 upgrade, the operation callback timestamp attributes `timestampCreated`, `timestampExpires`, and `timestampFinalized` are serialized in the dispatched `OPERATION_STATUS_CHANGE` callback payload as ISO-8601 strings instead of the previous numeric epoch-millisecond values. Callback consumers that parse these attributes as numbers are affected. This is fixed in PowerAuth Server 2.2.1, which restores the numeric epoch-millisecond format. See [#2436](https://github.com/wultra/powerauth-server/issues/2436).
+<!-- end -->
