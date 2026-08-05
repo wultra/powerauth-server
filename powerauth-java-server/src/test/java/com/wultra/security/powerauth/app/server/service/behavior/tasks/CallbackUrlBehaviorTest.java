@@ -42,6 +42,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,9 @@ class CallbackUrlBehaviorTest {
 
     @Autowired
     private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private CallbackUrlEventService callbackUrlEventService;
@@ -228,12 +233,12 @@ class CallbackUrlBehaviorTest {
         verify(callbackUrlEventService).createAndSaveEventForProcessing(eq(enabledCallback), callbackDataCaptor.capture());
 
         final Map<String, Object> callbackData = callbackDataCaptor.getValue();
-        assertInstanceOf(Long.class, callbackData.get("timestampCreated"));
-        assertInstanceOf(Long.class, callbackData.get("timestampExpires"));
-        assertEquals(operation.getTimestampCreated().getTime(), callbackData.get("timestampCreated"));
-        assertEquals(operation.getTimestampExpires().getTime(), callbackData.get("timestampExpires"));
-        assertTrue(callbackData.containsKey("timestampFinalized"));
-        assertNull(callbackData.get("timestampFinalized"));
+        final JsonNode callbackPayload = objectMapper.readTree(objectMapper.writeValueAsString(callbackData));
+        assertTrue(callbackPayload.path("timestampCreated").isNumber());
+        assertEquals(operation.getTimestampCreated().getTime(), callbackPayload.path("timestampCreated").longValue());
+        assertTrue(callbackPayload.path("timestampExpires").isNumber());
+        assertEquals(operation.getTimestampExpires().getTime(), callbackPayload.path("timestampExpires").longValue());
+        assertTrue(callbackPayload.path("timestampFinalized").isNull());
     }
 
     @Sql

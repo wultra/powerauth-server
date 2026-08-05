@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.SerializationFeature;
 
 import java.time.Duration;
@@ -307,7 +308,9 @@ public class PowerAuthServiceConfiguration {
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
-        return builder -> builder.enable(SerializationFeature.INDENT_OUTPUT);
+        return builder -> builder
+                .enable(SerializationFeature.INDENT_OUTPUT)
+                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     /**
