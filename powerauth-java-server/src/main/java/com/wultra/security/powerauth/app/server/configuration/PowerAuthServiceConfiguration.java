@@ -34,11 +34,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
-import tools.jackson.databind.cfg.DateTimeFeature;
 import tools.jackson.databind.SerializationFeature;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -308,9 +310,14 @@ public class PowerAuthServiceConfiguration {
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                Locale.ROOT
+        );
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
         return builder -> builder
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS);
+                .defaultDateFormat(dateFormat)
+                .enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     /**

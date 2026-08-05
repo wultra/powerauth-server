@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PowerAuthServiceConfigurationTest {
 
     @Test
-    void shouldSerializeDatesAsUnixEpochMilliseconds() {
+    void shouldSerializeDatesAsText() {
         final JsonMapper.Builder builder = JsonMapper.builder();
         new PowerAuthServiceConfiguration().jsonMapperBuilderCustomizer().customize(builder);
         final ObjectMapper objectMapper = builder.build();
 
-        assertEquals("1704067200123", objectMapper.writeValueAsString(new Date(1704067200123L)));
+        assertEquals("\"2024-01-01T00:00:00.123\"", objectMapper.writeValueAsString(new Date(1704067200123L)));
     }
 }
