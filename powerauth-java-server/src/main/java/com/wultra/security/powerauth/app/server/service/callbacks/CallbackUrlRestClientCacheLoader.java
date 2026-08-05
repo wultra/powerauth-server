@@ -23,6 +23,7 @@ import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import com.wultra.security.powerauth.app.server.configuration.json.LegacyDateJacksonModule;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import com.wultra.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import com.wultra.security.powerauth.app.server.database.repository.CallbackUrlRepository;
@@ -44,6 +45,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -114,6 +116,9 @@ public class CallbackUrlRestClientCacheLoader implements CacheLoader<String, Cac
         builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
         builder.responseTimeout(powerAuthServiceConfiguration.getHttpResponseTimeout());
         builder.maxIdleTime(powerAuthServiceConfiguration.getHttpMaxIdleTime());
+        if (powerAuthServiceConfiguration.isRestDateLegacyFormatEnabled()) {
+            builder.modules(List.of(new LegacyDateJacksonModule()));
+        }
         if (Boolean.TRUE.equals(powerAuthServiceConfiguration.getHttpProxyEnabled())) {
             builder.proxy()
                     .host(powerAuthServiceConfiguration.getHttpProxyHost())

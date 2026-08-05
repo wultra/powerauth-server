@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added `powerauth.service.rest.date.legacyFormatEnabled` property to restore the legacy `+00:00` timestamp offset on REST and callback responses for clients that cannot parse the Jackson 3 default `Z` designator [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)
+
 ## [2.2.0] - 2026-07-20
 
 ### Added

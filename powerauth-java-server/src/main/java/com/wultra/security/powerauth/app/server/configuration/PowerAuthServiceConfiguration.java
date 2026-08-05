@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.app.server.configuration;
 
+import com.wultra.security.powerauth.app.server.configuration.json.LegacyDateJacksonModule;
 import com.wultra.security.powerauth.app.server.database.model.enumeration.EncryptionAlgorithm;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
@@ -302,12 +303,26 @@ public class PowerAuthServiceConfiguration {
     private Duration temporaryKeyValidity;
 
     /**
+     * Whether REST and callback timestamps are serialized in the legacy {@code +00:00} offset form
+     * instead of the Jackson 3 default {@code Z}. Both forms are valid ISO-8601 / RFC 3339 and equal;
+     * this flag exists only for backward compatibility with strict clients that cannot parse {@code Z}.
+     * It affects serialization only; deserialization accepts both forms regardless.
+     */
+    @Value("${powerauth.service.rest.date.legacyFormatEnabled:false}")
+    private boolean restDateLegacyFormatEnabled;
+
+    /**
      * Customize the Spring Boot auto-configured {@code jacksonJsonMapper}.
      * @return Customizer applied to the auto-configured JSON mapper.
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
-        return builder -> builder.enable(SerializationFeature.INDENT_OUTPUT);
+        return builder -> {
+            builder.enable(SerializationFeature.INDENT_OUTPUT);
+            if (restDateLegacyFormatEnabled) {
+                builder.addModule(new LegacyDateJacksonModule());
+            }
+        };
     }
 
     /**
