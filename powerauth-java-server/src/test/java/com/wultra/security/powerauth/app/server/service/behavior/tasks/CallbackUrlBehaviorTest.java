@@ -235,9 +235,9 @@ class CallbackUrlBehaviorTest {
         final Map<String, Object> callbackData = callbackDataCaptor.getValue();
         final JsonNode callbackPayload = objectMapper.readTree(objectMapper.writeValueAsString(callbackData));
         assertTrue(callbackPayload.path("timestampCreated").isString());
-        assertEquals("2023-12-14T20:56:40.773", callbackPayload.path("timestampCreated").stringValue());
+        assertEquals("2023-12-14T20:56:40.773+00:00", callbackPayload.path("timestampCreated").stringValue());
         assertTrue(callbackPayload.path("timestampExpires").isString());
-        assertEquals("9999-12-14T20:56:40.773", callbackPayload.path("timestampExpires").stringValue());
+        assertEquals("9999-12-14T20:56:40.773+00:00", callbackPayload.path("timestampExpires").stringValue());
         assertTrue(callbackPayload.path("timestampFinalized").isNull());
     }
 

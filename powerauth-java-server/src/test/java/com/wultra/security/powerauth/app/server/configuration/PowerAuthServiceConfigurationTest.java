@@ -39,6 +39,6 @@ class PowerAuthServiceConfigurationTest {
         new PowerAuthServiceConfiguration().jsonMapperBuilderCustomizer().customize(builder);
         final ObjectMapper objectMapper = builder.build();
 
-        assertEquals("\"2024-01-01T00:00:00.123\"", objectMapper.writeValueAsString(new Date(1704067200123L)));
+        assertEquals("\"2024-01-01T00:00:00.123+00:00\"", objectMapper.writeValueAsString(new Date(1704067200123L)));
     }
 }

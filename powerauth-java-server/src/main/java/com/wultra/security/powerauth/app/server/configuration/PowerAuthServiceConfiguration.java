@@ -35,11 +35,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.util.StdDateFormat;
 
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -310,11 +309,10 @@ public class PowerAuthServiceConfiguration {
      */
     @Bean
     public JsonMapperBuilderCustomizer jsonMapperBuilderCustomizer() {
-        final SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                Locale.ROOT
-        );
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final StdDateFormat dateFormat = StdDateFormat.instance
+                .withTimeZone(TimeZone.getTimeZone("UTC"))
+                .withColonInTimeZone(true)
+                .withZeroOffsetAsZ(false);
         return builder -> builder
                 .defaultDateFormat(dateFormat)
                 .enable(SerializationFeature.INDENT_OUTPUT);
