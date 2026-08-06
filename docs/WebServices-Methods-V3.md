@@ -1529,6 +1529,8 @@ When creating a callback URL of type `OPERATION_STATUS_CHANGE`, following `attri
 - `timestampExpires`
 - `timestampFinalized`
 
+The `timestampCreated`, `timestampExpires`, and `timestampFinalized` attributes are serialized in the dispatched callback payload as JSON numbers representing Unix time in milliseconds (epoch milliseconds).
+
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json
 {
@@ -1629,6 +1631,8 @@ When configuring a callback URL of type `OPERATION_STATUS_CHANGE`, following `at
 - `timestampCreated`
 - `timestampExpires`
 - `timestampFinalized`
+
+The `timestampCreated`, `timestampExpires`, and `timestampFinalized` attributes are serialized in the dispatched callback payload as JSON numbers representing Unix time in milliseconds (epoch milliseconds).
 
 The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
 ```json

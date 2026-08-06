@@ -37,6 +37,7 @@ import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListRes
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -49,6 +50,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -247,6 +249,41 @@ class CallbackUrlBehaviorTest {
 
         tested.removeCallbackUrl(request);
         entityManager.flush();
+    }
+
+    @Sql
+    @Test
+    void testOperationCallbackTimestampsSerializedAsEpochMillis() {
+        when(callbackUrlEventService.obtainMaxAttempts(any()))
+                .thenReturn(1);
+        when(callbackUrlEventService.failureThresholdReached(any()))
+                .thenReturn(false);
+
+        final OperationEntity operation = entityManager.find(OperationEntity.class, "07e927af-689a-43ac-bd21-291179801912");
+        assertNotNull(operation.getTimestampCreated());
+        assertNotNull(operation.getTimestampExpires());
+        assertNotNull(operation.getTimestampFinalized());
+
+        try (var mockedCallbackConvertor = mockStatic(CallbackUrlConvertor.class)) {
+            tested.notifyCallbackListenersOnOperationChange(operation);
+        }
+
+        final CallbackUrlEntity enabledCallback = entityManager.find(CallbackUrlEntity.class, "cba5f7aa-889e-4846-b97a-b6ba1bd51ad5");
+
+        @SuppressWarnings("unchecked")
+        final ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+        verify(callbackUrlEventService).createAndSaveEventForProcessing(eq(enabledCallback), captor.capture());
+
+        final Map<String, Object> callbackData = captor.getValue();
+
+        // The timestamps must be converted to numeric epoch milliseconds so that both callback dispatch
+        // sub-paths (instant dispatch and reload from the database) serialize them as JSON numbers.
+        assertInstanceOf(Long.class, callbackData.get("timestampCreated"));
+        assertInstanceOf(Long.class, callbackData.get("timestampExpires"));
+        assertInstanceOf(Long.class, callbackData.get("timestampFinalized"));
+        assertEquals(operation.getTimestampCreated().getTime(), callbackData.get("timestampCreated"));
+        assertEquals(operation.getTimestampExpires().getTime(), callbackData.get("timestampExpires"));
+        assertEquals(operation.getTimestampFinalized().getTime(), callbackData.get("timestampFinalized"));
     }
 
     @Test
