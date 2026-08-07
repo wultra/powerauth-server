@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-08-06
+
+### Fixed
+
+- Restored numeric (epoch-millisecond) serialization of operation callback timestamps, which regressed to ISO-8601 strings after the Jackson 3 upgrade and broke callback consumers that parse the timestamps as numbers [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)
+
 ## [2.2.0] - 2026-07-20
 
 ### Added
@@ -19,5 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated to Spring Boot 4 and Jackson 3 [(#2379)](https://github.com/wultra/powerauth-server/issues/2379)
 - Upgraded Docker base image to `ibm-semeru-runtimes:open-jdk-25.0.3.0-jre-noble` (OpenJDK 25) [(#2396)](https://github.com/wultra/powerauth-server/issues/2396)
 
-[unreleased]: https://github.com/wultra/powerauth-server/compare/2.2.0...HEAD
+[unreleased]: https://github.com/wultra/powerauth-server/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/wultra/powerauth-server/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/wultra/powerauth-server/compare/2.1.0...2.2.0
