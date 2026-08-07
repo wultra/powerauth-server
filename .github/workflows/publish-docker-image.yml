@@ -61,7 +61,7 @@ jobs:
       COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
       COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Java
         uses: wultra/wultra-infrastructure/.github/actions/setup-java@develop
