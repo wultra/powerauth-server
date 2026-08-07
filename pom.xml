@@ -103,7 +103,7 @@
         <logstash.version>9.0</logstash.version>
         <equalsverifier.version>4.5</equalsverifier.version>
         <zxing.version>3.5.4</zxing.version>
-        <cyclonedx-maven-plugin.version>2.9.2</cyclonedx-maven-plugin.version>
+        <cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version>
         <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
 
         <!-- Test dependencies -->
