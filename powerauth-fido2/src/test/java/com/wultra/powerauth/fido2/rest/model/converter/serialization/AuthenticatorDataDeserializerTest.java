@@ -24,6 +24,11 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import org.junit.jupiter.api.Test;
+import tools.jackson.dataformat.cbor.CBORMapper;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -79,6 +84,21 @@ class AuthenticatorDataDeserializerTest {
         assertEquals(ECKeyType.UNCOMPRESSED, publicKeyObject.getKeyType());
         assertNotNull(publicKeyObject.getPoint().getX());
         assertNotNull(publicKeyObject.getPoint().getY());
+    }
+
+    @Test
+    void testDeserialize_withTrailingData() throws Exception {
+        final String authData = "SZYN5YgOjGh0NBcPZHZgW4/krrmihjLHmVzzuoMdl2NdAAAAALraVWanqkAfvZZFYZpVEg0AENntBM0k3kUGHZJgXctZB2mlAQIDJiABIVggUnRRgaXiOSdKFnu6u04mUQNMDyuHWDODUdIcrt4Ca9wiWCBEq2quWbx976dPV7Ajt8yR5+4h1tnfT8X5ey7PT0utKA==";
+        final byte[] authDataBytes = Base64.getDecoder().decode(authData);
+        authDataBytes[32] |= (byte) 0x80; // ED flag
+
+        final var authDataWithExtension = new ByteArrayOutputStream();
+        authDataWithExtension.writeBytes(authDataBytes);
+        authDataWithExtension.writeBytes(new CBORMapper().writeValueAsBytes(Map.of("credProtect", 3)));
+
+        final AuthenticatorData result = AuthenticatorDataDeserializer.deserialize(Base64.getEncoder().encodeToString(authDataWithExtension.toByteArray()));
+
+        assertNotNull(result.getAttestedCredentialData().getPublicKeyObject());
     }
 
 }
