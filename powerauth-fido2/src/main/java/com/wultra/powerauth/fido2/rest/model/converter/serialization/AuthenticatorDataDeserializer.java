@@ -31,6 +31,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.deser.std.StdDeserializer;
 import tools.jackson.dataformat.cbor.CBORMapper;
@@ -47,7 +48,9 @@ import java.util.Map;
 @Slf4j
 public class AuthenticatorDataDeserializer extends StdDeserializer<AuthenticatorData> {
 
-    private static final ObjectMapper CBOR_MAPPER = CBORMapper.builder().build();
+    private static final ObjectMapper CBOR_MAPPER = CBORMapper.builder()
+            .disable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+            .build();
 
     /**
      * No-arg deserializer constructor, used by Jackson via {@code @JsonDeserialize}.
