@@ -2,7 +2,13 @@
 
 ## Database Changes
 
-For convenience, you can use Liquibase for the database migration.
+For convenience, you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](sql/postgresql/migration_2.1.0_2.2.0.sql)
+- [Oracle script](sql/oracle/migration_2.1.0_2.2.0.sql)
+- [MSSQL script](sql/mssql/migration_2.1.0_2.2.0.sql)
 
 ### Table `pa_signature_audit`
 

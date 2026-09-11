@@ -4,7 +4,7 @@
 
 ### POST /fido2/assertions
 
-The `$.requestObject.applicationId` attribute used to verify the challenge can be approved by given application is no longer mandatory. If not present, the user ID retrieved from `$.requestObject.response.userHandle` is used to determine the application ID. 
+The `$.requestObject.applicationId` attribute used to verify the challenge can be approved by given application is no longer mandatory. If not present, the user ID retrieved from `$.requestObject.response.userHandle` is used to determine the application ID.
 
 ### POST /fido2/assertions/challenge
 
@@ -26,7 +26,13 @@ values remain unchanged and continue to represent the same set of signature type
 
 ## Database Changes
 
-For convenience, you can use Liquibase for your database migration.
+For convenience, you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](sql/postgresql/migration_2.0.0_2.1.0.sql)
+- [Oracle script](sql/oracle/migration_2.0.0_2.1.0.sql)
+- [MSSQL script](sql/mssql/migration_2.0.0_2.1.0.sql)
 
 ### `pa_activation` Table
 
