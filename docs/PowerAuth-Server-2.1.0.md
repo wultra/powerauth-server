@@ -26,7 +26,13 @@ values remain unchanged and continue to represent the same set of signature type
 
 ## Database Changes
 
-For convenience, you can use Liquibase for your database migration.
+For convenience, you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](sql/postgresql/migration_2.0.0_2.1.0.sql)
+- [Oracle script](sql/oracle/migration_2.0.0_2.1.0.sql)
+- [MSSQL script](sql/mssql/migration_2.0.0_2.1.0.sql)
 
 ### `pa_activation` Table
 
