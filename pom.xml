@@ -103,7 +103,7 @@
         <logstash.version>9.0</logstash.version>
         <equalsverifier.version>4.5.2</equalsverifier.version>
         <zxing.version>3.5.4</zxing.version>
-        <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
+        <central.publishing.plugin.version>0.12.0</central.publishing.plugin.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.31.11.RELEASE</webauthn4j.version>
