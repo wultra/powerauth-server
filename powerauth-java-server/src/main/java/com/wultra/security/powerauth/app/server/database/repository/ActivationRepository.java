@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.app.server.database.model.entity.Activation
 import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -76,6 +77,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param pageable pageable context
      * @return List of activations for given user
      */
+    @EntityGraph(attributePaths = "devicePublicKey")
     List<ActivationRecordEntity> findByUserIdAndActivationStatusIn(String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
 
     /**
@@ -87,6 +89,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param pageable pageable context
      * @return List of activations for given user and application
      */
+    @EntityGraph(attributePaths = "devicePublicKey")
     List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
 
     /**
@@ -126,7 +129,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param states List of activation states to consider.
      * @return List of activations which match the query criteria.
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND ((:#{#applicationIds == null} = true) OR a.application.id IN (:applicationIds)) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
+    @Query("SELECT a FROM ActivationRecordEntity a LEFT JOIN FETCH a.devicePublicKey WHERE a.userId IN :userIds AND ((:#{#applicationIds == null} = true) OR a.application.id IN (:applicationIds)) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
     List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 
     /**
