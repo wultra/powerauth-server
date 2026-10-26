@@ -919,6 +919,7 @@ REST endpoint: `POST /rest/v4/activation/status`
 | `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key (*deprecated*)                                        |
 | `Map<String, String>`     | `activationSignatures`       | A map of algorithm identifiers to activation signatures                                                                  |
 | `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification                                    |
+| `Map<String, String>`     | `devicePublicKeys`           | Device public keys by key type (normalized Base64). Returned only when `includeStatusBlob=false`                         |
 | `long`                    | `version`                    | Activation version                                                                                                       |
 | `List<String>`            | `activationFlags`            | Activation flags                                                                                                         |
 | `List<String>`            | `applicationRoles`           | Application roles                                                                                                        |

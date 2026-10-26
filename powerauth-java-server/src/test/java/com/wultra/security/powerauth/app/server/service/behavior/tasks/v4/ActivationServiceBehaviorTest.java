@@ -194,8 +194,9 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
         assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey),
-                getActivationStatusResponse(activationId).getDevicePublicKeys());
+                getActivationStatusResponseWithoutBlob(activationId).getDevicePublicKeys());
     }
 
     @Test
@@ -267,8 +268,9 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
         assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey, KeyType.MLDSA_87.name(), mlDsaPublicKey),
-                getActivationStatusResponse(activationId).getDevicePublicKeys());
+                getActivationStatusResponseWithoutBlob(activationId).getDevicePublicKeys());
     }
 
     @Test
@@ -804,6 +806,13 @@ class ActivationServiceBehaviorTest {
     private GetActivationStatusResponse getActivationStatusResponse(final String activationId) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
+        return activationStatusServiceBehavior.getActivationStatus(statusRequest);
+    }
+
+    private GetActivationStatusResponse getActivationStatusResponseWithoutBlob(final String activationId) throws Exception {
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        statusRequest.setIncludeStatusBlob(false);
         return activationStatusServiceBehavior.getActivationStatus(statusRequest);
     }
 

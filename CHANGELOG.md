@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Exposed all device public keys on the activation list, lookup, and v4 status read APIs through a new `devicePublicKeys` map (key type name to normalized Base64): ECDSA_P384 and the ML-DSA key for protocol v4, the single ECDSA_P256 key for protocol v3 [(#2462)](https://github.com/wultra/powerauth-server/issues/2462)
+- Exposed all device public keys on the activation list, lookup, and v4 status (only with `includeStatusBlob=false`) read APIs through a new `devicePublicKeys` map (key type name to normalized Base64): ECDSA_P384 and the ML-DSA key for protocol v4, the single ECDSA_P256 key for protocol v3 [(#2462)](https://github.com/wultra/powerauth-server/issues/2462)
 
 ### Fixed
 - Restored numeric (epoch-millisecond) serialization of operation callback timestamps, which regressed to ISO-8601 strings after the Jackson 3 upgrade and broke callback consumers that parse the timestamps as numbers [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)

@@ -129,7 +129,7 @@ public class ActivationStatusServiceBehavior {
             final ApplicationEntity application = activation.getApplication();
 
             // Build the common response fields shared across all activation states
-            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application);
+            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, includeStatusBlob);
 
             if (includeStatusBlob) {
                 response.setStatusBlob(deriveStatusBlob(activation));
@@ -161,7 +161,7 @@ public class ActivationStatusServiceBehavior {
      * For {@link ActivationStatus#CREATED} activations, activation code and signatures are included.
      * For all other states, device public key fingerprint and additional data are included.
      */
-    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, boolean includeStatusBlob) throws GenericServiceException {
         final GetActivationStatusResponse response = new GetActivationStatusResponse();
         response.setActivationId(activation.getActivationId());
         response.setUserId(activation.getUserId());
@@ -200,7 +200,10 @@ public class ActivationStatusServiceBehavior {
         } else {
             response.setActivationCode(null);
             response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
-            response.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+            // Keys are large and only needed by management clients (PowerAuth Cloud), never by the mobile status with blob
+            if (!includeStatusBlob) {
+                response.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+            }
             response.setAdditionalData(activation.getAdditionalData());
         }
 

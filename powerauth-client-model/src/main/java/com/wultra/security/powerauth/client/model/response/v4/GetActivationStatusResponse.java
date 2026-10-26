@@ -73,7 +73,8 @@ public class GetActivationStatusResponse {
 
     @ToString.Exclude
     @Schema(description = "Device public keys by key type (KeyType name to normalized Base64). "
-        + "ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. Empty for CREATED activations.")
+        + "ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. Populated only when the request has includeStatusBlob=false; "
+        + "empty with the status blob and for CREATED activations.")
     private Map<String, String> devicePublicKeys = new LinkedHashMap<>();
     private long version;
     private List<String> activationFlags = new ArrayList<>();
