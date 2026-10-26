@@ -26,7 +26,9 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Model class representing activation entity.
@@ -57,6 +59,11 @@ public class Activation {
     private long failedAttempts;
     private long maxFailedAttempts;
     private String devicePublicKeyBase64;
+
+    @Schema(description = "Device public keys by key type (KeyType name to normalized Base64). "
+        + "Single ECDSA_P256 entry for v3; ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. "
+        + "Empty for activations in CREATED state.")
+    private Map<String, String> devicePublicKeys = new LinkedHashMap<>();
     private long version;
 
     @Schema(description = "Timestamp after which a temporary activation block is expired. Applies only to activations using cryptography protocol v4. Null when no temporary block is in effect.")

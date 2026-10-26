@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
@@ -76,6 +77,7 @@ import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -135,6 +137,7 @@ class ActivationServiceBehaviorTest {
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramEcdhe();
@@ -191,6 +194,8 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey),
+                getActivationStatusResponse(activationId).getDevicePublicKeys());
     }
 
     @Test
@@ -203,6 +208,7 @@ class ActivationServiceBehaviorTest {
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE + MLKEM
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramHybrid();
@@ -261,6 +267,8 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey, KeyType.MLDSA_87.name(), mlDsaPublicKey),
+                getActivationStatusResponse(activationId).getDevicePublicKeys());
     }
 
     @Test

@@ -70,6 +70,11 @@ public class GetActivationStatusResponse {
     private Map<String, String> activationSignatures = new LinkedHashMap<>();
     @ToString.Exclude
     private String devicePublicKeyFingerprint;
+
+    @ToString.Exclude
+    @Schema(description = "Device public keys by key type (KeyType name to normalized Base64). "
+        + "ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. Empty for CREATED activations.")
+    private Map<String, String> devicePublicKeys = new LinkedHashMap<>();
     private long version;
     private List<String> activationFlags = new ArrayList<>();
     private List<String> applicationRoles = new ArrayList<>();

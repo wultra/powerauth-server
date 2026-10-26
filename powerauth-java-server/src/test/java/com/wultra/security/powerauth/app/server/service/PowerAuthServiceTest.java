@@ -17,11 +17,12 @@
  */
 package com.wultra.security.powerauth.app.server.service;
 
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
-import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,9 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test for {@link PowerAuthService}.
@@ -68,6 +71,13 @@ class PowerAuthServiceTest {
         final Date timestampCreated3 = result.get(2).getTimestampCreated();
         assertEquals(1, timestampCreated1.compareTo(timestampCreated2));
         assertEquals(1, timestampCreated2.compareTo(timestampCreated3));
+
+        final Activation committedActivation = result.get(0);
+        assertEquals(ActivationStatus.ACTIVE, committedActivation.getActivationStatus());
+        assertEquals(Map.of(KeyType.ECDSA_P256.name(), committedActivation.getDevicePublicKeyBase64()), committedActivation.getDevicePublicKeys());
+
+        assertTrue(result.get(1).getDevicePublicKeys().isEmpty());
+        assertTrue(result.get(2).getDevicePublicKeys().isEmpty());
     }
 
     @Test

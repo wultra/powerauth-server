@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseC
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
+import com.wultra.security.powerauth.app.server.converter.DevicePublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -85,6 +86,7 @@ public class ActivationStatusServiceBehavior {
     private final AlgorithmQueryService algorithmQueryService;
     private final AsymmetricSignatureService asymmetricSignatureService;
     private final ActivationBlockService activationBlockService;
+    private final DevicePublicKeysConverter devicePublicKeysConverter;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -198,6 +200,7 @@ public class ActivationStatusServiceBehavior {
         } else {
             response.setActivationCode(null);
             response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
+            response.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
             response.setAdditionalData(activation.getAdditionalData());
         }
 

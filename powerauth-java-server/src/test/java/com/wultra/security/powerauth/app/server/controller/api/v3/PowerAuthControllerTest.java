@@ -224,6 +224,7 @@ class PowerAuthControllerTest {
 
         final LookupActivationsResponse lookupActivationsResponse = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertThat(lookupActivationsResponse.getActivations(), hasSize(1));
+        assertTrue(lookupActivationsResponse.getActivations().get(0).getDevicePublicKeys().isEmpty());
         removeActivation();
     }
 
