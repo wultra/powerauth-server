@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2025 Wultra s.r.o.
+ * Copyright (C) 2026 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.when;
 
@@ -124,12 +123,11 @@ class DevicePublicKeysConverterTest {
     }
 
     @Test
-    void propagatesExceptionFromKeyProvider() throws Exception {
+    void returnsEmptyMapWhenKeyProviderFails() throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
-        final GenericServiceException expected = new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, "Deserialization failed");
-        when(keyProvider.getDevicePublicKeys(activation)).thenThrow(expected);
+        when(keyProvider.getDevicePublicKeys(activation)).thenThrow(new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, "Deserialization failed"));
 
-        assertThatThrownBy(() -> converter.toDevicePublicKeys(activation)).isSameAs(expected);
+        assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
     }
 
 }

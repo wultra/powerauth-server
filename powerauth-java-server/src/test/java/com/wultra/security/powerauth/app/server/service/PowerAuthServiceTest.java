@@ -18,6 +18,10 @@
 package com.wultra.security.powerauth.app.server.service;
 
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
+import com.wultra.security.powerauth.app.server.database.repository.ActivationRepository;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
@@ -30,6 +34,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.PublicKey;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +57,12 @@ class PowerAuthServiceTest {
 
     @Autowired
     private ActivationServiceBehavior tested;
+
+    @Autowired
+    private ActivationRepository activationRepository;
+
+    @Autowired
+    private KeyProvider keyProvider;
 
     @Test
     void testGetActivationListForUser() throws Exception {
@@ -94,5 +106,23 @@ class PowerAuthServiceTest {
 
         assertEquals("e43a5dec-afea-4a10-a80b-b2183399f16b", resultActivation.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, resultActivation.getActivationStatus());
+    }
+
+    @Test
+    void testGetActivationListForUser_v4DevicePublicKeys() throws Exception {
+        final String ecdsaP384PublicKey = "BKJPKNYKmOx7O2uR1k1wR9NHUQFQVNghid1cNaHJ0HfGTYXpttIAsUkOlkY0DyIuAOcs+zpGRP87NlcdJALMfkKcXb22SAfy/E3D8HDCT038pYfL+HiwWpBP+5VYsmk28A==";
+        final PublicKey publicKey = new KeyConvertor().convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ecdsaP384PublicKey));
+        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+        keyProvider.storeDevicePublicKey(activationRepository.findActivationWithoutLock(activationId).orElseThrow(), KeyType.ECDSA_P384, publicKey);
+
+        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+        request.setUserId("user1");
+        request.setProtocols(Set.of(ActivationProtocol.POWERAUTH));
+
+        final Activation result = tested.getActivationList(request).getActivations().stream()
+                .filter(a -> activationId.equals(a.getActivationId()))
+                .findFirst().orElseThrow();
+
+        assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecdsaP384PublicKey), result.getDevicePublicKeys());
     }
 }

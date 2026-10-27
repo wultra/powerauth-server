@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,6 +61,7 @@ public class Activation {
     private long maxFailedAttempts;
     private String devicePublicKeyBase64;
 
+    @ToString.Exclude
     @Schema(description = "Device public keys by key type (KeyType name to normalized Base64). "
         + "Single ECDSA_P256 entry for v3; ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. "
         + "Empty for activations in CREATED state.")

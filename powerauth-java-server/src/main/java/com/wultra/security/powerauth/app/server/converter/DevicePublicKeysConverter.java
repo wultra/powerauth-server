@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2025 Wultra s.r.o.
+ * Copyright (C) 2026 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
@@ -41,6 +42,7 @@ import java.util.Optional;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Slf4j
 @Component
 public class DevicePublicKeysConverter {
 
@@ -62,17 +64,23 @@ public class DevicePublicKeysConverter {
      * Build the map of device public keys for the given activation.
      * <p>
      * Returns the v4 registry keys when present, otherwise falls back to the legacy v3 key. The map is
-     * empty when no device public key has been exchanged yet (e.g. an activation in the CREATED state).
+     * empty when no device public key has been exchanged yet (e.g. an activation in the CREATED state)
+     * or when the stored keys cannot be converted, so that one corrupted row does not fail the whole read API.
      *
      * @param activation Activation whose device public keys to expose.
      * @return Map of {@link KeyType} name to normalized Base64 public key, never {@code null}.
-     * @throws GenericServiceException When the conversion from the database representation fails.
      */
-    public Map<String, String> toDevicePublicKeys(final ActivationRecordEntity activation) throws GenericServiceException {
-        final Optional<PublicKeyRegistry> registry = keyProvider.getDevicePublicKeys(activation);
-        if (registry.isPresent()) {
-            return publicKeyObjectMapper.convertValue(
-                    registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
+    public Map<String, String> toDevicePublicKeys(final ActivationRecordEntity activation) {
+        final Optional<PublicKeyRegistry> registry;
+        try {
+            registry = keyProvider.getDevicePublicKeys(activation);
+            if (registry.isPresent()) {
+                return publicKeyObjectMapper.convertValue(
+                        registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
+            }
+        } catch (GenericServiceException | RuntimeException ex) {
+            logger.error("Device public keys cannot be converted, returning none, activationId={}", activation.getActivationId(), ex);
+            return new LinkedHashMap<>();
         }
 
         final Map<String, String> result = new LinkedHashMap<>();
