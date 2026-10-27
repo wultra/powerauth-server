@@ -258,7 +258,7 @@ class PowerAuthServiceTest {
         storeV4DevicePublicKeys();
         assignExternalId("credential-2");
 
-        final List<Activation> result = tested.findByExternalId("221", "credential-2");
+        final List<Activation> result = tested.findByExternalId("PA_Tests", "credential-2");
 
         assertEquals(1, result.size());
         assertNotNull(result.get(0).getDevicePublicKeyBase64());
