@@ -28,8 +28,10 @@ import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -180,14 +182,44 @@ class DevicePublicKeysConverterTest {
     }
 
     @Test
-    void returnsEmptyMapWhenNoDeviceKeyStored() throws Exception {
+    void returnsEmptyMapForV4ActivationWithoutRegistryEvenWithRetainedLegacyKey() throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+        activation.setDevicePublicKeyBase64(LEGACY_ECDSA_P256_PUBLIC_KEY);
         when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.empty());
 
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
 
         assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    void returnsOnlyMlDsa65KeyForL3ActivationAfterUpgradeRetry() throws Exception {
+        final ActivationRecordEntity activation = v4ActivationWithRetriedUpgradeKeys(SharedSecretAlgorithm.EC_P384_ML_L3);
+
+        assertThat(converter.toDevicePublicKeys(activation))
+                .containsOnlyKeys(KeyType.ECDSA_P384.name(), KeyType.MLDSA_65.name())
+                .containsEntry(KeyType.ECDSA_P384.name(), ECDSA_P384_PUBLIC_KEY)
+                .containsEntry(KeyType.MLDSA_65.name(), MLDSA_65_PUBLIC_KEY);
+    }
+
+    @Test
+    void returnsOnlyMlDsa87KeyForL5ActivationAfterUpgradeRetry() throws Exception {
+        final ActivationRecordEntity activation = v4ActivationWithRetriedUpgradeKeys(SharedSecretAlgorithm.EC_P384_ML_L5);
+
+        assertThat(converter.toDevicePublicKeys(activation))
+                .containsOnlyKeys(KeyType.ECDSA_P384.name(), KeyType.MLDSA_87.name())
+                .containsEntry(KeyType.ECDSA_P384.name(), ECDSA_P384_PUBLIC_KEY);
+    }
+
+    @Test
+    void returnsOnlyEcdsaP384KeyForEcOnlyActivationAfterUpgradeRetry() throws Exception {
+        final ActivationRecordEntity activation = v4ActivationWithRetriedUpgradeKeys(SharedSecretAlgorithm.EC_P384);
+
+        assertThat(converter.toDevicePublicKeys(activation))
+                .containsOnlyKeys(KeyType.ECDSA_P384.name())
+                .containsEntry(KeyType.ECDSA_P384.name(), ECDSA_P384_PUBLIC_KEY);
     }
 
     @Test
@@ -197,6 +229,22 @@ class DevicePublicKeysConverterTest {
         when(keyProvider.getDevicePublicKeys(activation)).thenThrow(new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, "Deserialization failed"));
 
         assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
+    }
+
+    /**
+     * Upgrade start can be retried with another algorithm and the registry then keeps the keys of both attempts.
+     */
+    private ActivationRecordEntity v4ActivationWithRetriedUpgradeKeys(final SharedSecretAlgorithm algorithm) throws Exception {
+        final PublicKeyRegistry registry = new PublicKeyRegistry();
+        registry.storePublicKey(KeyType.ECDSA_P384, keyConvertorEc.convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY)));
+        registry.storePublicKey(KeyType.MLDSA_65, keyConvertorPqcDsa.convertBytesToPublicKey(Base64.getDecoder().decode(MLDSA_65_PUBLIC_KEY)));
+        registry.storePublicKey(KeyType.MLDSA_87, new MlDsa(MLDSAParameterSpec.ml_dsa_87).generateKeyPair().getPublic());
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
+        activation.setCryptoAlgorithm(algorithm);
+        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
+        return activation;
     }
 
 }

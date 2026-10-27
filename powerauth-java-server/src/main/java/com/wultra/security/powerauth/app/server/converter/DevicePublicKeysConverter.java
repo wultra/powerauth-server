@@ -31,6 +31,7 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,34 +65,19 @@ public class DevicePublicKeysConverter {
     /**
      * Build the map of device public keys for the given activation.
      * <p>
-     * Returns the v4 registry keys for a v4 activation, or falls back to the legacy v3 key for older
-     * activations. The map is empty when no device public key has been exchanged yet (e.g. an activation
-     * in the CREATED state), when the stored keys cannot be converted, or when a hybrid activation lacks
-     * one of its required keys, so that one corrupted row does not fail the whole read API and a partial
-     * key set is never mistaken for an EC-only activation.
+     * A v4 activation exposes only the registry keys that belong to its crypto algorithm (the registry may
+     * still hold obsolete keys of an earlier, retried upgrade), and never falls back to the legacy key.
+     * Older activations expose the single legacy v3 key. The map is empty when no device public key has been
+     * exchanged yet (e.g. an activation in the CREATED state), when the stored keys cannot be converted, or
+     * when a v4 activation lacks one of the keys required by its algorithm, so that one corrupted row does
+     * not fail the whole read API and a partial key set is never mistaken for an EC-only activation.
      *
      * @param activation Activation whose device public keys to expose.
      * @return Map of {@link KeyType} name to normalized Base64 public key, never {@code null}.
      */
     public Map<String, String> toDevicePublicKeys(final ActivationRecordEntity activation) {
         if (Integer.valueOf(4).equals(activation.getVersion())) {
-            final Optional<PublicKeyRegistry> registry;
-            try {
-                registry = keyProvider.getDevicePublicKeys(activation);
-                if (registry.isPresent()) {
-                    final Map<String, String> keys = publicKeyObjectMapper.convertValue(
-                            registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
-                    if (!hasRequiredKeys(activation.getCryptoAlgorithm(), keys)) {
-                        logger.error("Device public keys are incomplete for the activation algorithm, returning none, activationId={}, cryptoAlgorithm={}",
-                                activation.getActivationId(), activation.getCryptoAlgorithm());
-                        return new LinkedHashMap<>();
-                    }
-                    return keys;
-                }
-            } catch (GenericServiceException | RuntimeException ex) {
-                logger.error("Device public keys cannot be converted, returning none, activationId={}", activation.getActivationId(), ex);
-                return new LinkedHashMap<>();
-            }
+            return toRegistryDevicePublicKeys(activation);
         }
 
         final Map<String, String> result = new LinkedHashMap<>();
@@ -102,16 +88,48 @@ public class DevicePublicKeysConverter {
         return result;
     }
 
-    private static boolean hasRequiredKeys(final SharedSecretAlgorithm algorithm, final Map<String, String> keys) {
-        final KeyType requiredPqcKey;
-        if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L3) {
-            requiredPqcKey = KeyType.MLDSA_65;
-        } else if (algorithm == SharedSecretAlgorithm.EC_P384_ML_L5) {
-            requiredPqcKey = KeyType.MLDSA_87;
-        } else {
-            return true;
+    private Map<String, String> toRegistryDevicePublicKeys(final ActivationRecordEntity activation) {
+        try {
+            final Optional<PublicKeyRegistry> registry = keyProvider.getDevicePublicKeys(activation);
+            if (registry.isEmpty()) {
+                return new LinkedHashMap<>();
+            }
+            final Map<String, String> storedKeys = publicKeyObjectMapper.convertValue(
+                    registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
+            final List<KeyType> expectedKeyTypes = expectedKeyTypes(activation.getCryptoAlgorithm());
+            if (expectedKeyTypes.isEmpty()) {
+                return storedKeys;
+            }
+            final Map<String, String> keys = new LinkedHashMap<>();
+            for (final KeyType keyType : expectedKeyTypes) {
+                final String key = storedKeys.get(keyType.name());
+                if (key == null) {
+                    logger.error("Device public keys are incomplete for the activation algorithm, returning none, activationId={}, cryptoAlgorithm={}",
+                            activation.getActivationId(), activation.getCryptoAlgorithm());
+                    return new LinkedHashMap<>();
+                }
+                keys.put(keyType.name(), key);
+            }
+            return keys;
+        } catch (GenericServiceException | RuntimeException ex) {
+            logger.error("Device public keys cannot be converted, returning none, activationId={}", activation.getActivationId(), ex);
+            return new LinkedHashMap<>();
         }
-        return keys.containsKey(KeyType.ECDSA_P384.name()) && keys.containsKey(requiredPqcKey.name());
+    }
+
+    /**
+     * Key types a v4 activation of the given algorithm holds, empty when the algorithm does not define them.
+     */
+    private static List<KeyType> expectedKeyTypes(final SharedSecretAlgorithm algorithm) {
+        if (algorithm == null) {
+            return List.of();
+        }
+        return switch (algorithm) {
+            case EC_P384 -> List.of(KeyType.ECDSA_P384);
+            case EC_P384_ML_L3 -> List.of(KeyType.ECDSA_P384, KeyType.MLDSA_65);
+            case EC_P384_ML_L5 -> List.of(KeyType.ECDSA_P384, KeyType.MLDSA_87);
+            default -> List.of();
+        };
     }
 
 }
