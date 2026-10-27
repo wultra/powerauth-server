@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,6 +93,7 @@ class DevicePublicKeysConverterTest {
 
         final ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
 
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
@@ -101,6 +103,48 @@ class DevicePublicKeysConverterTest {
                 .containsOnlyKeys(KeyType.ECDSA_P384.name(), KeyType.MLDSA_65.name())
                 .containsEntry(KeyType.ECDSA_P384.name(), ECDSA_P384_PUBLIC_KEY)
                 .containsEntry(KeyType.MLDSA_65.name(), MLDSA_65_PUBLIC_KEY);
+    }
+
+    @Test
+    void returnsEmptyMapWhenHybridActivationLacksMlDsaKey() throws Exception {
+        final PublicKeyRegistry registry = new PublicKeyRegistry();
+        registry.storePublicKey(KeyType.ECDSA_P384, keyConvertorEc.convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY)));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
+
+        assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
+    }
+
+    @Test
+    void returnsEmptyMapWhenHybridL5ActivationHasWrongMlDsaKeyType() throws Exception {
+        final PublicKeyRegistry registry = new PublicKeyRegistry();
+        registry.storePublicKey(KeyType.ECDSA_P384, keyConvertorEc.convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY)));
+        registry.storePublicKey(KeyType.MLDSA_65, keyConvertorPqcDsa.convertBytesToPublicKey(Base64.getDecoder().decode(MLDSA_65_PUBLIC_KEY)));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5);
+        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
+
+        assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
+    }
+
+    @Test
+    void returnsOnlyEcdsaP384KeyForEcOnlyV4Activation() throws Exception {
+        final PublicKeyRegistry registry = new PublicKeyRegistry();
+        registry.storePublicKey(KeyType.ECDSA_P384, keyConvertorEc.convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY)));
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384);
+        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
+
+        assertThat(converter.toDevicePublicKeys(activation))
+                .containsOnlyKeys(KeyType.ECDSA_P384.name())
+                .containsEntry(KeyType.ECDSA_P384.name(), ECDSA_P384_PUBLIC_KEY);
     }
 
     @Test
