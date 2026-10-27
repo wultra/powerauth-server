@@ -38,8 +38,8 @@ public class GetActivationStatusRequest {
     @Schema(description = "Whether to include the status blob in the response. Set to false to obtain plain activation detail without blob, which is more efficient for backend-to-backend calls.", defaultValue = "true")
     private boolean includeStatusBlob = true;
 
-    @Schema(description = "Opt-in: include device public keys (v4: ECDSA_P384 + ML-DSA; v3: ECDSA_P256). "
-        + "Large (ML-DSA ≈ 2.6 KB each); default false. Independent of includeStatusBlob.", defaultValue = "false")
+    @Schema(description = "Whether to include the device public keys in the response. "
+        + "Disabled by default because the keys are large (an ML-DSA key is about 2.6 KB).", defaultValue = "false")
     private boolean includeDevicePublicKeys = false;
 
 }

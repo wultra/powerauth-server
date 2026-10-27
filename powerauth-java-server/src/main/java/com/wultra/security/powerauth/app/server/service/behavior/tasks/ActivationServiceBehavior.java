@@ -120,7 +120,7 @@ public class ActivationServiceBehavior {
                 activationsList = activationQueryService.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
             }
 
-            if (request.isIncludeDevicePublicKeys() && activationsList != null) {
+            if (request.isIncludeDevicePublicKeys()) {
                 keyProvider.prefetchDevicePublicKeys(activationsList);
             }
 

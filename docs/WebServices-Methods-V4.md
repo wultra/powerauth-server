@@ -887,7 +887,7 @@ REST endpoint: `POST /rest/v4/activation/status`
 |-----------|---------------------|----------------------------------------------------------------|
 | `String`  | `activationId`      | An identifier of an activation                                 |
 | `boolean` | `includeStatusBlob` | Whether status blob is included in the response (default=true) |
-| `boolean` | `includeDevicePublicKeys` | Opt-in flag to include device public keys in the response (default=false). Independent of `includeStatusBlob` |
+| `boolean` | `includeDevicePublicKeys` | Whether device public keys are included in the response (default=false) |
 
 #### Response
 
