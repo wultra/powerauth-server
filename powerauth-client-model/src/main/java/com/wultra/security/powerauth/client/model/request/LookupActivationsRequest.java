@@ -56,7 +56,7 @@ public class LookupActivationsRequest {
     private List<@NotBlank String> activationFlags = new ArrayList<>();
 
     @Schema(description = "Whether to include the device public keys of each returned activation. "
-        + "Disabled by default because the keys are large (an ML-DSA key is about 2.6 KB).", defaultValue = "false")
+        + "Disabled by default because the keys are large.", defaultValue = "false")
     private boolean includeDevicePublicKeys = false;
 
 }
