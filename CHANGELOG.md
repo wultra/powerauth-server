@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added an opt-in `includeDevicePublicKeys` request flag (default `false`) to the activation list, activation lookup, and v4 activation status APIs. When enabled, the response contains a `devicePublicKeys` map: `ECDSA_P256` for protocol v3, `ECDSA_P384` for v4, plus one ML-DSA key for hybrid v4 algorithms. Both keys of a hybrid activation must be verified together; a missing ML-DSA key must not lead to EC-only verification [(#2462)](https://github.com/wultra/powerauth-server/issues/2462)
+
 ### Fixed
 - Restored numeric (epoch-millisecond) serialization of operation callback timestamps, which regressed to ISO-8601 strings after the Jackson 3 upgrade and broke callback consumers that parse the timestamps as numbers [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)
 - Fixed authenticator data deserialization when extensions are present, which could fail after the Jackson 3 upgrade [(#2444)](https://github.com/wultra/powerauth-server/issues/2444)

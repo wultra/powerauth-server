@@ -38,4 +38,8 @@ public class GetActivationStatusRequest {
     @Schema(description = "Whether to include the status blob in the response. Set to false to obtain plain activation detail without blob, which is more efficient for backend-to-backend calls.", defaultValue = "true")
     private boolean includeStatusBlob = true;
 
+    @Schema(description = "Whether to include the device public keys in the response. "
+        + "Disabled by default because the keys are large.", defaultValue = "false")
+    private boolean includeDevicePublicKeys = false;
+
 }

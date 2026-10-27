@@ -55,4 +55,8 @@ public class LookupActivationsRequest {
     @Schema(description = "List of activation flags")
     private List<@NotBlank String> activationFlags = new ArrayList<>();
 
+    @Schema(description = "Whether to include the device public keys of each returned activation. "
+        + "Disabled by default because the keys are large.", defaultValue = "false")
+    private boolean includeDevicePublicKeys = false;
+
 }

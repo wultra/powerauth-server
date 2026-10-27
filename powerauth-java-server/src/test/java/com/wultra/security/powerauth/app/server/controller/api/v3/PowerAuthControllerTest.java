@@ -18,9 +18,11 @@
  */
 package com.wultra.security.powerauth.app.server.controller.api.v3;
 
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.wultra.security.powerauth.app.server.service.util.jwt.JWSAlgorithmMLDSA;
+import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
@@ -51,8 +53,10 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -224,7 +228,100 @@ class PowerAuthControllerTest {
 
         final LookupActivationsResponse lookupActivationsResponse = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertThat(lookupActivationsResponse.getActivations(), hasSize(1));
+        assertTrue(lookupActivationsResponse.getActivations().get(0).getDevicePublicKeys().isEmpty());
         removeActivation();
+    }
+
+    @Test
+    void testLookupActivations_devicePublicKeysOnlyWhenRequested() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final LookupActivationsRequest request = new LookupActivationsRequest();
+            request.setUserIds(List.of(PowerAuthControllerTestConfig.USER_ID));
+            request.setApplicationIds(List.of(config.getApplicationId()));
+            request.setActivationStatus(ActivationStatus.PENDING_COMMIT);
+
+            final Activation withoutKeys = findActivation(powerAuthClient.lookupActivations(request).getActivations(), activationId);
+            assertNotNull(withoutKeys.getDevicePublicKeyBase64());
+            assertTrue(withoutKeys.getDevicePublicKeys().isEmpty());
+
+            request.setIncludeDevicePublicKeys(true);
+            final Activation withKeys = findActivation(powerAuthClient.lookupActivations(request).getActivations(), activationId);
+            assertEquals(Map.of("ECDSA_P256", withKeys.getDevicePublicKeyBase64()), withKeys.getDevicePublicKeys());
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
+    }
+
+    @Test
+    void testActivationListForUser_devicePublicKeysOnlyWhenRequested() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+            request.setUserId(PowerAuthControllerTestConfig.USER_ID);
+            request.setApplicationId(config.getApplicationId());
+
+            final Activation withoutKeys = findActivation(powerAuthClient.getActivationListForUser(request).getActivations(), activationId);
+            assertNotNull(withoutKeys.getDevicePublicKeyBase64());
+            assertTrue(withoutKeys.getDevicePublicKeys().isEmpty());
+
+            request.setIncludeDevicePublicKeys(true);
+            final Activation withKeys = findActivation(powerAuthClient.getActivationListForUser(request).getActivations(), activationId);
+            assertEquals(Map.of("ECDSA_P256", withKeys.getDevicePublicKeyBase64()), withKeys.getDevicePublicKeys());
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
+    }
+
+    @Test
+    void testActivationResponsesOmitDevicePublicKeysPropertyByDefault() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final Map<String, Object> listRequest = Map.of("userId", PowerAuthControllerTestConfig.USER_ID, "applicationId", config.getApplicationId());
+            final Map<String, Object> lookupRequest = Map.of("userIds", List.of(PowerAuthControllerTestConfig.USER_ID), "applicationIds", List.of(config.getApplicationId()));
+
+            assertFalse(postForActivation("list", listRequest, activationId).has("devicePublicKeys"));
+            assertFalse(postForActivation("lookup", lookupRequest, activationId).has("devicePublicKeys"));
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
+    }
+
+    @Test
+    void testActivationResponsesContainDevicePublicKeysPropertyWhenRequested() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final Map<String, Object> listRequest = Map.of("userId", PowerAuthControllerTestConfig.USER_ID, "applicationId", config.getApplicationId(), "includeDevicePublicKeys", true);
+            final Map<String, Object> lookupRequest = Map.of("userIds", List.of(PowerAuthControllerTestConfig.USER_ID), "applicationIds", List.of(config.getApplicationId()), "includeDevicePublicKeys", true);
+
+            final JsonNode listed = postForActivation("list", listRequest, activationId);
+            final JsonNode lookedUp = postForActivation("lookup", lookupRequest, activationId);
+
+            assertEquals(listed.get("devicePublicKeyBase64").asString(), listed.get("devicePublicKeys").get("ECDSA_P256").asString());
+            assertEquals(lookedUp.get("devicePublicKeyBase64").asString(), lookedUp.get("devicePublicKeys").get("ECDSA_P256").asString());
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
+    }
+
+    @Test
+    void testV4ActivationStatusOmitsDevicePublicKeysPropertyUnlessRequested() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+            lookupRequest.setUserIds(List.of(PowerAuthControllerTestConfig.USER_ID));
+            lookupRequest.setApplicationIds(List.of(config.getApplicationId()));
+            lookupRequest.setActivationStatus(ActivationStatus.PENDING_COMMIT);
+            final String devicePublicKey = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId).getDevicePublicKeyBase64();
+
+            final JsonNode withoutKeys = postForV4ActivationStatus(Map.of("activationId", activationId, "includeStatusBlob", false));
+            final JsonNode withKeys = postForV4ActivationStatus(Map.of("activationId", activationId, "includeStatusBlob", false, "includeDevicePublicKeys", true));
+
+            assertFalse(withoutKeys.has("devicePublicKeys"));
+            assertEquals(devicePublicKey, withKeys.get("devicePublicKeys").get("ECDSA_P256").asString());
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
     }
 
     /**
@@ -885,23 +982,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testCreateActivation() throws Exception {
-        final Date expireDate = Date.from(LocalDateTime.now().plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
-        final String activationName = "TEST_ACTIVATION";
-        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(activationName);
-
-        final CreateActivationRequest createActivationRequest = new CreateActivationRequest();
-        createActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
-        createActivationRequest.setMaxFailureCount(5L);
-        createActivationRequest.setMac(encryptedRequest.getMac());
-        createActivationRequest.setNonce(encryptedRequest.getNonce());
-        createActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
-        createActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-        createActivationRequest.setTimestampActivationExpire(expireDate);
-        createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
-        createActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
-        createActivationRequest.setApplicationKey(config.getApplicationKey());
-
-        final CreateActivationResponse createActivationResponse = powerAuthClient.createActivation(createActivationRequest);
+        final CreateActivationResponse createActivationResponse = createActivation();
         assertNotNull(createActivationResponse.getActivationId());
         assertEquals(PowerAuthControllerTestConfig.USER_ID, createActivationResponse.getUserId());
         assertEquals(config.getApplicationId(), createActivationResponse.getApplicationId());
@@ -1222,6 +1303,66 @@ class PowerAuthControllerTest {
         final RemoveCallbackUrlResponse removeCallbackUrlResponse = powerAuthClient.removeCallbackUrl(removeCallbackUrlRequest);
         assertEquals(callbackId, removeCallbackUrlResponse.getId());
         assertTrue(removeCallbackUrlResponse.isRemoved());
+    }
+
+    /**
+     * Creates an activation in the PENDING_COMMIT state with a device public key.
+     *
+     * @return the create activation response
+     * @throws Exception if any error occurs during activation creation
+     */
+    private CreateActivationResponse createActivation() throws Exception {
+        final Date expireDate = Date.from(LocalDateTime.now().plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
+        final String activationName = "TEST_ACTIVATION";
+        final EciesEncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(activationName);
+
+        final CreateActivationRequest createActivationRequest = new CreateActivationRequest();
+        createActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        createActivationRequest.setMaxFailureCount(5L);
+        createActivationRequest.setMac(encryptedRequest.getMac());
+        createActivationRequest.setNonce(encryptedRequest.getNonce());
+        createActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        createActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        createActivationRequest.setTimestampActivationExpire(expireDate);
+        createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        createActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        createActivationRequest.setApplicationKey(config.getApplicationKey());
+
+        return powerAuthClient.createActivation(createActivationRequest);
+    }
+
+    private static Activation findActivation(final List<Activation> activations, final String activationId) {
+        return activations.stream()
+                .filter(a -> activationId.equals(a.getActivationId()))
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private JsonNode postForActivation(final String endpoint, final Map<String, Object> requestObject, final String activationId) {
+        final String url = POWERAUTH_REST_URL.formatted(serverPort) + "/v3/activation/" + endpoint;
+        final String body = RestClient.create().post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("requestObject", requestObject))
+                .retrieve()
+                .body(String.class);
+        for (final JsonNode activation : objectMapper.readTree(body).get("responseObject").get("activations")) {
+            if (activationId.equals(activation.get("activationId").asString())) {
+                return activation;
+            }
+        }
+        throw new IllegalStateException("Activation not found in response");
+    }
+
+    private JsonNode postForV4ActivationStatus(final Map<String, Object> requestObject) {
+        final String url = POWERAUTH_REST_URL.formatted(serverPort) + "/v4/activation/status";
+        final String body = RestClient.create().post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("requestObject", requestObject))
+                .retrieve()
+                .body(String.class);
+        return objectMapper.readTree(body).get("responseObject");
     }
 
     /**

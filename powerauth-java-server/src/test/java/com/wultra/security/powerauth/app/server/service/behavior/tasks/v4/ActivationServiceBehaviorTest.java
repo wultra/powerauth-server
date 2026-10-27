@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.server.service.behavior.tasks.v4;
 import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObjectJSON;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationInitServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
@@ -76,6 +77,7 @@ import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -135,6 +137,9 @@ class ActivationServiceBehaviorTest {
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, true, true).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, false, true).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramEcdhe();
@@ -191,6 +196,11 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        final Map<String, String> expectedKeys = Map.of(KeyType.ECDSA_P384.name(), ecPublicKey);
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, true, true).getDevicePublicKeys());
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, false, true).getDevicePublicKeys());
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, false, false).getDevicePublicKeys().isEmpty());
     }
 
     @Test
@@ -203,6 +213,8 @@ class ActivationServiceBehaviorTest {
         final String activationId = initActivationResponse.getActivationId();
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, true, true).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE + MLKEM
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramHybrid();
@@ -261,6 +273,24 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        final Map<String, String> expectedKeys = Map.of(KeyType.ECDSA_P384.name(), ecPublicKey, KeyType.MLDSA_87.name(), mlDsaPublicKey);
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, true, true).getDevicePublicKeys());
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, false, true).getDevicePublicKeys());
+        assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, false, false).getDevicePublicKeys().isEmpty());
+    }
+
+    @Test
+    void testGetActivationStatusOfUnknownActivationHasNoDevicePublicKeys() throws Exception {
+        final String activationId = UUID.randomUUID().toString();
+
+        final GetActivationStatusResponse withBlob = getActivationStatusResponse(activationId, true, true);
+        final GetActivationStatusResponse withoutBlob = getActivationStatusResponse(activationId, false, true);
+
+        assertEquals(ActivationStatus.REMOVED, withBlob.getActivationStatus());
+        assertTrue(withBlob.getDevicePublicKeys().isEmpty());
+        assertEquals(ActivationStatus.REMOVED, withoutBlob.getActivationStatus());
+        assertTrue(withoutBlob.getDevicePublicKeys().isEmpty());
     }
 
     @Test
@@ -796,6 +826,14 @@ class ActivationServiceBehaviorTest {
     private GetActivationStatusResponse getActivationStatusResponse(final String activationId) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
+        return activationStatusServiceBehavior.getActivationStatus(statusRequest);
+    }
+
+    private GetActivationStatusResponse getActivationStatusResponse(final String activationId, final boolean includeStatusBlob, final boolean includeDevicePublicKeys) throws Exception {
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        statusRequest.setIncludeStatusBlob(includeStatusBlob);
+        statusRequest.setIncludeDevicePublicKeys(includeDevicePublicKeys);
         return activationStatusServiceBehavior.getActivationStatus(statusRequest);
     }
 

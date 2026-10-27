@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.server.converter.ActivationCommitPhaseC
 import com.wultra.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationSharedSecretConverter;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
+import com.wultra.security.powerauth.app.server.converter.DevicePublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.SharedSecretRecord;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -85,6 +86,7 @@ public class ActivationStatusServiceBehavior {
     private final AlgorithmQueryService algorithmQueryService;
     private final AsymmetricSignatureService asymmetricSignatureService;
     private final ActivationBlockService activationBlockService;
+    private final DevicePublicKeysConverter devicePublicKeysConverter;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -107,6 +109,7 @@ public class ActivationStatusServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final boolean includeStatusBlob = request.isIncludeStatusBlob();
+            final boolean includeDevicePublicKeys = request.isIncludeDevicePublicKeys();
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
@@ -127,7 +130,7 @@ public class ActivationStatusServiceBehavior {
             final ApplicationEntity application = activation.getApplication();
 
             // Build the common response fields shared across all activation states
-            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application);
+            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, includeDevicePublicKeys);
 
             if (includeStatusBlob) {
                 response.setStatusBlob(deriveStatusBlob(activation));
@@ -159,7 +162,7 @@ public class ActivationStatusServiceBehavior {
      * For {@link ActivationStatus#CREATED} activations, activation code and signatures are included.
      * For all other states, device public key fingerprint and additional data are included.
      */
-    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, boolean includeDevicePublicKeys) throws GenericServiceException {
         final GetActivationStatusResponse response = new GetActivationStatusResponse();
         response.setActivationId(activation.getActivationId());
         response.setUserId(activation.getUserId());
@@ -198,6 +201,10 @@ public class ActivationStatusServiceBehavior {
         } else {
             response.setActivationCode(null);
             response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
+            // Device public keys are large and opt-in; populated only when explicitly requested, independent of the status blob
+            if (includeDevicePublicKeys) {
+                response.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+            }
             response.setAdditionalData(activation.getAdditionalData());
         }
 

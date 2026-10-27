@@ -19,6 +19,7 @@
 
 package com.wultra.security.powerauth.client.model.response.v4;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -70,6 +71,13 @@ public class GetActivationStatusResponse {
     private Map<String, String> activationSignatures = new LinkedHashMap<>();
     @ToString.Exclude
     private String devicePublicKeyFingerprint;
+
+    @ToString.Exclude
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @Schema(description = "Device public keys by key type, as normalized Base64 (for example ECDSA_P384). "
+        + "Protocol v3 returns a single ECDSA_P256 key. Protocol v4 returns ECDSA_P384, and hybrid algorithms also return an ML-DSA key (MLDSA_65 or MLDSA_87). "
+        + "Empty for activations in the CREATED state. Returned only when the request sets includeDevicePublicKeys to true.")
+    private Map<String, String> devicePublicKeys = new LinkedHashMap<>();
     private long version;
     private List<String> activationFlags = new ArrayList<>();
     private List<String> applicationRoles = new ArrayList<>();
