@@ -304,6 +304,26 @@ class PowerAuthControllerTest {
         }
     }
 
+    @Test
+    void testV4ActivationStatusOmitsDevicePublicKeysPropertyUnlessRequested() throws Exception {
+        final String activationId = createActivation().getActivationId();
+        try {
+            final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+            lookupRequest.setUserIds(List.of(PowerAuthControllerTestConfig.USER_ID));
+            lookupRequest.setApplicationIds(List.of(config.getApplicationId()));
+            lookupRequest.setActivationStatus(ActivationStatus.PENDING_COMMIT);
+            final String devicePublicKey = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId).getDevicePublicKeyBase64();
+
+            final JsonNode withoutKeys = postForV4ActivationStatus(Map.of("activationId", activationId, "includeStatusBlob", false));
+            final JsonNode withKeys = postForV4ActivationStatus(Map.of("activationId", activationId, "includeStatusBlob", false, "includeDevicePublicKeys", true));
+
+            assertFalse(withoutKeys.has("devicePublicKeys"));
+            assertEquals(devicePublicKey, withKeys.get("devicePublicKeys").get("ECDSA_P256").asString());
+        } finally {
+            powerAuthClient.removeActivation(activationId, PowerAuthControllerTestConfig.USER_ID);
+        }
+    }
+
     /**
      * Tests the process of updating the status of specific activations.
      *
@@ -1332,6 +1352,17 @@ class PowerAuthControllerTest {
             }
         }
         throw new IllegalStateException("Activation not found in response");
+    }
+
+    private JsonNode postForV4ActivationStatus(final Map<String, Object> requestObject) {
+        final String url = POWERAUTH_REST_URL.formatted(serverPort) + "/v4/activation/status";
+        final String body = RestClient.create().post()
+                .uri(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("requestObject", requestObject))
+                .retrieve()
+                .body(String.class);
+        return objectMapper.readTree(body).get("responseObject");
     }
 
     /**

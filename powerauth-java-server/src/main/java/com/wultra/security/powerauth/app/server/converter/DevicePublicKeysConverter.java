@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.server.converter;
 
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -92,6 +93,10 @@ public class DevicePublicKeysConverter {
         try {
             final Optional<PublicKeyRegistry> registry = keyProvider.getDevicePublicKeys(activation);
             if (registry.isEmpty()) {
+                if (activation.getActivationStatus() != ActivationStatus.CREATED && activation.getActivationStatus() != ActivationStatus.REMOVED) {
+                    logger.warn("No device public keys stored for the v4 activation, returning none, activationId={}, activationStatus={}",
+                            activation.getActivationId(), activation.getActivationStatus());
+                }
                 return new LinkedHashMap<>();
             }
             final Map<String, String> storedKeys = publicKeyObjectMapper.convertValue(

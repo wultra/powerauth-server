@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.server.configuration.KeyMapperConfigura
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.PublicKeyRegistry;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import com.wultra.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
@@ -39,6 +40,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.security.PublicKey;
 import java.security.Security;
@@ -58,7 +61,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class DevicePublicKeysConverterTest {
 
     private static final String ECDSA_P384_PUBLIC_KEY = "BKJPKNYKmOx7O2uR1k1wR9NHUQFQVNghid1cNaHJ0HfGTYXpttIAsUkOlkY0DyIuAOcs+zpGRP87NlcdJALMfkKcXb22SAfy/E3D8HDCT038pYfL+HiwWpBP+5VYsmk28A==";
@@ -182,9 +185,10 @@ class DevicePublicKeysConverterTest {
     }
 
     @Test
-    void returnsEmptyMapForV4ActivationWithoutRegistryEvenWithRetainedLegacyKey() throws Exception {
+    void returnsEmptyMapForV4ActivationWithoutRegistryEvenWithRetainedLegacyKey(final CapturedOutput output) throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setVersion(4);
+        activation.setActivationStatus(ActivationStatus.ACTIVE);
         activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         activation.setDevicePublicKeyBase64(LEGACY_ECDSA_P256_PUBLIC_KEY);
         when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.empty());
@@ -192,6 +196,18 @@ class DevicePublicKeysConverterTest {
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
 
         assertThat(result).isNotNull().isEmpty();
+        assertThat(output).contains("No device public keys stored for the v4 activation");
+    }
+
+    @Test
+    void returnsEmptyMapQuietlyForCreatedV4ActivationWithoutRegistry(final CapturedOutput output) throws Exception {
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
+        activation.setActivationStatus(ActivationStatus.CREATED);
+        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.empty());
+
+        assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
+        assertThat(output).doesNotContain("No device public keys stored");
     }
 
     @Test

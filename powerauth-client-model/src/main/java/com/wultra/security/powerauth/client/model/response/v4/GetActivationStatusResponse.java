@@ -75,7 +75,7 @@ public class GetActivationStatusResponse {
     @ToString.Exclude
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @Schema(description = "Device public keys by key type, as normalized Base64 (for example ECDSA_P384). "
-        + "Protocol v4 returns ECDSA_P384, and hybrid algorithms also return an ML-DSA key (MLDSA_65 or MLDSA_87). "
+        + "Protocol v3 returns a single ECDSA_P256 key. Protocol v4 returns ECDSA_P384, and hybrid algorithms also return an ML-DSA key (MLDSA_65 or MLDSA_87). "
         + "Empty for activations in the CREATED state. Returned only when the request sets includeDevicePublicKeys to true.")
     private Map<String, String> devicePublicKeys = new LinkedHashMap<>();
     private long version;

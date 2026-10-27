@@ -25,6 +25,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
@@ -279,6 +280,7 @@ class PowerAuthServiceTest {
 
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(ACTIVATION_ID).orElseThrow();
         activation.setVersion(4);
+        activation.setCryptoAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5);
         keyProvider.storeDevicePublicKey(activation, KeyType.ECDSA_P384, ecdsaPublicKey);
         keyProvider.storeDevicePublicKey(activation, KeyType.MLDSA_87, mlDsaPublicKey);
 
