@@ -211,6 +211,9 @@ class PowerAuthServiceTest {
     @Test
     void testLookupActivations_v4DevicePublicKeys() throws Exception {
         final Map<String, String> expectedKeys = storeV4DevicePublicKeys();
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(ACTIVATION_ID).orElseThrow();
+        activation.setVersion(4);
+        activationRepository.save(activation);
 
         final LookupActivationsRequest request = new LookupActivationsRequest();
         request.setUserIds(List.of("user1"));
@@ -220,6 +223,8 @@ class PowerAuthServiceTest {
                 .filter(a -> ACTIVATION_ID.equals(a.getActivationId()))
                 .findFirst().orElseThrow();
 
+        assertEquals(4L, result.getVersion());
+        assertEquals("BF3Sc/vqg8Zk70Y8rbT45xzAIxblGoWgLqknCHuNj7f6QFBNi2UnLbG7yMqf2eWShhyBJdu9zqx7DG2qzlqhbBE=", result.getDevicePublicKeyBase64());
         assertEquals(expectedKeys, result.getDevicePublicKeys());
     }
 
@@ -253,7 +258,7 @@ class PowerAuthServiceTest {
         storeV4DevicePublicKeys();
         assignExternalId("credential-2");
 
-        final List<Activation> result = tested.findByExternalId("PA_Tests", "credential-2");
+        final List<Activation> result = tested.findByExternalId("221", "credential-2");
 
         assertEquals(1, result.size());
         assertNotNull(result.get(0).getDevicePublicKeyBase64());
