@@ -55,4 +55,8 @@ public class LookupActivationsRequest {
     @Schema(description = "List of activation flags")
     private List<@NotBlank String> activationFlags = new ArrayList<>();
 
+    @Schema(description = "Opt-in: include device public keys (v4: ECDSA_P384 + ML-DSA; v3: ECDSA_P256). "
+        + "Large (ML-DSA ≈ 2.6 KB each); default false. Independent of includeStatusBlob.", defaultValue = "false")
+    private boolean includeDevicePublicKeys = false;
+
 }

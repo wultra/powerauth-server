@@ -23,7 +23,6 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.app.server.converter.ActivationStatusConverter;
-import com.wultra.security.powerauth.app.server.converter.DevicePublicKeysConverter;
 import com.wultra.security.powerauth.app.server.database.model.KeyType;
 import com.wultra.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import com.wultra.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -81,7 +80,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final ActivationQueryService activationQueryService;
     private final CryptographyServiceFactory cryptographyServiceFactory;
     private final KeyPairGenerationService keyPairGenerationService;
-    private final DevicePublicKeysConverter devicePublicKeysConverter;
 
     private final LocalizationProvider localizationProvider;
     private final ObjectMapper objectMapper;
@@ -287,7 +285,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activationResponse.setFailedAttempts(activation.getFailedAttempts());
             activationResponse.setMaxFailedAttempts(activation.getMaxFailedAttempts());
             activationResponse.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
-            activationResponse.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
 
             auditStoredAuthenticator(activationResponse);
 

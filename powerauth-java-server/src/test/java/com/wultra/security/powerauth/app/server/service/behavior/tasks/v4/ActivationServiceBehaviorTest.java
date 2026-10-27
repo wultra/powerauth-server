@@ -138,6 +138,8 @@ class ActivationServiceBehaviorTest {
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
         assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, true, true).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, false, true).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramEcdhe();
@@ -194,9 +196,11 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        final Map<String, String> expectedKeys = Map.of(KeyType.ECDSA_P384.name(), ecPublicKey);
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, true, true).getDevicePublicKeys());
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, false, true).getDevicePublicKeys());
         assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
-        assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey),
-                getActivationStatusResponseWithoutBlob(activationId).getDevicePublicKeys());
+        assertTrue(getActivationStatusResponse(activationId, false, false).getDevicePublicKeys().isEmpty());
     }
 
     @Test
@@ -210,6 +214,7 @@ class ActivationServiceBehaviorTest {
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
         assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
+        assertTrue(getActivationStatusResponse(activationId, true, true).getDevicePublicKeys().isEmpty());
 
         // Generate request for ECDHE + MLKEM
         final RequestCryptogram requestCryptogramActivation = generateRequestCryptogramHybrid();
@@ -268,9 +273,24 @@ class ActivationServiceBehaviorTest {
         assertEquals(activationId, responseL2.getActivationId());
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
+        final Map<String, String> expectedKeys = Map.of(KeyType.ECDSA_P384.name(), ecPublicKey, KeyType.MLDSA_87.name(), mlDsaPublicKey);
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, true, true).getDevicePublicKeys());
+        assertEquals(expectedKeys, getActivationStatusResponse(activationId, false, true).getDevicePublicKeys());
         assertTrue(getActivationStatusResponse(activationId).getDevicePublicKeys().isEmpty());
-        assertEquals(Map.of(KeyType.ECDSA_P384.name(), ecPublicKey, KeyType.MLDSA_87.name(), mlDsaPublicKey),
-                getActivationStatusResponseWithoutBlob(activationId).getDevicePublicKeys());
+        assertTrue(getActivationStatusResponse(activationId, false, false).getDevicePublicKeys().isEmpty());
+    }
+
+    @Test
+    void testGetActivationStatusOfUnknownActivationHasNoDevicePublicKeys() throws Exception {
+        final String activationId = UUID.randomUUID().toString();
+
+        final GetActivationStatusResponse withBlob = getActivationStatusResponse(activationId, true, true);
+        final GetActivationStatusResponse withoutBlob = getActivationStatusResponse(activationId, false, true);
+
+        assertEquals(ActivationStatus.REMOVED, withBlob.getActivationStatus());
+        assertTrue(withBlob.getDevicePublicKeys().isEmpty());
+        assertEquals(ActivationStatus.REMOVED, withoutBlob.getActivationStatus());
+        assertTrue(withoutBlob.getDevicePublicKeys().isEmpty());
     }
 
     @Test
@@ -809,10 +829,11 @@ class ActivationServiceBehaviorTest {
         return activationStatusServiceBehavior.getActivationStatus(statusRequest);
     }
 
-    private GetActivationStatusResponse getActivationStatusResponseWithoutBlob(final String activationId) throws Exception {
+    private GetActivationStatusResponse getActivationStatusResponse(final String activationId, final boolean includeStatusBlob, final boolean includeDevicePublicKeys) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
-        statusRequest.setIncludeStatusBlob(false);
+        statusRequest.setIncludeStatusBlob(includeStatusBlob);
+        statusRequest.setIncludeDevicePublicKeys(includeDevicePublicKeys);
         return activationStatusServiceBehavior.getActivationStatus(statusRequest);
     }
 

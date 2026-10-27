@@ -109,6 +109,7 @@ public class ActivationStatusServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final boolean includeStatusBlob = request.isIncludeStatusBlob();
+            final boolean includeDevicePublicKeys = request.isIncludeDevicePublicKeys();
 
             // Generate timestamp in advance
             final Date timestamp = new Date();
@@ -129,7 +130,7 @@ public class ActivationStatusServiceBehavior {
             final ApplicationEntity application = activation.getApplication();
 
             // Build the common response fields shared across all activation states
-            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, includeStatusBlob);
+            final GetActivationStatusResponse response = buildActivationDetailResponse(activation, application, includeDevicePublicKeys);
 
             if (includeStatusBlob) {
                 response.setStatusBlob(deriveStatusBlob(activation));
@@ -161,7 +162,7 @@ public class ActivationStatusServiceBehavior {
      * For {@link ActivationStatus#CREATED} activations, activation code and signatures are included.
      * For all other states, device public key fingerprint and additional data are included.
      */
-    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, boolean includeStatusBlob) throws GenericServiceException {
+    private GetActivationStatusResponse buildActivationDetailResponse(ActivationRecordEntity activation, ApplicationEntity application, boolean includeDevicePublicKeys) throws GenericServiceException {
         final GetActivationStatusResponse response = new GetActivationStatusResponse();
         response.setActivationId(activation.getActivationId());
         response.setUserId(activation.getUserId());
@@ -200,8 +201,8 @@ public class ActivationStatusServiceBehavior {
         } else {
             response.setActivationCode(null);
             response.setDevicePublicKeyFingerprint(activation.getActivationFingerprint());
-            // Keys are large and only needed by management clients (PowerAuth Cloud), never by the mobile status with blob
-            if (!includeStatusBlob) {
+            // Device public keys are large and opt-in; populated only when explicitly requested, independent of the status blob
+            if (includeDevicePublicKeys) {
                 response.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
             }
             response.setAdditionalData(activation.getAdditionalData());

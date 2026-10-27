@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.client.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
@@ -62,6 +63,7 @@ public class Activation {
     private String devicePublicKeyBase64;
 
     @ToString.Exclude
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @Schema(description = "Device public keys by key type (KeyType name to normalized Base64). "
         + "Single ECDSA_P256 entry for v3; ECDSA_P384 plus the ML-DSA entry (MLDSA_65/MLDSA_87) for v4. "
         + "Empty for activations in CREATED state.")

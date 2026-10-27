@@ -887,6 +887,7 @@ REST endpoint: `POST /rest/v4/activation/status`
 |-----------|---------------------|----------------------------------------------------------------|
 | `String`  | `activationId`      | An identifier of an activation                                 |
 | `boolean` | `includeStatusBlob` | Whether status blob is included in the response (default=true) |
+| `boolean` | `includeDevicePublicKeys` | Opt-in flag to include device public keys in the response (default=false). Independent of `includeStatusBlob` |
 
 #### Response
 
@@ -919,7 +920,7 @@ REST endpoint: `POST /rest/v4/activation/status`
 | `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key (*deprecated*)                                        |
 | `Map<String, String>`     | `activationSignatures`       | A map of algorithm identifiers to activation signatures                                                                  |
 | `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification                                    |
-| `Map<String, String>`     | `devicePublicKeys`           | Device public keys by key type (normalized Base64). Returned only when `includeStatusBlob=false`                         |
+| `Map<String, String>`     | `devicePublicKeys`           | Device public keys by key type (normalized Base64). Returned only when `includeDevicePublicKeys=true`; empty for `CREATED` activations. For protocol v4 the pair must be treated as one unit: both `ECDSA_P384` and exactly one ML-DSA key (`MLDSA_65`/`MLDSA_87`) are present and both signatures must be verified — a single valid key is insufficient; absence does not mean the device has no key |
 | `long`                    | `version`                    | Activation version                                                                                                       |
 | `List<String>`            | `activationFlags`            | Activation flags                                                                                                         |
 | `List<String>`            | `applicationRoles`           | Application roles                                                                                                        |
@@ -969,6 +970,7 @@ REST endpoint: `POST /rest/v4/activation/list`
 | `Integer`                 | `pageNumber`         | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
 | `Integer`                 | `pageSize`           | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 | `Set<ActivationStatus>`   | `activationStatuses` | Optional statuses according to which activations should be filtered. Return all activations if empty.                                                                           |
+| `boolean`                 | `includeDevicePublicKeys` | Opt-in flag to include device public keys in each returned activation (default=false)                                                                                      |
 
 #### Response
 
@@ -1001,7 +1003,8 @@ REST endpoint: `POST /rest/v4/activation/list`
 | `String`                 | `applicationName`       | Application name                                                                                                         |
 | `long`                   | `failedAttempts`        | Information about number of failed attempts.                                                                             |
 | `long`                   | `maxFailedAttempts`     | Information about maximum number of allowed failed attempts.                                                             |
-| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key                                                                                         |
+| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key (FIDO2/V3 only, not deprecated)                                                         |
+| `Map<String, String>`    | `devicePublicKeys`      | Device public keys by key type (normalized Base64). Returned only when `includeDevicePublicKeys=true`; single `ECDSA_P256` for v3, `ECDSA_P384` plus one ML-DSA key (`MLDSA_65`/`MLDSA_87`) for v4; empty for `CREATED`. For v4 the pair must be treated as one unit — verify both signatures over the same message |
 | `long`                   | `version`               | Activation version                                                                                                       |
 | `Date`                   | `timestampBlockExpire`  | A timestamp after which a temporary activation block is automatically lifted (null when no temporary block is in effect) |
 | `Object`                 | `additionalData`        | The activation's custom attributes set through a private API in a free JSON structure                                    |
@@ -1077,6 +1080,7 @@ REST endpoint: `POST /rest/v4/activation/lookup`
 | `Date`             | `timestampLastUsedAfter`  | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used     |
 | `ActivationStatus` | `activationStatus`        | Filter activations by their status, do not specify value for any status                                                                                        |
 | `List<String>`     | `activationFlags`         | Filter activations by activation flags                                                                                                                         |
+| `boolean`          | `includeDevicePublicKeys` | Opt-in flag to include device public keys in each returned activation (default=false)                                                                          |
 
 #### Response
 
@@ -1108,7 +1112,8 @@ REST endpoint: `POST /rest/v4/activation/lookup`
 | `String`                 | `applicationName`       | Application name                                                                                                         |
 | `long`                   | `failedAttempts`        | Information about number of failed attempts.                                                                             |
 | `long`                   | `maxFailedAttempts`     | Information about maximum number of allowed failed attempts.                                                             |
-| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key                                                                                         |
+| `String`                 | `devicePublicKeyBase64` | Base64 encoded device public key (FIDO2/V3 only, not deprecated)                                                         |
+| `Map<String, String>`    | `devicePublicKeys`      | Device public keys by key type (normalized Base64). Returned only when `includeDevicePublicKeys=true`; single `ECDSA_P256` for v3, `ECDSA_P384` plus one ML-DSA key (`MLDSA_65`/`MLDSA_87`) for v4; empty for `CREATED`. For v4 the pair must be treated as one unit — verify both signatures over the same message |
 | `long`                   | `version`               | Activation version                                                                                                       |
 | `Date`                   | `timestampBlockExpire`  | A timestamp after which a temporary activation block is automatically lifted (null when no temporary block is in effect) |
 | `Object`                 | `additionalData`        | The activation's custom attributes set through a private API in a free JSON structure                                    |

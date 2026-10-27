@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.server.service.exceptions.GenericServic
 import com.wultra.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import com.wultra.security.powerauth.app.server.service.model.ServiceError;
 import com.wultra.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import com.wultra.security.powerauth.app.server.service.crypto.KeyProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.*;
@@ -85,6 +86,7 @@ public class ActivationServiceBehavior {
     private final ActivationRepository activationRepository;
     private final ActivationBlockService activationBlockService;
     private final DevicePublicKeysConverter devicePublicKeysConverter;
+    private final KeyProvider keyProvider;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -116,6 +118,10 @@ public class ActivationServiceBehavior {
                 activationsList = activationQueryService.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
             } else {
                 activationsList = activationQueryService.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
+            }
+
+            if (request.isIncludeDevicePublicKeys() && activationsList != null) {
+                keyProvider.prefetchDevicePublicKeys(activationsList);
             }
 
             final GetActivationListForUserResponse response = new GetActivationListForUserResponse();
@@ -160,7 +166,9 @@ public class ActivationServiceBehavior {
                     activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                     activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
-                    activationServiceItem.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+                    if (request.isIncludeDevicePublicKeys()) {
+                        activationServiceItem.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+                    }
                     activationServiceItem.setAdditionalData(activation.getAdditionalData());
                     activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
                     activationServiceItem.setTransferType(convert(activation.getTransferType()));
@@ -252,6 +260,10 @@ public class ActivationServiceBehavior {
                 filteredActivationList.addAll(activationsList);
             }
 
+            if (request.isIncludeDevicePublicKeys()) {
+                keyProvider.prefetchDevicePublicKeys(filteredActivationList);
+            }
+
             for (ActivationRecordEntity activation : filteredActivationList) {
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -276,7 +288,9 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
-                activationServiceItem.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+                if (request.isIncludeDevicePublicKeys()) {
+                    activationServiceItem.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
+                }
                 activationServiceItem.setAdditionalData(activation.getAdditionalData());
                 activationServiceItem.setParentActivationId(activation.getParentActivation() != null ? activation.getParentActivation().getActivationId() : null);
                 activationServiceItem.setTransferType(convert(activation.getTransferType()));
@@ -817,7 +831,6 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
                 activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                 activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
-                activationServiceItem.getDevicePublicKeys().putAll(devicePublicKeysConverter.toDevicePublicKeys(activation));
                 result.add(activationServiceItem);
             }
         }
