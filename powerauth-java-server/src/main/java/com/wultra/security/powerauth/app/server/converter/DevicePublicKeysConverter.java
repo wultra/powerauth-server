@@ -63,24 +63,27 @@ public class DevicePublicKeysConverter {
     /**
      * Build the map of device public keys for the given activation.
      * <p>
-     * Returns the v4 registry keys when present, otherwise falls back to the legacy v3 key. The map is
-     * empty when no device public key has been exchanged yet (e.g. an activation in the CREATED state)
-     * or when the stored keys cannot be converted, so that one corrupted row does not fail the whole read API.
+     * Returns the v4 registry keys for a v4 activation, or falls back to the legacy v3 key for older
+     * activations. The map is empty when no device public key has been exchanged yet (e.g. an activation
+     * in the CREATED state) or when the stored keys cannot be converted, so that one corrupted row does
+     * not fail the whole read API.
      *
      * @param activation Activation whose device public keys to expose.
      * @return Map of {@link KeyType} name to normalized Base64 public key, never {@code null}.
      */
     public Map<String, String> toDevicePublicKeys(final ActivationRecordEntity activation) {
-        final Optional<PublicKeyRegistry> registry;
-        try {
-            registry = keyProvider.getDevicePublicKeys(activation);
-            if (registry.isPresent()) {
-                return publicKeyObjectMapper.convertValue(
-                        registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
+        if (Integer.valueOf(4).equals(activation.getVersion())) {
+            final Optional<PublicKeyRegistry> registry;
+            try {
+                registry = keyProvider.getDevicePublicKeys(activation);
+                if (registry.isPresent()) {
+                    return publicKeyObjectMapper.convertValue(
+                            registry.get().getPublicKeys(), new TypeReference<Map<String, String>>() {});
+                }
+            } catch (GenericServiceException | RuntimeException ex) {
+                logger.error("Device public keys cannot be converted, returning none, activationId={}", activation.getActivationId(), ex);
+                return new LinkedHashMap<>();
             }
-        } catch (GenericServiceException | RuntimeException ex) {
-            logger.error("Device public keys cannot be converted, returning none, activationId={}", activation.getActivationId(), ex);
-            return new LinkedHashMap<>();
         }
 
         final Map<String, String> result = new LinkedHashMap<>();

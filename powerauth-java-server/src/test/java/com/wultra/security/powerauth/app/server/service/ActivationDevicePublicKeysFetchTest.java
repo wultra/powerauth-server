@@ -93,6 +93,7 @@ class ActivationDevicePublicKeysFetchTest {
         final PublicKey publicKey = new KeyConvertor().convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY));
         for (final String activationId : ACTIVATION_IDS) {
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow();
+            activation.setVersion(4);
             keyProvider.storeDevicePublicKey(activation, KeyType.ECDSA_P384, publicKey);
         }
         entityManager.flush();

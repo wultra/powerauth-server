@@ -278,6 +278,7 @@ class PowerAuthServiceTest {
         final String mlDsaPublicKeyBase64 = Base64.getEncoder().encodeToString(new MlDsaKeyConvertor().convertPublicKeyToBytes(mlDsaPublicKey));
 
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(ACTIVATION_ID).orElseThrow();
+        activation.setVersion(4);
         keyProvider.storeDevicePublicKey(activation, KeyType.ECDSA_P384, ecdsaPublicKey);
         keyProvider.storeDevicePublicKey(activation, KeyType.MLDSA_87, mlDsaPublicKey);
 

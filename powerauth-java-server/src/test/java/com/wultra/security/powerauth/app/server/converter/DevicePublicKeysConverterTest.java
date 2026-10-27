@@ -45,6 +45,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -88,6 +91,7 @@ class DevicePublicKeysConverterTest {
         registry.storePublicKey(KeyType.MLDSA_65, mldsaPublicKey);
 
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
         when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
 
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
@@ -102,8 +106,8 @@ class DevicePublicKeysConverterTest {
     @Test
     void returnsSingleEcdsaP256EntryForLegacyV3Activation() throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(3);
         activation.setDevicePublicKeyBase64(LEGACY_ECDSA_P256_PUBLIC_KEY);
-        when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.empty());
 
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
 
@@ -113,8 +117,28 @@ class DevicePublicKeysConverterTest {
     }
 
     @Test
+    void returnsLegacyV3KeyDuringPendingUpgrade() throws Exception {
+        final PublicKeyRegistry registry = new PublicKeyRegistry();
+        final PublicKey ecdsaPublicKey = keyConvertorEc.convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY));
+        final PublicKey mldsaPublicKey = keyConvertorPqcDsa.convertBytesToPublicKey(Base64.getDecoder().decode(MLDSA_65_PUBLIC_KEY));
+        registry.storePublicKey(KeyType.ECDSA_P384, ecdsaPublicKey);
+        registry.storePublicKey(KeyType.MLDSA_65, mldsaPublicKey);
+
+        final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(3);
+        activation.setDevicePublicKeyBase64(LEGACY_ECDSA_P256_PUBLIC_KEY);
+        lenient().when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.of(registry));
+
+        final Map<String, String> result = converter.toDevicePublicKeys(activation);
+
+        assertThat(result).containsExactly(entry(KeyType.ECDSA_P256.name(), LEGACY_ECDSA_P256_PUBLIC_KEY));
+        verify(keyProvider, never()).getDevicePublicKeys(activation);
+    }
+
+    @Test
     void returnsEmptyMapWhenNoDeviceKeyStored() throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
         when(keyProvider.getDevicePublicKeys(activation)).thenReturn(Optional.empty());
 
         final Map<String, String> result = converter.toDevicePublicKeys(activation);
@@ -125,6 +149,7 @@ class DevicePublicKeysConverterTest {
     @Test
     void returnsEmptyMapWhenKeyProviderFails() throws Exception {
         final ActivationRecordEntity activation = new ActivationRecordEntity();
+        activation.setVersion(4);
         when(keyProvider.getDevicePublicKeys(activation)).thenThrow(new GenericServiceException(ServiceError.INVALID_KEY_FORMAT, "Deserialization failed"));
 
         assertThat(converter.toDevicePublicKeys(activation)).isNotNull().isEmpty();
