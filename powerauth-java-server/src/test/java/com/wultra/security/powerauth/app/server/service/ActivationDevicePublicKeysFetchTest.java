@@ -45,7 +45,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,6 +69,8 @@ class ActivationDevicePublicKeysFetchTest {
             "47cf47b3-c72d-4859-a5f4-51da6d6ad6a3",
             "0d34cfc4-af98-4eb8-aba5-58f766bd2967");
 
+    private static final String ECDSA_P384_PUBLIC_KEY = "BKJPKNYKmOx7O2uR1k1wR9NHUQFQVNghid1cNaHJ0HfGTYXpttIAsUkOlkY0DyIuAOcs+zpGRP87NlcdJALMfkKcXb22SAfy/E3D8HDCT038pYfL+HiwWpBP+5VYsmk28A==";
+
     @Autowired
     private ActivationServiceBehavior tested;
 
@@ -86,8 +90,7 @@ class ActivationDevicePublicKeysFetchTest {
 
     @BeforeEach
     void storeKeysForAllActivations() throws Exception {
-        final String ecdsaP384PublicKey = "BKJPKNYKmOx7O2uR1k1wR9NHUQFQVNghid1cNaHJ0HfGTYXpttIAsUkOlkY0DyIuAOcs+zpGRP87NlcdJALMfkKcXb22SAfy/E3D8HDCT038pYfL+HiwWpBP+5VYsmk28A==";
-        final PublicKey publicKey = new KeyConvertor().convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ecdsaP384PublicKey));
+        final PublicKey publicKey = new KeyConvertor().convertBytesToPublicKey(EcCurve.P384, Base64.getDecoder().decode(ECDSA_P384_PUBLIC_KEY));
         for (final String activationId : ACTIVATION_IDS) {
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId).orElseThrow();
             keyProvider.storeDevicePublicKey(activation, KeyType.ECDSA_P384, publicKey);
@@ -109,7 +112,7 @@ class ActivationDevicePublicKeysFetchTest {
 
     @Test
     void activationListLoadsKeyRowsInSingleStatementWhenRequested() throws Exception {
-        tested.getActivationList(listRequest(false));
+        final List<Activation> defaults = tested.getActivationList(listRequest(false)).getActivations();
         resetPersistenceContext();
         tested.getActivationList(listRequest(false));
         final long baselineStatements = statistics.getPrepareStatementCount();
@@ -118,7 +121,7 @@ class ActivationDevicePublicKeysFetchTest {
         final List<Activation> result = tested.getActivationList(listRequest(true)).getActivations();
 
         assertEquals(3, result.size());
-        assertTrue(result.stream().noneMatch(a -> a.getDevicePublicKeys().isEmpty()));
+        assertStoredKeysReturned(result, defaults);
         assertEquals(3, keyRowsLoaded());
         assertEquals(baselineStatements + 1, statistics.getPrepareStatementCount());
     }
@@ -136,7 +139,7 @@ class ActivationDevicePublicKeysFetchTest {
 
     @Test
     void lookupLoadsKeyRowsInSingleStatementWhenRequested() throws Exception {
-        tested.lookupActivations(lookupRequest(false));
+        final List<Activation> defaults = tested.lookupActivations(lookupRequest(false)).getActivations();
         resetPersistenceContext();
         tested.lookupActivations(lookupRequest(false));
         final long baselineStatements = statistics.getPrepareStatementCount();
@@ -145,9 +148,21 @@ class ActivationDevicePublicKeysFetchTest {
         final List<Activation> result = tested.lookupActivations(lookupRequest(true)).getActivations();
 
         assertEquals(3, result.size());
-        assertTrue(result.stream().noneMatch(a -> a.getDevicePublicKeys().isEmpty()));
+        assertStoredKeysReturned(result, defaults);
         assertEquals(3, keyRowsLoaded());
         assertEquals(baselineStatements + 1, statistics.getPrepareStatementCount());
+    }
+
+    private static void assertStoredKeysReturned(final List<Activation> requested, final List<Activation> defaults) {
+        final Map<String, String> legacyKeys = new HashMap<>();
+        defaults.forEach(a -> legacyKeys.put(a.getActivationId(), a.getDevicePublicKeyBase64()));
+
+        for (final Activation activation : requested) {
+            assertEquals(Map.of("ECDSA_P384", ECDSA_P384_PUBLIC_KEY), activation.getDevicePublicKeys());
+            // The legacy field is preserved and not affected by the flag
+            assertTrue(legacyKeys.containsKey(activation.getActivationId()));
+            assertEquals(legacyKeys.get(activation.getActivationId()), activation.getDevicePublicKeyBase64());
+        }
     }
 
     private void resetPersistenceContext() {
