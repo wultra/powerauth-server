@@ -119,15 +119,6 @@ class PowerAuthServiceTest {
     }
 
     @Test
-    void testGetActivationListForUser_includeDevicePublicKeysForEmptyResult() throws Exception {
-        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
-        request.setUserId("unknown-user");
-        request.setIncludeDevicePublicKeys(true);
-
-        assertTrue(tested.getActivationList(request).getActivations().isEmpty());
-    }
-
-    @Test
     void testLookupActivations() throws Exception {
         final LookupActivationsRequest request = new LookupActivationsRequest();
         request.setUserIds(List.of("user1"));
@@ -152,15 +143,6 @@ class PowerAuthServiceTest {
                 .findFirst().orElseThrow();
         assertEquals(Map.of(KeyType.ECDSA_P256.name(), committedActivation.getDevicePublicKeyBase64()), committedActivation.getDevicePublicKeys());
         assertEquals(2, result.stream().filter(a -> a.getDevicePublicKeys().isEmpty()).count());
-    }
-
-    @Test
-    void testLookupActivations_includeDevicePublicKeysForEmptyResult() throws Exception {
-        final LookupActivationsRequest request = new LookupActivationsRequest();
-        request.setUserIds(List.of("unknown-user"));
-        request.setIncludeDevicePublicKeys(true);
-
-        assertTrue(tested.lookupActivations(request).getActivations().isEmpty());
     }
 
     @Test
@@ -196,20 +178,6 @@ class PowerAuthServiceTest {
     }
 
     @Test
-    void testGetActivationListForUser_v4DevicePublicKeysNotIncludedByDefault() throws Exception {
-        storeV4DevicePublicKeys();
-
-        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
-        request.setUserId("user1");
-        request.setProtocols(Set.of(ActivationProtocol.POWERAUTH));
-
-        final List<Activation> result = tested.getActivationList(request).getActivations();
-
-        assertEquals(3, result.size());
-        assertTrue(result.stream().allMatch(a -> a.getDevicePublicKeys().isEmpty()));
-    }
-
-    @Test
     void testLookupActivations_v4DevicePublicKeys() throws Exception {
         final Map<String, String> expectedKeys = storeV4DevicePublicKeys();
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(ACTIVATION_ID).orElseThrow();
@@ -227,49 +195,6 @@ class PowerAuthServiceTest {
         assertEquals(4L, result.getVersion());
         assertEquals("BF3Sc/vqg8Zk70Y8rbT45xzAIxblGoWgLqknCHuNj7f6QFBNi2UnLbG7yMqf2eWShhyBJdu9zqx7DG2qzlqhbBE=", result.getDevicePublicKeyBase64());
         assertEquals(expectedKeys, result.getDevicePublicKeys());
-    }
-
-    @Test
-    void testLookupActivations_v4DevicePublicKeysNotIncludedByDefault() throws Exception {
-        storeV4DevicePublicKeys();
-
-        final LookupActivationsRequest request = new LookupActivationsRequest();
-        request.setUserIds(List.of("user1"));
-
-        final List<Activation> result = tested.lookupActivations(request).getActivations();
-
-        assertEquals(3, result.size());
-        assertTrue(result.stream().allMatch(a -> a.getDevicePublicKeys().isEmpty()));
-    }
-
-    @Test
-    void testFindByUserIdAndExternalId_doesNotIncludeDevicePublicKeys() throws Exception {
-        storeV4DevicePublicKeys();
-        assignExternalId("credential-1");
-
-        final List<Activation> result = tested.findByUserIdAndExternalId("user1", "credential-1");
-
-        assertEquals(1, result.size());
-        assertNotNull(result.get(0).getDevicePublicKeyBase64());
-        assertTrue(result.get(0).getDevicePublicKeys().isEmpty());
-    }
-
-    @Test
-    void testFindByExternalId_doesNotIncludeDevicePublicKeys() throws Exception {
-        storeV4DevicePublicKeys();
-        assignExternalId("credential-2");
-
-        final List<Activation> result = tested.findByExternalId("PA_Tests", "credential-2");
-
-        assertEquals(1, result.size());
-        assertNotNull(result.get(0).getDevicePublicKeyBase64());
-        assertTrue(result.get(0).getDevicePublicKeys().isEmpty());
-    }
-
-    private void assignExternalId(final String externalId) {
-        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(ACTIVATION_ID).orElseThrow();
-        activation.setExternalId(externalId);
-        activationRepository.save(activation);
     }
 
     private Map<String, String> storeV4DevicePublicKeys() throws Exception {

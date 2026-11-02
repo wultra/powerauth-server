@@ -52,12 +52,6 @@ import java.util.Optional;
 @Component
 public class KeyProvider {
 
-    /**
-     * Maximum number of device public key identifiers loaded in a single batch query.
-     * Kept at or below the Oracle {@code IN} list limit (1000); also fits the MSSQL 2100 parameter limit.
-     */
-    private static final int DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE = 1000;
-
     private final ServerPublicKeyRepository serverPublicKeyRepository;
     private final PublicKeysConverter publicKeysConverter;
 
@@ -212,10 +206,7 @@ public class KeyProvider {
                 .map(DevicePublicKeyEntity::getId)
                 .distinct()
                 .toList();
-        for (int i = 0; i < ids.size(); i += DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE) {
-            final List<Long> chunk = ids.subList(i, Math.min(i + DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE, ids.size()));
-            devicePublicKeyRepository.findAllById(chunk);
-        }
+        devicePublicKeyRepository.findAllById(ids);
     }
 
     /**

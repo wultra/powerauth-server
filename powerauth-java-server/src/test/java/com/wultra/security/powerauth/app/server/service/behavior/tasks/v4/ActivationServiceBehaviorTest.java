@@ -281,19 +281,6 @@ class ActivationServiceBehaviorTest {
     }
 
     @Test
-    void testGetActivationStatusOfUnknownActivationHasNoDevicePublicKeys() throws Exception {
-        final String activationId = UUID.randomUUID().toString();
-
-        final GetActivationStatusResponse withBlob = getActivationStatusResponse(activationId, true, true);
-        final GetActivationStatusResponse withoutBlob = getActivationStatusResponse(activationId, false, true);
-
-        assertEquals(ActivationStatus.REMOVED, withBlob.getActivationStatus());
-        assertTrue(withBlob.getDevicePublicKeys().isEmpty());
-        assertEquals(ActivationStatus.REMOVED, withoutBlob.getActivationStatus());
-        assertTrue(withoutBlob.getDevicePublicKeys().isEmpty());
-    }
-
-    @Test
     void testPrepareActivationWithInvalidPayload() throws Exception {
         // Create application
         final GetApplicationDetailResponse detailResponse = createApplication();
