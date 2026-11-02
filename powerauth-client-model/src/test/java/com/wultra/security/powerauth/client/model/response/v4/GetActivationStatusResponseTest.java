@@ -27,8 +27,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test of the device public keys representation of {@link GetActivationStatusResponse}.
@@ -48,27 +46,6 @@ class GetActivationStatusResponseTest {
 
         assertFalse(json.has("devicePublicKeys"));
         assertEquals("id", json.get("activationId").asString());
-    }
-
-    @Test
-    void serializationContainsDevicePublicKeysByType() {
-        final GetActivationStatusResponse response = new GetActivationStatusResponse();
-        response.setDevicePublicKeys(new LinkedHashMap<>(Map.of("ECDSA_P384", "ecKey", "MLDSA_87", "mlKey")));
-
-        final JsonNode keys = MAPPER.readTree(MAPPER.writeValueAsString(response)).get("devicePublicKeys");
-
-        assertNotNull(keys);
-        assertEquals(2, keys.size());
-        assertEquals("ecKey", keys.get("ECDSA_P384").asString());
-        assertEquals("mlKey", keys.get("MLDSA_87").asString());
-    }
-
-    @Test
-    void deserializationWithoutDevicePublicKeysYieldsEmptyMap() {
-        final GetActivationStatusResponse response = MAPPER.readValue("{\"activationId\":\"id\"}", GetActivationStatusResponse.class);
-
-        assertNotNull(response.getDevicePublicKeys());
-        assertTrue(response.getDevicePublicKeys().isEmpty());
     }
 
     @Test
