@@ -18,18 +18,20 @@
  */
 package com.wultra.security.powerauth.client.v4;
 
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test of the convenience methods of {@link PowerAuthClient}.
@@ -39,29 +41,20 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class PowerAuthClientTest {
 
     @Test
-    void statusWithoutBlobSendsNeitherBlobNorDevicePublicKeys() throws Exception {
-        final List<GetActivationStatusRequest> sent = new ArrayList<>();
+    void statusWithoutBlobSendsNeitherBlobNorDevicePublicKeys() throws PowerAuthClientException {
+        final PowerAuthClient client = mock(PowerAuthClient.class, CALLS_REAL_METHODS);
         final GetActivationStatusResponse response = new GetActivationStatusResponse();
-        final PowerAuthClient client = clientCapturing(sent, response);
+        doReturn(response).when(client).getActivationStatus(any(GetActivationStatusRequest.class));
 
         final GetActivationStatusResponse result = client.getActivationStatusWithoutBlob("activation-id");
 
         assertSame(response, result);
-        assertEquals(1, sent.size());
-        assertEquals("activation-id", sent.get(0).getActivationId());
-        assertFalse(sent.get(0).isIncludeStatusBlob());
-        assertFalse(sent.get(0).isIncludeDevicePublicKeys());
-    }
-
-    private static PowerAuthClient clientCapturing(final List<GetActivationStatusRequest> sent, final GetActivationStatusResponse response) {
-        final InvocationHandler handler = (proxy, method, args) -> {
-            if (method.isDefault()) {
-                return InvocationHandler.invokeDefault(proxy, method, args);
-            }
-            sent.add((GetActivationStatusRequest) args[0]);
-            return response;
-        };
-        return (PowerAuthClient) Proxy.newProxyInstance(PowerAuthClient.class.getClassLoader(), new Class<?>[]{PowerAuthClient.class}, handler);
+        final ArgumentCaptor<GetActivationStatusRequest> captor = ArgumentCaptor.forClass(GetActivationStatusRequest.class);
+        verify(client).getActivationStatus(captor.capture());
+        final GetActivationStatusRequest sent = captor.getValue();
+        assertEquals("activation-id", sent.getActivationId());
+        assertFalse(sent.isIncludeStatusBlob());
+        assertFalse(sent.isIncludeDevicePublicKeys());
     }
 
 }
