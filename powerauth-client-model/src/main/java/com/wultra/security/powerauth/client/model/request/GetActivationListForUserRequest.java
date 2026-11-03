@@ -56,4 +56,8 @@ public class GetActivationListForUserRequest {
     @Schema(description = "Optional statuses according to which activations should be filtered. Return all activations if empty.")
     private Set<ActivationStatus> activationStatuses;
 
+    @Schema(description = "Whether to include the device public keys of each returned activation. "
+        + "Disabled by default because the keys are large.", defaultValue = "false")
+    private boolean includeDevicePublicKeys = false;
+
 }

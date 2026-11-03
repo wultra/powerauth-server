@@ -37,6 +37,9 @@ import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -48,6 +51,12 @@ import java.util.Optional;
 @AllArgsConstructor
 @Component
 public class KeyProvider {
+
+    /**
+     * Maximum number of device public key identifiers loaded in a single batch query.
+     * Kept at or below the Oracle {@code IN} list limit (1000); also fits the MSSQL 2100 parameter limit.
+     */
+    private static final int DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE = 1000;
 
     private final ServerPublicKeyRepository serverPublicKeyRepository;
     private final PublicKeysConverter publicKeysConverter;
@@ -184,6 +193,29 @@ public class KeyProvider {
         }
 
         return Optional.of(publicKeysConverter.fromDBValue(entity.getKeyData()));
+    }
+
+    /**
+     * Pre-load the device public key rows for the given activations into the persistence context in a
+     * small number of batched queries, so that a subsequent per-activation {@link #getDevicePublicKeys}
+     * call resolves from the first-level cache without an N+1 query pattern.
+     * <p>
+     * Only invoke this when the device public keys are actually requested; by default the owning-side
+     * lazy association is never touched and no key query is issued.
+     *
+     * @param activations Activations whose device public keys should be pre-fetched.
+     */
+    public void prefetchDevicePublicKeys(final Collection<ActivationRecordEntity> activations) {
+        final List<Long> ids = activations.stream()
+                .map(ActivationRecordEntity::getDevicePublicKey)
+                .filter(Objects::nonNull)
+                .map(DevicePublicKeyEntity::getId)
+                .distinct()
+                .toList();
+        for (int i = 0; i < ids.size(); i += DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE) {
+            final List<Long> chunk = ids.subList(i, Math.min(i + DEVICE_PUBLIC_KEY_FETCH_CHUNK_SIZE, ids.size()));
+            devicePublicKeyRepository.findAllById(chunk);
+        }
     }
 
     /**
