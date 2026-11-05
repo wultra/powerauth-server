@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Restored numeric (epoch-millisecond) serialization of operation callback timestamps, which regressed to ISO-8601 strings after the Jackson 3 upgrade and broke callback consumers that parse the timestamps as numbers [(#2436)](https://github.com/wultra/powerauth-server/issues/2436)
 - Fixed authenticator data deserialization when extensions are present, which could fail after the Jackson 3 upgrade [(#2444)](https://github.com/wultra/powerauth-server/issues/2444)
+- Fixed the build time in `/actuator/info` showing `1980-02-01` when built with Maven 3.10 or newer [(#2468)](https://github.com/wultra/powerauth-server/issues/2468)
 
 ## [2.2.0] - 2026-07-20
 
