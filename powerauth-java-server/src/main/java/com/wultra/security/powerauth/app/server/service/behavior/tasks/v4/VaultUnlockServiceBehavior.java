@@ -221,7 +221,7 @@ public class VaultUnlockServiceBehavior {
         final KeyValue entry = new KeyValue();
         entry.setKey(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
         entry.setValue(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED));
-        return Collections.singletonList(entry);
+        return new ArrayList<>(List.of(entry));
     }
 
     /**
