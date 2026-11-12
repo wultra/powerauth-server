@@ -44,20 +44,16 @@ class VaultUnlockServiceBehaviorTest {
         final Method buildAuditInfo = VaultUnlockServiceBehavior.class.getDeclaredMethod("buildAuditInfo", String.class);
         buildAuditInfo.setAccessible(true);
 
-        @SuppressWarnings("unchecked")
-        final List<KeyValue> auditInfo = (List<KeyValue>) buildAuditInfo.invoke(behavior, "DISPLAY_DATA");
+        final List<?> auditInfo = (List<?>) buildAuditInfo.invoke(behavior, "DISPLAY_DATA");
 
-        assertThat(auditInfo).singleElement().satisfies(entry -> {
-            assertThat(entry.getKey()).isEqualTo(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
-            assertThat(entry.getValue()).isEqualTo("DISPLAY_DATA");
-        });
+        assertThat(auditInfo).singleElement()
+                .isInstanceOfSatisfying(KeyValue.class, entry -> {
+                    assertThat(entry.getKey()).isEqualTo(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
+                    assertThat(entry.getValue()).isEqualTo("DISPLAY_DATA");
+                });
 
         // The list is later mutated downstream via getAdditionalInfo().add(...), so it must be mutable.
-        final KeyValue extra = new KeyValue();
-        extra.setKey(AdditionalInformation.Key.BLOCKED_REASON);
-        extra.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-        assertThatCode(() -> auditInfo.add(extra)).doesNotThrowAnyException();
-        assertThat(auditInfo).hasSize(2);
+        assertThatCode(auditInfo::clear).doesNotThrowAnyException();
     }
 
     @Test
@@ -68,11 +64,11 @@ class VaultUnlockServiceBehaviorTest {
         final Method buildAuditInfo = VaultUnlockServiceBehavior.class.getDeclaredMethod("buildAuditInfo", String.class);
         buildAuditInfo.setAccessible(true);
 
-        @SuppressWarnings("unchecked")
-        final List<KeyValue> auditInfo = (List<KeyValue>) buildAuditInfo.invoke(behavior, (String) null);
+        final List<?> auditInfo = (List<?>) buildAuditInfo.invoke(behavior, (String) null);
 
-        assertThat(auditInfo).singleElement().satisfies(entry ->
-                assertThat(entry.getValue()).isEqualTo(AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED));
+        assertThat(auditInfo).singleElement()
+                .isInstanceOfSatisfying(KeyValue.class, entry ->
+                        assertThat(entry.getValue()).isEqualTo(AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED));
     }
 
 }
